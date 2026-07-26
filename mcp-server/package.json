@@ -1,0 +1,30 @@
+{
+    "name": "mcp-server",
+    "version": "1.0.0",
+    "type": "module",
+    "description": "Servidor MCP do Mestre do PC V10 para diagnóstico, manutenção e Ollama local.",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "test": "node --test"
+    },
+    "keywords": [
+        "mcp",
+        "mestre-do-pc",
+        "system-tools"
+    ],
+    "author": "Jeanc",
+    "license": "ISC",
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.29.0"
+    },
+    "overrides": {
+        "@hono/node-server": "1.19.15",
+        "body-parser": "2.3.0",
+        "fast-uri": "3.1.4",
+        "hono": "4.12.32",
+        "ip-address": "10.3.1",
+        "path-to-regexp": "8.4.2",
+        "qs": "6.15.3"
+    }
+}

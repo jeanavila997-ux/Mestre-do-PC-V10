@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: mcp-server/package-lock.json
+      - name: Install MCP dependencies
+        working-directory: mcp-server
+        run: npm ci
+      - name: Run MCP tests
+        working-directory: mcp-server
+        run: npm test
+      - name: Check JavaScript syntax
+        shell: pwsh
+        run: |
+          node --check v10/launcher.js
+          node --check mcp-server/index.js
+          node --check mcp-server/security.js

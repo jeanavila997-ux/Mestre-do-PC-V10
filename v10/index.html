@@ -1,0 +1,1385 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mestre do PC V10 - Ultimate Plus</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
+    <style>
+      :root {
+        --bg: #05070a;
+        --panel: #0d1117;
+        --accent: #00d4ff;
+        --accent2: #00ff88;
+        --text: #e6edf3;
+        --border: rgba(255, 255, 255, 0.1);
+        --card: #161b22;
+        --danger: #f85149;
+        --success: #238636;
+        --warning: #f0a800;
+        --purple: #a200ff;
+      }
+      /* ===== TEMA CLARO (NOVO V10) ===== */
+      body.light {
+        --bg: #f6f8fa;
+        --panel: #ffffff;
+        --accent: #0969da;
+        --accent2: #1a7f37;
+        --text: #1f2328;
+        --border: rgba(0,0,0,0.12);
+        --card: #f3f4f6;
+        --danger: #cf222e;
+        --success: #1a7f37;
+        --warning: #9a6700;
+        --purple: #8250df;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        min-height: 100vh;
+        transition: background 0.3s, color 0.3s;
+      }
+      .sidebar {
+        width: 260px;
+        background: var(--panel);
+        border-right: 1px solid var(--border);
+        padding: 20px 12px;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 1000;
+        transition: width 0.22s ease, padding 0.22s ease, box-shadow 0.22s ease;
+      }
+      .logo-img { width: 100%; margin-bottom: 20px; border-radius: 10px; cursor: pointer; transition: transform 0.2s, filter 0.2s; }
+      .logo-img:hover { transform: scale(1.04); filter: drop-shadow(0 0 12px rgba(0,212,255,0.5)); }
+      .nav-item {
+        display: block;
+        padding: 9px 14px;
+        color: var(--text);
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-bottom: 3px;
+        transition: 0.2s;
+        opacity: 0.7;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .nav-item::before { content: ""; display: none; }
+      .nav-item:hover { background: rgba(0,212,255,0.1); opacity: 1; }
+      .nav-item.active { background: rgba(0,212,255,0.2); color: var(--accent); opacity: 1; }
+      .main { margin-left: 260px; padding: 24px 28px; flex: 1; transition: margin-left 0.22s ease; }
+      body.sidebar-collapsed .sidebar {
+        width: 64px;
+        padding: 14px 8px;
+        overflow-x: hidden;
+      }
+      body.sidebar-collapsed .main { margin-left: 64px; }
+      body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .logo-img {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        pointer-events: none;
+      }
+      body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .nav-item {
+        height: 34px;
+        padding: 8px 0;
+        text-align: center;
+        color: transparent;
+        text-overflow: clip;
+      }
+      body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .nav-item::before {
+        content: attr(data-index);
+        display: inline-block;
+        color: var(--text);
+        font-weight: 700;
+        opacity: 0.85;
+      }
+      body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .nav-item.active::before { color: var(--accent); }
+      body.sidebar-collapsed .sidebar:hover,
+      body.sidebar-collapsed .sidebar:focus-within {
+        width: 260px;
+        padding: 20px 12px;
+        box-shadow: 18px 0 36px rgba(0,0,0,0.35);
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .header h1 { font-size: 1.5rem; }
+      .header-license { font-size: 1.2rem; color: #8b949e; margin-left: 10px; }
+      .header-license-name { color: var(--accent2); }
+      .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      .search {
+        padding: 9px 16px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        color: var(--text);
+        font-size: 0.9rem;
+        outline: none;
+        width: 220px;
+      }
+      .search:focus { border-color: var(--accent); }
+      .btn-open-ps {
+        padding: 9px 16px;
+        background: rgba(0,212,255,0.15);
+        border: 1px solid var(--accent);
+        border-radius: 20px;
+        color: var(--accent);
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+      .btn-open-ps:hover { background: var(--accent); color: #000; }
+      .btn-ia-local { background: linear-gradient(135deg, #a200ff, #00d4ff); color: white; border: none; }
+      /* ===== NOVO: botão tema ===== */
+      .btn-theme {
+        padding: 9px 14px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        color: var(--text);
+        cursor: pointer;
+        font-size: 1rem;
+        transition: 0.2s;
+      }
+      .btn-theme:hover { border-color: var(--accent2); }
+      /* ===== NOVO: dashboard ===== */
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      .metric-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+      }
+      .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+      }
+      .metric-icon { font-size: 1.3rem; margin-bottom: 8px; }
+      .metric-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); font-family: "Cascadia Mono", Consolas, monospace; }
+      .metric-label { font-size: 0.72rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+      .progress-bar { height: 4px; background: var(--card); border-radius: 2px; overflow: hidden; margin-top: 10px; }
+      .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.6s; }
+      .info-bar {
+        background: rgba(0,212,255,0.07);
+        border: 1px solid rgba(0,212,255,0.2);
+        border-radius: 10px;
+        padding: 12px 18px;
+        margin-bottom: 24px;
+        font-size: 0.88rem;
+        color: #8b949e;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .info-bar strong { color: var(--accent); }
+      .status-container { display: flex; align-items: center; gap: 20px; width: 100%; flex-wrap: wrap; }
+      .status-divider { border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px; }
+      .btn-verify { margin-left: auto; padding: 5px 14px; background: rgba(0,212,255,0.15); border: 1px solid var(--accent); border-radius: 20px; color: var(--accent); cursor: pointer; font-size: 0.82rem; }
+      /* ===== NOVO: barra de favoritos ===== */
+      .favorites-bar {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        display: none;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .favorites-bar.show { display: flex; }
+      .fav-label { font-size: 0.8rem; color: var(--accent2); font-weight: 600; margin-right: 4px; }
+      .fav-chip {
+        padding: 5px 12px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .fav-chip:hover { border-color: var(--accent); }
+      .fav-chip .x { color: var(--danger); font-weight: bold; }
+      /* ===== NOVO: painel de fila ===== */
+      .queue-panel {
+        background: var(--panel);
+        border: 1px solid rgba(162,0,255,0.3);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      .queue-panel.show { display: block; }
+      .queue-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+      .queue-header h3 { color: var(--purple); font-size: 0.95rem; }
+      .queue-header .queue-actions { display: flex; gap: 8px; }
+      .queue-item {
+        padding: 8px 12px;
+        background: var(--card);
+        border-radius: 6px;
+        margin-bottom: 6px;
+        font-size: 0.82rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .queue-item .x { color: var(--danger); cursor: pointer; font-weight: bold; }
+      .btn-queue-run { padding: 6px 14px; background: var(--purple); border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+      .btn-queue-clear { padding: 6px 14px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text); cursor: pointer; font-size: 0.8rem; }
+      /* ===== Categorias (padrão V7) ===== */
+      .category { margin-bottom: 20px; background: var(--panel); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+      .category-header {
+        background: linear-gradient(90deg, rgba(0,212,255,0.15), rgba(0,255,136,0.1));
+        border-bottom: 1px solid var(--border);
+        color: var(--accent);
+        padding: 14px 20px;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+        transition: 0.2s;
+      }
+      .category-header:hover { background: linear-gradient(90deg, rgba(0,212,255,0.22), rgba(0,255,136,0.15)); }
+      .category-content { padding: 16px; display: none; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; }
+      .category.active .category-content { display: grid; }
+      .cmd-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 15px; transition: 0.3s; position: relative; }
+      .cmd-card:hover { border-color: rgba(0,212,255,0.4); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+      .cmd-card h4 { color: var(--accent2); margin-bottom: 7px; font-size: 0.93rem; padding-right: 28px; }
+      .cmd-card .fav-star {
+        position: absolute; top: 12px; right: 14px;
+        cursor: pointer; font-size: 1.1rem; opacity: 0.4; transition: 0.2s;
+      }
+      .cmd-card .fav-star:hover { opacity: 1; }
+      .cmd-card .fav-star.active { opacity: 1; color: var(--warning); }
+      .cmd-card code {
+        display: block; background: #010409; padding: 12px; border-radius: 8px;
+        font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.8rem; color: #79c0ff;
+        white-space: pre-wrap; word-break: break-all; margin: 10px 0; border: 1px solid rgba(255,255,255,0.05);
+        max-height: 120px; overflow-y: auto;
+      }
+      body.light .cmd-card code { background: #f0f0f0; color: #0550ae; }
+      .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+      .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.82rem; transition: 0.2s; }
+      .btn-copy { background: var(--success); color: white; }
+      .btn-run { background: var(--danger); color: white; }
+      /* NOVO V10 revisao: aviso visual em comandos destrutivos */
+      .cmd-card.danger { border-color: var(--danger); }
+      .cmd-card.danger:hover { border-color: var(--danger); box-shadow: 0 0 12px rgba(248,81,73,0.35); }
+      .danger-badge {
+        display: inline-block;
+        margin-left: 8px;
+        margin-bottom: 7px;
+        padding: 2px 8px;
+        background: rgba(248,81,73,0.15);
+        color: var(--danger);
+        border: 1px solid rgba(248,81,73,0.4);
+        border-radius: 12px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+      .btn-queue-add { background: var(--purple); color: white; }
+      .btn-live { background: var(--accent); color: #000; }
+      .btn:hover { transform: scale(1.06); opacity: 0.9; }
+      .badge { font-size: 0.7rem; background: rgba(0,212,255,0.2); color: var(--accent); border-radius: 20px; padding: 2px 8px; margin-left: 6px; font-weight: 600; }
+      .toast {
+        position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+        background: var(--accent2); color: #000; padding: 13px 30px; border-radius: 50px;
+        font-weight: bold; box-shadow: 0 12px 30px rgba(0,255,136,0.45); z-index: 9999;
+        display: none; align-items: center; gap: 8px; font-size: 0.95rem;
+      }
+      /* ===== Modal IA (padrão V7) ===== */
+      .ia-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 10000; display: none; justify-content: center; align-items: center; }
+      .ia-overlay.open { display: flex; }
+      .ia-modal { width: 700px; max-width: 95vw; height: 80vh; max-height: 700px; background: var(--panel); border: 1px solid rgba(0,212,255,0.3); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
+      .ia-header { padding: 14px 20px; background: linear-gradient(135deg, rgba(162,0,255,0.2), rgba(0,212,255,0.15)); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+      .ia-header h3 { color: var(--accent); font-size: 1rem; }
+      .ia-header .ia-status { font-size: 0.75rem; color: #8b949e; }
+      .ia-header .ia-close { background: none; border: none; color: #8b949e; font-size: 1.3rem; cursor: pointer; }
+      .ia-header .ia-close:hover { color: var(--danger); }
+      .ia-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+      .ia-msg { max-width: 85%; padding: 12px 16px; border-radius: 14px; font-size: 0.9rem; line-height: 1.5; word-wrap: break-word; }
+      .ia-msg.user { align-self: flex-end; background: linear-gradient(135deg, #00d4ff, #00ff88); color: #000; border-bottom-right-radius: 4px; }
+      .ia-msg.ai { align-self: flex-start; background: var(--card); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+      .ia-msg.ai pre { background: #010409; padding: 10px; border-radius: 6px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.8rem; color: #79c0ff; margin: 8px 0 4px; white-space: pre-wrap; }
+      .ia-msg.ai .ia-run-btn { display: inline-block; margin-top: 6px; padding: 5px 12px; background: var(--danger); color: white; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+      .ia-typing { display: inline-flex; gap: 4px; padding: 10px 16px; align-self: flex-start; }
+      .ia-typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: 0.4; animation: iaTyping 1.2s infinite; }
+      .ia-typing span:nth-child(2) { animation-delay: 0.2s; }
+      .ia-typing span:nth-child(3) { animation-delay: 0.4s; }
+      @keyframes iaTyping { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+      .ia-input-area { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: rgba(0,0,0,0.3); }
+      .ia-input-area input { flex: 1; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 50px; color: var(--text); font-size: 0.9rem; outline: none; }
+      .ia-input-area input:focus { border-color: var(--accent); }
+      .ia-input-area button { padding: 10px 20px; background: linear-gradient(135deg, #a200ff, #00d4ff); border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+      /* ===== Modal parâmetro (padrão V7) ===== */
+      .param-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 9000; justify-content: center; align-items: center; }
+      .param-modal { background: var(--panel); border: 1px solid rgba(0,212,255,0.3); border-radius: 14px; padding: 28px 32px; width: 420px; max-width: 95vw; }
+      .param-title { color: var(--accent); margin-bottom: 8px; font-size: 1rem; }
+      .param-desc { color: #8b949e; font-size: 0.88rem; margin-bottom: 14px; }
+      .param-input { width: 100%; padding: 11px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.93rem; outline: none; margin-bottom: 18px; }
+      .param-actions { display: flex; gap: 10px; justify-content: flex-end; }
+      .btn-param-cancel { padding: 8px 18px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 0.88rem; }
+      .btn-param-confirm { padding: 8px 20px; background: var(--danger); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 0.88rem; }
+      /* ===== Painel de Output (padrão V7) ===== */
+      .output-panel { display: none; margin-bottom: 20px; background: #010409; border: 1px solid rgba(0,212,255,0.3); border-radius: 12px; overflow: hidden; }
+      .output-header { padding: 10px 16px; background: rgba(0,212,255,0.08); border-bottom: 1px solid rgba(0,212,255,0.2); display: flex; justify-content: space-between; align-items: center; }
+      .output-title { color: var(--accent); font-weight: bold; font-size: 0.9rem; }
+      .output-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 1.1rem; }
+      .output-content { padding: 16px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: #e6edf3; white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow-y: auto; margin: 0; }
+      /* ===== NOVO: Terminal modal com output ao vivo ===== */
+      .term-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 9500; justify-content: center; align-items: center; }
+      .term-overlay.open { display: flex; }
+      .term-modal { width: 800px; max-width: 95vw; height: 70vh; background: var(--panel); border: 1px solid var(--accent2); border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0,255,136,0.2); }
+      .term-head { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+      .term-head h3 { color: var(--accent2); font-size: 0.95rem; }
+      .term-head .term-close { background: none; border: none; color: #8b949e; font-size: 1.3rem; cursor: pointer; }
+      .term-body { flex: 1; overflow-y: auto; padding: 16px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: #e6edf3; white-space: pre-wrap; word-break: break-all; }
+      .term-busy { color: var(--warning); }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <img src="../logo-mestre-v7-transparent.png" class="logo-img" alt="Mestre do PC V10" title="Voltar ao início" onclick="voltarInicio()" onerror="this.style.display='none'" />
+      <div id="nav"></div>
+    </div>
+    <div class="main">
+      <div class="header">
+        <h1>🛡️ Mestre do PC V10 <span class="header-license">| <span class="header-license-name">JEAN</span></span></h1>
+        <div class="header-right">
+          <input type="text" id="searchInput" class="search" placeholder="🔍 Buscar comando..." />
+          <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
+          <button class="btn-open-ps" onclick="openPS()">⚡ PowerShell</button>
+          <button class="btn-open-ps btn-ia-local" onclick="openAI()">🤖 IA Local</button>
+        </div>
+      </div>
+      <!-- NOVO: Dashboard de métricas -->
+      <div class="dashboard" id="dashboard">
+        <div class="metric-card"><div class="metric-icon">🖥️</div><div class="metric-value" id="mCpu">--</div><div class="metric-label">CPU %</div><div class="progress-bar"><div class="progress-fill" id="mCpuBar" style="width:0%"></div></div></div>
+        <div class="metric-card"><div class="metric-icon">📊</div><div class="metric-value" id="mRam">--</div><div class="metric-label">RAM Livre (GB)</div><div class="progress-bar"><div class="progress-fill" id="mRamBar" style="width:0%"></div></div></div>
+        <div class="metric-card"><div class="metric-icon">💾</div><div class="metric-value" id="mDisk">--</div><div class="metric-label">Disco Livre (GB)</div><div class="progress-bar"><div class="progress-fill" id="mDiskBar" style="width:0%"></div></div></div>
+        <div class="metric-card"><div class="metric-icon">⏱️</div><div class="metric-value" id="mUp">--</div><div class="metric-label">Uptime</div></div>
+      </div>
+      <div class="info-bar" id="serverStatus">
+        <div class="status-container">
+          <div id="launcherStatus"><span id="launcherStatusIcon">🔴</span> <span id="statusText">Launcher offline — <strong>Execute o atalho Mestre do PC</strong></span></div>
+          <div id="mcpStatus" class="status-divider"><span id="mcpStatusIcon">⚪</span> MCP: <span id="mcpStatusText">Indisponível</span></div>
+          <div id="ollamaStatus" class="status-divider"><span id="ollamaStatusIcon">⚪</span> Ollama: <span id="ollamaStatusText">Verificando...</span></div>
+          <button class="btn-verify" onclick="checkServer()">↻ Verificar</button>
+        </div>
+      </div>
+      <!-- NOVO: Barra de favoritos -->
+      <div class="favorites-bar" id="favBar">
+        <span class="fav-label">⭐ Favoritos:</span>
+        <div id="favList" style="display:contents"></div>
+      </div>
+      <!-- NOVO: Painel de fila de comandos -->
+      <div class="queue-panel" id="queuePanel">
+        <div class="queue-header">
+          <h3>📋 Fila de Comandos (<span id="queueCount">0</span>)</h3>
+          <div class="queue-actions">
+            <button class="btn-queue-run" onclick="runQueue()">▶ Executar Fila</button>
+            <button class="btn-queue-clear" onclick="clearQueue()">🗑️ Limpar</button>
+            <button class="btn-queue-clear" onclick="exportHistory()">📤 Exportar Histórico</button>
+          </div>
+        </div>
+        <div id="queueList"></div>
+      </div>
+      <!-- Modal de parâmetro -->
+      <div id="paramOverlay" class="param-overlay">
+        <div class="param-modal">
+          <h3 id="paramTitle" class="param-title">Parâmetro necessário</h3>
+          <p id="paramDesc" class="param-desc"></p>
+          <input id="paramInput" type="text" class="param-input" onkeydown="if(event.key==='Enter') confirmParam()" />
+          <div class="param-actions">
+            <button class="btn-param-cancel" onclick="cancelParam()">Cancelar</button>
+            <button class="btn-param-confirm" onclick="confirmParam()">▶ Executar</button>
+          </div>
+        </div>
+      </div>
+      <!-- Painel de Output -->
+      <div id="outputPanel" class="output-panel">
+        <div class="output-header">
+          <span class="output-title">⚡ Output do Comando</span>
+          <button class="output-close" onclick="document.getElementById('outputPanel').style.display='none'">✕</button>
+        </div>
+        <pre id="outputContent" class="output-content"></pre>
+      </div>
+      <!-- NOVO: Terminal modal com output ao vivo -->
+      <div class="term-overlay" id="termOverlay">
+        <div class="term-modal">
+          <div class="term-head">
+            <h3 id="termTitle">TERMINAL AO VIVO</h3>
+            <button class="term-close" onclick="closeTerminalModal()">✕</button>
+          </div>
+          <div class="term-body" id="termBody">[aguardando output...]</div>
+        </div>
+      </div>
+      <div id="categories"></div>
+    </div>
+    <!-- Modal Chat IA Ollama -->
+    <div class="ia-overlay" id="iaOverlay">
+      <div class="ia-modal">
+        <div class="ia-header">
+          <div>
+            <h3>🧠 Mestre IA (Ollama)</h3>
+            <span class="ia-status" id="iaStatus">Verificando conexão...</span>
+            <select id="ollamaModelSelect" onchange="selectedOllamaModel=this.value" style="margin-left:12px;padding:4px 10px;border-radius:6px;background:#0d1117;color:#00ff88;border:1px solid #00ff88;font-size:0.85rem;outline:none;max-width:240px;"></select>
+          </div>
+          <button class="ia-close" onclick="closeIA()">✕</button>
+        </div>
+        <div class="ia-messages" id="iaMessages">
+          <div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>
+        </div>
+        <div class="ia-input-area">
+          <input type="text" id="iaInput" placeholder="Digite sua mensagem..." autocomplete="off" />
+          <button id="iaSendBtn" onclick="sendIA()">Enviar ➤</button>
+        </div>
+      </div>
+    </div>
+    <div class="toast" id="toast">✅ Copiado!</div>
+    <script>
+      const CATS = [
+      {
+        id: "cat1",
+        label: "1. Limpeza Geral",
+        cmds: [
+          ["Limpeza Rápida Completa", "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Temp\\*\" -Recurse -Force -EA 0; Clear-RecycleBin -Force -EA 0; Write-Host \"✅ Limpeza concluída!\" -ForegroundColor Green"],
+          ["Limpar TEMP Usuário", "Remove-Item -Path \"$env:TEMP\\*\" -Recurse -Force -ErrorAction SilentlyContinue"],
+          ["Limpar TEMP do Windows", "Remove-Item -Path \"C:\\Windows\\Temp\\*\" -Recurse -Force -ErrorAction SilentlyContinue"],
+          ["Esvaziar Lixeira", "Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Host \"✅ Lixeira esvaziada!\" -ForegroundColor Green"],
+          ["Limpar Cache do Windows Update", "Stop-Service wuauserv -Force; Remove-Item \"C:\\Windows\\SoftwareDistribution\\Download\\*\" -Recurse -Force -EA 0; Start-Service wuauserv; Write-Host \"✅ Cache WU limpo!\" -ForegroundColor Green"],
+          ["Limpar Prefetch", "Remove-Item \"C:\\Windows\\Prefetch\\*\" -Force -EA 0; Write-Host \"✅ Prefetch limpo!\" -ForegroundColor Green"],
+          ["Limpar Minidump (crash logs)", "Remove-Item \"C:\\Windows\\Minidump\\*\" -Force -EA 0; Remove-Item \"$env:LOCALAPPDATA\\CrashDumps\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Dumps limpos!\" -ForegroundColor Green"],
+          ["Limpar Cache DNS", "ipconfig /flushdns; Write-Host \"✅ Cache DNS limpo!\" -ForegroundColor Green"],
+          ["Limpeza Profunda (tudo)", "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Temp\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Prefetch\\*\" -Force -EA 0; Clear-RecycleBin -Force -EA 0; ipconfig /flushdns; Write-Host \"✅ Limpeza profunda concluída!\" -ForegroundColor Green"],
+          ["Limpar Cache do Chrome", "Remove-Item \"$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Code Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Chrome limpo!\" -ForegroundColor Green"],
+          ["Limpar Cache do Teams", "Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\blob_storage\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\databases\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Teams limpo!\" -ForegroundColor Green"],
+          ["Limpar Arquivos Antigos do Downloads (>30 dias)", "Get-ChildItem \"$env:USERPROFILE\\Downloads\" -File | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item -Force -EA 0; Write-Host \"✅ Downloads antigos removidos!\" -ForegroundColor Green"],
+          ["Limpar Cache de Fontes", "Stop-Service FontCache -Force -EA 0; Remove-Item \"$env:WINDIR\\ServiceProfiles\\LocalService\\AppData\\Local\\FontCache\\*\" -Recurse -Force -EA 0; Start-Service FontCache; Write-Host \"✅ Cache de fontes limpo!\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat2",
+        label: "2. Limpeza Avançada",
+        cmds: [
+          ["Cleanmgr Modo Silencioso", "cleanmgr /sagerun:1; Write-Host \"✅ Limpeza de disco iniciada!\" -ForegroundColor Green"],
+          ["Configurar Cleanmgr Automático", "cleanmgr /sageset:1"],
+          ["Limpar Arquivos de Log do Windows", "Remove-Item \"C:\\Windows\\Logs\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Logs limpos!\" -ForegroundColor Green"],
+          ["Limpar EventViewer Logs", "Get-EventLog -List | ForEach-Object { Clear-EventLog -LogName $_.Log -EA 0 }; Write-Host \"✅ Logs de eventos limpos!\" -ForegroundColor Green"],
+          ["Limpar Cache do Microsoft Store", "wsreset.exe; Write-Host \"✅ Cache do Store limpo!\" -ForegroundColor Green"],
+          ["Limpar Cache do Navegador Edge", "Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default\\Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Edge limpo!\" -ForegroundColor Green"],
+          ["Limpar Thumbnail Cache", "ie4uinit.exe -show; Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*\" -Force -EA 0; Write-Host \"✅ Thumbnail cache limpo!\" -ForegroundColor Green"],
+          ["Compactar WinSxS (DISM)", "DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase"],
+          ["Limpar Arquivos Desnecessários do Sistema", "DISM /Online /Cleanup-Image /StartComponentCleanup"],
+          ["Limpar Cache do Spotify", "Remove-Item \"$env:APPDATA\\Spotify\\Storage\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Spotify limpo!\" -ForegroundColor Green"],
+          ["Limpar Cache do Discord", "Remove-Item \"$env:APPDATA\\discord\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\discord\\Code Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Discord limpo!\" -ForegroundColor Green"],
+          ["Remover Arquivos .tmp do Sistema", "Get-ChildItem C:\\ -Recurse -Filter *.tmp -EA 0 | Where-Object { !$_.PSIsContainer } | Remove-Item -Force -EA 0; Write-Host \"✅ Arquivos .tmp removidos!\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat3",
+        label: "3. Memória / RAM",
+        cmds: [
+          ["Liberar Memória RAM Imediatamente", "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers(); Write-Host \"✅ RAM liberada!\" -ForegroundColor Green"],
+          ["Ver Uso Atual de RAM", "$ram = Get-WmiObject Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host \"RAM Livre: $livre GB de $total GB\" -ForegroundColor Cyan"],
+          ["Listar Processos por Uso de RAM", "Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
+          ["Desativar SuperFetch (SysMain)", "Set-Service -Name \"SysMain\" -StartupType Disabled; Stop-Service -Name \"SysMain\" -Force; Write-Host \"✅ SysMain desativado!\" -ForegroundColor Green"],
+          ["Reativar SuperFetch (SysMain)", "Set-Service -Name \"SysMain\" -StartupType Automatic; Start-Service -Name \"SysMain\"; Write-Host \"✅ SysMain reativado!\" -ForegroundColor Green"],
+          ["Verificar Modo de Memória Virtual", "$cs = Get-ComputerInfo; Write-Host \"Paginação: $($cs.OsMaxProcessMemorySize) KB\" -ForegroundColor Cyan"],
+          ["Limpar Standby Memory (RAMMap)", "Write-Host \"Baixe RAMMap da Sysinternals para limpar Standby Memory manualmente.\" -ForegroundColor Yellow"],
+        ],
+      },
+      {
+        id: "cat4",
+        label: "4. Processos",
+        cmds: [
+          ["Listar Processos Ativos", "Get-Process | Sort-Object CPU -Descending | Select-Object -First 20 Name,Id,CPU,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,1)}} | Format-Table -AutoSize"],
+          ["Encerrar Processo por Nome", "Stop-Process -Name \"NOME_DO_PROCESSO\" -Force -EA 0; Write-Host \"✅ Processo encerrado!\" -ForegroundColor Green"],
+          ["Encerrar Todos Chrome", "Stop-Process -Name \"chrome\" -Force -EA 0; Write-Host \"✅ Chrome encerrado!\" -ForegroundColor Green"],
+          ["Encerrar Todos Edge", "Stop-Process -Name \"msedge\" -Force -EA 0; Write-Host \"✅ Edge encerrado!\" -ForegroundColor Green"],
+          ["Listar Serviços em Execução", "Get-Service | Where-Object Status -eq \"Running\" | Sort-Object DisplayName | Format-Table -AutoSize"],
+          ["Listar Startups do Sistema", "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,User | Format-Table -AutoSize"],
+          ["Desativar Serviço por Nome", "Set-Service -Name \"NOME_SERVICO\" -StartupType Disabled; Stop-Service \"NOME_SERVICO\" -Force"],
+          ["Reiniciar Explorer", "Stop-Process -Name explorer -Force; Start-Process explorer; Write-Host \"✅ Explorer reiniciado!\" -ForegroundColor Green"],
+          ["Ver tarefas agendadas", "Get-ScheduledTask | Where-Object State -eq \"Ready\" | Select-Object TaskName,TaskPath | Format-Table -AutoSize"],
+        ],
+      },
+      {
+        id: "cat5",
+        label: "5. Disco",
+        cmds: [
+          ["Verificar Espaço em Disco", "Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{N=\"Usado(GB)\";E={[math]::Round(($_.Used/1GB),2)}},@{N=\"Livre(GB)\";E={[math]::Round(($_.Free/1GB),2)}},@{N=\"Total(GB)\";E={[math]::Round((($_.Used+$_.Free)/1GB),2)}} | Format-Table -AutoSize"],
+          ["CHKDSK Verificação Rápida", "chkdsk C: /f /r; Write-Host \"✅ CHKDSK agendado para o próximo boot!\" -ForegroundColor Green"],
+          ["Otimizar / Desfragmentar Disco", "Optimize-Volume -DriveLetter C -Defrag -Verbose"],
+          ["Trim SSD", "Optimize-Volume -DriveLetter C -ReTrim -Verbose; Write-Host \"✅ TRIM executado!\" -ForegroundColor Green"],
+          ["Verificar Saúde do Disco (SMART)", "Get-WmiObject -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize"],
+          ["Encontrar Pastas Gigantes (C:)", "Get-ChildItem C: -Directory | ForEach-Object { $s=(Get-ChildItem $_.FullName -Recurse -EA 0 | Measure-Object -Property Length -Sum).Sum; [PSCustomObject]@{Pasta=$_.Name;GB=[math]::Round($s/1GB,2)} } | Sort-Object GB -Desc | Select-Object -First 15 | Format-Table"],
+          ["Relatório de Disco (WinSAT)", "winsat disk -drive C"],
+          ["Desativar Hibernação (libera espaço)", "powercfg -h off; Write-Host \"✅ Hibernação desativada, hiberfil.sys removido!\" -ForegroundColor Green"],
+          ["Ativar Hibernação", "powercfg -h on; Write-Host \"✅ Hibernação ativada!\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat6",
+        label: "6. Rede Básica",
+        cmds: [
+          ["Diagnóstico de Rede Completo", "ipconfig /all"],
+          ["Testar Conectividade com a Internet", "Test-Connection -ComputerName 8.8.8.8 -Count 4 | Format-Table -AutoSize"],
+          ["Velocidade de Download (Teste rápido)", "Invoke-WebRequest -Uri \"http://speedtest.tele2.net/1MB.zip\" -OutFile \"$env:TEMP\\test.zip\" -UseBasicParsing; Write-Host \"✅ Download concluído!\" -ForegroundColor Green"],
+          ["Flush e Renovar IP", "ipconfig /flushdns; ipconfig /release; ipconfig /renew; Write-Host \"✅ IP renovado!\" -ForegroundColor Green"],
+          ["Resetar Pilha TCP/IP", "netsh int ip reset; netsh winsock reset; Write-Host \"✅ TCP/IP resetado! Reinicie o PC.\" -ForegroundColor Green"],
+          ["Ver Conexões Ativas", "netstat -ano | Select-String \"ESTABLISHED\""],
+          ["Ver Adaptadores de Rede", "Get-NetAdapter | Select-Object Name,Status,LinkSpeed,MacAddress | Format-Table -AutoSize"],
+          ["Testar DNS", "Resolve-DnsName google.com; Resolve-DnsName cloudflare.com"],
+          ["Ping para múltiplos servidores", "\"8.8.8.8\",\"1.1.1.1\",\"208.67.222.222\" | ForEach-Object { $r=Test-Connection $_ -Count 1 -EA 0; Write-Host \"$_ -> $($r.ResponseTime)ms\" }"],
+        ],
+      },
+      {
+        id: "cat7",
+        label: "7. Reparo do Sistema",
+        cmds: [
+          ["SFC Scan (Reparo de Arquivos)", "sfc /scannow"],
+          ["DISM Restaurar Saúde", "DISM /Online /Cleanup-Image /RestoreHealth"],
+          ["DISM Verificar Saúde", "DISM /Online /Cleanup-Image /CheckHealth"],
+          ["DISM Scan Saúde", "DISM /Online /Cleanup-Image /ScanHealth"],
+          ["Reparar Windows Update", "net stop wuauserv; net stop cryptSvc; net stop bits; net stop msiserver; Remove-Item \"C:\\Windows\\SoftwareDistribution\" -Recurse -Force -EA 0; net start wuauserv; net start cryptSvc; net start bits; net start msiserver; Write-Host \"✅ WU reparado!\" -ForegroundColor Green"],
+          ["Resetar Políticas de Grupo", "secedit /configure /cfg %windir%\\inf\\defltbase.inf /db defltbase.sdb /verbose"],
+          ["Reparar .NET Framework", "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"],
+          ["Verificar Erros de Boot", "bootrec /scanos; bootrec /fixmbr; bootrec /fixboot; bootrec /rebuildbcd"],
+          ["Reparar Registro do Windows", "$ErrorActionPreference=\"SilentlyContinue\"; $reg=\"HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\"; Write-Host \"Versão: $((Get-ItemProperty $reg).ProductName)\" -ForegroundColor Cyan"],
+          ["Atualizar PowerShell para 7+", "winget install Microsoft.PowerShell --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Atualização do PowerShell iniciada!\" -ForegroundColor Green"],
+          ["Atualizar Terminais (CMD, PowerShell, Windows Terminal)", "winget upgrade Microsoft.WindowsTerminal --accept-source-agreements --accept-package-agreements; winget upgrade Microsoft.PowerShell --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Atualização concluída.\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat_health",
+        label: "🩺 Saúde do PC",
+        cmds: [
+          ["Relatório rápido do PC", "$os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host \"===== RELATORIO RAPIDO DO PC =====\" -ForegroundColor Cyan; Write-Host \"Computador: $env:COMPUTERNAME\"; Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\"; Write-Host \"CPU: $($cpu.Name)\"; Write-Host \"RAM: $ramLivre GB livre de $ramTotal GB\"; Write-Host \"Disco C: $diskLivre GB livre de $diskTotal GB\"; Write-Host \"Uptime: $($uptime.Days)d $($uptime.Hours)h\"; Write-Host \"\"; Write-Host \"Top 10 processos por RAM:\" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host \"\"; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host \"Internet: OK\" -ForegroundColor Green}else{Write-Host \"Internet: SEM CONEXAO\" -ForegroundColor Red}"],
+          ["Exportar diagnóstico para logs", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir (\"diagnostico-\"+(Get-Date -Format \"yyyyMMdd-HHmmss\")+\".txt\"); $os=Get-WmiObject Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @(\"===== DIAGNOSTICO MESTRE DO PC =====\",\"Data: $(Get-Date)\",\"Computador: $env:COMPUTERNAME\",\"Windows: $($os.Caption) Build $($os.BuildNumber)\",\"RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))\",\"Disco C livre GB: $([math]::Round($disk.Free/1GB,2))\",\"\",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host \"Diagnostico salvo em: $file\" -ForegroundColor Green"],
+          ["Listar modelos Ollama", "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
+          ["Testar Ollama (qwen3-coder-next:cloud)", "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://localhost:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
+          ["Abrir pasta do projeto", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; Start-Process $project; Write-Host \"Pasta do projeto aberta: $project\" -ForegroundColor Green"],
+          ["Abrir pasta de logs", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; Start-Process $logDir; Write-Host \"Pasta de logs aberta: $logDir\" -ForegroundColor Green"],
+          ["Abrir TEMP do usuário", "Start-Process $env:TEMP; Write-Host \"TEMP aberto: $env:TEMP\" -ForegroundColor Green"],
+          ["Abrir Startup do usuário", "$startup=[Environment]::GetFolderPath(\"Startup\"); Start-Process $startup; Write-Host \"Startup aberto: $startup\" -ForegroundColor Green"],
+          ["Ver tarefas MestreDoPC", "$names=@(\"MestreDoPC_Admin_Launcher\",\"MestreDoPC_Startup\"); $rows=foreach($name in $names){ $task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue; if($task){ $info=Get-ScheduledTaskInfo -TaskName $name -ErrorAction SilentlyContinue; [pscustomobject]@{Task=$name;State=$task.State;LastRun=$info.LastRunTime;LastResult=$info.LastTaskResult;NextRun=$info.NextRunTime} } else { [pscustomobject]@{Task=$name;State=\"Nao encontrada\";LastRun=\"\";LastResult=\"\";NextRun=\"\"} } }; $rows | Format-Table -AutoSize"],
+          ["Checkup Geral (Resumo Completo)", "$os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor; $disk=Get-PSDrive C; $ram=[math]::Round($os.FreePhysicalMemory/1MB,1); $totalRam=[math]::Round($os.TotalVisibleMemorySize/1MB,1); $diskFree=[math]::Round($disk.Free/1GB,1); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,1); $up=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $days=([datetime]::Now-$up).Days; Write-Host \"=== CHECKUP DO PC ===\" -ForegroundColor Cyan; Write-Host \"CPU: $($cpu.Name)\" -ForegroundColor White; Write-Host \"RAM: $ram GB livre de $totalRam GB\" -ForegroundColor $(if($ram -lt 2){\"Red\"}else{\"Green\"}); Write-Host \"Disco C: $diskFree GB livre de $diskTotal GB\" -ForegroundColor $(if($diskFree -lt 20){\"Red\"}else{\"Green\"}); Write-Host \"Uptime: $days dias\" -ForegroundColor $(if($days -gt 7){\"Yellow\"}else{\"Green\"}); Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\" -ForegroundColor White"],
+          ["Verificar Saúde da Bateria", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'battery-report.html\'; powercfg /batteryreport /output \"$report\"; Write-Host \"✅ Relatório da bateria salvo em: $report\" -ForegroundColor Green"],
+          ["Relatório de Energia Completo", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output \"$report\"; Write-Host \"✅ Relatório de energia salvo em: $report (aguarde 60s para completar)!\" -ForegroundColor Green"],
+          ["Verificar Integridade do Sistema (SFC + DISM)", "Write-Host \"Etapa 1/2: DISM...\" -ForegroundColor Yellow; DISM /Online /Cleanup-Image /ScanHealth; Write-Host \"Etapa 2/2: SFC...\" -ForegroundColor Yellow; sfc /scannow; Write-Host \"✅ Verificação completa!\" -ForegroundColor Green"],
+          ["Verificar Atualizações Pendentes", "$updates = (New-Object -ComObject Microsoft.Update.Session).CreateUpdateSearcher().Search(\"IsInstalled=0\"); if($updates.Updates.Count -gt 0) { Write-Host \"$($updates.Updates.Count) atualizações pendentes:\" -ForegroundColor Yellow; $updates.Updates | ForEach-Object { Write-Host \"  - $($_.Title)\" } } else { Write-Host \"✅ Sistema atualizado!\" -ForegroundColor Green }"],
+          ["Verificar Versão da BIOS/UEFI", "Get-WmiObject Win32_BIOS | Select-Object Manufacturer,Name,SMBIOSBIOSVersion,ReleaseDate | Format-List"],
+          ["Verificar Saúde do Disco (SMART)", "Get-PhysicalDisk | Select-Object FriendlyName,MediaType,HealthStatus,OperationalStatus,@{N=\"Tamanho(GB)\";E={[math]::Round($_.Size/1GB,1)}} | Format-Table -AutoSize"],
+          ["Listar Drivers Desatualizados", "Get-WmiObject Win32_PnPSignedDriver | Where-Object {$_.DriverDate} | Select-Object DeviceName,DriverVersion,@{N=\"Data\";E={[Management.ManagementDateTimeConverter]::ToDateTime($_.DriverDate).ToString(\"dd/MM/yyyy\")}} | Sort-Object Data | Select-Object -First 15 | Format-Table -AutoSize"],
+          ["Verificar Erros Recentes do Sistema", "Get-WinEvent -FilterHashtable @{LogName=\"System\";Level=2;StartTime=(Get-Date).AddDays(-7)} -MaxEvents 15 -EA 0 | Select-Object TimeCreated,Id,Message | Format-Table -Wrap -AutoSize"],
+          ["Tempo de Boot do Windows", "$boot = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6005} -MaxEvents 1).TimeCreated; $ready = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6013} -MaxEvents 1 -EA 0); Write-Host \"Último boot: $boot\" -ForegroundColor Cyan"],
+        ],
+      },
+      {
+        id: "cat8",
+        label: "8. Diagnóstico",
+        cmds: [
+          ["Informações do Sistema", "Get-ComputerInfo | Select-Object WindowsProductName,WindowsVersion,OsArchitecture,CsName,CsProcessors,CsTotalPhysicalMemory | Format-List"],
+          ["Temperatura do CPU (WMI)", "Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace \"root/wmi\" | ForEach-Object { Write-Host \"Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C\" }"],
+          ["Histórico de Erros do Sistema", "Get-EventLog -LogName System -EntryType Error -Newest 20 | Select-Object TimeGenerated,Source,Message | Format-Table -AutoSize"],
+          ["Uptime do Sistema", "$boot=(Get-WmiObject Win32_OperatingSystem).LastBootUpTime; $up=[Management.ManagementDateTimeConverter]::ToDateTime($boot); Write-Host \"Ligado desde: $up ($(([datetime]::Now - $up).Days)d $(([datetime]::Now - $up).Hours)h)\" -ForegroundColor Cyan"],
+          ["Placa de Vídeo (GPU)", "Get-WmiObject Win32_VideoController | Select-Object Name,DriverVersion,@{N=\"VRAM(GB)\";E={[math]::Round($_.AdapterRAM/1GB,2)}} | Format-Table -AutoSize"],
+          ["Inventário de Software Instalado", "Get-WmiObject Win32_Product | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
+          ["Verificar Drivers Problemáticos", "Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,ConfigManagerErrorCode | Format-Table -AutoSize"],
+          ["Teste de Memória RAM (Agendar)", "MdSched.exe"],
+          ["Relatório de Energia do Sistema", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output \"$report\"; Write-Host \"✅ Relatório salvo em: $report\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat9",
+        label: "9. Desligamento",
+        cmds: [
+          ["Desligar Agora", "Stop-Computer -Force"],
+          ["Reiniciar Agora", "Restart-Computer -Force"],
+          ["Desligar em 60 segundos", "shutdown /s /t 60; Write-Host \"⏱️ PC desligará em 60s. Use shutdown /a para cancelar.\" -ForegroundColor Yellow"],
+          ["Cancelar Desligamento Agendado", "shutdown /a; Write-Host \"✅ Desligamento cancelado!\" -ForegroundColor Green"],
+          ["Suspender o PC", "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState(\"Suspend\",$false,$false)"],
+          ["Hibernar o PC", "shutdown /h"],
+          ["Sair da Conta do Usuário", "logoff"],
+          ["Desligar em 30 minutos", "shutdown /s /t 1800; Write-Host \"⏱️ PC desligará em 30 minutos.\" -ForegroundColor Yellow"],
+          ["Reiniciar para BIOS/UEFI", "shutdown /r /fw /t 5; Write-Host \"🔄 Reiniciando para UEFI em 5s...\" -ForegroundColor Cyan"],
+        ],
+      },
+      {
+        id: "cat10",
+        label: "10. Git / Mestre do PC",
+        cmds: [
+          ["Git Status do Projeto", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git status"],
+          ["Git Add + Commit + Push", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git add -A; git commit -m \"feat: atualização automática $(Get-Date -Format dd/MM/yyyy)\"; git push; Write-Host \"✅ Push realizado!\" -ForegroundColor Green"],
+          ["Git Pull (Atualizar Local)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git pull; Write-Host \"✅ Repositório atualizado!\" -ForegroundColor Green"],
+          ["Git Log (Últimos 10)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git log --oneline -10"],
+          ["Ver Branch Atual", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git branch -v"],
+          ["Configurar Git (nome/email)", "git config --global user.name \"Jeanc\"; git config --global user.email \"seu@email.com\"; Write-Host \"✅ Git configurado!\" -ForegroundColor Green"],
+          ["Ver Configuração do Git", "git config --list --global"],
+          ["Clonar Repositório", "git clone https://github.com/USUARIO/REPO.git \"C:\\Projetos\\REPO\"; Write-Host \"✅ Clonado!\" -ForegroundColor Green"],
+          ["Git Stash (Salvar mudanças temporariamente)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git stash; Write-Host \"✅ Mudanças salvas no stash!\" -ForegroundColor Green"],
+          ["Git Stash Pop (Restaurar mudanças)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git stash pop; Write-Host \"✅ Mudanças restauradas!\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat11",
+        label: "11. Remoção Específica",
+        cmds: [
+          ["Remover Bloatware Xbox", "Get-AppxPackage *xboxapp* | Remove-AppxPackage -EA 0; Get-AppxPackage *xboxidentityprovider* | Remove-AppxPackage -EA 0; Write-Host \"✅ Xbox apps removidos!\" -ForegroundColor Green"],
+          ["Remover Cortana", "Get-AppxPackage -AllUsers Microsoft.549981C3F5F10 | Remove-AppxPackage -EA 0; Write-Host \"✅ Cortana removida!\" -ForegroundColor Green"],
+          ["Remover Aplicativos Padrão Desnecessários", "\"Microsoft.3DBuilder\",\"Microsoft.BingNews\",\"Microsoft.BingWeather\",\"Microsoft.GetHelp\",\"Microsoft.Getstarted\",\"Microsoft.MixedReality.Portal\",\"Microsoft.SkypeApp\",\"Microsoft.Todos\",\"Microsoft.WindowsFeedbackHub\",\"Microsoft.ZuneMusic\",\"Microsoft.ZuneVideo\" | ForEach-Object { Get-AppxPackage $_ | Remove-AppxPackage -EA 0 }; Write-Host \"✅ Bloatware removido!\" -ForegroundColor Green"],
+          ["Desativar Anúncios na Tela de Bloqueio", "Set-ItemProperty \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\" -Name \"RotatingLockScreenOverlaysEnabled\" -Value 0; Write-Host \"✅ Anúncios desativados!\" -ForegroundColor Green"],
+          ["Desativar Sugestões no Menu Iniciar", "Set-ItemProperty \"HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\" -Name \"SystemPaneSuggestionsEnabled\" -Value 0; Write-Host \"✅ Sugestões desativadas!\" -ForegroundColor Green"],
+          ["Desinstalar OneDrive", "taskkill /f /im OneDrive.exe -EA 0; Start-Process \"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\" -ArgumentList \"/uninstall\" -Wait -EA 0; Write-Host \"✅ OneDrive desinstalado!\" -ForegroundColor Green"],
+          ["Remover Telemetria da Microsoft", "sc stop DiagTrack; sc config DiagTrack start= disabled; sc stop dmwappushservice; sc config dmwappushservice start= disabled; Write-Host \"✅ Telemetria desativada!\" -ForegroundColor Green"],
+          ["Listar Todos os Apps Instalados", "Get-AppxPackage -AllUsers | Select-Object Name,PackageFullName | Sort-Object Name | Format-Table -AutoSize"],
+        ],
+      },
+      {
+        id: "cat12",
+        label: "12. Segurança Geral",
+        cmds: [
+          ["Verificar Status do Windows Defender", "Get-MpComputerStatus | Select-Object AMRunningMode,AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureLastUpdated | Format-List"],
+          ["Atualizar Definições do Defender", "Update-MpSignature; Write-Host \"✅ Definições atualizadas!\" -ForegroundColor Green"],
+          ["Scan Rápido com Defender", "Start-MpScan -ScanType QuickScan; Write-Host \"✅ Scan rápido iniciado!\" -ForegroundColor Green"],
+          ["Scan Completo com Defender", "Start-MpScan -ScanType FullScan; Write-Host \"✅ Scan completo iniciado!\" -ForegroundColor Green"],
+          ["Verificar Firewall do Windows", "Get-NetFirewallProfile | Select-Object Name,Enabled | Format-Table"],
+          ["Ativar Firewall em todos os perfis", "Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True; Write-Host \"✅ Firewall ativado!\" -ForegroundColor Green"],
+          ["Ver Regras de Firewall Ativas", "Get-NetFirewallRule | Where-Object Enabled -eq True | Select-Object DisplayName,Direction,Action | Format-Table -AutoSize"],
+          ["Checar Portas Abertas", "netstat -ano | Where-Object { $_ -match \"LISTENING\" } | Select-Object -First 20"],
+          ["Listar Processos Suspeitos (sem assinatura)", "Get-Process | Where-Object { -not (Get-AuthenticodeSignature $_.Path -EA 0).IsOSBinary } | Select-Object Name,Path,Id | Format-Table -AutoSize"],
+        ],
+      },
+      {
+        id: "cat13",
+        label: "13. Rede Segura",
+        cmds: [
+          ["DNS Cloudflare Seguro (1.1.1.1)", "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"1.1.1.1\",\"1.0.0.1\"; Write-Host \"✅ DNS Cloudflare definido!\" -ForegroundColor Green"],
+          ["DNS Google (8.8.8.8)", "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"8.8.8.8\",\"8.8.4.4\"; Write-Host \"✅ DNS Google definido!\" -ForegroundColor Green"],
+          ["DNS OpenDNS (Família)", "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"208.67.222.123\",\"208.67.220.123\"; Write-Host \"✅ DNS OpenDNS Family definido!\" -ForegroundColor Green"],
+          ["Restaurar DNS Automático (DHCP)", "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ResetServerAddresses; Write-Host \"✅ DNS automático restaurado!\" -ForegroundColor Green"],
+          ["Bloquear Telemetria Microsoft no Hosts", "$hosts = \"C:\\Windows\\System32\\drivers\\etc\\hosts\"; $entries = @(\"0.0.0.0 telemetry.microsoft.com\",\"0.0.0.0 vortex.data.microsoft.com\",\"0.0.0.0 settings-win.data.microsoft.com\"); $entries | ForEach-Object { if (!(Select-String -Path $hosts -Pattern $_ -Quiet)) { Add-Content $hosts $_ } }; Write-Host \"✅ Telemetria bloqueada no hosts!\" -ForegroundColor Green"],
+          ["Ver DNS Atual", "Get-DnsClientServerAddress | Where-Object AddressFamily -eq 2 | Format-Table InterfaceAlias,ServerAddresses -AutoSize"],
+          ["Desativar IPv6", "Disable-NetAdapterBinding -Name \"*\" -ComponentID ms_tcpip6 -EA 0; Write-Host \"✅ IPv6 desativado!\" -ForegroundColor Green"],
+          ["Verificar VPN/Proxy ativo", "netsh winhttp show proxy; Get-ItemProperty \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\" | Select-Object ProxyEnable,ProxyServer"],
+        ],
+      },
+
+      {
+        id: "cat14",
+        label: "14. Performance & Jogos (NOVO)",
+        cmds: [
+          ["Ativar Modo Jogo (Game Mode)", "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AllowAutoGameMode' -Value 1; Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AutoGameModeEnabled' -Value 1; Write-Host '✅ Modo Jogo ativado!' -ForegroundColor Green"],
+          ["Desativar Modo Jogo", "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AutoGameModeEnabled' -Value 0; Write-Host '✅ Modo Jogo desativado!' -ForegroundColor Green"],
+          ["Plano de Energia Alto Desempenho", "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c; Write-Host '✅ Alto desempenho ativado!' -ForegroundColor Green"],
+          ["Plano de Energia Equilibrado", "powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e; Write-Host '✅ Plano equilibrado ativado!' -ForegroundColor Green"],
+          ["Plano de Energia Economia", "powercfg /setactive a1841308-3541-4fab-bc81-f71556f20b4a; Write-Host '✅ Economia de energia ativada!' -ForegroundColor Green"],
+          ["Desativar Efeitos Visuais (Performance)", "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects' -Name 'VisualFXSetting' -Value 2; Write-Host '✅ Efeitos visuais otimizados para performance!' -ForegroundColor Green"],
+          ["Restaurar Efeitos Visuais (Padrão)", "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects' -Name 'VisualFXSetting' -Value 0; Write-Host '✅ Efeitos visuais restaurados!' -ForegroundColor Green"],
+          ["Desativar Animacoes do Windows", "Set-ItemProperty 'HKCU:\\Control Panel\\Desktop\\WindowMetrics' -Name 'MinAnimate' -Value 0; Write-Host '✅ Animacoes desativadas!' -ForegroundColor Green"],
+          ["Prioridade de CPU para Jogos (Temp)", "wmic process where name='javaw.exe' call setpriority 'high priority'; Write-Host '✅ Prioridade alta aplicada!' -ForegroundColor Green"],
+          ["Limpar Cache de Sombras (GPU)", "Get-ChildItem '$env:LOCALAPPDATA\\NVIDIA\\DXCache' -Recurse -EA 0 | Remove-Item -Force -EA 0; Get-ChildItem '$env:LOCALAPPDATA\\AMD\\DxCache' -Recurse -EA 0 | Remove-Item -Force -EA 0; Write-Host '✅ Cache de GPU limpo!' -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat15",
+        label: "15. Backup & Restauração (NOVO)",
+        cmds: [
+          ["Criar Ponto de Restauração", "Enable-ComputerRestore -Drive 'C:\\'; Checkpoint-Computer -Description 'Mestre do PC - Ponto Manual' -RestorePointType 'MODIFY_SETTINGS'; Write-Host '✅ Ponto de restauração criado!' -ForegroundColor Green"],
+          ["Listar Pontos de Restauração", "Get-ComputerRestorePoint | Select-Object CreationTime,Description,SequenceNumber | Format-Table -AutoSize"],
+          ["Restaurar do Último Ponto", "rstrui.exe; Write-Host 'Abrindo assistente de restauração...' -ForegroundColor Cyan"],
+          ["Backup de Drivers (Exportar)", "$dir='$env:USERPROFILE\\Desktop\\backup-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Export-WindowsDriver -Online -Destination $dir; Write-Host '✅ Drivers exportados para: $dir' -ForegroundColor Green"],
+          ["Backup do Registro (Completo)", "$file='$env:USERPROFILE\\Desktop\\backup-registro-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.reg'; reg export HKLM $file /y; reg export HKCU ($file + '.cu') /y; Write-Host '✅ Registro exportado: $file' -ForegroundColor Green"],
+          ["Criar Imagem de Recuperação (Windows)", "recimg /createimage 'C:\\RecoveryImage'; Write-Host '✅ Imagem de recuperação criada!' -ForegroundColor Green"],
+          ["Exportar Lista de Apps Instalados", "Get-AppxPackage -AllUsers | Select-Object Name,PackageFullName | Sort-Object Name | Export-Csv '$env:USERPROFILE\\Desktop\\apps-instalados.csv' -NoTypeInformation; Write-Host '✅ Lista exportada para a Área de Trabalho!' -ForegroundColor Green"],
+          ["Backup de Hosts", "Copy-Item 'C:\\Windows\\System32\\drivers\\etc\\hosts' '$env:USERPROFILE\\Desktop\\hosts.bak' -Force; Write-Host '✅ Backup do hosts criado!' -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat16",
+        label: "16. Atualizações Avançadas (NOVO)",
+        cmds: [
+          ["Pausar Windows Update (35 dias)", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -Value (Get-Date).ToString('yyyy-MM-dd'); Write-Host '✅ Windows Update pausado!' -ForegroundColor Green"],
+          ["Retomar Windows Update", "Remove-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -EA 0; Write-Host '✅ Windows Update retomado!' -ForegroundColor Green"],
+          ["Histórico de Atualizações", "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn | Format-Table -AutoSize"],
+          ["Desinstalar Atualização Específica", "wusa /uninstall /kb:NUMERO_KB /quiet /norestart; Write-Host 'Substitua NUMERO_KB pelo KB desejado.' -ForegroundColor Yellow"],
+          ["Forçar Busca de Atualizações", "UsoClient StartScan; Write-Host '✅ Busca de atualizações iniciada!' -ForegroundColor Green"],
+          ["Instalar Atualizações Pendentes", "Install-Module PSWindowsUpdate -Force -AllowClobber -EA 0; Import-Module PSWindowsUpdate -EA 0; Install-WindowsUpdate -AcceptAll -AutoReboot; Write-Host '✅ Atualizações instaladas!' -ForegroundColor Green"],
+          ["Listar Atualizações Recusadas", "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Updates' -EA 0 | Format-List"],
+          ["Resetar Componentes do Windows Update", "net stop wuauserv; net stop cryptSvc; net stop bits; net stop msiserver; ren 'C:\\Windows\\SoftwareDistribution' 'SoftwareDistribution.bak'; ren 'C:\\Windows\\System32\\catroot2' 'catroot2.bak'; net start wuauserv; net start cryptSvc; net start bits; net start msiserver; Write-Host '✅ Componentes do WU resetados!' -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat17",
+        label: "17. Drivers (NOVO)",
+        cmds: [
+          ["Listar Todos os Drivers", "Get-WmiObject Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Sort-Object DeviceName | Format-Table -AutoSize"],
+          ["Drivers com Problema", "Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,DeviceID,ConfigManagerErrorCode | Format-Table -AutoSize"],
+          ["Exportar Lista de Drivers", "Get-WmiObject Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Export-Csv '$env:USERPROFILE\\Desktop\\drivers.csv' -NoTypeInformation; Write-Host '✅ Lista exportada!' -ForegroundColor Green"],
+          ["Atualizar Driver por Hardware ID", "pnputil /add-driver CAMINHO.inf /install; Write-Host 'Substitua CAMINHO.inf pelo caminho do driver.' -ForegroundColor Yellow"],
+          ["Listar Drivers de Terceiros", "Get-WmiObject Win32_PnPSignedDriver | Where-Object { -not $_.IsOSBinary } | Select-Object DeviceName,DriverVersion,Manufacturer | Format-Table -AutoSize"],
+          ["Remover Driver Antigo (pnputil)", "pnputil /enum-drivers; Write-Host 'Liste os drivers com o comando acima e use pnputil /delete-driver oemXX.inf' -ForegroundColor Yellow"],
+          ["Verificar Versão do Driver de Vídeo", "Get-WmiObject Win32_VideoController | Select-Object Name,DriverVersion,DriverDate | Format-List"],
+          ["Backup de Drivers de Rede", "$dir='$env:USERPROFILE\\Desktop\\backup-net-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Get-WmiObject Win32_PnPSignedDriver | Where-Object { $_.DeviceClass -eq 'NET' } | Export-Csv (Join-Path $dir 'net-drivers.csv') -NoTypeInformation; Write-Host '✅ Backup de drivers de rede criado!' -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat18",
+        label: "18. Privacidade & Telemetria (NOVO)",
+        cmds: [
+          ["Desativar Telemetria (DiagTrack)", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -Value 0 -EA 0; Write-Host '✅ Telemetria desativada!' -ForegroundColor Green"],
+          ["Restaurar Telemetria (Padrão)", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -Value 3 -EA 0; Write-Host '✅ Telemetria restaurada!' -ForegroundColor Green"],
+          ["Desativar ID de Publicidade", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -Name 'Enabled' -Value 0; Write-Host '✅ ID de publicidade desativado!' -ForegroundColor Green"],
+          ["Desativar Rastreamento de Localização", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name 'Location' -Value 0 -EA 0; Write-Host '✅ Rastreamento de localização desativado!' -ForegroundColor Green"],
+          ["Desativar Experiências Tailored", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name 'TailoredExperiencesWithDiagnosticDataEnabled' -Value 0 -EA 0; Write-Host '✅ Experiências personalizadas desativadas!' -ForegroundColor Green"],
+          ["Desativar Cortana", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Name 'AllowCortana' -Value 0 -EA 0; Write-Host '✅ Cortana desativada!' -ForegroundColor Green"],
+          ["Desativar Sugestões de Conteúdo", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager' -Name 'SubscribedContent-338388Enabled' -Value 0; Write-Host '✅ Sugestões de conteúdo desativadas!' -ForegroundColor Green"],
+          ["Bloquear Aplicativos em Segundo Plano", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications' -Name 'GlobalUserDisabled' -Value 1 -EA 0; Write-Host '✅ Apps em segundo plano bloqueados!' -ForegroundColor Green"],
+          ["Verificar Configurações de Privacidade", "Get-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -EA 0 | Select-Object Enabled; Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -EA 0 | Select-Object AllowTelemetry; Write-Host 'Configurações exibidas acima.' -ForegroundColor Cyan"],
+        ],
+      },
+
+      ];
+      // Render navigation
+      const nav = document.getElementById("nav");
+      function recolherMenuLateral() {
+        document.body.classList.add("sidebar-collapsed");
+      }
+      function expandirMenuLateral() {
+        document.body.classList.remove("sidebar-collapsed");
+      }
+      CATS.forEach((c, index) => {
+        const a = document.createElement("a");
+        a.className = "nav-item";
+        a.textContent = c.label;
+        a.dataset.index = String(index + 1);
+        a.title = c.label;
+        a.onclick = () => {
+          const cat = document.getElementById(c.id);
+          // Centraliza a categoria na viewport e recolhe o menu lateral.
+          cat.scrollIntoView({ behavior: "smooth", block: "center" });
+          cat.classList.add("active");
+          nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+          a.classList.add("active");
+          recolherMenuLateral();
+        };
+        nav.appendChild(a);
+      });
+      // ===== NOVO V10: Estado persistente (favoritos, histórico, tema) =====
+      let favorites = JSON.parse(localStorage.getItem("mestre_v10_favs") || "[]");
+      let cmdHistory = JSON.parse(localStorage.getItem("mestre_v10_history") || "[]");
+      let queue = [];
+      const DANGER_PATTERNS = [
+        /cipher\s+\/w:/i,
+        /format\s+[a-z]:/i,
+        /diskpart/i,
+        /DISM[\s\S]*\/ResetBase/i,
+        /netsh\s+.*\sreset/i,
+        /bootrec\s+\/(fixmbr|fixboot|rebuildbcd)/i,
+        /powercfg\s+-h\s+off/i,
+        /Set-Service[\s\S]*-StartupType\s+Disabled/i,
+        /Stop-Service[\s\S]*-Force/i,
+        /bcdedit/i,
+        /Clear-RecycleBin[\s\S]*-Force/i,
+        /Remove-AppxPackage/i,
+        /Remove-Item[\s\S]*-Recurse[\s\S]*-Force/i,
+        /\b(?:Stop-Computer|Restart-Computer|logoff)\b/i,
+        /SetSuspendState/i,
+        /shutdown\s+\/[rshl]/i,
+        /git\s+(push|stash\s+pop)/i,
+      ];
+      function isDangerous(cmd) { return DANGER_PATTERNS.some((re) => re.test(cmd)); }
+      function confirmBeforeExecution(code, source = "catalog") {
+        const fromAI = source === "ai";
+        if (!fromAI && !isDangerous(code)) return true;
+        const reason = fromAI
+          ? "A IA sugeriu este comando. Revise-o antes de autorizar."
+          : "Este comando pode alterar ou remover dados/configurações.";
+        return window.confirm(`⚠️ CONFIRMAÇÃO DE SEGURANÇA\n\n${reason}\n\n${code}\n\nDeseja executar como Administrador?`);
+      }
+      // Render categories (padrão V7 + estrela de favorito + botão fila + botão live)
+      const container = document.getElementById("categories");
+      CATS.forEach((c) => {
+        const div = document.createElement("div");
+        div.className = "category";
+        div.id = c.id;
+        const badge = `<span class="badge">${c.cmds.length} cmds</span>`;
+        let cards = "";
+        c.cmds.forEach((cmd, i) => {
+          const uid = `${c.id}_${i}`;
+          const esc = cmd[1].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const isFav = favorites.includes(uid) ? "active" : "";
+          const star = isFav ? "⭐" : "☆";
+          const danger = isDangerous(cmd[1]);
+          const dangerBadge = danger ? `<span class="danger-badge" title="Comando destrutivo — use com cuidado">⚠️ destrutivo</span>` : "";
+          cards += `<div class="cmd-card ${danger ? "danger" : ""}">
+      <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
+      ${dangerBadge}
+      <h4>${cmd[0]}</h4>
+      <code id="${uid}">${esc}</code>
+      <div class="btn-row">
+        <button class="btn btn-copy" onclick="copyById('${uid}')">📋 Copiar</button>
+        <button class="btn btn-run" onclick="runCmd('${uid}')">🚀 Executar</button>
+        <button class="btn btn-queue-add" onclick="addToQueue('${uid}')">📋 Fila</button>
+        <button class="btn btn-live" onclick="executeCmdLive('${uid}')">📺 Ao Vivo</button>
+      </div>
+    </div>`;
+        });
+        div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${c.label}${badge} <span>▼</span></div><div class="category-content">${cards}</div>`;
+        container.appendChild(div);
+      });
+      function toggleCat(header) { header.parentElement.classList.toggle("active"); }
+      const API = window.location.protocol.startsWith("http")
+        ? window.location.origin
+        : "http://127.0.0.1:7777";
+      const PRIVILEGED_HEADERS = {
+        "Content-Type": "application/json",
+        "X-Mestre-Client": "v10-web",
+      };
+      let serverOnline = false;
+      // ===== NOVO V10: voltarInicio() — clica na logo para voltar ao topo =====
+      function voltarInicio() {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+        expandirMenuLateral();
+        showToast("🔝 Voltou ao início");
+      }
+      // ===== NOVO V10: toggleTheme() =====
+      function toggleTheme() {
+        document.body.classList.toggle("light");
+        const isLight = document.body.classList.contains("light");
+        document.getElementById("themeToggle").textContent = isLight ? "☀️" : "🌙";
+        localStorage.setItem("mestre_v10_theme", isLight ? "light" : "dark");
+      }
+      if (localStorage.getItem("mestre_v10_theme") === "light") toggleTheme();
+      // ===== NOVO V10: toggleFavorite(uid, el) =====
+      function toggleFavorite(uid, el) {
+        const idx = favorites.indexOf(uid);
+        if (idx >= 0) { favorites.splice(idx, 1); el.classList.remove("active"); el.textContent = "☆"; showToast("⭐ Removido dos favoritos"); }
+        else { favorites.push(uid); el.classList.add("active"); el.textContent = "⭐"; showToast("⭐ Adicionado aos favoritos", "var(--warning)"); }
+        localStorage.setItem("mestre_v10_favs", JSON.stringify(favorites));
+        renderFavorites();
+      }
+      // ===== NOVO V10: renderFavorites() =====
+      function renderFavorites() {
+        const bar = document.getElementById("favBar");
+        const list = document.getElementById("favList");
+        if (favorites.length === 0) { bar.classList.remove("show"); return; }
+        bar.classList.add("show");
+        list.innerHTML = "";
+        favorites.forEach(uid => {
+          const codeEl = document.getElementById(uid);
+          if (!codeEl) return;
+          const title = codeEl.parentElement.querySelector("h4").textContent;
+          const chip = document.createElement("span");
+          chip.className = "fav-chip";
+          chip.innerHTML = `${title} <span class="x" onclick="event.stopPropagation();removeFav('${uid}')">×</span>`;
+          chip.onclick = () => runCmd(uid);
+          list.appendChild(chip);
+        });
+      }
+      function removeFav(uid) {
+        favorites = favorites.filter(f => f !== uid);
+        localStorage.setItem("mestre_v10_favs", JSON.stringify(favorites));
+        document.querySelectorAll(".fav-star").forEach(s => { if (s.onclick && s.getAttribute("onclick").includes(uid)) { s.classList.remove("active"); s.textContent = "☆"; } });
+        renderFavorites();
+      }
+      // ===== NOVO V10: addToQueue(uid) =====
+      function addToQueue(uid) {
+        const codeEl = document.getElementById(uid);
+        if (!codeEl) return;
+        const title = codeEl.parentElement.querySelector("h4").textContent;
+        queue.push({ uid, title, cmd: codeEl.innerText.trim() });
+        renderQueue();
+        showToast("📋 Adicionado à fila");
+      }
+      // ===== NOVO V10: renderQueue() =====
+      function renderQueue() {
+        const panel = document.getElementById("queuePanel");
+        const list = document.getElementById("queueList");
+        document.getElementById("queueCount").textContent = queue.length;
+        if (queue.length === 0) { panel.classList.remove("show"); return; }
+        panel.classList.add("show");
+        list.innerHTML = "";
+        queue.forEach((item, i) => {
+          const div = document.createElement("div");
+          div.className = "queue-item";
+          div.innerHTML = `<span>${i + 1}. ${item.title}</span><span class="x" onclick="removeFromQueue(${i})">×</span>`;
+          list.appendChild(div);
+        });
+      }
+      function removeFromQueue(i) { queue.splice(i, 1); renderQueue(); }
+      // ===== NOVO V10: clearQueue() =====
+      function clearQueue() { queue = []; renderQueue(); showToast("📋 Fila limpa"); }
+      // ===== NOVO V10: runQueue() — executa comandos em sequência =====
+      async function runQueue() {
+        if (queue.length === 0) { showToast("⚠️ Fila vazia"); return; }
+        if (!serverOnline) { showToast("❌ Launcher offline", "#f85149"); return; }
+        showToast(`▶ Executando ${queue.length} comando(s)...`, "#a200ff");
+        for (let i = 0; i < queue.length; i++) {
+          const item = queue[i];
+          showToast(`📋 [${i + 1}/${queue.length}] ${item.title}`, "#a200ff");
+          try {
+            if (!confirmBeforeExecution(item.cmd, "queue")) continue;
+            const data = await dispatchCommand(item.cmd, {});
+            cmdHistory.push({ title: item.title, cmd: item.cmd, output: data.output || "", success: data.success, date: new Date().toISOString() });
+            localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-50)));
+          } catch (e) { showToast(`❌ Erro: ${item.title}`, "#f85149"); }
+        }
+        clearQueue();
+        showToast("✅ Fila concluída! Histórico atualizado.", "var(--accent2)");
+      }
+      // ===== NOVO V10: exportHistory() =====
+      function exportHistory() {
+        if (cmdHistory.length === 0) { showToast("⚠️ Histórico vazio"); return; }
+        const blob = new Blob([JSON.stringify(cmdHistory, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `mestre-v10-historico-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+        a.click();
+        showToast("📤 Histórico exportado!");
+      }
+      // ===== NOVO V10: Terminal modal com output ao vivo =====
+      function openTerminalModal(title) {
+        document.getElementById("termTitle").textContent = title || "TERMINAL AO VIVO";
+        document.getElementById("termBody").textContent = "[aguardando output...]";
+        document.getElementById("termOverlay").classList.add("open");
+      }
+      function closeTerminalModal() { document.getElementById("termOverlay").classList.remove("open"); }
+      function setTerminalLive(text, busy) {
+        const body = document.getElementById("termBody");
+        body.textContent = text || "(sem output)";
+        body.classList.toggle("term-busy", !!busy);
+        body.scrollTop = body.scrollHeight;
+      }
+      // ===== NOVO V10: livePollJob(jobId, callback) — output ao vivo (inspirado V9) =====
+      async function livePollJob(jobId, onProgress) {
+        const deadline = Date.now() + 15 * 60 * 1000;
+        while (Date.now() < deadline) {
+          let d;
+          try { d = await (await fetch(API + "/run-status?id=" + encodeURIComponent(jobId), { signal: AbortSignal.timeout(5000) })).json(); }
+          catch { await sleep(1500); continue; }
+          if (typeof onProgress === "function") onProgress(d);
+          if (d.state === "running") { await sleep(1200); continue; }
+          return d;
+        }
+        throw new Error("Timeout aguardando o comando.");
+      }
+      // ===== NOVO V10: executeCmdLive(uid) — executa com output ao vivo no terminal modal =====
+      async function executeCmdLive(uid) {
+        const codeEl = document.getElementById(uid);
+        if (!codeEl) return;
+        const code = codeEl.innerText.trim();
+        if (!serverOnline) { showToast("❌ Launcher offline. Execute o Launcher primeiro.", "#f85149"); return; }
+        if (!confirmBeforeExecution(code, "live")) return;
+        const title = codeEl.parentElement.querySelector("h4").textContent;
+        openTerminalModal(title);
+        setTerminalLive("[enviando comando para o launcher...]\n", true);
+        try {
+          const submitRes = await fetch(API + "/run", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ cmd: code }), signal: AbortSignal.timeout(10000) });
+          const submitData = await submitRes.json();
+          if (!submitRes.ok || submitData.success !== true || submitData.jobId == null) { setTerminalLive("❌ " + (submitData.output || "Falha ao enviar o comando."), false); return; }
+          const data = await livePollJob(submitData.jobId, (s) => setTerminalLive(s.output || "[executando...]", true));
+          const ok = data.success === true && data.state === "completed";
+          setTerminalLive((data.output || "(sem output)") + `\n\n[exit ${data.exitCode ?? data.code}] [${data.state}]`, false);
+          cmdHistory.push({ title, cmd: code, output: data.output || "", success: data.success, date: new Date().toISOString() });
+          localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-50)));
+          showToast(ok ? "✅ Comando concluído" : "❌ Comando falhou", ok ? "var(--accent2)" : "#f85149");
+        } catch (e) { setTerminalLive("❌ Erro: " + e.message, false); showToast("❌ Falha na conexão", "#f85149"); }
+      }
+      // ===== NOVO V10: loadDashboard() — métricas em tempo real (inspirado V8/V9) =====
+      async function loadDashboard() {
+        try {
+          const r = await fetch(API + "/status", { signal: AbortSignal.timeout(3000) });
+          if (!r.ok) return;
+          const d = await r.json();
+          const cpuPct = d.cpu != null ? Math.min(100, d.cpu) : 0;
+          const ramPct = d.ramTotal ? Math.max(0, Math.min(100, 100 - (d.ramFree / d.ramTotal * 100))) : 0;
+          const diskPct = (d.diskUsed || d.diskFree) ? (d.diskUsed / (d.diskUsed + d.diskFree) * 100) : 0;
+          document.getElementById("mCpu").textContent = d.cpu != null ? d.cpu.toFixed(0) + "%" : "--";
+          document.getElementById("mRam").textContent = d.ramFree != null ? d.ramFree.toFixed(1) : "--";
+          document.getElementById("mDisk").textContent = d.diskFree != null ? d.diskFree.toFixed(0) : "--";
+          document.getElementById("mUp").textContent = d.uptimeSec != null ? fmtUptime(d.uptimeSec) : (d.uptime != null ? fmtUptime(d.uptime) : "--");
+          document.getElementById("mCpuBar").style.width = cpuPct + "%";
+          document.getElementById("mRamBar").style.width = ramPct + "%";
+          document.getElementById("mDiskBar").style.width = diskPct + "%";
+        } catch {}
+      }
+      // ===== NOVO V10: fmtUptime(sec) =====
+      function fmtUptime(sec) {
+        sec = Number(sec) || 0;
+        const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60);
+        if (d > 0) return d + "d" + h + "h";
+        if (h > 0) return h + "h" + m + "m";
+        return m + "m";
+      }
+      // ===== Padrões que precisam de parâmetro (padrão V7) =====
+      const PARAM_PATTERNS = [
+        { regex: /NOME_DO_PROCESSO/, title: "⚡ Encerrar Processo", desc: "Informe o nome exato do processo (sem .exe):", placeholder: "ex: notepad, chrome, msedge", token: "NOME_DO_PROCESSO" },
+        { regex: /NOME_SERVICO/, title: "🔧 Desativar Serviço", desc: "Informe o nome do serviço:", placeholder: "ex: wuauserv, SysMain, Spooler", token: "NOME_SERVICO" },
+        { regex: /NUMERO_KB/, title: "📦 Desinstalar Atualização", desc: "Informe o número do KB (sem o prefixo KB):", placeholder: "ex: 5005565", token: "NUMERO_KB" },
+        { regex: /CAMINHO\.inf/, title: "🔌 Driver INF", desc: "Informe o caminho completo do arquivo .inf:", placeholder: "ex: C:\\Drivers\\driver.inf", token: "CAMINHO.inf" },
+      ];
+      let _pendingCmd = null;
+      let _pendingToken = null;
+      function cancelParam() { document.getElementById("paramOverlay").style.display = "none"; _pendingCmd = null; _pendingToken = null; }
+      async function confirmParam() {
+        const val = document.getElementById("paramInput").value.trim();
+        if (!val) { document.getElementById("paramInput").focus(); return; }
+        let replacement = val;
+        if (_pendingToken === "NOME_DO_PROCESSO" || _pendingToken === "NOME_SERVICO") {
+          if (!/^[a-zA-Z0-9_. -]{1,128}$/.test(val)) {
+            alert("Use apenas letras, números, espaço, ponto, hífen e sublinhado.");
+            return;
+          }
+        } else if (_pendingToken === "NUMERO_KB") {
+          if (!/^\d{4,10}$/.test(val)) {
+            alert("Informe somente o número do KB.");
+            return;
+          }
+        } else if (_pendingToken === "CAMINHO.inf") {
+          if (!/^[a-zA-Z]:\\[^"'\r\n;&|`$<>]+\.inf$/i.test(val)) {
+            alert("Informe um caminho local seguro terminado em .inf.");
+            return;
+          }
+          replacement = `"${val}"`;
+        }
+        document.getElementById("paramOverlay").style.display = "none";
+        const finalCmd = _pendingCmd.replace(new RegExp(_pendingToken.replace(".", "\\."), "g"), replacement);
+        _pendingCmd = null; _pendingToken = null;
+        await executeCmd(finalCmd);
+      }
+      function showToast(msg, color) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.style.background = color || "var(--accent2)";
+        t.style.color = color === "#f85149" ? "#fff" : "#000";
+        t.style.display = "flex";
+        clearTimeout(t._tid);
+        t._tid = setTimeout(() => (t.style.display = "none"), 2500);
+      }
+      // ===== checkServer() (padrão V7) + dashboard + MCP + Ollama =====
+      async function checkServer() {
+        try {
+          const r = await fetch(API + "/ping", { signal: AbortSignal.timeout(1500) });
+          const d = await r.json();
+          if (r.ok === false || d.status !== "ok") throw new Error("Launcher sem resposta válida.");
+          serverOnline = true;
+          const statusCard = document.getElementById("serverStatus");
+          const statusText = document.getElementById("statusText");
+          document.getElementById("launcherStatusIcon").textContent = d.state === "busy" ? "🟡" : "🟢";
+          const activeJobs = Number(d.activeJobs || 0);
+          if (d.state === "busy") { statusCard.style.background = "rgba(240,168,0,0.12)"; statusText.innerHTML = `🟡 Launcher ocupado — <strong>${activeJobs} comando(s) em execução</strong>`; }
+          else { statusCard.style.background = "rgba(0,255,136,0.08)"; statusText.innerHTML = "🟢 Launcher ativo — <strong>Execução direta habilitada.</strong>"; }
+        } catch {
+          serverOnline = false;
+          document.getElementById("serverStatus").style.background = "rgba(248,81,73,0.08)";
+          document.getElementById("launcherStatusIcon").textContent = "🔴";
+          document.getElementById("statusText").innerHTML = "Launcher offline — <strong>Execute o atalho Mestre do PC</strong>";
+        }
+        if (serverOnline) {
+          try {
+            const r = await fetch(API + "/mcp-status", { signal: AbortSignal.timeout(3000) });
+            const d = await r.json();
+            const el = document.getElementById("mcpStatusText");
+            el.textContent = d.status === "online" ? "Online" : "Desconectado";
+            el.style.color = d.status === "online" ? "var(--accent2)" : "var(--danger)";
+            document.getElementById("mcpStatusIcon").textContent = d.status === "online" ? "🟢" : "🔴";
+          } catch { document.getElementById("mcpStatusText").textContent = "Erro"; document.getElementById("mcpStatusIcon").textContent = "🔴"; }
+        } else { document.getElementById("mcpStatusText").textContent = "Indisponível"; document.getElementById("mcpStatusIcon").textContent = "⚪"; }
+        try {
+          const ro = await fetch(API + "/ollama/tags", { signal: AbortSignal.timeout(3000) });
+          const do_ = await ro.json();
+          const models = (do_.models || []).map((m) => m.name || m.model);
+          const ollamaEl = document.getElementById("ollamaStatusText");
+          if (models.length > 0) { ollamaEl.textContent = "Online (" + (models.find((m) => m.includes("qwen")) || models[0]) + ")"; ollamaEl.style.color = "var(--accent2)"; document.getElementById("ollamaStatusIcon").textContent = "🟢"; }
+          else { ollamaEl.textContent = "Sem modelos"; ollamaEl.style.color = "#f0ad4e"; document.getElementById("ollamaStatusIcon").textContent = "🟡"; }
+        } catch { document.getElementById("ollamaStatusText").textContent = "Offline"; document.getElementById("ollamaStatusText").style.color = "var(--danger)"; document.getElementById("ollamaStatusIcon").textContent = "🔴"; }
+        loadDashboard();
+      }
+      function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+      // ===== dispatchCommand() (padrão V7) =====
+      async function dispatchCommand(code, options = {}) {
+        const submitRes = await fetch(API + "/run", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ cmd: code }), signal: AbortSignal.timeout(options.submitTimeoutMs || 10000) });
+        const submitData = await submitRes.json();
+        if (submitRes.ok === false || submitData.success !== true || submitData.accepted !== true || submitData.jobId == null) throw new Error(submitData.output || "Falha ao enviar o comando.");
+        const timeoutMs = options.timeoutMs || 900000;
+        const pollIntervalMs = options.pollIntervalMs || 1200;
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline) {
+          const statusRes = await fetch(API + "/run-status?id=" + encodeURIComponent(submitData.jobId), { signal: AbortSignal.timeout(5000) });
+          const statusData = await statusRes.json();
+          if (statusRes.ok === false) throw new Error(statusData.output || "Falha ao consultar o status do comando.");
+          if (typeof options.onProgress === "function") options.onProgress(statusData);
+          if (statusData.state === "running") { await sleep(pollIntervalMs); continue; }
+          return statusData;
+        }
+        throw new Error("Timeout aguardando a conclusão do comando.");
+      }
+      function copyById(uid) { const text = document.getElementById(uid).innerText.trim(); navigator.clipboard.writeText(text).then(() => showToast("📋 Copiado!")); }
+      // ===== runCmd() (padrão V7) =====
+      async function runCmd(uid) {
+        const code = document.getElementById(uid).innerText.trim();
+        const pattern = PARAM_PATTERNS.find(p => p.regex.test(code));
+        if (pattern) {
+          _pendingCmd = code; _pendingToken = pattern.token;
+          document.getElementById("paramTitle").textContent = pattern.title;
+          document.getElementById("paramDesc").textContent = pattern.desc;
+          document.getElementById("paramInput").placeholder = pattern.placeholder;
+          document.getElementById("paramInput").value = "";
+          document.getElementById("paramOverlay").style.display = "flex";
+          setTimeout(() => document.getElementById("paramInput").focus(), 80);
+          return;
+        }
+        try { await navigator.clipboard.writeText(code); } catch {}
+        if (!serverOnline) { showToast("⚠️ Servidor offline. Comando copiado — cole no PowerShell Admin.", "#f0a800"); return; }
+        await executeCmd(code);
+      }
+      // ===== executeCmd() (padrão V7) + histórico =====
+      async function executeCmd(code) {
+        if (serverOnline === false) { try { await navigator.clipboard.writeText(code); } catch {} showToast("⚠️ Servidor offline. Comando copiado.", "#f0a800"); return; }
+        if (!confirmBeforeExecution(code)) return;
+        const panel = document.getElementById("outputPanel");
+        const content = document.getElementById("outputContent");
+        panel.style.display = "block";
+        content.textContent = "⏳ Executando...";
+        content.style.color = "#e6edf3";
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        showToast("🚀 Enviando para o PowerShell Admin...", "#00d4ff");
+        try {
+          const data = await dispatchCommand(code, { onProgress(status) { content.textContent = "⏳ Comando em execução..." + (status.activeJobs > 1 ? " | Fila: " + status.activeJobs : ""); } });
+          const ok = data.success === true && data.state === "completed";
+          content.textContent = data.output || (ok ? "(sem output)" : "Comando finalizado sem saída.");
+          content.style.color = ok ? "#e6edf3" : "#f85149";
+          cmdHistory.push({ title: code.slice(0, 60), cmd: code, output: data.output || "", success: data.success, date: new Date().toISOString() });
+          localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-50)));
+          showToast(ok ? "✅ Comando executado." : "❌ Erro na execução", ok ? "var(--accent2)" : "#f85149");
+          checkServer();
+        } catch (err) {
+          content.textContent = "Erro de conexão: " + err.message;
+          content.style.color = "#f85149";
+          showToast("❌ Falha na conexão", "#f85149");
+          serverOnline = false; checkServer();
+        }
+      }
+      async function openPS() {
+        if (serverOnline === false) { showToast("ℹ️ Execute o Launcher como Administrador primeiro.", "#00d4ff"); checkServer(); return; }
+        showToast("⚡ Abrindo PowerShell admin...", "#00d4ff");
+        try {
+          const res = await fetch(API + "/open-terminal", { method: "POST", headers: { "X-Mestre-Client": "v10-web" }, signal: AbortSignal.timeout(10000) });
+          const data = await res.json();
+          if (res.ok === false || data.success !== true) throw new Error(data.output || "Falha ao abrir o terminal.");
+          showToast("✅ Terminal admin aberto.", "var(--accent2)");
+        } catch (err) { showToast("❌ " + err.message, "#f85149"); }
+      }
+      // ===== INTEGRAÇÃO OLLAMA (padrão V7) =====
+      // V10 usa SEMPRE o proxy do launcher (resolve CORS do file://).
+      // O Ollama nativo continua rodando em localhost:11434, mas o browser
+      // NUNCA fala direto com ele — sempre passa por /ollama/* no launcher.
+      const OLLAMA_MODEL = "qwen2.5-coder:1.5b";
+      // Modelo LOCAL como padrão (funciona sem login Ollama Cloud).
+      // Cloud models ficam como fallback (exigem `ollama signin`).
+      const OLLAMA_MODEL_PREFERENCES = ["qwen2.5-coder:1.5b", "glm-5.2:cloud", "minimax-m3:cloud", "kimi-k2.5:cloud", "gemma4:cloud", "glm-5.1:cloud"];
+      let selectedOllamaModel = OLLAMA_MODEL;
+      function chooseOllamaModel(models) { return OLLAMA_MODEL_PREFERENCES.find((m) => models.includes(m)) || models.find((m) => m.toLowerCase().includes("qwen")) || models[0] || OLLAMA_MODEL; }
+
+      const SYSTEM_PROMPT = `Você é o Mestre do PC V10, um assistente especializado em manutenção de computadores Windows.
+REGRAS:
+1. Responda SEMPRE em português brasileiro.
+2. Quando sugerir uma ação, inclua o comando PowerShell exato entre \`\`\`powershell e \`\`\`.
+3. NUNCA invente comandos. Use APENAS comandos PowerShell reais do Windows.
+4. Seja direto e objetivo. O usuário quer soluções rápidas.
+5. Se o usuário descrever um problema, sugira no máximo 3 ações ordenadas por prioridade.
+COMANDOS QUE VOCÊ CONHECE:
+- Limpeza: Remove-Item no TEMP, Clear-RecycleBin, cleanmgr, DISM StartComponentCleanup
+- RAM: Get-Process, [System.GC]::Collect(), SysMain
+- Disco: Get-PSDrive, Optimize-Volume, chkdsk, Get-PhysicalDisk
+- Rede: ipconfig, Test-Connection, Resolve-DnsName, netsh, Get-NetAdapter
+- Sistema: Get-ComputerInfo, sfc /scannow, DISM, bootrec
+- Segurança: Get-MpComputerStatus, Start-MpScan, Get-NetFirewallProfile
+- Performance: powercfg, Game Mode, efeitos visuais
+- Backup: Checkpoint-Computer, Export-WindowsDriver, reg export
+- Drivers: Get-WmiObject Win32_PnPSignedDriver, pnputil
+- Privacidade: AllowTelemetry, AdvertisingInfo, Cortana`;
+      let iaConversation = [];
+      // NOVO V10: pré-carrega o modelo no Ollama ao abrir o chat (primeiro token mais rápido)
+      async function preloadModel() {
+        if (!selectedOllamaModel) return;
+        try {
+          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, keep_alive: "10m", messages: [], stream: false }) });
+          await res.text();
+        } catch {}
+      }
+      function openAI() { document.getElementById("iaOverlay").classList.add("open"); document.getElementById("iaInput").focus(); checkOllama().then(preloadModel); }
+      function closeIA() { document.getElementById("iaOverlay").classList.remove("open"); }
+      async function checkOllama() {
+        const status = document.getElementById("iaStatus");
+        try {
+          const res = await fetch(API + "/ollama/tags", { signal: AbortSignal.timeout(5000) });
+          if (!res.ok) throw new Error("ollama offline");
+          const data = await res.json();
+          const models = (data.models || []).map(m => m.name || m.model);
+          if (models.length > 0) {
+            selectedOllamaModel = chooseOllamaModel(models);
+            const sel = document.getElementById("ollamaModelSelect");
+            sel.innerHTML = models.map(m => '<option value="' + m + '"' + (m === selectedOllamaModel ? " selected" : "") + ">" + m + "</option>").join("");
+            status.textContent = "🟢 Conectado — Modelo: " + selectedOllamaModel;
+            status.style.color = "var(--accent2)";
+          } else { status.textContent = "🟡 Sem modelos. Execute: ollama pull qwen2.5-coder:1.5b"; status.style.color = "#f0ad4e"; }
+        } catch { status.textContent = "🔴 Ollama offline — Execute 'ollama serve'"; status.style.color = "var(--danger)"; }
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("iaInput").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendIA(); } });
+        renderFavorites();
+      });
+      async function sendIA() {
+        const input = document.getElementById("iaInput");
+        const btn = document.getElementById("iaSendBtn");
+        const msg = input.value.trim();
+        if (!msg) return;
+        addIAMessage(msg, "user");
+        input.value = "";
+        btn.disabled = true;
+        const typingEl = document.createElement("div");
+        typingEl.className = "ia-typing";
+        typingEl.innerHTML = "<span></span><span></span><span></span>";
+        document.getElementById("iaMessages").appendChild(typingEl);
+        scrollIAToBottom();
+        iaConversation.push({ role: "user", content: msg });
+        try {
+          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation], stream: true, keep_alive: "10m" }) });
+          if (!res.ok || !res.body) throw new Error("Falha no proxy Ollama: HTTP " + res.status);
+          typingEl.remove();
+          const aiMsgEl = addIAMessage("", "ai");
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let fullResponse = "";
+          let pending = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            pending += decoder.decode(value, { stream: true });
+            const lines = pending.split("\n");
+            pending = lines.pop() || "";
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              try { const json = JSON.parse(line); if (json.message?.content) { fullResponse += json.message.content; renderIAContent(aiMsgEl, fullResponse); scrollIAToBottom(); } } catch {}
+            }
+          }
+          if (pending.trim()) {
+            try { const json = JSON.parse(pending); if (json.message?.content) { fullResponse += json.message.content; renderIAContent(aiMsgEl, fullResponse); } } catch {}
+          }
+          iaConversation.push({ role: "assistant", content: fullResponse });
+        } catch (err) { typingEl.remove(); addIAMessage("❌ Erro ao conectar ao Ollama: " + err.message, "ai"); }
+        btn.disabled = false;
+        input.focus();
+      }
+      function addIAMessage(text, role) {
+        const el = document.createElement("div");
+        el.className = "ia-msg " + role;
+        if (role === "user") el.textContent = text;
+        else renderIAContent(el, text);
+        document.getElementById("iaMessages").appendChild(el);
+        scrollIAToBottom();
+        return el;
+      }
+      function renderIAContent(el, text) {
+        let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/```(?:powershell)?\n?([\s\S]*?)```/g, (_, code) => `<pre>${code.trim()}</pre><button class="ia-run-btn" onclick="runIACmd(this)">▶ Executar</button>`)
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\n/g, "<br>");
+        el.innerHTML = html;
+      }
+      async function runIACmd(btn) {
+        const pre = btn.previousElementSibling;
+        if (pre == null) return;
+        const cmd = pre.textContent;
+        if (serverOnline === false) { showToast("❌ Servidor offline.", "#f85149"); return; }
+        if (!confirmBeforeExecution(cmd, "ai")) return;
+        btn.textContent = "⏳ Executando...";
+        btn.disabled = true;
+        try {
+          const data = await dispatchCommand(cmd, { onProgress() { btn.textContent = "⏳ Executando..."; } });
+          if (data.success === true && data.state === "completed") { showOutput(data.output); btn.textContent = "✅ Executado"; btn.style.background = "var(--success)"; }
+          else { showOutput(data.output || "Erro."); btn.textContent = "❌ Falhou"; btn.style.background = "var(--danger)"; }
+        } catch (err) { showOutput("Erro: " + err.message); btn.textContent = "❌ Erro"; btn.style.background = "var(--danger)"; }
+        setTimeout(() => { btn.textContent = "▶ Executar"; btn.disabled = false; btn.style.background = ""; }, 3000);
+      }
+      function scrollIAToBottom() { const el = document.getElementById("iaMessages"); el.scrollTop = el.scrollHeight; }
+      function showOutput(text) {
+        const panel = document.getElementById("outputPanel");
+        const content = document.getElementById("outputContent");
+        content.textContent = text || "(sem output)";
+        content.style.color = "#e6edf3";
+        panel.style.display = "block";
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      // ===== Busca em tempo real (padrão V7) =====
+      document.getElementById("searchInput").addEventListener("input", function () {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll(".cmd-card").forEach((card) => { card.style.display = card.textContent.toLowerCase().includes(term) ? "" : "none"; });
+        document.querySelectorAll(".category").forEach((cat) => {
+          const visible = [...cat.querySelectorAll(".cmd-card")].some((c) => c.style.display !== "none");
+          cat.style.display = visible ? "" : "none";
+          if (term && visible) cat.classList.add("active");
+        });
+      });
+      // ===== Highlight de navegação por scroll (padrão V7) =====
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            const id = e.target.id;
+            nav.querySelectorAll(".nav-item").forEach((n, i) => { n.classList.toggle("active", CATS[i]?.id === id); });
+          }
+        });
+      }, { threshold: 0.3 });
+      document.querySelectorAll(".category").forEach((el) => observer.observe(el));
+      // ===== NOVO V10: Atalhos de teclado =====
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "k") { e.preventDefault(); document.getElementById("searchInput").focus(); }
+        if (e.ctrlKey && e.key === "/") { e.preventDefault(); openAI(); }
+        if (e.key === "Escape") { closeIA(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; }
+      });
+      // ===== Boot (padrão V7 + dashboard + intervalos V10) =====
+      checkServer();
+      renderFavorites();
+      renderQueue();
+      setInterval(checkServer, 10000);
+      setInterval(loadDashboard, 5000);
+    </script>
+  </body>
+</html>

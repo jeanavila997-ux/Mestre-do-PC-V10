@@ -1,0 +1,706 @@
+[
+  {
+    "title": "Limpeza Rápida Completa",
+    "command": "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Temp\\*\" -Recurse -Force -EA 0; Clear-RecycleBin -Force -EA 0; Write-Host \"✅ Limpeza concluída!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar TEMP Usuário",
+    "command": "Remove-Item -Path \"$env:TEMP\\*\" -Recurse -Force -ErrorAction SilentlyContinue"
+  },
+  {
+    "title": "Limpar TEMP do Windows",
+    "command": "Remove-Item -Path \"C:\\Windows\\Temp\\*\" -Recurse -Force -ErrorAction SilentlyContinue"
+  },
+  {
+    "title": "Esvaziar Lixeira",
+    "command": "Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Host \"✅ Lixeira esvaziada!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache do Windows Update",
+    "command": "Stop-Service wuauserv -Force; Remove-Item \"C:\\Windows\\SoftwareDistribution\\Download\\*\" -Recurse -Force -EA 0; Start-Service wuauserv; Write-Host \"✅ Cache WU limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Prefetch",
+    "command": "Remove-Item \"C:\\Windows\\Prefetch\\*\" -Force -EA 0; Write-Host \"✅ Prefetch limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Minidump (crash logs)",
+    "command": "Remove-Item \"C:\\Windows\\Minidump\\*\" -Force -EA 0; Remove-Item \"$env:LOCALAPPDATA\\CrashDumps\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Dumps limpos!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache DNS",
+    "command": "ipconfig /flushdns; Write-Host \"✅ Cache DNS limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpeza Profunda (tudo)",
+    "command": "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Temp\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Prefetch\\*\" -Force -EA 0; Clear-RecycleBin -Force -EA 0; ipconfig /flushdns; Write-Host \"✅ Limpeza profunda concluída!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache do Chrome",
+    "command": "Remove-Item \"$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Code Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Chrome limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache do Teams",
+    "command": "Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\blob_storage\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\databases\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Teams limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Arquivos Antigos do Downloads (>30 dias)",
+    "command": "Get-ChildItem \"$env:USERPROFILE\\Downloads\" -File | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item -Force -EA 0; Write-Host \"✅ Downloads antigos removidos!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache de Fontes",
+    "command": "Stop-Service FontCache -Force -EA 0; Remove-Item \"$env:WINDIR\\ServiceProfiles\\LocalService\\AppData\\Local\\FontCache\\*\" -Recurse -Force -EA 0; Start-Service FontCache; Write-Host \"✅ Cache de fontes limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Cleanmgr Modo Silencioso",
+    "command": "cleanmgr /sagerun:1; Write-Host \"✅ Limpeza de disco iniciada!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Configurar Cleanmgr Automático",
+    "command": "cleanmgr /sageset:1"
+  },
+  {
+    "title": "Limpar Arquivos de Log do Windows",
+    "command": "Remove-Item \"C:\\Windows\\Logs\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Logs limpos!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar EventViewer Logs",
+    "command": "Get-EventLog -List | ForEach-Object { Clear-EventLog -LogName $_.Log -EA 0 }; Write-Host \"✅ Logs de eventos limpos!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache do Microsoft Store",
+    "command": "wsreset.exe; Write-Host \"✅ Cache do Store limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache do Navegador Edge",
+    "command": "Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default\\Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Edge limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Thumbnail Cache",
+    "command": "ie4uinit.exe -show; Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*\" -Force -EA 0; Write-Host \"✅ Thumbnail cache limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Compactar WinSxS (DISM)",
+    "command": "DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase"
+  },
+  {
+    "title": "Limpar Arquivos Desnecessários do Sistema",
+    "command": "DISM /Online /Cleanup-Image /StartComponentCleanup"
+  },
+  {
+    "title": "Limpar Cache do Spotify",
+    "command": "Remove-Item \"$env:APPDATA\\Spotify\\Storage\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Spotify limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache do Discord",
+    "command": "Remove-Item \"$env:APPDATA\\discord\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\discord\\Code Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Discord limpo!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Remover Arquivos .tmp do Sistema",
+    "command": "Get-ChildItem C:\\ -Recurse -Filter *.tmp -EA 0 | Where-Object { !$_.PSIsContainer } | Remove-Item -Force -EA 0; Write-Host \"✅ Arquivos .tmp removidos!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Liberar Memória RAM Imediatamente",
+    "command": "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers(); Write-Host \"✅ RAM liberada!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Ver Uso Atual de RAM",
+    "command": "$ram = Get-WmiObject Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host \"RAM Livre: $livre GB de $total GB\" -ForegroundColor Cyan"
+  },
+  {
+    "title": "Listar Processos por Uso de RAM",
+    "command": "Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"
+  },
+  {
+    "title": "Desativar SuperFetch (SysMain)",
+    "command": "Set-Service -Name \"SysMain\" -StartupType Disabled; Stop-Service -Name \"SysMain\" -Force; Write-Host \"✅ SysMain desativado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Reativar SuperFetch (SysMain)",
+    "command": "Set-Service -Name \"SysMain\" -StartupType Automatic; Start-Service -Name \"SysMain\"; Write-Host \"✅ SysMain reativado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Verificar Modo de Memória Virtual",
+    "command": "$cs = Get-ComputerInfo; Write-Host \"Paginação: $($cs.OsMaxProcessMemorySize) KB\" -ForegroundColor Cyan"
+  },
+  {
+    "title": "Limpar Standby Memory (RAMMap)",
+    "command": "Write-Host \"Baixe RAMMap da Sysinternals para limpar Standby Memory manualmente.\" -ForegroundColor Yellow"
+  },
+  {
+    "title": "Listar Processos Ativos",
+    "command": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 20 Name,Id,CPU,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,1)}} | Format-Table -AutoSize"
+  },
+  {
+    "title": "Encerrar Processo por Nome",
+    "command": "Stop-Process -Name \"NOME_DO_PROCESSO\" -Force -EA 0; Write-Host \"✅ Processo encerrado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Encerrar Todos Chrome",
+    "command": "Stop-Process -Name \"chrome\" -Force -EA 0; Write-Host \"✅ Chrome encerrado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Encerrar Todos Edge",
+    "command": "Stop-Process -Name \"msedge\" -Force -EA 0; Write-Host \"✅ Edge encerrado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Listar Serviços em Execução",
+    "command": "Get-Service | Where-Object Status -eq \"Running\" | Sort-Object DisplayName | Format-Table -AutoSize"
+  },
+  {
+    "title": "Listar Startups do Sistema",
+    "command": "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,User | Format-Table -AutoSize"
+  },
+  {
+    "title": "Desativar Serviço por Nome",
+    "command": "Set-Service -Name \"NOME_SERVICO\" -StartupType Disabled; Stop-Service \"NOME_SERVICO\" -Force"
+  },
+  {
+    "title": "Reiniciar Explorer",
+    "command": "Stop-Process -Name explorer -Force; Start-Process explorer; Write-Host \"✅ Explorer reiniciado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Ver tarefas agendadas",
+    "command": "Get-ScheduledTask | Where-Object State -eq \"Ready\" | Select-Object TaskName,TaskPath | Format-Table -AutoSize"
+  },
+  {
+    "title": "Verificar Espaço em Disco",
+    "command": "Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{N=\"Usado(GB)\";E={[math]::Round(($_.Used/1GB),2)}},@{N=\"Livre(GB)\";E={[math]::Round(($_.Free/1GB),2)}},@{N=\"Total(GB)\";E={[math]::Round((($_.Used+$_.Free)/1GB),2)}} | Format-Table -AutoSize"
+  },
+  {
+    "title": "CHKDSK Verificação Rápida",
+    "command": "chkdsk C: /f /r; Write-Host \"✅ CHKDSK agendado para o próximo boot!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Otimizar / Desfragmentar Disco",
+    "command": "Optimize-Volume -DriveLetter C -Defrag -Verbose"
+  },
+  {
+    "title": "Trim SSD",
+    "command": "Optimize-Volume -DriveLetter C -ReTrim -Verbose; Write-Host \"✅ TRIM executado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Verificar Saúde do Disco (SMART)",
+    "command": "Get-WmiObject -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize"
+  },
+  {
+    "title": "Encontrar Pastas Gigantes (C:)",
+    "command": "Get-ChildItem C: -Directory | ForEach-Object { $s=(Get-ChildItem $_.FullName -Recurse -EA 0 | Measure-Object -Property Length -Sum).Sum; [PSCustomObject]@{Pasta=$_.Name;GB=[math]::Round($s/1GB,2)} } | Sort-Object GB -Desc | Select-Object -First 15 | Format-Table"
+  },
+  {
+    "title": "Desativar Hibernação (libera espaço)",
+    "command": "powercfg -h off; Write-Host \"✅ Hibernação desativada, hiberfil.sys removido!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Ativar Hibernação",
+    "command": "powercfg -h on; Write-Host \"✅ Hibernação ativada!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Diagnóstico de Rede Completo",
+    "command": "ipconfig /all"
+  },
+  {
+    "title": "Testar Conectividade com a Internet",
+    "command": "Test-Connection -ComputerName 8.8.8.8 -Count 4 | Format-Table -AutoSize"
+  },
+  {
+    "title": "Velocidade de Download (Teste rápido)",
+    "command": "Invoke-WebRequest -Uri \"http://speedtest.tele2.net/1MB.zip\" -OutFile \"$env:TEMP\\test.zip\" -UseBasicParsing; Write-Host \"✅ Download concluído!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Flush e Renovar IP",
+    "command": "ipconfig /flushdns; ipconfig /release; ipconfig /renew; Write-Host \"✅ IP renovado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Resetar Pilha TCP/IP",
+    "command": "netsh int ip reset; netsh winsock reset; Write-Host \"✅ TCP/IP resetado! Reinicie o PC.\" -ForegroundColor Green"
+  },
+  {
+    "title": "Ver Adaptadores de Rede",
+    "command": "Get-NetAdapter | Select-Object Name,Status,LinkSpeed,MacAddress | Format-Table -AutoSize"
+  },
+  {
+    "title": "Testar DNS",
+    "command": "Resolve-DnsName google.com; Resolve-DnsName cloudflare.com"
+  },
+  {
+    "title": "Ping para múltiplos servidores",
+    "command": "\"8.8.8.8\",\"1.1.1.1\",\"208.67.222.222\" | ForEach-Object { $r=Test-Connection $_ -Count 1 -EA 0; Write-Host \"$_ -> $($r.ResponseTime)ms\" }"
+  },
+  {
+    "title": "SFC Scan (Reparo de Arquivos)",
+    "command": "sfc /scannow"
+  },
+  {
+    "title": "DISM Restaurar Saúde",
+    "command": "DISM /Online /Cleanup-Image /RestoreHealth"
+  },
+  {
+    "title": "DISM Verificar Saúde",
+    "command": "DISM /Online /Cleanup-Image /CheckHealth"
+  },
+  {
+    "title": "DISM Scan Saúde",
+    "command": "DISM /Online /Cleanup-Image /ScanHealth"
+  },
+  {
+    "title": "Reparar Windows Update",
+    "command": "net stop wuauserv; net stop cryptSvc; net stop bits; net stop msiserver; Remove-Item \"C:\\Windows\\SoftwareDistribution\" -Recurse -Force -EA 0; net start wuauserv; net start cryptSvc; net start bits; net start msiserver; Write-Host \"✅ WU reparado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Reparar .NET Framework",
+    "command": "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
+  },
+  {
+    "title": "Verificar Erros de Boot",
+    "command": "bootrec /scanos; bootrec /fixmbr; bootrec /fixboot; bootrec /rebuildbcd"
+  },
+  {
+    "title": "Reparar Registro do Windows",
+    "command": "$ErrorActionPreference=\"SilentlyContinue\"; $reg=\"HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\"; Write-Host \"Versão: $((Get-ItemProperty $reg).ProductName)\" -ForegroundColor Cyan"
+  },
+  {
+    "title": "Atualizar PowerShell para 7+",
+    "command": "winget install Microsoft.PowerShell --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Atualização do PowerShell iniciada!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Atualizar Terminais (CMD, PowerShell, Windows Terminal)",
+    "command": "winget upgrade Microsoft.WindowsTerminal --accept-source-agreements --accept-package-agreements; winget upgrade Microsoft.PowerShell --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Atualização concluída.\" -ForegroundColor Green"
+  },
+  {
+    "title": "Relatório rápido do PC",
+    "command": "$os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host \"===== RELATORIO RAPIDO DO PC =====\" -ForegroundColor Cyan; Write-Host \"Computador: $env:COMPUTERNAME\"; Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\"; Write-Host \"CPU: $($cpu.Name)\"; Write-Host \"RAM: $ramLivre GB livre de $ramTotal GB\"; Write-Host \"Disco C: $diskLivre GB livre de $diskTotal GB\"; Write-Host \"Uptime: $($uptime.Days)d $($uptime.Hours)h\"; Write-Host \"\"; Write-Host \"Top 10 processos por RAM:\" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host \"\"; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host \"Internet: OK\" -ForegroundColor Green}else{Write-Host \"Internet: SEM CONEXAO\" -ForegroundColor Red}"
+  },
+  {
+    "title": "Exportar diagnóstico para logs",
+    "command": "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir (\"diagnostico-\"+(Get-Date -Format \"yyyyMMdd-HHmmss\")+\".txt\"); $os=Get-WmiObject Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @(\"===== DIAGNOSTICO MESTRE DO PC =====\",\"Data: $(Get-Date)\",\"Computador: $env:COMPUTERNAME\",\"Windows: $($os.Caption) Build $($os.BuildNumber)\",\"RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))\",\"Disco C livre GB: $([math]::Round($disk.Free/1GB,2))\",\"\",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host \"Diagnostico salvo em: $file\" -ForegroundColor Green"
+  },
+  {
+    "title": "Listar modelos Ollama",
+    "command": "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"
+  },
+  {
+    "title": "Testar Ollama (qwen3-coder-next:cloud)",
+    "command": "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://localhost:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"
+  },
+  {
+    "title": "Abrir pasta do projeto",
+    "command": "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; Start-Process $project; Write-Host \"Pasta do projeto aberta: $project\" -ForegroundColor Green"
+  },
+  {
+    "title": "Abrir pasta de logs",
+    "command": "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; Start-Process $logDir; Write-Host \"Pasta de logs aberta: $logDir\" -ForegroundColor Green"
+  },
+  {
+    "title": "Abrir TEMP do usuário",
+    "command": "Start-Process $env:TEMP; Write-Host \"TEMP aberto: $env:TEMP\" -ForegroundColor Green"
+  },
+  {
+    "title": "Abrir Startup do usuário",
+    "command": "$startup=[Environment]::GetFolderPath(\"Startup\"); Start-Process $startup; Write-Host \"Startup aberto: $startup\" -ForegroundColor Green"
+  },
+  {
+    "title": "Ver tarefas MestreDoPC",
+    "command": "$names=@(\"MestreDoPC_Admin_Launcher\",\"MestreDoPC_Startup\"); $rows=foreach($name in $names){ $task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue; if($task){ $info=Get-ScheduledTaskInfo -TaskName $name -ErrorAction SilentlyContinue; [pscustomobject]@{Task=$name;State=$task.State;LastRun=$info.LastRunTime;LastResult=$info.LastTaskResult;NextRun=$info.NextRunTime} } else { [pscustomobject]@{Task=$name;State=\"Nao encontrada\";LastRun=\"\";LastResult=\"\";NextRun=\"\"} } }; $rows | Format-Table -AutoSize"
+  },
+  {
+    "title": "Checkup Geral (Resumo Completo)",
+    "command": "$os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor; $disk=Get-PSDrive C; $ram=[math]::Round($os.FreePhysicalMemory/1MB,1); $totalRam=[math]::Round($os.TotalVisibleMemorySize/1MB,1); $diskFree=[math]::Round($disk.Free/1GB,1); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,1); $up=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $days=([datetime]::Now-$up).Days; Write-Host \"=== CHECKUP DO PC ===\" -ForegroundColor Cyan; Write-Host \"CPU: $($cpu.Name)\" -ForegroundColor White; Write-Host \"RAM: $ram GB livre de $totalRam GB\" -ForegroundColor $(if($ram -lt 2){\"Red\"}else{\"Green\"}); Write-Host \"Disco C: $diskFree GB livre de $diskTotal GB\" -ForegroundColor $(if($diskFree -lt 20){\"Red\"}else{\"Green\"}); Write-Host \"Uptime: $days dias\" -ForegroundColor $(if($days -gt 7){\"Yellow\"}else{\"Green\"}); Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\" -ForegroundColor White"
+  },
+  {
+    "title": "Verificar Integridade do Sistema (SFC + DISM)",
+    "command": "Write-Host \"Etapa 1/2: DISM...\" -ForegroundColor Yellow; DISM /Online /Cleanup-Image /ScanHealth; Write-Host \"Etapa 2/2: SFC...\" -ForegroundColor Yellow; sfc /scannow; Write-Host \"✅ Verificação completa!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Verificar Atualizações Pendentes",
+    "command": "$updates = (New-Object -ComObject Microsoft.Update.Session).CreateUpdateSearcher().Search(\"IsInstalled=0\"); if($updates.Updates.Count -gt 0) { Write-Host \"$($updates.Updates.Count) atualizações pendentes:\" -ForegroundColor Yellow; $updates.Updates | ForEach-Object { Write-Host \"  - $($_.Title)\" } } else { Write-Host \"✅ Sistema atualizado!\" -ForegroundColor Green }"
+  },
+  {
+    "title": "Verificar Versão da BIOS/UEFI",
+    "command": "Get-WmiObject Win32_BIOS | Select-Object Manufacturer,Name,SMBIOSBIOSVersion,ReleaseDate | Format-List"
+  },
+  {
+    "title": "Verificar Saúde do Disco (SMART)",
+    "command": "Get-PhysicalDisk | Select-Object FriendlyName,MediaType,HealthStatus,OperationalStatus,@{N=\"Tamanho(GB)\";E={[math]::Round($_.Size/1GB,1)}} | Format-Table -AutoSize"
+  },
+  {
+    "title": "Listar Drivers Desatualizados",
+    "command": "Get-WmiObject Win32_PnPSignedDriver | Where-Object {$_.DriverDate} | Select-Object DeviceName,DriverVersion,@{N=\"Data\";E={[Management.ManagementDateTimeConverter]::ToDateTime($_.DriverDate).ToString(\"dd/MM/yyyy\")}} | Sort-Object Data | Select-Object -First 15 | Format-Table -AutoSize"
+  },
+  {
+    "title": "Verificar Erros Recentes do Sistema",
+    "command": "Get-WinEvent -FilterHashtable @{LogName=\"System\";Level=2;StartTime=(Get-Date).AddDays(-7)} -MaxEvents 15 -EA 0 | Select-Object TimeCreated,Id,Message | Format-Table -Wrap -AutoSize"
+  },
+  {
+    "title": "Tempo de Boot do Windows",
+    "command": "$boot = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6005} -MaxEvents 1).TimeCreated; $ready = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6013} -MaxEvents 1 -EA 0); Write-Host \"Último boot: $boot\" -ForegroundColor Cyan"
+  },
+  {
+    "title": "Informações do Sistema",
+    "command": "Get-ComputerInfo | Select-Object WindowsProductName,WindowsVersion,OsArchitecture,CsName,CsProcessors,CsTotalPhysicalMemory | Format-List"
+  },
+  {
+    "title": "Temperatura do CPU (WMI)",
+    "command": "Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace \"root/wmi\" | ForEach-Object { Write-Host \"Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C\" }"
+  },
+  {
+    "title": "Histórico de Erros do Sistema",
+    "command": "Get-EventLog -LogName System -EntryType Error -Newest 20 | Select-Object TimeGenerated,Source,Message | Format-Table -AutoSize"
+  },
+  {
+    "title": "Uptime do Sistema",
+    "command": "$boot=(Get-WmiObject Win32_OperatingSystem).LastBootUpTime; $up=[Management.ManagementDateTimeConverter]::ToDateTime($boot); Write-Host \"Ligado desde: $up ($(([datetime]::Now - $up).Days)d $(([datetime]::Now - $up).Hours)h)\" -ForegroundColor Cyan"
+  },
+  {
+    "title": "Placa de Vídeo (GPU)",
+    "command": "Get-WmiObject Win32_VideoController | Select-Object Name,DriverVersion,@{N=\"VRAM(GB)\";E={[math]::Round($_.AdapterRAM/1GB,2)}} | Format-Table -AutoSize"
+  },
+  {
+    "title": "Inventário de Software Instalado",
+    "command": "Get-WmiObject Win32_Product | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"
+  },
+  {
+    "title": "Verificar Drivers Problemáticos",
+    "command": "Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,ConfigManagerErrorCode | Format-Table -AutoSize"
+  },
+  {
+    "title": "Desligar Agora",
+    "command": "Stop-Computer -Force"
+  },
+  {
+    "title": "Reiniciar Agora",
+    "command": "Restart-Computer -Force"
+  },
+  {
+    "title": "Desligar em 60 segundos",
+    "command": "shutdown /s /t 60; Write-Host \"⏱️ PC desligará em 60s. Use shutdown /a para cancelar.\" -ForegroundColor Yellow"
+  },
+  {
+    "title": "Cancelar Desligamento Agendado",
+    "command": "shutdown /a; Write-Host \"✅ Desligamento cancelado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Suspender o PC",
+    "command": "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState(\"Suspend\",$false,$false)"
+  },
+  {
+    "title": "Hibernar o PC",
+    "command": "shutdown /h"
+  },
+  {
+    "title": "Desligar em 30 minutos",
+    "command": "shutdown /s /t 1800; Write-Host \"⏱️ PC desligará em 30 minutos.\" -ForegroundColor Yellow"
+  },
+  {
+    "title": "Reiniciar para BIOS/UEFI",
+    "command": "shutdown /r /fw /t 5; Write-Host \"🔄 Reiniciando para UEFI em 5s...\" -ForegroundColor Cyan"
+  },
+  {
+    "title": "Git Status do Projeto",
+    "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git status"
+  },
+  {
+    "title": "Git Add + Commit + Push",
+    "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git add -A; git commit -m \"feat: atualização automática $(Get-Date -Format dd/MM/yyyy)\"; git push; Write-Host \"✅ Push realizado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Git Pull (Atualizar Local)",
+    "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git pull; Write-Host \"✅ Repositório atualizado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Git Log (Últimos 10)",
+    "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git log --oneline -10"
+  },
+  {
+    "title": "Ver Branch Atual",
+    "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git branch -v"
+  },
+  {
+    "title": "Configurar Git (nome/email)",
+    "command": "git config --global user.name \"Jeanc\"; git config --global user.email \"seu@email.com\"; Write-Host \"✅ Git configurado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Ver Configuração do Git",
+    "command": "git config --list --global"
+  },
+  {
+    "title": "Clonar Repositório",
+    "command": "git clone https://github.com/USUARIO/REPO.git \"C:\\Projetos\\REPO\"; Write-Host \"✅ Clonado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Git Stash (Salvar mudanças temporariamente)",
+    "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git stash; Write-Host \"✅ Mudanças salvas no stash!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Git Stash Pop (Restaurar mudanças)",
+    "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git stash pop; Write-Host \"✅ Mudanças restauradas!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Remover Bloatware Xbox",
+    "command": "Get-AppxPackage *xboxapp* | Remove-AppxPackage -EA 0; Get-AppxPackage *xboxidentityprovider* | Remove-AppxPackage -EA 0; Write-Host \"✅ Xbox apps removidos!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Remover Cortana",
+    "command": "Get-AppxPackage -AllUsers Microsoft.549981C3F5F10 | Remove-AppxPackage -EA 0; Write-Host \"✅ Cortana removida!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Remover Aplicativos Padrão Desnecessários",
+    "command": "\"Microsoft.3DBuilder\",\"Microsoft.BingNews\",\"Microsoft.BingWeather\",\"Microsoft.GetHelp\",\"Microsoft.Getstarted\",\"Microsoft.MixedReality.Portal\",\"Microsoft.SkypeApp\",\"Microsoft.Todos\",\"Microsoft.WindowsFeedbackHub\",\"Microsoft.ZuneMusic\",\"Microsoft.ZuneVideo\" | ForEach-Object { Get-AppxPackage $_ | Remove-AppxPackage -EA 0 }; Write-Host \"✅ Bloatware removido!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Anúncios na Tela de Bloqueio",
+    "command": "Set-ItemProperty \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\" -Name \"RotatingLockScreenOverlaysEnabled\" -Value 0; Write-Host \"✅ Anúncios desativados!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Sugestões no Menu Iniciar",
+    "command": "Set-ItemProperty \"HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\" -Name \"SystemPaneSuggestionsEnabled\" -Value 0; Write-Host \"✅ Sugestões desativadas!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Desinstalar OneDrive",
+    "command": "taskkill /f /im OneDrive.exe -EA 0; Start-Process \"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\" -ArgumentList \"/uninstall\" -Wait -EA 0; Write-Host \"✅ OneDrive desinstalado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Remover Telemetria da Microsoft",
+    "command": "sc stop DiagTrack; sc config DiagTrack start= disabled; sc stop dmwappushservice; sc config dmwappushservice start= disabled; Write-Host \"✅ Telemetria desativada!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Listar Todos os Apps Instalados",
+    "command": "Get-AppxPackage -AllUsers | Select-Object Name,PackageFullName | Sort-Object Name | Format-Table -AutoSize"
+  },
+  {
+    "title": "Verificar Status do Windows Defender",
+    "command": "Get-MpComputerStatus | Select-Object AMRunningMode,AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureLastUpdated | Format-List"
+  },
+  {
+    "title": "Atualizar Definições do Defender",
+    "command": "Update-MpSignature; Write-Host \"✅ Definições atualizadas!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Scan Rápido com Defender",
+    "command": "Start-MpScan -ScanType QuickScan; Write-Host \"✅ Scan rápido iniciado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Scan Completo com Defender",
+    "command": "Start-MpScan -ScanType FullScan; Write-Host \"✅ Scan completo iniciado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Verificar Firewall do Windows",
+    "command": "Get-NetFirewallProfile | Select-Object Name,Enabled | Format-Table"
+  },
+  {
+    "title": "Ativar Firewall em todos os perfis",
+    "command": "Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True; Write-Host \"✅ Firewall ativado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Ver Regras de Firewall Ativas",
+    "command": "Get-NetFirewallRule | Where-Object Enabled -eq True | Select-Object DisplayName,Direction,Action | Format-Table -AutoSize"
+  },
+  {
+    "title": "Listar Processos Suspeitos (sem assinatura)",
+    "command": "Get-Process | Where-Object { -not (Get-AuthenticodeSignature $_.Path -EA 0).IsOSBinary } | Select-Object Name,Path,Id | Format-Table -AutoSize"
+  },
+  {
+    "title": "DNS Cloudflare Seguro (1.1.1.1)",
+    "command": "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"1.1.1.1\",\"1.0.0.1\"; Write-Host \"✅ DNS Cloudflare definido!\" -ForegroundColor Green"
+  },
+  {
+    "title": "DNS Google (8.8.8.8)",
+    "command": "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"8.8.8.8\",\"8.8.4.4\"; Write-Host \"✅ DNS Google definido!\" -ForegroundColor Green"
+  },
+  {
+    "title": "DNS OpenDNS (Família)",
+    "command": "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"208.67.222.123\",\"208.67.220.123\"; Write-Host \"✅ DNS OpenDNS Family definido!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Restaurar DNS Automático (DHCP)",
+    "command": "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ResetServerAddresses; Write-Host \"✅ DNS automático restaurado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Bloquear Telemetria Microsoft no Hosts",
+    "command": "$hosts = \"C:\\Windows\\System32\\drivers\\etc\\hosts\"; $entries = @(\"0.0.0.0 telemetry.microsoft.com\",\"0.0.0.0 vortex.data.microsoft.com\",\"0.0.0.0 settings-win.data.microsoft.com\"); $entries | ForEach-Object { if (!(Select-String -Path $hosts -Pattern $_ -Quiet)) { Add-Content $hosts $_ } }; Write-Host \"✅ Telemetria bloqueada no hosts!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Ver DNS Atual",
+    "command": "Get-DnsClientServerAddress | Where-Object AddressFamily -eq 2 | Format-Table InterfaceAlias,ServerAddresses -AutoSize"
+  },
+  {
+    "title": "Desativar IPv6",
+    "command": "Disable-NetAdapterBinding -Name \"*\" -ComponentID ms_tcpip6 -EA 0; Write-Host \"✅ IPv6 desativado!\" -ForegroundColor Green"
+  },
+  {
+    "title": "Verificar VPN/Proxy ativo",
+    "command": "netsh winhttp show proxy; Get-ItemProperty \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\" | Select-Object ProxyEnable,ProxyServer"
+  },
+  {
+    "title": "Ativar Modo Jogo (Game Mode)",
+    "command": "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AllowAutoGameMode' -Value 1; Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AutoGameModeEnabled' -Value 1; Write-Host '✅ Modo Jogo ativado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Modo Jogo",
+    "command": "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AutoGameModeEnabled' -Value 0; Write-Host '✅ Modo Jogo desativado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Plano de Energia Alto Desempenho",
+    "command": "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c; Write-Host '✅ Alto desempenho ativado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Plano de Energia Equilibrado",
+    "command": "powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e; Write-Host '✅ Plano equilibrado ativado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Plano de Energia Economia",
+    "command": "powercfg /setactive a1841308-3541-4fab-bc81-f71556f20b4a; Write-Host '✅ Economia de energia ativada!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Efeitos Visuais (Performance)",
+    "command": "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects' -Name 'VisualFXSetting' -Value 2; Write-Host '✅ Efeitos visuais otimizados para performance!' -ForegroundColor Green"
+  },
+  {
+    "title": "Restaurar Efeitos Visuais (Padrão)",
+    "command": "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects' -Name 'VisualFXSetting' -Value 0; Write-Host '✅ Efeitos visuais restaurados!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Animacoes do Windows",
+    "command": "Set-ItemProperty 'HKCU:\\Control Panel\\Desktop\\WindowMetrics' -Name 'MinAnimate' -Value 0; Write-Host '✅ Animacoes desativadas!' -ForegroundColor Green"
+  },
+  {
+    "title": "Prioridade de CPU para Jogos (Temp)",
+    "command": "wmic process where name='javaw.exe' call setpriority 'high priority'; Write-Host '✅ Prioridade alta aplicada!' -ForegroundColor Green"
+  },
+  {
+    "title": "Limpar Cache de Sombras (GPU)",
+    "command": "Get-ChildItem '$env:LOCALAPPDATA\\NVIDIA\\DXCache' -Recurse -EA 0 | Remove-Item -Force -EA 0; Get-ChildItem '$env:LOCALAPPDATA\\AMD\\DxCache' -Recurse -EA 0 | Remove-Item -Force -EA 0; Write-Host '✅ Cache de GPU limpo!' -ForegroundColor Green"
+  },
+  {
+    "title": "Criar Ponto de Restauração",
+    "command": "Enable-ComputerRestore -Drive 'C:\\'; Checkpoint-Computer -Description 'Mestre do PC - Ponto Manual' -RestorePointType 'MODIFY_SETTINGS'; Write-Host '✅ Ponto de restauração criado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Listar Pontos de Restauração",
+    "command": "Get-ComputerRestorePoint | Select-Object CreationTime,Description,SequenceNumber | Format-Table -AutoSize"
+  },
+  {
+    "title": "Restaurar do Último Ponto",
+    "command": "rstrui.exe; Write-Host 'Abrindo assistente de restauração...' -ForegroundColor Cyan"
+  },
+  {
+    "title": "Backup de Drivers (Exportar)",
+    "command": "$dir='$env:USERPROFILE\\Desktop\\backup-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Export-WindowsDriver -Online -Destination $dir; Write-Host '✅ Drivers exportados para: $dir' -ForegroundColor Green"
+  },
+  {
+    "title": "Backup do Registro (Completo)",
+    "command": "$file='$env:USERPROFILE\\Desktop\\backup-registro-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.reg'; reg export HKLM $file /y; reg export HKCU ($file + '.cu') /y; Write-Host '✅ Registro exportado: $file' -ForegroundColor Green"
+  },
+  {
+    "title": "Criar Imagem de Recuperação (Windows)",
+    "command": "recimg /createimage 'C:\\RecoveryImage'; Write-Host '✅ Imagem de recuperação criada!' -ForegroundColor Green"
+  },
+  {
+    "title": "Exportar Lista de Apps Instalados",
+    "command": "Get-AppxPackage -AllUsers | Select-Object Name,PackageFullName | Sort-Object Name | Export-Csv '$env:USERPROFILE\\Desktop\\apps-instalados.csv' -NoTypeInformation; Write-Host '✅ Lista exportada para a Área de Trabalho!' -ForegroundColor Green"
+  },
+  {
+    "title": "Backup de Hosts",
+    "command": "Copy-Item 'C:\\Windows\\System32\\drivers\\etc\\hosts' '$env:USERPROFILE\\Desktop\\hosts.bak' -Force; Write-Host '✅ Backup do hosts criado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Pausar Windows Update (35 dias)",
+    "command": "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -Value (Get-Date).ToString('yyyy-MM-dd'); Write-Host '✅ Windows Update pausado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Retomar Windows Update",
+    "command": "Remove-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -EA 0; Write-Host '✅ Windows Update retomado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Histórico de Atualizações",
+    "command": "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn | Format-Table -AutoSize"
+  },
+  {
+    "title": "Desinstalar Atualização Específica",
+    "command": "wusa /uninstall /kb:NUMERO_KB /quiet /norestart; Write-Host 'Substitua NUMERO_KB pelo KB desejado.' -ForegroundColor Yellow"
+  },
+  {
+    "title": "Forçar Busca de Atualizações",
+    "command": "UsoClient StartScan; Write-Host '✅ Busca de atualizações iniciada!' -ForegroundColor Green"
+  },
+  {
+    "title": "Instalar Atualizações Pendentes",
+    "command": "Install-Module PSWindowsUpdate -Force -AllowClobber -EA 0; Import-Module PSWindowsUpdate -EA 0; Install-WindowsUpdate -AcceptAll -AutoReboot; Write-Host '✅ Atualizações instaladas!' -ForegroundColor Green"
+  },
+  {
+    "title": "Listar Atualizações Recusadas",
+    "command": "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Updates' -EA 0 | Format-List"
+  },
+  {
+    "title": "Resetar Componentes do Windows Update",
+    "command": "net stop wuauserv; net stop cryptSvc; net stop bits; net stop msiserver; ren 'C:\\Windows\\SoftwareDistribution' 'SoftwareDistribution.bak'; ren 'C:\\Windows\\System32\\catroot2' 'catroot2.bak'; net start wuauserv; net start cryptSvc; net start bits; net start msiserver; Write-Host '✅ Componentes do WU resetados!' -ForegroundColor Green"
+  },
+  {
+    "title": "Listar Todos os Drivers",
+    "command": "Get-WmiObject Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Sort-Object DeviceName | Format-Table -AutoSize"
+  },
+  {
+    "title": "Drivers com Problema",
+    "command": "Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,DeviceID,ConfigManagerErrorCode | Format-Table -AutoSize"
+  },
+  {
+    "title": "Exportar Lista de Drivers",
+    "command": "Get-WmiObject Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Export-Csv '$env:USERPROFILE\\Desktop\\drivers.csv' -NoTypeInformation; Write-Host '✅ Lista exportada!' -ForegroundColor Green"
+  },
+  {
+    "title": "Atualizar Driver por Hardware ID",
+    "command": "pnputil /add-driver CAMINHO.inf /install; Write-Host 'Substitua CAMINHO.inf pelo caminho do driver.' -ForegroundColor Yellow"
+  },
+  {
+    "title": "Listar Drivers de Terceiros",
+    "command": "Get-WmiObject Win32_PnPSignedDriver | Where-Object { -not $_.IsOSBinary } | Select-Object DeviceName,DriverVersion,Manufacturer | Format-Table -AutoSize"
+  },
+  {
+    "title": "Remover Driver Antigo (pnputil)",
+    "command": "pnputil /enum-drivers; Write-Host 'Liste os drivers com o comando acima e use pnputil /delete-driver oemXX.inf' -ForegroundColor Yellow"
+  },
+  {
+    "title": "Verificar Versão do Driver de Vídeo",
+    "command": "Get-WmiObject Win32_VideoController | Select-Object Name,DriverVersion,DriverDate | Format-List"
+  },
+  {
+    "title": "Backup de Drivers de Rede",
+    "command": "$dir='$env:USERPROFILE\\Desktop\\backup-net-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Get-WmiObject Win32_PnPSignedDriver | Where-Object { $_.DeviceClass -eq 'NET' } | Export-Csv (Join-Path $dir 'net-drivers.csv') -NoTypeInformation; Write-Host '✅ Backup de drivers de rede criado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Telemetria (DiagTrack)",
+    "command": "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -Value 0 -EA 0; Write-Host '✅ Telemetria desativada!' -ForegroundColor Green"
+  },
+  {
+    "title": "Restaurar Telemetria (Padrão)",
+    "command": "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -Value 3 -EA 0; Write-Host '✅ Telemetria restaurada!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar ID de Publicidade",
+    "command": "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -Name 'Enabled' -Value 0; Write-Host '✅ ID de publicidade desativado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Rastreamento de Localização",
+    "command": "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name 'Location' -Value 0 -EA 0; Write-Host '✅ Rastreamento de localização desativado!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Experiências Tailored",
+    "command": "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name 'TailoredExperiencesWithDiagnosticDataEnabled' -Value 0 -EA 0; Write-Host '✅ Experiências personalizadas desativadas!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Cortana",
+    "command": "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Name 'AllowCortana' -Value 0 -EA 0; Write-Host '✅ Cortana desativada!' -ForegroundColor Green"
+  },
+  {
+    "title": "Desativar Sugestões de Conteúdo",
+    "command": "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager' -Name 'SubscribedContent-338388Enabled' -Value 0; Write-Host '✅ Sugestões de conteúdo desativadas!' -ForegroundColor Green"
+  },
+  {
+    "title": "Bloquear Aplicativos em Segundo Plano",
+    "command": "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications' -Name 'GlobalUserDisabled' -Value 1 -EA 0; Write-Host '✅ Apps em segundo plano bloqueados!' -ForegroundColor Green"
+  },
+  {
+    "title": "Verificar Configurações de Privacidade",
+    "command": "Get-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -EA 0 | Select-Object Enabled; Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -EA 0 | Select-Object AllowTelemetry; Write-Host 'Configurações exibidas acima.' -ForegroundColor Cyan"
+  }
+]
