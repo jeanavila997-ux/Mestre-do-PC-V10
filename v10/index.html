@@ -270,7 +270,12 @@
       }
       .category-header:hover { background: linear-gradient(90deg, rgba(0,212,255,0.22), rgba(0,255,136,0.15)); }
       .category-content { padding: 16px; display: none; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; }
-      .category.active .category-content { display: grid; }
+      .category-header .chevron {
+        transition: transform 0.25s ease;
+        font-size: 0.8rem;
+        opacity: 0.75;
+      }
+      .category.active .category-header .chevron { transform: rotate(180deg); opacity: 1; }
       .subcategory-header {
         grid-column: 1 / -1;
         padding: 10px 12px;
@@ -924,13 +929,9 @@
         a.dataset.index = String(index + 1);
         a.title = c.label;
         a.onclick = () => {
-          const cat = document.getElementById(c.id);
-          // Centraliza a categoria na viewport e recolhe o menu lateral.
-          cat.scrollIntoView({ behavior: "smooth", block: "center" });
-          cat.classList.add("active");
+          openCategory(c.id);
           nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
           a.classList.add("active");
-          recolherMenuLateral();
         };
         nav.appendChild(a);
       });
@@ -1012,10 +1013,43 @@
         } else {
           content += renderCards(c.cmds, c.id);
         }
-        div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${c.label}${badge} <span>▼</span></div><div class="category-content">${content}</div>`;
+        div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${c.label}${badge} <span class="chevron">▼</span></div><div class="category-content">${content}</div>`;
         container.appendChild(div);
       });
-      function toggleCat(header) { header.parentElement.classList.toggle("active"); }
+      function openCategory(id, behavior = "smooth") {
+        // Fecha todas as outras categorias (modo accordion)
+        CATS.forEach((c) => {
+          const el = document.getElementById(c.id);
+          if (el) el.classList.toggle("active", c.id === id);
+        });
+        const target = document.getElementById(id);
+        if (!target) return;
+        // Marca item do menu
+        nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+        const idx = CATS.findIndex((c) => c.id === id);
+        const navItem = nav.children[idx];
+        if (navItem) navItem.classList.add("active");
+        // Recolhe sidebar em telas menores e centraliza a categoria
+        recolherMenuLateral();
+        setTimeout(() => {
+          const header = target.querySelector(".category-header");
+          const headerHeight = header ? header.offsetHeight : 0;
+          const viewportCenter = window.innerHeight / 2;
+          const targetTop = target.getBoundingClientRect().top + window.scrollY;
+          const offset = targetTop - viewportCenter + headerHeight + target.offsetHeight / 2;
+          window.scrollTo({ top: Math.max(0, offset), behavior });
+        }, 10);
+      }
+      function toggleCat(header) {
+        const cat = header.parentElement;
+        const isActive = cat.classList.contains("active");
+        if (isActive) {
+          cat.classList.remove("active");
+          nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+        } else {
+          openCategory(cat.id, "smooth");
+        }
+      }
       const API = window.location.protocol.startsWith("http")
         ? window.location.origin
         : "http://127.0.0.1:7777";
@@ -1028,6 +1062,10 @@
       function voltarInicio() {
         window.scrollTo({ top: 0, behavior: "smooth" });
         nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+        CATS.forEach((c) => {
+          const el = document.getElementById(c.id);
+          if (el) el.classList.remove("active");
+        });
         expandirMenuLateral();
         showToast("🔝 Voltou ao início");
       }
