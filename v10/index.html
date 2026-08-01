@@ -6,6 +6,258 @@
     <title>Mestre do PC V10 - Ultimate Plus</title>
     <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
     <style>
+      /* ===== ANIMAÇÕES AVANÇADAS (inspirado Hyperframes) ===== */
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.92); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-40px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(40px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(0.97); }
+      }
+      @keyframes glow {
+        0%, 100% { box-shadow: 0 0 5px var(--accent), 0 0 10px rgba(0,212,255,0.3); }
+        50% { box-shadow: 0 0 15px var(--accent), 0 0 25px rgba(0,212,255,0.5); }
+      }
+      @keyframes shimmer {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+      }
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes typing {
+        from { width: 0; }
+        to { width: 100%; }
+      }
+      @keyframes blink {
+        0%, 50% { border-color: var(--accent); }
+        51%, 100% { border-color: transparent; }
+      }
+      @keyframes countUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes ripple {
+        to { transform: scale(4); opacity: 0; }
+      }
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      @keyframes borderGlow {
+        0%, 100% { border-color: var(--accent); }
+        50% { border-color: var(--accent2); }
+      }
+      @keyframes progressPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+      /* Classes utilitárias de animação */
+      .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+      .animate-fade-in-scale { animation: fadeInScale 0.4s ease-out forwards; }
+      .animate-slide-in-left { animation: slideInLeft 0.5s ease-out forwards; }
+      .animate-slide-in-right { animation: slideInRight 0.5s ease-out forwards; }
+      .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+      .animate-glow { animation: glow 2s ease-in-out infinite; }
+      .animate-float { animation: float 3s ease-in-out infinite; }
+      .animate-gradient { background-size: 200% 200%; animation: gradientShift 3s ease infinite; }
+      .animate-border-glow { animation: borderGlow 2s ease-in-out infinite; }
+      .animate-progress { animation: progressPulse 1.5s ease-in-out infinite; }
+      /* Stagger delays */
+      .delay-1 { animation-delay: 0.1s; }
+      .delay-2 { animation-delay: 0.2s; }
+      .delay-3 { animation-delay: 0.3s; }
+      .delay-4 { animation-delay: 0.4s; }
+      .delay-5 { animation-delay: 0.5s; }
+      .delay-6 { animation-delay: 0.6s; }
+      .delay-7 { animation-delay: 0.7s; }
+      .delay-8 { animation-delay: 0.8s; }
+      /* Efeito de hover mejorado */
+      .hover-lift {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0,212,255,0.2), 0 4px 10px rgba(0,0,0,0.3);
+      }
+      .hover-scale {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .hover-scale:hover {
+        transform: scale(1.05);
+      }
+      .hover-glow {
+        transition: box-shadow 0.3s ease;
+      }
+      .hover-glow:hover {
+        box-shadow: 0 0 20px rgba(0,212,255,0.4), 0 0 40px rgba(0,212,255,0.2);
+      }
+      /* Partículas decorativas */
+      .particle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: var(--accent);
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0.4;
+        animation: float 4s ease-in-out infinite;
+      }
+      /* Card entrance animation */
+      .cmd-card {
+        opacity: 0;
+        animation: fadeInUp 0.4s ease-out forwards;
+      }
+      /* Progress bar animation */
+      .progress-fill {
+        position: relative;
+        overflow: hidden;
+      }
+      .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+        background-size: 200% 100%;
+      }
+      /* Botão com ripple effect */
+      .btn {
+        position: relative;
+        overflow: hidden;
+      }
+      .btn::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 50%;
+        left: 50%;
+        background: rgba(255,255,255,0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+      }
+      .btn:active::after {
+        animation: ripple 0.6s ease-out;
+      }
+      /* Metric card hover */
+      .metric-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        border: 1px solid var(--border);
+      }
+      .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,212,255,0.15);
+        border-color: var(--accent);
+      }
+      .metric-card:hover .metric-value {
+        text-shadow: 0 0 20px var(--accent);
+      }
+      .metric-value {
+        transition: text-shadow 0.3s ease, color 0.3s ease;
+      }
+      /* Nav item animation */
+      .nav-item {
+        position: relative;
+        overflow: hidden;
+      }
+      .nav-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0;
+        height: 2px;
+        background: var(--accent);
+        transition: width 0.3s ease;
+      }
+      .nav-item:hover::before,
+      .nav-item.active::before {
+        width: 100%;
+      }
+      /* Category header animation */
+      .category-header {
+        position: relative;
+        overflow: hidden;
+      }
+      .category-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0,212,255,0.1), transparent);
+        transition: left 0.5s ease;
+      }
+      .category-header:hover::before {
+        left: 100%;
+      }
+      /* Toast animation */
+      .toast {
+        animation: fadeInScale 0.3s ease-out;
+      }
+      /* Modal animation */
+      .ia-modal {
+        animation: fadeInScale 0.3s ease-out;
+      }
+      .param-modal {
+        animation: fadeInScale 0.3s ease-out;
+      }
+      .term-modal {
+        animation: fadeInScale 0.3s ease-out;
+      }
+      /* Scroll reveal */
+      .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      /* Animações para tema claro */
+      body.light .particle {
+        background: var(--accent) !important;
+        opacity: 0.15 !important;
+      }
+      body.light .hover-lift:hover {
+        box-shadow: 0 8px 25px rgba(9,105,218,0.15);
+      }
+      body.light .metric-card:hover .metric-value {
+        text-shadow: 0 0 15px var(--accent);
+      }
+      body.light .search:focus {
+        box-shadow: 0 0 15px rgba(9,105,218,0.2);
+      }
+      body.light .cmd-card:hover {
+        border-color: rgba(9,105,218,0.4);
+        box-shadow: 0 6px 20px rgba(9,105,218,0.15);
+      }
       :root {
         --bg: #05070a;
         --panel: #0d1117;
@@ -1698,6 +1950,158 @@ COMANDOS QUE VOCÊ CONHECE:
       renderQueue();
       setInterval(checkServer, 10000);
       setInterval(loadDashboard, 5000);
+
+      // ===== ANIMAÇÕES: Partículas decorativas =====
+      function createParticles() {
+        const container = document.body;
+        for (let i = 0; i < 15; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.top = Math.random() * 100 + '%';
+          particle.style.animationDelay = Math.random() * 4 + 's';
+          particle.style.animationDuration = (3 + Math.random() * 4) + 's';
+          particle.style.opacity = 0.2 + Math.random() * 0.3;
+          particle.style.width = (2 + Math.random() * 4) + 'px';
+          particle.style.height = particle.style.width;
+          if (Math.random() > 0.5) particle.style.background = 'var(--accent2)';
+          container.appendChild(particle);
+        }
+      }
+      createParticles();
+
+      // ===== ANIMAÇÕES: Scroll Reveal =====
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+      // Observar métricas e categorias
+      document.querySelectorAll('.metric-card, .category, .info-bar, .favorites-bar, .queue-panel').forEach(el => {
+        el.classList.add('reveal');
+        revealObserver.observe(el);
+      });
+
+      // ===== ANIMAÇÕES: Entrada staggered dos cards =====
+      function animateCardsStagger() {
+        const cards = document.querySelectorAll('.cmd-card');
+        cards.forEach((card, index) => {
+          card.style.animationDelay = (index * 0.03) + 's';
+        });
+      }
+      animateCardsStagger();
+
+      // ===== ANIMAÇÕES: Botões com ripple enhanced =====
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+          btn.style.transform = 'scale(1.05)';
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform = 'scale(1)';
+        });
+      });
+
+      // ===== ANIMAÇÕES: Status icons com pulse =====
+      const statusIcons = document.querySelectorAll('#launcherStatusIcon, #mcpStatusIcon, #ollamaStatusIcon');
+      statusIcons.forEach(icon => {
+        icon.classList.add('animate-pulse');
+      });
+
+      // ===== ANIMAÇÕES: Logo hover com glow =====
+      const logo = document.querySelector('.logo-img');
+      if (logo) {
+        logo.addEventListener('mouseenter', () => {
+          logo.style.filter = 'drop-shadow(0 0 20px rgba(0,212,255,0.8))';
+        });
+        logo.addEventListener('mouseleave', () => {
+          logo.style.filter = '';
+        });
+      }
+
+      // ===== ANIMAÇÕES: Search input glow on focus =====
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('focus', () => {
+          searchInput.style.boxShadow = '0 0 15px rgba(0,212,255,0.3)';
+          searchInput.style.borderColor = 'var(--accent)';
+        });
+        searchInput.addEventListener('blur', () => {
+          searchInput.style.boxShadow = '';
+          searchInput.style.borderColor = '';
+        });
+      }
+
+      // ===== ANIMAÇÕES: Progress bars animadas ao carregar =====
+      function animateProgressBars() {
+        const bars = document.querySelectorAll('.progress-fill');
+        bars.forEach(bar => {
+          bar.classList.add('animate-progress');
+        });
+      }
+      animateProgressBars();
+
+      // ===== ANIMAÇÕES: Dashboard cards com hover effect =====
+      document.querySelectorAll('.metric-card').forEach(card => {
+        card.classList.add('hover-lift');
+      });
+
+      // ===== ANIMAÇÕES: Fav chips com hover =====
+      document.querySelectorAll('.fav-chip').forEach(chip => {
+        chip.classList.add('hover-scale');
+      });
+
+      // ===== ANIMAÇÕES: Nav items com stagger =====
+      document.querySelectorAll('.nav-item').forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.animation = 'slideInLeft 0.4s ease-out forwards';
+        item.style.animationDelay = (index * 0.05) + 's';
+      });
+
+      // ===== ANIMAÇÕES: Category expand/collapse smooth =====
+      document.querySelectorAll('.category-header').forEach(header => {
+        header.style.transition = 'all 0.3s ease';
+      });
+
+      // ===== ANIMAÇÕES: Toast slide-in =====
+      const originalShowToast = showToast;
+      window.showToast = function(msg, color) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.background = color || 'var(--accent2)';
+        t.style.color = color === '#f85149' ? '#fff' : '#000';
+        t.style.display = 'flex';
+        t.style.animation = 'none';
+        t.offsetHeight; // Trigger reflow
+        t.style.animation = 'fadeInScale 0.3s ease-out';
+        clearTimeout(t._tid);
+        t._tid = setTimeout(() => {
+          t.style.animation = 'fadeInScale 0.3s ease-out reverse';
+          setTimeout(() => { t.style.display = 'none'; }, 300);
+        }, 2500);
+      };
+
+      // ===== ANIMAÇÕES: Metric values com countUp effect =====
+      const metricObserver = new MutationObserver((mutations) => {
+        mutations.forEach(mutation => {
+          if (mutation.type === 'characterData' || mutation.type === 'childList') {
+            const target = mutation.target.parentElement || mutation.target;
+            if (target.classList && target.classList.contains('metric-value')) {
+              target.style.animation = 'none';
+              target.offsetHeight;
+              target.style.animation = 'countUp 0.3s ease-out';
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('.metric-value').forEach(el => {
+        metricObserver.observe(el, { childList: true, characterData: true, subtree: true });
+      });
+
+      console.log('🎬 Mestre do PC V10 - Animações carregadas!');
     </script>
   </body>
 </html>
