@@ -45,11 +45,12 @@ Write-Step "Diretorio de instalacao: $InstallDir"
 # 1. Valida arquivos essenciais
 # ---------------------------------------------------------------
 $required = @(
-    "MestreDoPC-Launcher.ps1",
+    "v10\launcher.js",
     "Register-MestreTask.ps1",
     "start-mestre.bat",
     "v10\start-v10.bat",
     "v10\index.html",
+    "v10\allowed-operations.json",
     "mcp-server\package.json",
     "mcp-server\index.js"
 )

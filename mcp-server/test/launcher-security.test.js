@@ -72,3 +72,51 @@ test("launcher Node serve a V10 e bloqueia POSTs externos", async (t) => {
   });
   assert.equal(preflight.status, 403);
 });
+
+test("launcher Node aceita id+params e rejeita comandos não cadastrados", async (t) => {
+  const port = await reservePort();
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, [join(root, "v10", "launcher.js")], {
+    cwd: join(root, "v10"),
+    env: { ...process.env, MPC_PORT: String(port) },
+    windowsHide: true,
+    stdio: "ignore",
+  });
+  t.after(() => child.kill());
+
+  await waitForServer(base);
+
+  const pingJob = await fetch(base + "/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    body: JSON.stringify({ id: "ver_uso_ram" }),
+  });
+  assert.equal(pingJob.status, 202);
+  const submit = await pingJob.json();
+  assert.equal(submit.success, true);
+  assert.ok(submit.jobId);
+
+  const tpl = await fetch(base + "/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    body: JSON.stringify({ id: "encerrar_processo", params: { nome: "notepad" } }),
+  });
+  assert.equal(tpl.status, 202);
+  const tplSubmit = await tpl.json();
+  assert.equal(tplSubmit.success, true);
+
+  const bad = await fetch(base + "/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    body: JSON.stringify({ id: "encerrar_processo", params: { nome: "notepad; Stop-Computer" } }),
+  });
+  assert.equal(bad.status, 403);
+
+  const free = await fetch(base + "/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    body: JSON.stringify({ cmd: "Write-Host LIVRE" }),
+  });
+  assert.equal(free.status, 403);
+});
+

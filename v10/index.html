@@ -473,6 +473,44 @@
     <script>
       const CATS = [
       {
+        id: "cat0",
+        label: "0. Instalações",
+        cmds: [
+          ["Instalar Ollama (irm install.ps1)", "irm https://ollama.com/install.ps1 | iex"],
+          ["Instalar Google Chrome", "winget install Google.Chrome --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Chrome iniciada!\" -ForegroundColor Green"],
+          ["Instalar Mozilla Firefox", "winget install Mozilla.Firefox --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Firefox iniciada!\" -ForegroundColor Green"],
+          ["Instalar Microsoft Edge", "winget install Microsoft.Edge --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Edge iniciada!\" -ForegroundColor Green"],
+          ["Instalar VLC Media Player", "winget install VideoLAN.VLC --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do VLC iniciada!\" -ForegroundColor Green"],
+          ["Instalar 7-Zip", "winget install 7zip.7zip --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do 7-Zip iniciada!\" -ForegroundColor Green"],
+          ["Instalar Visual Studio Code", "winget install Microsoft.VisualStudioCode --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do VS Code iniciada!\" -ForegroundColor Green"],
+          ["Instalar Git", "winget install Git.Git --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Git iniciada!\" -ForegroundColor Green"],
+          ["Instalar Node.js LTS", "winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Node.js iniciada!\" -ForegroundColor Green"],
+          ["Instalar PowerShell 7", "winget install Microsoft.PowerShell --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do PowerShell 7 iniciada!\" -ForegroundColor Green"],
+          ["Instalar Discord", "winget install Discord.Discord --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Discord iniciada!\" -ForegroundColor Green"],
+          ["Instalar Spotify", "winget install Spotify.Spotify --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Spotify iniciada!\" -ForegroundColor Green"],
+          ["Instalar Notepad++", "winget install Notepad++.Notepad++ --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Notepad++ iniciada!\" -ForegroundColor Green"],
+          ["Instalar WinRAR", "winget install RARLab.WinRAR --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do WinRAR iniciada!\" -ForegroundColor Green"],
+          ["Instalar Python 3", "winget install Python.Python.3.12 --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Python iniciada!\" -ForegroundColor Green"],
+          ["Instalar Windows Terminal", "winget install Microsoft.WindowsTerminal --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Windows Terminal iniciada!\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat_libs",
+        label: "📚 Bibliotecas",
+        cmds: [
+          ["pip install requests", "pip install --upgrade requests; Write-Host \"✅ requests instalado/atualizado!\" -ForegroundColor Green"],
+          ["pip install numpy + pandas", "pip install --upgrade numpy pandas; Write-Host \"✅ numpy e pandas instalados!\" -ForegroundColor Green"],
+          ["pip install matplotlib", "pip install --upgrade matplotlib; Write-Host \"✅ matplotlib instalado!\" -ForegroundColor Green"],
+          ["pip install psutil", "pip install --upgrade psutil; Write-Host \"✅ psutil instalado!\" -ForegroundColor Green"],
+          ["pip install openpyxl", "pip install --upgrade openpyxl; Write-Host \"✅ openpyxl instalado!\" -ForegroundColor Green"],
+          ["npm install no projeto", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green"],
+          ["npm install -g typescript", "npm install -g typescript; Write-Host \"✅ TypeScript instalado globalmente!\" -ForegroundColor Green"],
+          ["npm install -g nodemon", "npm install -g nodemon; Write-Host \"✅ nodemon instalado globalmente!\" -ForegroundColor Green"],
+          ["pip install pywin32", "pip install --upgrade pywin32; Write-Host \"✅ pywin32 instalado!\" -ForegroundColor Green"],
+          ["pip install pillow", "pip install --upgrade pillow; Write-Host \"✅ pillow instalado!\" -ForegroundColor Green"],
+        ],
+      },
+      {
         id: "cat1",
         label: "1. Limpeza Geral",
         cmds: [

@@ -2,6 +2,7 @@
 // Mestre do PC V10 - Launcher Node.js (autônomo)
 // Porta 7777. Executa PowerShell localmente com jobs, proxy Ollama com streaming
 // e endpoint /status com métricas do sistema para o dashboard.
+// V10.1: suporta operações parametrizadas via {id, params} e templates seguros.
 
 import http from "node:http";
 import { spawn } from "node:child_process";
@@ -19,10 +20,44 @@ const PROJECT_DIR = join(__dirname, "..");
 const MAX_CONCURRENT_JOBS = 3;
 const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 const JOB_RETENTION_MS = 30 * 60 * 1000;
+const MAX_CMD_LENGTH = 32768;
 
 const operationsFile = join(__dirname, "allowed-operations.json");
-const allowedOperations = JSON.parse(await readFile(operationsFile, "utf8"));
-const allowedCommands = new Set(allowedOperations.map((item) => item.command));
+const rawCatalog = JSON.parse(await readFile(operationsFile, "utf8"));
+
+const allowedOperations = Array.isArray(rawCatalog) ? rawCatalog : rawCatalog.operations || [];
+const allowedTemplates = (!Array.isArray(rawCatalog) && rawCatalog.templates) ? rawCatalog.templates : [];
+
+const operationsById = new Map(allowedOperations.map((op) => [op.id, op]));
+const exactCommands = new Set(allowedOperations.map((op) => op.command));
+
+// Compila templates parametrizados em regex seguras.
+// Cada placeholder {{NOME}} é substituído por um grupo nomeado com a regex permitida.
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const compiledTemplates = allowedTemplates.map((tpl) => {
+  const placeholderRe = /\{\{([A-Z_][A-Z0-9_]*)\}\}/g;
+  const paramNames = [...tpl.pattern.matchAll(placeholderRe)].map((m) => m[1].toLowerCase());
+  let regexSource = escapeRegex(tpl.pattern);
+  for (const name of [...new Set(paramNames)]) {
+    const paramRegex = tpl.params?.[name] || "^[a-zA-Z0-9_. -]{1,128}$";
+    // Usa grupos nomeados para validar e extrair valores.
+    regexSource = regexSource.replace(
+      new RegExp(escapeRegex(`{{${name.toUpperCase()}}}`), "g"),
+      `(?<${name}>${paramRegex})`,
+    );
+  }
+  return {
+    id: tpl.id,
+    title: tpl.title,
+    pattern: tpl.pattern,
+    params: tpl.params || {},
+    destructive: !!tpl.destructive,
+    regex: new RegExp(`^${regexSource}$`, "s"),
+  };
+});
 
 const jobs = new Map();
 
@@ -40,6 +75,10 @@ function isAuthorized(req) {
     (origin === BASE_URL && client === "v10-web") ||
     (!origin && client === "mcp")
   );
+}
+
+function getRunningJobCount() {
+  return [...jobs.values()].filter((j) => j.state === "running").length;
 }
 
 function sendJson(res, status, data) {
@@ -74,10 +113,75 @@ function readBody(req, maxBytes = 2 * 1024 * 1024) {
   });
 }
 
+// Valida um valor de parâmetro contra a regex permitida.
+function validateParam(name, value, regexSource) {
+  if (typeof value !== "string") return null;
+  if (value.length === 0 || value.length > 1024) return null;
+  const re = new RegExp(`^(?:${regexSource})$`);
+  return re.test(value) ? value : null;
+}
+
+// Resolve uma requisição de execução para um comando final seguro.
+// Aceita {id, params?} ou {cmd}.
+function resolveCommand(body) {
+  if (!body || typeof body !== "object") return { error: "Corpo inválido." };
+
+  // Modo novo: id + params
+  if (body.id && typeof body.id === "string") {
+    const op = operationsById.get(body.id);
+    const tpl = allowedTemplates.find((t) => t.id === body.id);
+    if (!op && !tpl) return { error: `Operação '${body.id}' não encontrada.` };
+
+    if (op) {
+      return { cmd: op.command, destructive: !!op.destructive, id: op.id };
+    }
+
+    let finalCmd = tpl.pattern;
+    const params = body.params || {};
+    for (const [key, regexSource] of Object.entries(tpl.params || {})) {
+      const val = params[key];
+      const sanitized = validateParam(key, val, regexSource);
+      if (sanitized == null) {
+        return { error: `Parâmetro inválido para '${key}'.` };
+      }
+      finalCmd = finalCmd.replace(new RegExp(`\\{\\{${key.toUpperCase()}\\}\\}`, "g"), sanitized);
+    }
+    return { cmd: finalCmd, destructive: !!tpl.destructive, id: tpl.id };
+  }
+
+  // Modo legado: cmd exato ou template compilado
+  if (body.cmd && typeof body.cmd === "string") {
+    const cmd = body.cmd;
+    if (cmd.length > MAX_CMD_LENGTH) return { error: "Comando excede o limite de tamanho." };
+    if (exactCommands.has(cmd)) {
+      const op = allowedOperations.find((o) => o.command === cmd);
+      return { cmd, destructive: !!op?.destructive, id: op?.id };
+    }
+    for (const compiled of compiledTemplates) {
+      const match = compiled.regex.test(cmd);
+      if (match) {
+        return { cmd, destructive: compiled.destructive, id: compiled.id };
+      }
+    }
+    return { error: "Operação bloqueada: somente comandos cadastrados na V10 podem ser executados." };
+  }
+
+  return { error: "Comando ausente ou inválido." };
+}
+
 // Executa PowerShell e devolve o id do job. Output é acumulado em job.output (ao vivo).
-function runPowerShell(cmd) {
+function runPowerShell(cmd, meta = {}) {
   const id = randomUUID();
-  const job = { id, state: "running", output: "", exitCode: null, success: null, startedAt: Date.now() };
+  const job = {
+    id,
+    state: "running",
+    output: "",
+    exitCode: null,
+    success: null,
+    startedAt: Date.now(),
+    operationId: meta.id || null,
+    destructive: meta.destructive || false,
+  };
   jobs.set(id, job);
   const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd], {
     windowsHide: true,
@@ -201,19 +305,18 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (path === "/ping") {
-      const activeJobs = [...jobs.values()].filter((j) => j.state === "running").length;
       return sendJson(res, 200, {
         status: "ok",
         admin: false,
-        state: activeJobs > 0 ? "busy" : "idle",
-        activeJobs,
-        version: "10.0.0",
+        state: getRunningJobCount() > 0 ? "busy" : "idle",
+        activeJobs: getRunningJobCount(),
+        version: "10.1.0",
         pid: process.pid,
       });
     }
 
     if (path === "/mcp-status") {
-      return sendJson(res, 200, { status: "unknown", version: "10.0.0" });
+      return sendJson(res, 200, { status: "unknown", version: "10.1.0" });
     }
 
     if (path === "/status") {
@@ -222,20 +325,23 @@ const server = http.createServer(async (req, res) => {
 
     if (path === "/run" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado.", state: "forbidden" });
-      const activeJobs = [...jobs.values()].filter((j) => j.state === "running").length;
-      if (activeJobs >= MAX_CONCURRENT_JOBS) return sendJson(res, 429, { success: false, output: "Limite de comandos simultâneos atingido.", state: "busy" });
+      if (getRunningJobCount() >= MAX_CONCURRENT_JOBS) {
+        return sendJson(res, 429, { success: false, output: "Limite de comandos simultâneos atingido.", state: "busy" });
+      }
       const body = await readBody(req);
-      if (!body.cmd || typeof body.cmd !== "string") {
-        return sendJson(res, 400, { success: false, output: "Comando ausente ou inválido." });
+      const resolved = resolveCommand(body);
+      if (resolved.error) {
+        return sendJson(res, 403, { success: false, output: resolved.error });
       }
-      if (!allowedCommands.has(body.cmd)) {
-        return sendJson(res, 403, {
-          success: false,
-          output: "Operação bloqueada: somente comandos cadastrados na V10 podem ser executados.",
-        });
-      }
-      const id = runPowerShell(body.cmd);
-      return sendJson(res, 202, { success: true, accepted: true, jobId: id, state: "running", activeJobs: 1 });
+      const id = runPowerShell(resolved.cmd, { id: resolved.id, destructive: resolved.destructive });
+      return sendJson(res, 202, {
+        success: true,
+        accepted: true,
+        jobId: id,
+        state: "running",
+        activeJobs: getRunningJobCount(),
+        operationId: resolved.id,
+      });
     }
 
     if (path === "/run-status") {
@@ -250,7 +356,8 @@ const server = http.createServer(async (req, res) => {
         done: job.state !== "running",
         exitCode: job.exitCode,
         output: job.output || "",
-        activeJobs: [...jobs.values()].filter((j) => j.state === "running").length,
+        activeJobs: getRunningJobCount(),
+        operationId: job.operationId,
       });
     }
 
@@ -301,6 +408,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`Mestre do PC V10 - Launcher ativo em http://${HOST}:${PORT}`);
+  console.log(`Operações cadastradas: ${allowedOperations.length}; templates: ${allowedTemplates.length}`);
   console.log(`Ollama proxy -> ${OLLAMA_URL}`);
   console.log(`Dashboard /status | Streaming /ollama/chat`);
 });
