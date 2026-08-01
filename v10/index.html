@@ -350,7 +350,20 @@
       .ia-msg.user { align-self: flex-end; background: linear-gradient(135deg, #00d4ff, #00ff88); color: #000; border-bottom-right-radius: 4px; }
       .ia-msg.ai { align-self: flex-start; background: var(--card); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
       .ia-msg.ai pre { background: #010409; padding: 10px; border-radius: 6px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.8rem; color: #79c0ff; margin: 8px 0 4px; white-space: pre-wrap; }
+      .ia-msg.ai code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: var(--accent2); }
+      .ia-msg.ai .ia-code-block { background: #010409; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; margin: 10px 0; }
+      .ia-msg.ai .ia-code-block pre { background: transparent; padding: 0; margin: 0 0 8px; border: none; }
       .ia-msg.ai .ia-run-btn { display: inline-block; margin-top: 6px; padding: 5px 12px; background: var(--danger); color: white; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+      .ia-toolbar { display:flex; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.2); flex-wrap:wrap; }
+      .ia-toolbar button { padding:7px 12px; background:var(--card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:0.8rem; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:5px; }
+      .ia-toolbar button:hover { border-color:var(--accent); background:rgba(0,212,255,0.1); }
+      .ia-attach-panel { display:none; padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.15); }
+      .ia-attach-panel.show { display:block; }
+      .ia-attach-panel h4 { color:var(--accent); font-size:0.9rem; margin-bottom:8px; }
+      .ia-attach-list { display:flex; gap:8px; flex-wrap:wrap; }
+      .ia-attach-chip { padding:5px 10px; background:var(--card); border:1px solid var(--border); border-radius:16px; font-size:0.78rem; cursor:pointer; }
+      .ia-attach-chip:hover { border-color:var(--accent2); }
+      .ia-attach-chip.active { border-color:var(--accent2); background:rgba(0,255,136,0.12); }
       .ia-typing { display: inline-flex; gap: 4px; padding: 10px 16px; align-self: flex-start; }
       .ia-typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: 0.4; animation: iaTyping 1.2s infinite; }
       .ia-typing span:nth-child(2) { animation-delay: 0.2s; }
@@ -479,6 +492,20 @@
           </div>
           <button class="ia-close" onclick="closeIA()">✕</button>
         </div>
+        <div class="ia-toolbar">
+          <button onclick="attachContext('dashboard')" title="Enviar métricas atuais de CPU/RAM/disco">📊 Painel</button>
+          <button onclick="attachContext('models')" title="Listar modelos Ollama instalados">🤖 Modelos</button>
+          <button onclick="attachContext('memory')" title="Enviar uso de RAM e processos pesados">🧠 Memória</button>
+          <button onclick="attachContext('files')" title="Selecionar arquivo local para análise">📁 Arquivo</button>
+          <button onclick="attachContext('terminal')" title="Enviar último output do terminal">🖥️ Terminal</button>
+          <button onclick="attachContext('app')" title="Enviar informações do app Mestre do PC">🛡️ App</button>
+          <button onclick="clearAttachments()" title="Limpar contextos anexados">🧹 Limpar</button>
+        </div>
+        <div class="ia-attach-panel" id="iaAttachPanel">
+          <h4 id="iaAttachTitle">Anexos ao contexto</h4>
+          <div class="ia-attach-list" id="iaAttachList"></div>
+        </div>
+        <input type="file" id="iaFileInput" style="display:none" onchange="onIAFileSelected(this)" />
         <div class="ia-messages" id="iaMessages">
           <div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>
         </div>
@@ -1206,6 +1233,7 @@
           if (!submitRes.ok || submitData.success !== true || submitData.jobId == null) { setTerminalLive("❌ " + (submitData.output || "Falha ao enviar o comando."), false); return; }
           const data = await livePollJob(submitData.jobId, (s) => setTerminalLive(s.output || "[executando...]", true));
           const ok = data.success === true && data.state === "completed";
+          lastTerminalOutput = data.output || "";
           setTerminalLive((data.output || "(sem output)") + `\n\n[exit ${data.exitCode ?? data.code}] [${data.state}]`, false);
           cmdHistory.push({ title, cmd: code, output: data.output || "", success: data.success, date: new Date().toISOString() });
           localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-50)));
@@ -1427,6 +1455,104 @@ COMANDOS QUE VOCÊ CONHECE:
 - Drivers: Get-WmiObject Win32_PnPSignedDriver, pnputil
 - Privacidade: AllowTelemetry, AdvertisingInfo, Cortana`;
       let iaConversation = [];
+      let iaAttachments = [];
+      let lastTerminalOutput = "";
+      let lastDashboardData = null;
+      let lastModelsList = [];
+      let lastMemoryInfo = null;
+      function renderAttachments() {
+        const panel = document.getElementById("iaAttachPanel");
+        const list = document.getElementById("iaAttachList");
+        if (!iaAttachments.length) { panel.classList.remove("show"); return; }
+        panel.classList.add("show");
+        list.innerHTML = iaAttachments.map((a, i) => {
+          let icon = "📎";
+          if (a.type === "dashboard") icon = "📊";
+          if (a.type === "models") icon = "🤖";
+          if (a.type === "memory") icon = "🧠";
+          if (a.type === "files") icon = "📁";
+          if (a.type === "terminal") icon = "🖥️";
+          if (a.type === "app") icon = "🛡️";
+          return `<span class="ia-attach-chip active" title="${a.title}: ${a.preview}" onclick="removeAttachment(${i})">${icon} ${a.title} ✕</span>`;
+        }).join("");
+      }
+      function addAttachment(type, title, preview, content) {
+        iaAttachments = iaAttachments.filter((a) => a.type !== type);
+        iaAttachments.push({ type, title, preview, content });
+        renderAttachments();
+        showToast(`${title} anexado ao contexto`, "#00d4ff");
+      }
+      function removeAttachment(index) {
+        iaAttachments.splice(index, 1);
+        renderAttachments();
+      }
+      function clearAttachments() { iaAttachments = []; renderAttachments(); showToast("Contextos limpos", "#00d4ff"); }
+      async function attachContext(type) {
+        if (type === "dashboard") {
+          try {
+            const r = await fetch(API + "/status", { signal: AbortSignal.timeout(3000) });
+            const d = await r.json();
+            lastDashboardData = d;
+            const ramPct = d.ramTotal ? Math.round(100 - (d.ramFree / d.ramTotal * 100)) : 0;
+            const preview = `CPU ${d.cpu ?? 0}% · RAM ${d.ramFree ?? 0}/${d.ramTotal ?? 0} GB · Disco ${d.diskFree ?? 0} GB livre`;
+            const text = `Métricas atuais do PC:\n- CPU: ${d.cpu ?? 0}%\n- RAM livre: ${d.ramFree ?? 0} GB de ${d.ramTotal ?? 0} GB (${ramPct}% usada)\n- Disco C livre: ${d.diskFree ?? 0} GB\n- Uptime: ${fmtUptime(d.uptimeSec || 0)}`;
+            addAttachment("dashboard", "Painel", preview, text);
+          } catch { showToast("Falha ao ler painel", "#f85149"); }
+        } else if (type === "models") {
+          try {
+            const r = await fetch(API + "/ollama/tags", { signal: AbortSignal.timeout(3000) });
+            const data = await r.json();
+            lastModelsList = (data.models || []).map((m) => m.name || m.model);
+            const preview = `${lastModelsList.length} modelos`;
+            const text = `Modelos Ollama instalados:\n${lastModelsList.join("\n") || "Nenhum"}`;
+            addAttachment("models", "Modelos", preview, text);
+          } catch { showToast("Falha ao listar modelos", "#f85149"); }
+        } else if (type === "memory") {
+          try {
+            const ps = `Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize`;
+            const data = await dispatchCommand(ps, { timeoutMs: 15000 });
+            const top = data.output || "";
+            const r = await fetch(API + "/status", { signal: AbortSignal.timeout(3000) });
+            const d = await r.json();
+            lastMemoryInfo = { free: d.ramFree, total: d.ramTotal, top };
+            const preview = `RAM ${d.ramFree ?? 0}/${d.ramTotal ?? 0} GB · 15 processos`;
+            const text = `Uso de memória:\n- RAM livre: ${d.ramFree ?? 0} GB de ${d.ramTotal ?? 0} GB\n- Top 15 processos por RAM:\n\n${top}`;
+            addAttachment("memory", "Memória", preview, text);
+          } catch { showToast("Falha ao ler memória", "#f85149"); }
+        } else if (type === "files") {
+          document.getElementById("iaFileInput").click();
+        } else if (type === "terminal") {
+          if (!lastTerminalOutput) { showToast("Nenhum output de terminal ainda", "#f0a800"); return; }
+          addAttachment("terminal", "Terminal", `output (${lastTerminalOutput.length} chars)`, `Último output do terminal:\n\n${lastTerminalOutput}`);
+        } else if (type === "app") {
+          try {
+            const r = await fetch(API + "/ping", { signal: AbortSignal.timeout(3000) });
+            const d = await r.json();
+            const info = `Informações do app Mestre do PC:\n- Status: ${d.status}\n- Versão: ${d.version || "?"}\n- PID: ${d.pid}\n- Jobs ativos: ${d.activeJobs}\n- Estado: ${d.state}\n- URL: ${API}`;
+            addAttachment("app", "App", `v${d.version || "?"} · PID ${d.pid}`, info);
+          } catch { showToast("Falha ao ler app", "#f85149"); }
+        }
+      }
+      function onIAFileSelected(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result;
+          const preview = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          addAttachment("files", file.name, preview, `Arquivo local "${file.name}":\n\n${text.slice(0, 12000)}${text.length > 12000 ? "\n\n[... arquivo truncado por limite de contexto ...]" : ""}`);
+        };
+        reader.readAsText(file);
+        input.value = "";
+      }
+      function buildContextPrompt(userMessage) {
+        let extra = "";
+        for (const a of iaAttachments) {
+          extra += `\n\n[${a.title}]\n${a.content}`;
+        }
+        if (extra) return `${userMessage}\n\n---\nContexto local anexado:${extra}`;
+        return userMessage;
+      }
       // NOVO V10: pré-carrega o modelo no Ollama ao abrir o chat (primeiro token mais rápido)
       async function preloadModel() {
         if (!selectedOllamaModel) return;
@@ -1471,8 +1597,9 @@ COMANDOS QUE VOCÊ CONHECE:
         document.getElementById("iaMessages").appendChild(typingEl);
         scrollIAToBottom();
         iaConversation.push({ role: "user", content: msg });
+        const fullMessage = buildContextPrompt(msg);
         try {
-          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation], stream: true, keep_alive: "10m" }) });
+          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map((m, i, arr) => { const isLastUser = m.role === "user" && i === arr.length - 1; return { role: m.role, content: isLastUser ? buildContextPrompt(m.content) : m.content }; })], stream: true, keep_alive: "10m" }) });
           if (!res.ok || !res.body) throw new Error("Falha no proxy Ollama: HTTP " + res.status);
           typingEl.remove();
           const aiMsgEl = addIAMessage("", "ai");
@@ -1510,8 +1637,9 @@ COMANDOS QUE VOCÊ CONHECE:
       }
       function renderIAContent(el, text) {
         let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-          .replace(/```(?:powershell)?\n?([\s\S]*?)```/g, (_, code) => `<pre>${code.trim()}</pre><button class="ia-run-btn" onclick="runIACmd(this)">▶ Executar</button>`)
+          .replace(/```(?:powershell)?\n?([\s\S]*?)```/g, (_, code) => `<div class="ia-code-block"><pre>${code.trim()}</pre><button class="ia-run-btn" onclick="runIACmd(this)">▶ Executar</button></div>`)
           .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
           .replace(/\n/g, "<br>");
         el.innerHTML = html;
       }
