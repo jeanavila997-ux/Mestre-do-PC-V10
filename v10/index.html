@@ -511,6 +511,22 @@
         ],
       },
       {
+        id: "cat_models",
+        label: "🤖 MODELOS",
+        cmds: [
+          ["Listar modelos Ollama", "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
+          ["Pull modelo qwen2.5-coder:1.5b", "ollama pull qwen2.5-coder:1.5b"],
+          ["Pull modelo llama3.2", "ollama pull llama3.2"],
+          ["Pull modelo phi4", "ollama pull phi4"],
+          ["Pull modelo deepseek-r1:1.5b", "ollama pull deepseek-r1:1.5b"],
+          ["Pull modelo gemma2:2b", "ollama pull gemma2:2b"],
+          ["Remover modelo Ollama", "ollama rm NOME_MODELO"],
+          ["Ver informações de um modelo", "ollama show NOME_MODELO"],
+          ["Copiar modelo local", "ollama cp MODELO_ORIGEM MODELO_DESTINO"],
+          ["Criar modelo a partir de Modelfile", "ollama create NOME_MODELO -f \"C:\\caminho\\Modelfile\""],
+        ],
+      },
+      {
         id: "cat1",
         label: "1. Limpeza Geral",
         cmds: [
