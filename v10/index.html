@@ -956,9 +956,7 @@
         a.dataset.index = String(index + 1);
         a.title = c.label;
         a.onclick = () => {
-          openCategory(c.id);
-          nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
-          a.classList.add("active");
+          activateCategory(c.id, { scroll: true, collapseSidebar: true });
         };
         nav.appendChild(a);
       });
@@ -1043,24 +1041,25 @@
         div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${c.label}${badge} <span class="chevron">▼</span></div><div class="category-content">${content}</div>`;
         container.appendChild(div);
       });
-      function openCategory(id, behavior = "smooth") {
+      function activateCategory(id, options = {}) {
+        const { scroll = true, collapseSidebar = false } = options;
         const target = document.getElementById(id);
         if (!target) return;
-        // Fecha todas as outras categorias (modo accordion)
         document.querySelectorAll(".category").forEach((el) => {
           el.classList.toggle("active", el.id === id);
         });
-        // Marca item do menu
         if (typeof nav !== "undefined") {
           nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
           const idx = CATS.findIndex((c) => c.id === id);
           if (nav.children[idx]) nav.children[idx].classList.add("active");
         }
-        // Recolhe sidebar e centraliza a categoria
-        recolherMenuLateral();
-        setTimeout(() => {
-          target.scrollIntoView({ behavior, block: "center" });
-        }, 10);
+        if (collapseSidebar) recolherMenuLateral();
+        if (scroll) {
+          const delay = collapseSidebar ? 260 : 10;
+          setTimeout(() => {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, delay);
+        }
       }
       function toggleCat(header) {
         const cat = header.closest ? header.closest(".category") : header.parentElement;
@@ -1070,8 +1069,11 @@
           cat.classList.remove("active");
           if (typeof nav !== "undefined") nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
         } else {
-          openCategory(cat.id, "smooth");
+          activateCategory(cat.id, { scroll: false, collapseSidebar: false });
         }
+      }
+      function openCategory(id, behavior = "smooth") {
+        activateCategory(id, { scroll: true, collapseSidebar: true });
       }
       const API = window.location.protocol.startsWith("http")
         ? window.location.origin
