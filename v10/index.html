@@ -1044,35 +1044,31 @@
         container.appendChild(div);
       });
       function openCategory(id, behavior = "smooth") {
-        // Fecha todas as outras categorias (modo accordion)
-        CATS.forEach((c) => {
-          const el = document.getElementById(c.id);
-          if (el) el.classList.toggle("active", c.id === id);
-        });
         const target = document.getElementById(id);
         if (!target) return;
+        // Fecha todas as outras categorias (modo accordion)
+        document.querySelectorAll(".category").forEach((el) => {
+          el.classList.toggle("active", el.id === id);
+        });
         // Marca item do menu
-        nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
-        const idx = CATS.findIndex((c) => c.id === id);
-        const navItem = nav.children[idx];
-        if (navItem) navItem.classList.add("active");
-        // Recolhe sidebar em telas menores e centraliza a categoria
+        if (typeof nav !== "undefined") {
+          nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+          const idx = CATS.findIndex((c) => c.id === id);
+          if (nav.children[idx]) nav.children[idx].classList.add("active");
+        }
+        // Recolhe sidebar e centraliza a categoria
         recolherMenuLateral();
         setTimeout(() => {
-          const header = target.querySelector(".category-header");
-          const headerHeight = header ? header.offsetHeight : 0;
-          const viewportCenter = window.innerHeight / 2;
-          const targetTop = target.getBoundingClientRect().top + window.scrollY;
-          const offset = targetTop - viewportCenter + headerHeight + target.offsetHeight / 2;
-          window.scrollTo({ top: Math.max(0, offset), behavior });
+          target.scrollIntoView({ behavior, block: "center" });
         }, 10);
       }
       function toggleCat(header) {
-        const cat = header.parentElement;
+        const cat = header.closest ? header.closest(".category") : header.parentElement;
+        if (!cat) return;
         const isActive = cat.classList.contains("active");
         if (isActive) {
           cat.classList.remove("active");
-          nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+          if (typeof nav !== "undefined") nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
         } else {
           openCategory(cat.id, "smooth");
         }
