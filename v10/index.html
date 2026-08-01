@@ -271,6 +271,20 @@
       .category-header:hover { background: linear-gradient(90deg, rgba(0,212,255,0.22), rgba(0,255,136,0.15)); }
       .category-content { padding: 16px; display: none; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; }
       .category.active .category-content { display: grid; }
+      .subcategory-header {
+        grid-column: 1 / -1;
+        padding: 10px 12px;
+        margin: 8px 0 4px;
+        background: rgba(0,212,255,0.08);
+        border: 1px solid rgba(0,212,255,0.15);
+        border-radius: 8px;
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 0.92rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      body.light .subcategory-header { background: rgba(9,105,218,0.08); border-color: rgba(9,105,218,0.15); color: var(--accent); }
       .cmd-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 15px; transition: 0.3s; position: relative; }
       .cmd-card:hover { border-color: rgba(0,212,255,0.4); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
       .cmd-card h4 { color: var(--accent2); margin-bottom: 7px; font-size: 0.93rem; padding-right: 28px; }
@@ -513,17 +527,84 @@
       {
         id: "cat_models",
         label: "🤖 MODELOS",
-        cmds: [
-          ["Listar modelos Ollama", "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
-          ["Pull modelo qwen2.5-coder:1.5b", "ollama pull qwen2.5-coder:1.5b"],
-          ["Pull modelo llama3.2", "ollama pull llama3.2"],
-          ["Pull modelo phi4", "ollama pull phi4"],
-          ["Pull modelo deepseek-r1:1.5b", "ollama pull deepseek-r1:1.5b"],
-          ["Pull modelo gemma2:2b", "ollama pull gemma2:2b"],
-          ["Remover modelo Ollama", "ollama rm NOME_MODELO"],
-          ["Ver informações de um modelo", "ollama show NOME_MODELO"],
-          ["Copiar modelo local", "ollama cp MODELO_ORIGEM MODELO_DESTINO"],
-          ["Criar modelo a partir de Modelfile", "ollama create NOME_MODELO -f \"C:\\caminho\\Modelfile\""],
+        subcategories: [
+          {
+            label: "💻 Código",
+            cmds: [
+              ["Pull qwen2.5-coder:1.5b", "ollama pull qwen2.5-coder:1.5b"],
+              ["Pull kimi-k2.7-code:cloud", "ollama pull kimi-k2.7-code:cloud"],
+              ["Pull deepseek-coder-v2", "ollama pull deepseek-coder-v2"],
+              ["Pull codellama:7b-code", "ollama pull codellama:7b-code"],
+              ["Pull codellama:13b-code", "ollama pull codellama:13b-code"],
+              ["Pull codegemma:2b-code", "ollama pull codegemma:2b-code"],
+              ["Pull qwen2.5-coder:7b", "ollama pull qwen2.5-coder:7b"],
+            ],
+          },
+          {
+            label: "👁️ Visão",
+            cmds: [
+              ["Pull llava-phi3", "ollama pull llava-phi3"],
+              ["Pull llava:13b", "ollama pull llava:13b"],
+              ["Pull bakllava", "ollama pull bakllava"],
+              ["Pull moondream2", "ollama pull moondream2"],
+              ["Pull minicpm-v", "ollama pull minicpm-v"],
+              ["Pull llama3.2-vision", "ollama pull llama3.2-vision"],
+              ["Pull granite3.2-vision", "ollama pull granite3.2-vision"],
+            ],
+          },
+          {
+            label: "📝 Texto",
+            cmds: [
+              ["Pull llama3.2", "ollama pull llama3.2"],
+              ["Pull qwen2.5:7b", "ollama pull qwen2.5:7b"],
+              ["Pull mistral", "ollama pull mistral"],
+              ["Pull gemma2:2b", "ollama pull gemma2:2b"],
+              ["Pull phi4", "ollama pull phi4"],
+              ["Pull phi3:medium", "ollama pull phi3:medium"],
+              ["Pull command-r7b", "ollama pull command-r7b"],
+            ],
+          },
+          {
+            label: "🖼️ Imagem / Multimodal",
+            cmds: [
+              ["Pull llava (análise de imagem)", "ollama pull llava"],
+              ["Pull llama3.2-vision", "ollama pull llama3.2-vision"],
+              ["Pull granite3.2-vision", "ollama pull granite3.2-vision"],
+              ["Pull llava-llama3", "ollama pull llava-llama3"],
+            ],
+          },
+          {
+            label: "🛠️ Ferramentas",
+            cmds: [
+              ["Pull llama3.2 (tools)", "ollama pull llama3.2"],
+              ["Pull qwen2.5 (tools)", "ollama pull qwen2.5"],
+              ["Pull mistral (tools)", "ollama pull mistral"],
+              ["Pull command-r7b (tools)", "ollama pull command-r7b"],
+              ["Pull athene-v2:agent", "ollama pull athene-v2:agent"],
+              ["Pull qwen2.5:14b (tools)", "ollama pull qwen2.5:14b"],
+            ],
+          },
+          {
+            label: "🎓 Aprendizagem / Leve",
+            cmds: [
+              ["Pull tinyllama", "ollama pull tinyllama"],
+              ["Pull qwen2.5:0.5b", "ollama pull qwen2.5:0.5b"],
+              ["Pull phi3", "ollama pull phi3"],
+              ["Pull gemma2:2b-instruct", "ollama pull gemma2:2b-instruct"],
+              ["Pull smollm2:135m", "ollama pull smollm2:135m"],
+              ["Pull qwen2.5:1.5b", "ollama pull qwen2.5:1.5b"],
+            ],
+          },
+          {
+            label: "⚙️ Gerenciar",
+            cmds: [
+              ["Listar modelos Ollama", "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
+              ["Remover modelo Ollama", "ollama rm NOME_MODELO"],
+              ["Ver informações de um modelo", "ollama show NOME_MODELO"],
+              ["Copiar modelo local", "ollama cp MODELO_ORIGEM MODELO_DESTINO"],
+              ["Criar modelo a partir de Modelfile", "ollama create NOME_MODELO -f \"C:\\caminho\\Modelfile\""],
+            ],
+          },
         ],
       },
       {
@@ -887,14 +968,15 @@
       }
       // Render categories (padrão V7 + estrela de favorito + botão fila + botão live)
       const container = document.getElementById("categories");
-      CATS.forEach((c) => {
-        const div = document.createElement("div");
-        div.className = "category";
-        div.id = c.id;
-        const badge = `<span class="badge">${c.cmds.length} cmds</span>`;
+      function countCmds(c) {
+        let n = (c.cmds || []).length;
+        if (c.subcategories) n += c.subcategories.reduce((sum, s) => sum + (s.cmds || []).length, 0);
+        return n;
+      }
+      function renderCards(list, prefix) {
         let cards = "";
-        c.cmds.forEach((cmd, i) => {
-          const uid = `${c.id}_${i}`;
+        (list || []).forEach((cmd, i) => {
+          const uid = `${prefix}_${i}`;
           const esc = cmd[1].replace(/</g, "&lt;").replace(/>/g, "&gt;");
           const isFav = favorites.includes(uid) ? "active" : "";
           const star = isFav ? "⭐" : "☆";
@@ -913,7 +995,24 @@
       </div>
     </div>`;
         });
-        div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${c.label}${badge} <span>▼</span></div><div class="category-content">${cards}</div>`;
+        return cards;
+      }
+      CATS.forEach((c) => {
+        const div = document.createElement("div");
+        div.className = "category";
+        div.id = c.id;
+        const total = countCmds(c);
+        const badge = `<span class="badge">${total} cmds</span>`;
+        let content = "";
+        if (c.subcategories) {
+          c.subcategories.forEach((sub, idx) => {
+            content += `<div class="subcategory-header">${sub.label}</div>`;
+            content += renderCards(sub.cmds, `${c.id}_sub${idx}`);
+          });
+        } else {
+          content += renderCards(c.cmds, c.id);
+        }
+        div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${c.label}${badge} <span>▼</span></div><div class="category-content">${content}</div>`;
         container.appendChild(div);
       });
       function toggleCat(header) { header.parentElement.classList.toggle("active"); }

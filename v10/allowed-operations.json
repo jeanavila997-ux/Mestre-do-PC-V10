@@ -1469,6 +1469,202 @@
       "category": "MODELOS",
       "destructive": false,
       "command": "ollama pull gemma2:2b"
+    },
+    {
+      "id": "pull_kimi_k2_7_code_cloud",
+      "title": "Pull kimi-k2.7-code:cloud",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull kimi-k2.7-code:cloud"
+    },
+    {
+      "id": "pull_deepseek_coder_v2",
+      "title": "Pull deepseek-coder-v2",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull deepseek-coder-v2"
+    },
+    {
+      "id": "pull_codellama_7b_code",
+      "title": "Pull codellama:7b-code",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull codellama:7b-code"
+    },
+    {
+      "id": "pull_codellama_13b_code",
+      "title": "Pull codellama:13b-code",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull codellama:13b-code"
+    },
+    {
+      "id": "pull_codegemma_2b_code",
+      "title": "Pull codegemma:2b-code",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull codegemma:2b-code"
+    },
+    {
+      "id": "pull_qwen2_5_coder_7b",
+      "title": "Pull qwen2.5-coder:7b",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull qwen2.5-coder:7b"
+    },
+    {
+      "id": "pull_llava_phi3",
+      "title": "Pull llava-phi3",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull llava-phi3"
+    },
+    {
+      "id": "pull_llava_13b",
+      "title": "Pull llava:13b",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull llava:13b"
+    },
+    {
+      "id": "pull_bakllava",
+      "title": "Pull bakllava",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull bakllava"
+    },
+    {
+      "id": "pull_moondream2",
+      "title": "Pull moondream2",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull moondream2"
+    },
+    {
+      "id": "pull_minicpm_v",
+      "title": "Pull minicpm-v",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull minicpm-v"
+    },
+    {
+      "id": "pull_llama3_2_vision",
+      "title": "Pull llama3.2-vision",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull llama3.2-vision"
+    },
+    {
+      "id": "pull_granite3_2_vision",
+      "title": "Pull granite3.2-vision",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull granite3.2-vision"
+    },
+    {
+      "id": "pull_qwen2_5_7b",
+      "title": "Pull qwen2.5:7b",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull qwen2.5:7b"
+    },
+    {
+      "id": "pull_mistral",
+      "title": "Pull mistral",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull mistral"
+    },
+    {
+      "id": "pull_phi3_medium",
+      "title": "Pull phi3:medium",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull phi3:medium"
+    },
+    {
+      "id": "pull_command_r7b",
+      "title": "Pull command-r7b",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull command-r7b"
+    },
+    {
+      "id": "pull_llava_analise_de_imagem",
+      "title": "Pull llava (análise de imagem)",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull llava"
+    },
+    {
+      "id": "pull_llava_llama3",
+      "title": "Pull llava-llama3",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull llava-llama3"
+    },
+    {
+      "id": "pull_qwen2_5",
+      "title": "Pull qwen2.5",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull qwen2.5"
+    },
+    {
+      "id": "pull_qwen2_5_14b",
+      "title": "Pull qwen2.5:14b",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull qwen2.5:14b"
+    },
+    {
+      "id": "pull_athene_v2_agent",
+      "title": "Pull athene-v2:agent",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull athene-v2:agent"
+    },
+    {
+      "id": "pull_tinyllama",
+      "title": "Pull tinyllama",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull tinyllama"
+    },
+    {
+      "id": "pull_qwen2_5_0_5b",
+      "title": "Pull qwen2.5:0.5b",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull qwen2.5:0.5b"
+    },
+    {
+      "id": "pull_phi3",
+      "title": "Pull phi3",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull phi3"
+    },
+    {
+      "id": "pull_gemma2_2b_instruct",
+      "title": "Pull gemma2:2b-instruct",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull gemma2:2b-instruct"
+    },
+    {
+      "id": "pull_smollm2_135m",
+      "title": "Pull smollm2:135m",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull smollm2:135m"
+    },
+    {
+      "id": "pull_qwen2_5_1_5b",
+      "title": "Pull qwen2.5:1.5b",
+      "category": "MODELOS",
+      "destructive": false,
+      "command": "ollama pull qwen2.5:1.5b"
     }
   ],
   "templates": [
@@ -1548,6 +1744,24 @@
       "params": {
         "nome_modelo": "^[a-zA-Z0-9_:.\\-]{1,64}$",
         "caminho_modfile": "^[a-zA-Z]:\\\\[\\\\/a-zA-Z0-9_.\\-\\\\ \\(\\)\\[\\]]{1,260}$"
+      }
+    },
+    {
+      "id": "pull_modelo_ollama",
+      "title": "Pull de modelo Ollama customizado",
+      "pattern": "ollama pull {{NOME_MODELO}}",
+      "destructive": false,
+      "params": {
+        "nome_modelo": "^[a-zA-Z0-9_:.\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "run_modelo_ollama",
+      "title": "Run modelo Ollama interativo",
+      "pattern": "ollama run {{NOME_MODELO}}",
+      "destructive": false,
+      "params": {
+        "nome_modelo": "^[a-zA-Z0-9_:.\\-]{1,64}$"
       }
     }
   ]
