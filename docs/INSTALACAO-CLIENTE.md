@@ -68,6 +68,53 @@ curl -fsSL https://ollama.com/install.sh | sh
 ```
 - Suporta Apple Silicon (M1/M2/M3) nativamente.
 
+### 🐳 Docker (alternativa multiplataforma)
+> Ideal para ambientes de desenvolvimento, CI/CD ou quando não quer instalar nativo.
+
+**CPU apenas:**
+```shell
+docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+```
+
+**NVIDIA GPU** (requer [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)):
+```shell
+# Linux (apt)
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+    | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+    | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+    | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# Iniciar container com GPU
+docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+```
+
+**AMD GPU (ROCm):**
+```shell
+docker run -d --device /dev/kfd --device /dev/dri -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama:rocm
+```
+
+**Vulkan (padrão quando GPU detectada):**
+```shell
+docker run -d --device /dev/kfd --device /dev/dri -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+```
+- Use `OLLAMA_VULKAN=0` para desabilitar Vulkan.
+- Use `GGML_VK_VISIBLE_DEVICES=<ids>` para selecionar dispositivos Vulkan específicos.
+
+**Baixar modelo dentro do container:**
+```shell
+docker exec -it ollama ollama pull qwen2.5-coder:1.5b
+```
+
+**Notas:**
+- O volume `ollama:/root/.ollama` persiste os modelos entre reinicializações.
+- No Windows com Docker Desktop, certifique-se de que a opção **WSL 2** está habilitada.
+- O container expõe a API em `http://localhost:11434` (mesmo endpoint do Ollama nativo).
+
 ### Baixar um modelo (todas as plataformas)
 ```bash
 ollama pull qwen2.5-coder:1.5b     # modelo local leve (~1 GB) — PADRÃO do V10, funciona sem login
