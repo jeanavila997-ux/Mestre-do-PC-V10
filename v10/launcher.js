@@ -37,7 +37,7 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-const compiledTemplates = allowedTemplates.map((tpl) => {
+const compiledTemplates = allowedTemplates.filter((tpl) => typeof tpl.pattern === "string").map((tpl) => {
   const placeholderRe = /\{\{([A-Z_][A-Z0-9_]*)\}\}/g;
   const paramNames = [...tpl.pattern.matchAll(placeholderRe)].map((m) => m[1].toLowerCase());
   let regexSource = escapeRegex(tpl.pattern);
@@ -395,7 +395,10 @@ const server = http.createServer(async (req, res) => {
     if (path === "/favicon.png" || path === "/logo-mestre-v7-transparent.png") {
       try {
         const buf = await readFile(join(__dirname, "..", path.slice(1)));
-        res.writeHead(200, { "Content-Type": "image/png" });
+        res.writeHead(200, {
+          "Content-Type": "image/png",
+          "Cache-Control": "public, max-age=604800, immutable",
+        });
         return res.end(buf);
       } catch { return sendJson(res, 404, { error: "recurso não encontrado" }); }
     }

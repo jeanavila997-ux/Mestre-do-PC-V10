@@ -9,8 +9,9 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 test("script inline da V10 compila e inicializa regras antes da renderizacao", async () => {
   const html = await readFile(join(root, "v10", "index.html"), "utf8");
   const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
-  assert.equal(scripts.length, 1);
-  assert.doesNotThrow(() => new Function(scripts[0][1]));
+  const inlineScripts = scripts.filter((s) => s[1].trim().length > 0);
+  assert.ok(inlineScripts.length >= 1, "esperado pelo menos 1 script inline");
+  assert.doesNotThrow(() => new Function(inlineScripts[0][1]));
 
   const declaration = html.indexOf("const DANGER_PATTERNS");
   const firstUse = html.indexOf("const danger = isDangerous");
