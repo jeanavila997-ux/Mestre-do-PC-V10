@@ -102,7 +102,9 @@ if (-not $KeepMcpConfig) {
 # 4. Atalhos
 Write-Step "Removendo atalhos..."
 $shortcuts = @(
+    (Join-Path ([Environment]::GetFolderPath("Desktop"))  "Mestre do PC V10.lnk"),
     (Join-Path ([Environment]::GetFolderPath("Desktop"))  "Mestre do PC.lnk"),
+    (Join-Path ([Environment]::GetFolderPath("Programs")) "Mestre do PC V10.lnk"),
     (Join-Path ([Environment]::GetFolderPath("Programs")) "Mestre do PC.lnk")
 )
 foreach ($lnk in $shortcuts) {

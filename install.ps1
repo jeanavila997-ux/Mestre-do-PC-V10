@@ -253,24 +253,36 @@ if (-not $SkipMcpConfig) {
 # ---------------------------------------------------------------
 if (-not $NoShortcuts) {
     Write-Step "Criando atalhos..."
-    $startBat = Join-Path $InstallDir "v10\start-v10.bat"
-    $iconPath = Join-Path $InstallDir "icon.ico"
+    $startScript = Join-Path $InstallDir "start-mestre-v10.ps1"
+    $startBat    = Join-Path $InstallDir "v10\start-v10.bat"
+    $iconPath    = Join-Path $InstallDir "icon.ico"
 
-    $targets = @(
-        (Join-Path ([Environment]::GetFolderPath("Desktop")) "Mestre do PC.lnk"),
-        (Join-Path ([Environment]::GetFolderPath("Programs")) "Mestre do PC.lnk")
-    )
+    if (-not (Test-Path $startScript)) {
+        throw "Script de ativacao nao encontrado: $startScript"
+    }
 
     $wsh = New-Object -ComObject WScript.Shell
-    foreach ($lnk in $targets) {
-        $s = $wsh.CreateShortcut($lnk)
-        $s.TargetPath       = $startBat
-        $s.WorkingDirectory = Join-Path $InstallDir "v10"
-        if (Test-Path $iconPath) { $s.IconLocation = $iconPath }
-        $s.Description      = "Mestre do PC V10 - Ultimate Plus"
-        $s.Save()
-    }
-    Write-Ok "Atalhos criados."
+
+    # Atalho do Desktop: ativa tudo (Ollama + Launcher + navegador)
+    $desktopLnk = Join-Path ([Environment]::GetFolderPath("Desktop")) "Mestre do PC V10.lnk"
+    $s1 = $wsh.CreateShortcut($desktopLnk)
+    $s1.TargetPath       = "pwsh.exe"
+    $s1.Arguments        = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$startScript`""
+    $s1.WorkingDirectory = $InstallDir
+    if (Test-Path $iconPath) { $s1.IconLocation = $iconPath }
+    $s1.Description      = "Ativa o Mestre do PC V10 (Ollama, Launcher e interface web)"
+    $s1.Save()
+
+    # Atalho do Menu Iniciar: modo alternativo (bootstrap via batch)
+    $programsLnk = Join-Path ([Environment]::GetFolderPath("Programs")) "Mestre do PC V10.lnk"
+    $s2 = $wsh.CreateShortcut($programsLnk)
+    $s2.TargetPath       = $startBat
+    $s2.WorkingDirectory = Join-Path $InstallDir "v10"
+    if (Test-Path $iconPath) { $s2.IconLocation = $iconPath }
+    $s2.Description      = "Mestre do PC V10 - Bootstrap"
+    $s2.Save()
+
+    Write-Ok "Atalhos criados (Desktop + Menu Iniciar)."
 }
 
 # ---------------------------------------------------------------
