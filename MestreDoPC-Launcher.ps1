@@ -324,11 +324,13 @@ try {
         }
 
         if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath -eq "/favicon.png") {
+            $res.Headers["Cache-Control"] = "public, max-age=604800, immutable"
             Write-FileResponse -Response $res -Path (Join-Path $PROJECT_DIR "favicon.png") -ContentType "image/png"
             continue
         }
 
         if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath -eq "/logo-mestre-v7-transparent.png") {
+            $res.Headers["Cache-Control"] = "public, max-age=604800, immutable"
             Write-FileResponse -Response $res -Path (Join-Path $PROJECT_DIR "logo-mestre-v7-transparent.png") -ContentType "image/png"
             continue
         }

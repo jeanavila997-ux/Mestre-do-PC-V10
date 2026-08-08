@@ -18,7 +18,7 @@ $OllamaExe  = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
 $OllamaApi  = "http://localhost:11434"
 $LauncherTask = "MestreDoPC_Admin_Launcher"
 $MestreApi  = "http://127.0.0.1:7777"
-$Model      = "qwen2.5-coder:1.5b"          # local, funciona offline e sem login
+$Model      = "qwen2.5-coder:3b-instruct"   # local, funciona offline e sem login
 
 function Log {
     param([string] $msg)

@@ -8,7 +8,7 @@ import {
   ErrorCode,
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
-import { sanitizeToolArgument } from "./security.js";
+import { sanitizeToolArgument, checkPromptInjection } from "./security.js";
 
 const MESTRE_BASE_URL = (process.env.MESTRE_BASE_URL || "http://127.0.0.1:7777").replace(/\/+$/, "");
 const MESTRE_RUN_URL = MESTRE_BASE_URL + "/run";
@@ -230,7 +230,7 @@ const mestreTools = {
 };
 
 const OLLAMA_URL = (process.env.OLLAMA_URL || "http://127.0.0.1:11434").replace(/\/+$/, "");
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5-coder:1.5b";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct";
 const OLLAMA_SYSTEM_PROMPT = `Você é o Mestre do PC, um assistente especializado em manutenção de computadores Windows.
 Responda SEMPRE em português brasileiro.
 Quando sugerir uma ação, inclua o comando PowerShell exato.
@@ -280,11 +280,22 @@ const TOOLS = [
   },
   {
     name: "verificar_modelo_ollama",
-    description: "Verifica se o modelo qwen2.5-coder:1.5b está instalado no Ollama e tenta baixá-lo se necessário.",
+    description: "Verifica se o modelo qwen2.5-coder:3b-instruct está instalado no Ollama e tenta baixá-lo se necessário.",
     inputSchema: {
       type: "object",
       properties: {},
       required: [],
+    },
+  },
+  {
+    name: "verificar_prompt",
+    description: "Analisa um prompt em busca de tentativas de prompt injection, jailbreak ou conteúdo malicioso. Retorna classificação e score.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        prompt: { type: "string", description: "O texto do prompt a ser analisado." },
+      },
+      required: ["prompt"],
     },
   },
 ];
@@ -312,6 +323,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     } catch (e) {
       return { isError: true, content: [{ type: "text", text: "Erro ao conectar ao Ollama. Verifique se 'ollama serve' está rodando." }] };
     }
+  }
+
+  if (name === "verificar_prompt") {
+    const promptText = args?.prompt;
+    if (!promptText) throw new McpError(ErrorCode.InvalidParams, "Parametro 'prompt' obrigatorio.");
+    const result = checkPromptInjection(promptText);
+    let icon = "✅";
+    if (result.classification === "suspeito") icon = "🟡";
+    if (result.classification === "malicioso") icon = "🔴";
+    const lines = [
+      `${icon} Classificacao: ${result.classification.toUpperCase()}`,
+      ...result.details,
+    ];
+    return { content: [{ type: "text", text: lines.join("\n") }] };
   }
 
   if (name === "analisar_logs_sistema") {

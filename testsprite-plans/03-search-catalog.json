@@ -1,0 +1,12 @@
+{
+  "projectId": "fabee5fd-3782-40e5-ba74-4af9dcec0a43",
+  "type": "frontend",
+  "name": "Busca — filtrar comandos do catálogo funciona",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to http://127.0.0.1:7777/" },
+    { "type": "action", "description": "Click the search input with placeholder '🔍 Buscar comando...'" },
+    { "type": "action", "description": "Type 'limpar temp' into the search input" },
+    { "type": "assertion", "description": "At least one command card containing the text 'TEMP' is visible" },
+    { "type": "assertion", "description": "Command cards that do not contain 'limpar' or 'temp' are hidden" }
+  ]
+}

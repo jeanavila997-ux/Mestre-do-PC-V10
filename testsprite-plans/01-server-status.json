@@ -1,0 +1,12 @@
+{
+  "projectId": "fabee5fd-3782-40e5-ba74-4af9dcec0a43",
+  "type": "frontend",
+  "name": "Dashboard — status do launcher, MCP e Ollama são exibidos",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to http://127.0.0.1:7777/ and wait for the dashboard to load" },
+    { "type": "assertion", "description": "The server status bar shows either 'Launcher ativo' or 'Launcher offline' text" },
+    { "type": "assertion", "description": "The MCP status badge displays 'Online', 'Desconectado' or 'Indisponível'" },
+    { "type": "assertion", "description": "The Ollama status badge displays 'Online', 'Sem modelos' or 'Offline'" },
+    { "type": "assertion", "description": "The CPU, RAM Livre, Disco Livre and Uptime metric cards are visible with values or '--'" }
+  ]
+}

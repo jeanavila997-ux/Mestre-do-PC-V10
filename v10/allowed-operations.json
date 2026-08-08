@@ -1436,11 +1436,11 @@
       "command": "pip install --upgrade pillow; Write-Host \"✅ pillow instalado!\" -ForegroundColor Green"
     },
     {
-      "id": "pull_modelo_qwen2_5_coder_1_5b",
-      "title": "Pull modelo qwen2.5-coder:1.5b",
+      "id": "pull_modelo_qwen2_5_coder_3b_instruct",
+      "title": "Pull modelo qwen2.5-coder:3b-instruct",
       "category": "MODELOS",
       "destructive": false,
-      "command": "ollama pull qwen2.5-coder:1.5b"
+      "command": "ollama pull qwen2.5-coder:3b-instruct"
     },
     {
       "id": "pull_modelo_llama3_2",
@@ -1763,6 +1763,604 @@
       "params": {
         "nome_modelo": "^[a-zA-Z0-9_:.\\-]{1,64}$"
       }
+    },
+    {
+      "id": "scan_portas_test_netconnection",
+      "title": "Scan de Portas (Test-NetConnection)",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "1..1024 | ForEach-Object { $r = Test-NetConnection -ComputerName 127.0.0.1 -Port $_ -WarningAction SilentlyContinue; if ($r.TcpTestSucceeded) { Write-Host \"Porta $_ ABERTA\" -ForegroundColor Green } }"
+    },
+    {
+      "id": "listar_conexoes_tcp_udp",
+      "title": "Listar Todas as Conexões TCP/UDP",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-NetTCPConnection | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess | Sort-Object State | Format-Table -AutoSize"
+    },
+    {
+      "id": "listar_conexoes_listening",
+      "title": "Listar Conexões LISTENING",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -EA 0; [PSCustomObject]@{Porta=$_.LocalPort;Processo=$p.Name;PID=$_.OwningProcess} } | Format-Table -AutoSize"
+    },
+    {
+      "id": "descobrir_hosts_arp_scan",
+      "title": "Descobrir Hosts Ativos (ARP Scan)",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-NetNeighbor | Where-Object { $_.State -ne 'Unreachable' } | Select-Object IPAddress,LinkLayerAddress,State,InterfaceAlias | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_smbv1",
+      "title": "Verificar SMBv1 (EternalBlue)",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol | Select-Object FeatureName,State; if ((Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol).State -eq 'Enabled') { Write-Host '⚠️ SMBv1 ATIVO - Vulnerável a EternalBlue!' -ForegroundColor Red } else { Write-Host '✅ SMBv1 desativado' -ForegroundColor Green }"
+    },
+    {
+      "id": "desativar_smbv1",
+      "title": "Desativar SMBv1 (EternalBlue)",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart; Write-Host '✅ SMBv1 desativado! Reinicie o PC.' -ForegroundColor Green"
+    },
+    {
+      "id": "verificar_rdp_ativo",
+      "title": "Verificar RDP Ativo",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections | Select-Object fDenyTSConnections; if ((Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections).fDenyTSConnections -eq 0) { Write-Host '⚠️ RDP ATIVO - Verifique segurança!' -ForegroundColor Yellow } else { Write-Host '✅ RDP desativado' -ForegroundColor Green }"
+    },
+    {
+      "id": "verificar_conta_guest",
+      "title": "Verificar Conta de Convidado (Guest)",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-LocalUser | Where-Object { $_.Name -eq 'Guest' } | Select-Object Name,Enabled; if ((Get-LocalUser -Name Guest -EA 0).Enabled) { Write-Host '⚠️ Conta Guest ATIVA!' -ForegroundColor Red } else { Write-Host '✅ Conta Guest desativada' -ForegroundColor Green }"
+    },
+    {
+      "id": "verificar_uac_ativo",
+      "title": "Verificar UAC Ativo",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name EnableLUA | Select-Object EnableLUA; if ((Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name EnableLUA).EnableLUA -eq 1) { Write-Host '✅ UAC ativo' -ForegroundColor Green } else { Write-Host '⚠️ UAC DESATIVADO!' -ForegroundColor Red }"
+    },
+    {
+      "id": "listar_compartilhamentos_abertos",
+      "title": "Listar Compartilhamentos Abertos",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-SmbShare | Select-Object Name,Path,Description,ConcurrentUserLimit | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_certificados_raiz",
+      "title": "Verificar Certificados Raiz",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-ChildItem Cert:\\LocalMachine\\Root | Select-Object Subject,NotAfter,Thumbprint | Sort-Object NotAfter | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_certificados_expirados",
+      "title": "Verificar Certificados Expirados",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) } | Select-Object Subject,NotAfter | Format-Table -AutoSize; if (-not (Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) })) { Write-Host '✅ Nenhum certificado raiz expirado' -ForegroundColor Green }"
+    },
+    {
+      "id": "verificar_logins_falhados",
+      "title": "Verificar Logins Falhados (Security Log)",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='IP';E={$_.Properties[11].Value}},@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_logons_sucesso",
+      "title": "Verificar Logins Bem-sucedidos",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4624} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"
+    },
+    {
+      "id": "exportar_logs_seguranca_csv",
+      "title": "Exportar Logs de Segurança para CSV",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "$out = '$env:USERPROFILE\\Desktop\\security-logs.csv'; Get-WinEvent -FilterHashtable @{LogName='Security';Id=@(4624,4625)} -MaxEvents 100 -EA 0 | Select-Object TimeCreated,Id,@{N='Details';E={$_.Message.Substring(0,200)}} | Export-Csv $out -NoTypeInformation; Write-Host \"✅ Logs exportados: $out\" -ForegroundColor Green"
+    },
+    {
+      "id": "verificar_bitlocker_ativo",
+      "title": "Verificar BitLocker Ativo",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-BitLockerVolume | Select-Object MountPoint,VolumeStatus,ProtectionStatus,EncryptionPercentage | Format-Table -AutoSize"
+    },
+    {
+      "id": "desativar_autorun_autoplay",
+      "title": "Desativar AutoRun/AutoPlay",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\AutoplayHandlers' -Name 'DisableAutoplay' -Value 1 -EA 0; Write-Host '✅ AutoPlay desativado!' -ForegroundColor Green"
+    },
+    {
+      "id": "configurar_bloqueio_conta",
+      "title": "Configurar Política de Bloqueio de Conta",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "net accounts /lockoutthreshold:5 /lockoutduration:30 /lockoutwindow:30; Write-Host '✅ Bloqueio após 5 tentativas, 30 min de bloqueio' -ForegroundColor Green"
+    },
+    {
+      "id": "ativar_auditoria_logon",
+      "title": "Ativar Auditoria de Logon",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "auditpol /set /subcategory:'Logon' /success:enable /failure:enable; Write-Host '✅ Auditoria de logon ativada!' -ForegroundColor Green"
+    },
+    {
+      "id": "listar_usuarios_locais_seguranca",
+      "title": "Listar Usuários Locais (Segurança)",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-LocalUser | Select-Object Name,Enabled,LastLogon,PasswordLastSet,PasswordRequired | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_senhas_nunca_expiram",
+      "title": "Verificar Senhas Nunca Expiram",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-LocalUser | Where-Object { $_.PasswordNeverExpires -eq $true } | Select-Object Name,PasswordNeverExpires | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_credenciais_vault",
+      "title": "Verificar Credenciais Armazenadas (Vault)",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "vaultcmd /list"
+    },
+    {
+      "id": "listar_regras_firewall_entrada",
+      "title": "Listar Regras de Firewall de Entrada",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-NetFirewallRule -Direction Inbound -Enabled True | Select-Object DisplayName,Action,Profile | Sort-Object DisplayName | Format-Table -AutoSize"
+    },
+    {
+      "id": "bloquear_ip_firewall",
+      "title": "Bloquear IP Específico no Firewall",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "New-NetFirewallRule -DisplayName \"Block {{IP_BLOQUEIO}}\" -Direction Inbound -Action Block -RemoteAddress {{IP_BLOQUEIO}}; Write-Host \"✅ IP {{IP_BLOQUEIO}} bloqueado!\" -ForegroundColor Green",
+      "params": {
+        "ip_bloqueio": "^(\\d{1,3}\\.){3}\\d{1,3}$"
+      }
+    },
+    {
+      "id": "remover_bloqueio_ip_firewall",
+      "title": "Remover Regra de Bloqueio de IP",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "Remove-NetFirewallRule -DisplayName \"Block {{IP_DESBLOQUEIO}}\" -EA 0; Write-Host \"✅ IP {{IP_DESBLOQUEIO}} desbloqueado!\" -ForegroundColor Green",
+      "params": {
+        "ip_desbloqueio": "^(\\d{1,3}\\.){3}\\d{1,3}$"
+      }
+    },
+    {
+      "id": "verificar_hotfixes_instalados",
+      "title": "Verificar Hotfixes Instalados",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn,InstalledBy | Format-Table -AutoSize"
+    },
+    {
+      "id": "buscar_cves_nvd",
+      "title": "Buscar CVEs por Hotfix (NVD)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "Start-Process \"https://nvd.nist.gov/vuln/search/results?query={{KB}}\"; Write-Host 'Abrindo NVD para pesquisa...' -ForegroundColor Cyan",
+      "params": {
+        "kb": "^KB[0-9]{6,8}$"
+      }
+    },
+    {
+      "id": "verificar_politica_senha",
+      "title": "Verificar Política de Senha",
+      "category": "Segurança",
+      "destructive": false,
+      "command": "net accounts"
+    },
+    {
+      "id": "forcar_senha_forte",
+      "title": "Forçar Senha Forte (Política)",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "net accounts /minpwlen:12 /maxpwage:30 /minpwage:1; Write-Host '✅ Política de senha configurada: mín 12 chars, expira em 30 dias' -ForegroundColor Green"
+    },
+    {
+      "id": "desativar_cache_credenciais",
+      "title": "Desativar Cache de Credenciais",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name 'CachedLogonsCount' -Value 0 -EA 0; Write-Host '✅ Cache de credenciais desativado!' -ForegroundColor Green"
+    },
+    {
+      "id": "desativar_powershell_v2",
+      "title": "Desativar PowerShell v2 (Reduz Superfície de Ataque)",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root -NoRestart -EA 0; Write-Host '✅ PowerShell v2 desativado!' -ForegroundColor Green"
+    },
+    {
+      "id": "ativar_auditoria_arquivos",
+      "title": "Ativar Auditoria de Alterações de Arquivo",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "auditpol /set /subcategory:'File System' /success:enable /failure:enable; Write-Host '✅ Auditoria de sistema de arquivos ativada!' -ForegroundColor Green"
+    },
+    {
+      "id": "renomear_conta_administrator",
+      "title": "Renomear Conta de Administrador",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "Rename-LocalUser -Name 'Administrator' -NewName 'AdminSeguro'; Write-Host '✅ Conta Administrator renomeada para AdminSeguro!' -ForegroundColor Green"
+    },
+    {
+      "id": "desativar_smbv1_registro",
+      "title": "Desativar SMBv1 via Registro",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "Set-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters' -Name 'SMB1' -Value 0 -EA 0; Write-Host '✅ SMBv1 desativado via registro!' -ForegroundColor Green"
+    },
+    {
+      "id": "ativar_bitlocker_c",
+      "title": "Ativar BitLocker (C:)",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "Enable-BitLocker -MountPoint 'C:' -EncryptionMethod XtsAes256 -UsedSpaceOnly -TpmProtector; Write-Host '✅ BitLocker ativado em C:!' -ForegroundColor Green"
+    },
+    {
+      "id": "chmod_644",
+      "title": "chmod 644 (Dono: RW, Outros: R)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls \"{{CAMINHO}}\" /grant \"$env:USERNAME:(M)\"; icacls \"{{CAMINHO}}\" /grant \"Todos:(R)\"; Write-Host '✅ chmod 644 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "chmod_755",
+      "title": "chmod 755 (Dono: RWX, Outros: RX)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "chmod_600",
+      "title": "chmod 600 (Apenas Dono: RW)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"$env:USERNAME:(M)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "chmod_700",
+      "title": "chmod 700 (Apenas Dono: RWX)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "chmod_777",
+      "title": "chmod 777 (Todos: RWX - PERIGOSO)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "chmod_444",
+      "title": "chmod 444 (Todos: Somente Leitura)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"$env:USERNAME:(R)\"; icacls $f /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "chown_user_group",
+      "title": "chown user:group (Alterar Dono e Grupo)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { takeown /f \"{{CAMINHO}}\" /a; icacls \"{{CAMINHO}}\" /setowner {{DONO}}; icacls \"{{CAMINHO}}\" /grant \"{{DONO}}:(F)\"; icacls \"{{CAMINHO}}\" /grant \"{{GRUPO}}:(F)\"; Write-Host \"✅ chown aplicado: dono={{DONO}}, grupo={{GRUPO}}\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "dono": "^[a-zA-Z0-9._\\-]{1,64}$",
+        "grupo": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "chown_user_only",
+      "title": "chown user (Alterar Apenas Dono)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /setowner {{DONO}}; icacls \"{{CAMINHO}}\" /grant \"{{DONO}}:(F)\"; Write-Host \"✅ chown aplicado: dono alterado para {{DONO}}\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "dono": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "verificar_permissoes_icacls",
+      "title": "Verificar Permissões de Arquivo (icacls)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "verificar_permissoes_acl_detalhada",
+      "title": "Verificar Permissões (ACL detalhada)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { (Get-Acl \"{{CAMINHO}}\").Access | Select-Object IdentityReference,FileSystemRights,AccessControlType,IsInherited | Format-Table -AutoSize } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "conceder_permissao_total",
+      "title": "Conceder Permissão Total (Full Control)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO}}\" /grant \"{{USUARIO}}:(F)\"; Write-Host \"✅ Permissão total concedida a {{USUARIO}}\" -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "usuario": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "conceder_permissao_leitura",
+      "title": "Conceder Permissão de Leitura (Read)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO}}\" /grant \"{{USUARIO}}:(R)\"; Write-Host \"✅ Permissão de leitura concedida a {{USUARIO}}\" -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "usuario": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "conceder_permissao_escrita",
+      "title": "Conceder Permissão de Escrita (Write/Modify)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO}}\" /grant \"{{USUARIO}}:(M)\"; Write-Host \"✅ Permissão de escrita concedida a {{USUARIO}}\" -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "usuario": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "conceder_permissao_execucao",
+      "title": "Conceder Permissão de Execução (Execute)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO}}\" /grant \"{{USUARIO}}:(X)\"; Write-Host \"✅ Permissão de execução concedida a {{USUARIO}}\" -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "usuario": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "negar_acesso_usuario",
+      "title": "Negar Acesso a Usuário (Deny)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO}}\" /deny \"{{USUARIO}}:(F)\"; Write-Host \"✅ Acesso negado a {{USUARIO}}\" -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "usuario": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "remover_permissoes_usuario",
+      "title": "Remover Permissões de Usuário",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO}}\" /remove {{USUARIO}}; Write-Host \"✅ Permissões de {{USUARIO}} removidas\" -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "usuario": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "resetar_permissoes_heranca",
+      "title": "Resetar Permissões (Herdar do diretório pai)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO}}\" /reset; Write-Host '✅ Permissões resetadas (herdando do diretório pai)' -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "verificar_proprietario_arquivo",
+      "title": "Verificar Proprietário do Arquivo (chown)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { (Get-Acl \"{{CAMINHO}}\").Owner; Write-Host \"Proprietário: $((Get-Acl \"{{CAMINHO}}\").Owner)\" -ForegroundColor Cyan } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "alterar_proprietario_takeown",
+      "title": "Alterar Proprietário do Arquivo (takeown)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "takeown /f \"{{CAMINHO}}\"; Write-Host '✅ Proprietário alterado para o usuário atual' -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "aplicar_permissoes_recursivas",
+      "title": "Aplicar Permissões Recursivamente (pasta)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO}}\" /grant \"{{USUARIO}}:({{PERMISSAO}})\" /t /c; Write-Host \"✅ Permissão {{PERMISSAO}} aplicada recursivamente a {{USUARIO}}\" -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "usuario": "^[a-zA-Z0-9._\\-]{1,64}$",
+        "permissao": "^[FRWMX]$"
+      }
+    },
+    {
+      "id": "backup_permissoes_acl",
+      "title": "Backup de Permissões (ACL)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "$bak = \"{{CAMINHO}}\" + '.acl.bak'; icacls \"{{CAMINHO}}\" /save $bak; Write-Host \"✅ Permissões salvas em: $bak\" -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "restaurar_permissoes_acl",
+      "title": "Restaurar Permissões (ACL)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{DIRETORIO}}\" /restore \"{{CAMINHO}}\"; Write-Host '✅ Permissões restauradas' -ForegroundColor Green",
+      "params": {
+        "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "diretorio": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "rede_info_wifi_completo",
+      "title": "Wi-Fi Info Completo (SSID, Sinal, Canal)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "netsh wlan show interfaces | Format-List"
+    },
+    {
+      "id": "rede_testar_gateway",
+      "title": "Testar Gateway (Ping Roteador)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "$g = (Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue | Select-Object -First 1).NextHop; if($g) { Test-Connection $g -Count 4 | Format-Table -AutoSize } else { Write-Host 'Gateway não encontrado' -ForegroundColor Red }"
+    },
+    {
+      "id": "rede_testar_internet_multiplos",
+      "title": "Testar Internet (Múltiplos Servidores)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "Write-Host 'Testando conectividade...' -ForegroundColor Cyan; @('8.8.8.8','1.1.1.1','9.9.9.9','208.67.222.222') | ForEach-Object { $r = Test-Connection $_ -Count 1 -ErrorAction SilentlyContinue; if($r) { Write-Host \"[$_] OK - $($r.ResponseTime)ms\" -ForegroundColor Green } else { Write-Host \"[$_] FALHOU\" -ForegroundColor Red } }"
+    },
+    {
+      "id": "rede_testar_dns_google_cloudflare",
+      "title": "Testar DNS (Google + Cloudflare)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "Write-Host '=== Teste de DNS ===' -ForegroundColor Cyan; @('google.com','cloudflare.com','microsoft.com') | ForEach-Object { try { $r = Resolve-DnsName $_ -ErrorAction Stop; Write-Host \"[$_] OK - $($r[0].IPAddress)\" -ForegroundColor Green } catch { Write-Host \"[$_] FALHOU\" -ForegroundColor Red } }"
+    },
+    {
+      "id": "rede_testar_https443",
+      "title": "Testar HTTPS (Porta 443)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "Write-Host '=== Teste HTTPS (443) ===' -ForegroundColor Cyan; @('google.com','cloudflare.com','microsoft.com') | ForEach-Object { $r = Test-NetConnection $_ -Port 443 -WarningAction SilentlyContinue; if($r.TcpTestSucceeded) { Write-Host \"[$_] HTTPS OK\" -ForegroundColor Green } else { Write-Host \"[$_] HTTPS FALHOU\" -ForegroundColor Red } }"
+    },
+    {
+      "id": "rede_wifi_redes_proximas",
+      "title": "Wi-Fi Redes Próximas",
+      "category": "Rede",
+      "destructive": false,
+      "command": "netsh wlan show networks mode=bssid | Out-String"
+    },
+    {
+      "id": "rede_ipconfig_all",
+      "title": "IPConfig Completo (Todos os Adaptadores)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "ipconfig /all"
+    },
+    {
+      "id": "rede_flush_renew_ip",
+      "title": "Flush DNS + Renovar IP (DHCP)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "ipconfig /flushdns; ipconfig /release; Start-Sleep -Seconds 2; ipconfig /renew; Write-Host '✅ DNS flush e IP renovado!' -ForegroundColor Green"
+    },
+    {
+      "id": "rede_arp_cache",
+      "title": "Ver Cache ARP (Dispositivos na Rede)",
+      "category": "Rede",
+      "destructive": true,
+      "command": "arp -a"
+    },
+    {
+      "id": "rede_portas_locais",
+      "title": "Portas Locais em Escuta",
+      "category": "Rede",
+      "destructive": true,
+      "command": "Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess,@{N='Programa';E={(Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).ProcessName}} | Sort-Object LocalPort | Format-Table -AutoSize"
+    },
+    {
+      "id": "rede_portas_estabelecidas",
+      "title": "Conexões Estabelecidas",
+      "category": "Rede",
+      "destructive": true,
+      "command": "Get-NetTCPConnection -State Established | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,@{N='Programa';E={(Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).ProcessName}} | Format-Table -AutoSize"
+    },
+    {
+      "id": "rede_rotas_tabela",
+      "title": "Tabela de Rotas (Routes)",
+      "category": "Rede",
+      "destructive": true,
+      "command": "route print"
+    },
+    {
+      "id": "rede_testar_ollama",
+      "title": "Testar Ollama (localhost:11434)",
+      "category": "Ollama",
+      "destructive": false,
+      "command": "try { $r = Invoke-WebRequest -Uri 'http://localhost:11434' -TimeoutSec 5 -UseBasicParsing; if($r.StatusCode -eq 200) { Write-Host '✅ Ollama ONLINE' -ForegroundColor Green; $m = Invoke-RestMethod -Uri 'http://localhost:11434/api/tags' -TimeoutSec 5; Write-Host \"Modelos: $(($m.models | ForEach-Object { $_.name }) -join ', ')\" -ForegroundColor Cyan } } catch { Write-Host '❌ Ollama offline: ' $_.Exception.Message -ForegroundColor Red }"
+    },
+    {
+      "id": "rede_wifi_sinal_bars",
+      "title": "Wi-Fi Força do Sinal (Barras)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "$s = [math]::Round((netsh wlan show interfaces | Select-String 'Sinal' | ForEach-Object { $_.Line -replace '[^0-9]','' }),0); $b = [math]::Ceiling($s/20); $bar = '█' * $b + '░' * (5 - $b); Write-Host \"Sinal: $s% [$bar]\" -ForegroundColor Cyan"
+    },
+    {
+      "id": "rede_ping_trace_route",
+      "title": "Trace Route (Tracert)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "$d = Read-Host 'Destino'; if($d) { tracert $d } else { Write-Host 'Informe o destino. Ex: tracert google.com' -ForegroundColor Yellow }"
+    },
+    {
+      "id": "rede_speedtest_mini",
+      "title": "Speed Test Mini (1MB Download)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "$t = Measure-Command { Invoke-WebRequest -Uri 'http://speedtest.tele2.net/1MB.zip' -OutFile \"$env:TEMP\\speedtest.tmp\" -UseBasicParsing }; $mb = 1; $s = [math]::Round($t.TotalSeconds,2); $mbps = [math]::Round(($mb * 8) / $s,2); Remove-Item \"$env:TEMP\\speedtest.tmp\" -Force -ErrorAction SilentlyContinue; Write-Host \"Velocidade estimada: ~$mbps Mbps (download de 1MB em ${s}s)\" -ForegroundColor Cyan"
     }
   ]
 }

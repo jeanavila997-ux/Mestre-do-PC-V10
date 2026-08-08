@@ -7,7 +7,7 @@ O runtime atual do Mestre do PC V10 é local:
 - a interface V10 conversa com o Ollama por meio do launcher em
   `http://127.0.0.1:7777`;
 - o MCP Node publica 33 ferramentas e usa `OLLAMA_URL` e `OLLAMA_MODEL`;
-- o modelo padrão é `qwen2.5-coder:1.5b`;
+- o modelo padrão é `qwen2.5-coder:3b-instruct`;
 - tags `:cloud` cadastradas no Ollama também aparecem na interface, mas continuam
   sendo acessadas pela API do Ollama;
 - não há dependência `openai-agents`, `@openai/agents` ou consumo de

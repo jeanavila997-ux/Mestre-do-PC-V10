@@ -1,0 +1,13 @@
+{
+  "projectId": "fabee5fd-3782-40e5-ba74-4af9dcec0a43",
+  "type": "frontend",
+  "name": "Favoritos — marcar e desmarcar um comando",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to http://127.0.0.1:7777/" },
+    { "type": "action", "description": "Click the category header labeled '1. Limpeza Geral' to expand it" },
+    { "type": "action", "description": "Click the empty star (☆) on the 'Limpar Cache DNS' command card" },
+    { "type": "assertion", "description": "The star changes to a filled star (⭐) and the favorites bar appears with 'Limpar Cache DNS'" },
+    { "type": "action", "description": "Click the filled star (⭐) on the same command card again" },
+    { "type": "assertion", "description": "The star returns to empty (☆) and the favorites bar is hidden or no longer lists the command" }
+  ]
+}

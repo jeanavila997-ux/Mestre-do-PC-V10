@@ -1,0 +1,13 @@
+{
+  "projectId": "fabee5fd-3782-40e5-ba74-4af9dcec0a43",
+  "type": "frontend",
+  "name": "IA Local — abrir painel de chat do Mestre IA",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to http://127.0.0.1:7777/" },
+    { "type": "action", "description": "Click the '🤖 IA Local' button in the top-right header" },
+    { "type": "assertion", "description": "A modal titled '🧠 Mestre IA (Ollama)' appears and is visible" },
+    { "type": "assertion", "description": "The modal contains the welcome message 'Sou o Mestre IA' and an input field" },
+    { "type": "action", "description": "Click the ✕ button in the modal header" },
+    { "type": "assertion", "description": "The modal closes and is no longer visible" }
+  ]
+}

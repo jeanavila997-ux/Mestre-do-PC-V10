@@ -114,8 +114,8 @@ if ($ollama) {
     Write-Ok "Ollama detectado: $(& ollama -v 2>&1 | Select-Object -First 1)"
     # Baixa modelo local padrao (nao exige login)
     if (-not (& ollama list 2>$null | Select-String -SimpleMatch 'qwen2.5-coder')) {
-        Write-Step "Baixando modelo local padrao qwen2.5-coder:1.5b (~1 GB)..."
-        & ollama pull qwen2.5-coder:1.5b 2>&1 | Out-Host
+        Write-Step "Baixando modelo local padrao qwen2.5-coder:3b-instruct (~2 GB)..."
+        & ollama pull qwen2.5-coder:3b-instruct 2>&1 | Out-Host
     } else {
         Write-Ok "Modelo local qwen2.5-coder ja presente."
     }

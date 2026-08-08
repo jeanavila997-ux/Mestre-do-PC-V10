@@ -22,7 +22,7 @@ Normalmente o Claude Desktop ou Codex inicia `index.js`; não é necessário man
 | `MESTRE_BASE_URL` | `http://127.0.0.1:7777` | Launcher administrativo |
 | `MESTRE_PROJETO_PATH` | Diretório do launcher | Diretório usado pelas ferramentas Git/logs |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | API do Ollama |
-| `OLLAMA_MODEL` | `qwen2.5-coder:1.5b` | Modelo padrão |
+| `OLLAMA_MODEL` | `qwen2.5-coder:3b-instruct` | Modelo padrão |
 
 ## Claude Desktop
 

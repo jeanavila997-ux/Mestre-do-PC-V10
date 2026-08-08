@@ -107,7 +107,7 @@ docker run -d --device /dev/kfd --device /dev/dri -v ollama:/root/.ollama -p 114
 
 **Baixar modelo dentro do container:**
 ```shell
-docker exec -it ollama ollama pull qwen2.5-coder:1.5b
+docker exec -it ollama ollama pull qwen2.5-coder:3b-instruct
 ```
 
 **Notas:**
@@ -117,8 +117,8 @@ docker exec -it ollama ollama pull qwen2.5-coder:1.5b
 
 ### Baixar um modelo (todas as plataformas)
 ```bash
-ollama pull qwen2.5-coder:1.5b     # modelo local leve (~1 GB) — PADRÃO do V10, funciona sem login
-ollama run qwen2.5-coder:1.5b      # testar
+ollama pull qwen2.5-coder:3b-instruct     # modelo local leve (~2 GB) — PADRÃO do V10, funciona sem login
+ollama run qwen2.5-coder:3b-instruct      # testar
 ```
 
 ### Ativar modelos cloud (opcional — exige conta Ollama)
@@ -126,7 +126,7 @@ A V10 também detecta modelos cloud (`glm-5.2:cloud`, `gemma4:cloud`, `kimi-k2.5
 ```bash
 ollama signin      # abre o navegador para login em ollama.com
 ```
-> Sem `ollama signin`, os modelos cloud falham. O V10 usa `qwen2.5-coder:1.5b` (local) como padrão justamente para funcionar sem login.
+> Sem `ollama signin`, os modelos cloud falham. O V10 usa `qwen2.5-coder:3b-instruct` (local) como padrão justamente para funcionar sem login.
 
 ### Desativar cloud (modo 100% local/privado)
 ```bash
@@ -281,7 +281,7 @@ start http://127.0.0.1:7777/
 ```
 ☐ 1. Instalar Node.js 18+        → winget install OpenJS.NodeJS.LTS
 ☐ 2. Instalar Ollama             → irm https://ollama.com/install.ps1 | iex
-☐ 3. Baixar modelo IA            → ollama pull qwen2.5-coder:1.5b
+☐ 3. Baixar modelo IA            → ollama pull qwen2.5-coder:3b-instruct
 ☐ 4. Clonar o repo               → git clone https://github.com/jeanavila997-ux/Mestre-do-PC-V7.git
 ☐ 5. Rodar instalador (Admin)    → .\INSTALAR.bat
    ↳ instala deps MCP
@@ -321,7 +321,7 @@ ollama ps      # PROCESSOR: 100% GPU / 100% CPU / misto
 
 ### Pré-carregar modelo (resposta instantânea no primeiro chat)
 ```bash
-curl http://localhost:11434/api/chat -d '{"model":"qwen2.5-coder:1.5b","keep_alive":"10m"}'
+curl http://localhost:11434/api/chat -d '{"model":"qwen2.5-coder:3b-instruct","keep_alive":"10m"}'
 ```
 
 ## 9. Solução de problemas
@@ -331,7 +331,7 @@ curl http://localhost:11434/api/chat -d '{"model":"qwen2.5-coder:1.5b","keep_ali
 | "Launcher offline" no app | Tarefa agendada não registrada | `schtasks /Run /TN "MestreDoPC_Admin_Launcher"` ou rode `Register-MestreTask.ps1` como admin |
 | "Ollama offline" no IA Local | Ollama não rodando | `ollama serve` ou abra o app Ollama |
 | Comando não executa | Launcher sem admin | registrar a tarefa agendada (roda em contexto elevado) |
-| IA não responde | Sem modelos | `ollama pull qwen2.5-coder:1.5b` |
+| IA não responde | Sem modelos | `ollama pull qwen2.5-coder:3b-instruct` |
 | Modelo cloud falha | Não fez login | `ollama signin` (ou use o modelo local padrão) |
 | `npm install` falha | Node ausente/desatualizado | instale Node 18+ via nodejs.org |
 | App aberto por `file://` não executa | proteção de origem ativa | abra pelo atalho ou por `http://127.0.0.1:7777/` |

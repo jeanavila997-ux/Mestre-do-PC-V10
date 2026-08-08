@@ -682,7 +682,7 @@
           <div id="launcherStatus"><span id="launcherStatusIcon">🔴</span> <span id="statusText">Launcher offline — <strong>Execute o atalho Mestre do PC</strong></span></div>
           <div id="mcpStatus" class="status-divider"><span id="mcpStatusIcon">⚪</span> MCP: <span id="mcpStatusText">Indisponível</span></div>
           <div id="ollamaStatus" class="status-divider"><span id="ollamaStatusIcon">⚪</span> Ollama: <span id="ollamaStatusText">Verificando...</span></div>
-          <button class="btn-verify" onclick="checkServer()">↻ Verificar</button>
+          <button class="btn-verify" onclick="refreshAll()">↻ Verificar</button>
         </div>
       </div>
       <!-- NOVO: Barra de favoritos -->
@@ -816,7 +816,7 @@
           {
             label: "💻 Código",
             cmds: [
-              ["Pull qwen2.5-coder:1.5b", "ollama pull qwen2.5-coder:1.5b"],
+              ["Pull qwen2.5-coder:3b-instruct", "ollama pull qwen2.5-coder:3b-instruct"],
               ["Pull kimi-k2.7-code:cloud", "ollama pull kimi-k2.7-code:cloud"],
               ["Pull deepseek-coder-v2", "ollama pull deepseek-coder-v2"],
               ["Pull codellama:7b-code", "ollama pull codellama:7b-code"],
@@ -1190,6 +1190,125 @@
           ["Desativar Sugestões de Conteúdo", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager' -Name 'SubscribedContent-338388Enabled' -Value 0; Write-Host '✅ Sugestões de conteúdo desativadas!' -ForegroundColor Green"],
           ["Bloquear Aplicativos em Segundo Plano", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications' -Name 'GlobalUserDisabled' -Value 1 -EA 0; Write-Host '✅ Apps em segundo plano bloqueados!' -ForegroundColor Green"],
           ["Verificar Configurações de Privacidade", "Get-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -EA 0 | Select-Object Enabled; Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -EA 0 | Select-Object AllowTelemetry; Write-Host 'Configurações exibidas acima.' -ForegroundColor Cyan"],
+        ],
+      },
+      {
+        id: "cat_sec",
+        label: "🛡️ Segurança & Pentest",
+        subcategories: [
+          {
+            label: "🔍 Reconhecimento de Rede",
+            cmds: [
+              ["Scan de Portas (Port Query)", "portqry -n 127.0.0.1 -p tcp -e 1-1024 2>&1; if ($LASTEXITCODE -ne 0) { Write-Host 'PortQry não encontrado. Use: winget install Microsoft.Portqry' -ForegroundColor Yellow }"],
+              ["Scan de Portas com Test-NetConnection", "1..1024 | ForEach-Object { $r = Test-NetConnection -ComputerName 127.0.0.1 -Port $_ -WarningAction SilentlyContinue; if ($r.TcpTestSucceeded) { Write-Host \"Porta $_ ABERTA\" -ForegroundColor Green } }"],
+              ["Listar Todas as Conexões TCP/UDP", "Get-NetTCPConnection | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess | Sort-Object State | Format-Table -AutoSize"],
+              ["Listar Conexões LISTENING", "Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -EA 0; [PSCustomObject]@{Porta=$_.LocalPort;Processo=$p.Name;PID=$_.OwningProcess} } | Format-Table -AutoSize"],
+              ["Descobrir Hosts Ativos (ARP Scan)", "Get-NetNeighbor | Where-Object { $_.State -ne 'Unreachable' } | Select-Object IPAddress,LinkLayerAddress,State,InterfaceAlias | Format-Table -AutoSize"],
+              ["Mapear Rede Local (NetBIOS)", "nbtstat -n; Write-Host '---'; nbtstat -c"],
+              ["Tabela de Roteamento (route print)", "route print"],
+              ["Resolver DNS Reverso (IP → Nome)", "$ip = Read-Host 'Digite o IP'; Resolve-DnsName -Name $ip -ErrorAction SilentlyContinue | Select-Object Name,Type,NameHost | Format-Table -AutoSize"],
+            ],
+          },
+          {
+            label: "🔐 Análise de Vulnerabilidades",
+            cmds: [
+              ["Verificar Hotfixes Instalados", "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn,InstalledBy | Format-Table -AutoSize"],
+              ["Buscar CVEs por Hotfix (NVD)", "$kb = Read-Host 'Digite o KB (ex: KB5034441)'; Start-Process \"https://nvd.nist.gov/vuln/search/results?query=$kb\"; Write-Host 'Abrindo NVD para pesquisa...' -ForegroundColor Cyan"],
+              ["Verificar Serviços Vulneráveis (SMB v1)", "Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol | Select-Object FeatureName,State; if ((Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol).State -eq 'Enabled') { Write-Host '⚠️ SMBv1 ATIVO - Vulnerável a EternalBlue!' -ForegroundColor Red } else { Write-Host '✅ SMBv1 desativado' -ForegroundColor Green }"],
+              ["Desativar SMBv1 (EternalBlue)", "Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart; Write-Host '✅ SMBv1 desativado! Reinicie o PC.' -ForegroundColor Green"],
+              ["Verificar RDP Ativo", "Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections | Select-Object fDenyTSConnections; if ((Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections).fDenyTSConnections -eq 0) { Write-Host '⚠️ RDP ATIVO - Verifique segurança!' -ForegroundColor Yellow } else { Write-Host '✅ RDP desativado' -ForegroundColor Green }"],
+              ["Verificar Conta de Convidado (Guest)", "Get-LocalUser | Where-Object { $_.Name -eq 'Guest' } | Select-Object Name,Enabled; if ((Get-LocalUser -Name Guest -EA 0).Enabled) { Write-Host '⚠️ Conta Guest ATIVA!' -ForegroundColor Red } else { Write-Host '✅ Conta Guest desativada' -ForegroundColor Green }"],
+              ["Verificar Políticas de Senha", "net accounts"],
+              ["Listar Compartilhamentos Abertos", "Get-SmbShare | Select-Object Name,Path,Description,ConcurrentUserLimit | Format-Table -AutoSize"],
+              ["Verificar UAC Ativo", "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name EnableLUA | Select-Object EnableLUA; if ((Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name EnableLUA).EnableLUA -eq 1) { Write-Host '✅ UAC ativo' -ForegroundColor Green } else { Write-Host '⚠️ UAC DESATIVADO!' -ForegroundColor Red }"],
+            ],
+          },
+          {
+            label: "🔑 Análise de Senhas & Hashes",
+            cmds: [
+              ["Verificar Política de Senha (net accounts)", "net accounts"],
+              ["Listar Usuários Locais", "Get-LocalUser | Select-Object Name,Enabled,LastLogon,PasswordLastSet,PasswordRequired | Format-Table -AutoSize"],
+              ["Verificar Senhas Nunca Expiram", "Get-LocalUser | Where-Object { $_.PasswordNeverExpires -eq $true } | Select-Object Name,PasswordNeverExpires | Format-Table -AutoSize"],
+              ["Forçar Senha Forte (Política)", "net accounts /minpwlen:12 /maxpwage:30 /minpwage:1; Write-Host '✅ Política de senha configurada: mín 12 chars, expira em 30 dias' -ForegroundColor Green"],
+              ["Verificar Hashes de Arquivos (MD5/SHA256)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Write-Host 'MD5:' (Get-FileHash $file -Algorithm MD5).Hash; Write-Host 'SHA256:' (Get-FileHash $file -Algorithm SHA256).Hash } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Credenciais Armazenadas (Vault)", "vaultcmd /list"],
+              ["Desativar Cache de Credenciais", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name 'CachedLogonsCount' -Value 0 -EA 0; Write-Host '✅ Cache de credenciais desativado!' -ForegroundColor Green"],
+            ],
+          },
+          {
+            label: "🌐 Segurança Web & Rede",
+            cmds: [
+              ["Verificar Proxy do Sistema", "netsh winhttp show proxy"],
+              ["Verificar Certificados Raiz", "Get-ChildItem Cert:\\LocalMachine\\Root | Select-Object Subject,NotAfter,Thumbprint | Sort-Object NotAfter | Format-Table -AutoSize"],
+              ["Verificar Certificados Expirados", "Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) } | Select-Object Subject,NotAfter | Format-Table -AutoSize; if (-not (Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) })) { Write-Host '✅ Nenhum certificado raiz expirado' -ForegroundColor Green }"],
+              ["Testar HTTPS de um Site", "$url = Read-Host 'URL (ex: https://google.com)'; try { $r = Invoke-WebRequest -Uri $url -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }"],
+              ["Verificar Conexões HTTPS Ativas", "Get-NetTCPConnection -State Established | Where-Object { $_.RemotePort -eq 443 } | Select-Object LocalAddress,RemoteAddress,RemotePort,OwningProcess | Format-Table -AutoSize"],
+              ["Listar Regras de Firewall de Entrada", "Get-NetFirewallRule -Direction Inbound -Enabled True | Select-Object DisplayName,Action,Profile | Sort-Object DisplayName | Format-Table -AutoSize"],
+              ["Bloquear IP Específico no Firewall", "$ip = Read-Host 'IP para bloquear'; New-NetFirewallRule -DisplayName \"Block $ip\" -Direction Inbound -Action Block -RemoteAddress $ip; Write-Host \"✅ IP $ip bloqueado!\" -ForegroundColor Green"],
+              ["Remover Regra de Bloqueio de IP", "$ip = Read-Host 'IP para desbloquear'; Remove-NetFirewallRule -DisplayName \"Block $ip\" -EA 0; Write-Host \"✅ IP $ip desbloqueado!\" -ForegroundColor Green"],
+            ],
+          },
+          {
+            label: "🕵️ Forense & Análise",
+            cmds: [
+              ["Análise de Arquivo (file type)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { $bytes = [System.IO.File]::ReadAllBytes($file)[0..3]; $hex = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '; Write-Host \"Assinatura (hex): $hex\" -ForegroundColor Cyan; Write-Host \"Tamanho: $((Get-Item $file).Length) bytes\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Extrair Strings de Arquivo", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Select-String -Path $file -Pattern '[\x20-\x7E]{6,}' -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 50 } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Metadados de Arquivo", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Get-Item $file | Select-Object Name,Length,CreationTime,LastAccessTime,LastWriteTime,Attributes | Format-List } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Extrair Hash de Arquivo (Todos os Algoritmos)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { foreach ($algo in @('MD5','SHA1','SHA256','SHA384','SHA512')) { Write-Host \"$algo`: $((Get-FileHash $file -Algorithm $algo).Hash)\" -ForegroundColor Cyan } } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Listar Arquivos Modificados Recentemente (24h)", "$dir = Read-Host 'Diretório (ex: C:\\Users)'; Get-ChildItem $dir -Recurse -File -EA 0 | Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-24) } | Select-Object FullName,LastWriteTime,Length | Sort-Object LastWriteTime -Descending | Select-Object -First 30 | Format-Table -AutoSize"],
+              ["Verificar Logs de Segurança (Login Falhou)", "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='IP';E={$_.Properties[11].Value}},@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"],
+              ["Verificar Logins Bem-sucedidos", "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4624} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"],
+              ["Exportar Logs de Segurança para CSV", "$out = '$env:USERPROFILE\\Desktop\\security-logs.csv'; Get-WinEvent -FilterHashtable @{LogName='Security';Id=@(4624,4625)} -MaxEvents 100 -EA 0 | Select-Object TimeCreated,Id,@{N='Details';E={$_.Message.Substring(0,200)}} | Export-Csv $out -NoTypeInformation; Write-Host \"✅ Logs exportados: $out\" -ForegroundColor Green"],
+            ],
+          },
+          {
+            label: "📁 Permissões de Arquivos (chmod/chown)",
+            cmds: [
+              ["chmod 644 (Dono: RW, Outros: R)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(M)\"; icacls $f /grant \"Todos:(R)\"; Write-Host '✅ chmod 644 aplicado: dono tem RW, outros apenas leitura' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 755 (Dono: RWX, Outros: RX)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado: dono tem RWX, outros leitura+execução' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 600 (Apenas Dono: RW)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(M)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado: apenas o dono tem RW' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 700 (Apenas Dono: RWX)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado: apenas o dono tem RWX' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 777 (Todos: RWX - PERIGOSO)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total - use com cautela!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 444 (Todos: Somente Leitura)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(R)\"; icacls $f /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado: todos têm apenas leitura' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chown user:group (Alterar Dono e Grupo)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Novo dono (ex: Jeanc)'; $g = Read-Host 'Novo grupo (ex: Administradores)'; if (Test-Path $f) { takeown /f $f /a; icacls $f /setowner $u; icacls $f /grant \"$u:(F)\"; icacls $f /grant \"$g:(F)\"; Write-Host \"✅ chown aplicado: dono=$u, grupo=$g\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chown user (Alterar Apenas Dono)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Novo dono (ex: Jeanc)'; if (Test-Path $f) { icacls $f /setowner $u; icacls $f /grant \"$u:(F)\"; Write-Host \"✅ chown aplicado: dono alterado para $u\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Permissões de Arquivo (icacls)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Permissões (ACL detalhada)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { (Get-Acl $f).Access | Select-Object IdentityReference,FileSystemRights,AccessControlType,IsInherited | Format-Table -AutoSize } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Conceder Permissão Total (Full Control)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(F)\"; Write-Host \"✅ Permissão total concedida a $u\" -ForegroundColor Green"],
+              ["Conceder Permissão de Leitura (Read)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(R)\"; Write-Host \"✅ Permissão de leitura concedida a $u\" -ForegroundColor Green"],
+              ["Conceder Permissão de Escrita (Write/Modify)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(M)\"; Write-Host \"✅ Permissão de escrita concedida a $u\" -ForegroundColor Green"],
+              ["Conceder Permissão de Execução (Execute)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(X)\"; Write-Host \"✅ Permissão de execução concedida a $u\" -ForegroundColor Green"],
+              ["Conceder Leitura + Execução (RX)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(RX)\"; Write-Host \"✅ Permissão de leitura + execução concedida a $u\" -ForegroundColor Green"],
+              ["Negar Acesso a Usuário (Deny)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário para negar'; icacls $f /deny \"$u:(F)\"; Write-Host \"✅ Acesso negado a $u\" -ForegroundColor Green"],
+              ["Remover Permissões de Usuário", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário para remover'; icacls $f /remove $u; Write-Host \"✅ Permissões de $u removidas\" -ForegroundColor Green"],
+              ["Resetar Permissões (Herdar do diretório pai)", "$f = Read-Host 'Caminho do arquivo'; icacls $f /reset; Write-Host '✅ Permissões resetadas (herdando do diretório pai)' -ForegroundColor Green"],
+              ["Desativar Herança de Permissões", "$f = Read-Host 'Caminho do arquivo'; icacls $f /inheritance:d; Write-Host '✅ Herança desativada - permissões copiadas' -ForegroundColor Green"],
+              ["Ativar Herança de Permissões", "$f = Read-Host 'Caminho do arquivo'; icacls $f /inheritance:e; Write-Host '✅ Herança ativada' -ForegroundColor Green"],
+              ["Verificar Proprietário do Arquivo (chown)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { (Get-Acl $f).Owner; Write-Host \"Proprietário: $((Get-Acl $f).Owner)\" -ForegroundColor Cyan } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Alterar Proprietário do Arquivo (takeown)", "$f = Read-Host 'Caminho do arquivo'; takeown /f $f; Write-Host '✅ Proprietário alterado para o usuário atual' -ForegroundColor Green"],
+              ["Alterar Proprietário para Administradores", "$f = Read-Host 'Caminho do arquivo'; takeown /f $f /a; icacls $f /grant Administradores:(F); Write-Host '✅ Proprietário alterado para Administradores' -ForegroundColor Green"],
+              ["Aplicar Permissões Recursivamente (pasta)", "$f = Read-Host 'Caminho da pasta'; $u = Read-Host 'Usuário (ex: Jeanc)'; $p = Read-Host 'Permissão (F=Total, R=Leitura, W=Escrita, X=Execução)'; icacls $f /grant \"$u:($p)\" /t /c; Write-Host \"✅ Permissão $p aplicada recursivamente a $u\" -ForegroundColor Green"],
+              ["Backup de Permissões (ACL)", "$f = Read-Host 'Caminho do arquivo'; $bak = $f + '.acl.bak'; icacls $f /save $bak; Write-Host \"✅ Permissões salvas em: $bak\" -ForegroundColor Green"],
+              ["Restaurar Permissões (ACL)", "$f = Read-Host 'Caminho do arquivo (.acl.bak)'; $dir = Read-Host 'Diretório do backup'; icacls $dir /restore $f; Write-Host '✅ Permissões restauradas' -ForegroundColor Green"],
+              ["Listar Arquivos Sem Dono (Orphaned ACLs)", "$dir = Read-Host 'Diretório para escanear'; Get-ChildItem $dir -Recurse -File -EA 0 | ForEach-Object { try { $acl = Get-Acl $_.FullName -EA 0; if ($acl.Owner -match 'S-1-5') { [PSCustomObject]@{Arquivo=$_.FullName; Owner=$acl.Owner} } } catch {} } | Format-Table -AutoSize"],
+            ],
+          },
+          {
+            label: "⚡ Endurecimento do Sistema (Hardening)",
+            cmds: [
+              ["Desativar AutoRun/AutoPlay", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\AutoplayHandlers' -Name 'DisableAutoplay' -Value 1 -EA 0; Write-Host '✅ AutoPlay desativado!' -ForegroundColor Green"],
+              ["Ativar Bloqueio de Script Powershell (Constrained)", "Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green"],
+              ["Verificar Configuração de Execução de Scripts", "Get-ExecutionPolicy -List | Format-Table -AutoSize"],
+              ["Desativar PowerShell v2 (Reduz Superfície de Ataque)", "Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root -NoRestart -EA 0; Write-Host '✅ PowerShell v2 desativado!' -ForegroundColor Green"],
+              ["Ativar Auditoria de Logon", "auditpol /set /subcategory:'Logon' /success:enable /failure:enable; Write-Host '✅ Auditoria de logon ativada!' -ForegroundColor Green"],
+              ["Ativar Auditoria de Alterações de Arquivo", "auditpol /set /subcategory:'File System' /success:enable /failure:enable; Write-Host '✅ Auditoria de sistema de arquivos ativada!' -ForegroundColor Green"],
+              ["Configurar Política de Bloqueio de Conta", "net accounts /lockoutthreshold:5 /lockoutduration:30 /lockoutwindow:30; Write-Host '✅ Bloqueio após 5 tentativas, 30 min de bloqueio' -ForegroundColor Green"],
+              ["Desativar SMBv1 via Registro", "Set-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters' -Name 'SMB1' -Value 0 -EA 0; Write-Host '✅ SMBv1 desativado via registro!' -ForegroundColor Green"],
+              ["Renomear Conta de Administrador", "Rename-LocalUser -Name 'Administrator' -NewName 'AdminSeguro'; Write-Host '✅ Conta Administrator renomeada para AdminSeguro!' -ForegroundColor Green"],
+              ["Verificar BitLocker Ativo", "Get-BitLockerVolume | Select-Object MountPoint,VolumeStatus,ProtectionStatus,EncryptionPercentage | Format-Table -AutoSize"],
+              ["Ativar BitLocker (C:)", "Enable-BitLocker -MountPoint 'C:' -EncryptionMethod XtsAes256 -UsedSpaceOnly -TpmProtector; Write-Host '✅ BitLocker ativado em C:!' -ForegroundColor Green"],
+            ],
+          },
         ],
       },
 
@@ -1599,8 +1718,8 @@
           if (models.length > 0) { ollamaEl.textContent = "Online (" + (models.find((m) => m.includes("qwen")) || models[0]) + ")"; ollamaEl.style.color = "var(--accent2)"; document.getElementById("ollamaStatusIcon").textContent = "🟢"; }
           else { ollamaEl.textContent = "Sem modelos"; ollamaEl.style.color = "#f0ad4e"; document.getElementById("ollamaStatusIcon").textContent = "🟡"; }
         } catch { document.getElementById("ollamaStatusText").textContent = "Offline"; document.getElementById("ollamaStatusText").style.color = "var(--danger)"; document.getElementById("ollamaStatusIcon").textContent = "🔴"; }
-        loadDashboard();
       }
+      async function refreshAll() { await checkServer(); await loadDashboard(); }
       function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
       // ===== dispatchCommand() (padrão V7) =====
       async function dispatchCommand(code, options = {}) {
@@ -1680,10 +1799,10 @@
       // V10 usa SEMPRE o proxy do launcher (resolve CORS do file://).
       // O Ollama nativo continua rodando em localhost:11434, mas o browser
       // NUNCA fala direto com ele — sempre passa por /ollama/* no launcher.
-      const OLLAMA_MODEL = "qwen2.5-coder:1.5b";
+      const OLLAMA_MODEL = "qwen2.5-coder:3b-instruct";
       // Modelo LOCAL como padrão (funciona sem login Ollama Cloud).
       // Cloud models ficam como fallback (exigem `ollama signin`).
-      const OLLAMA_MODEL_PREFERENCES = ["qwen2.5-coder:1.5b", "glm-5.2:cloud", "minimax-m3:cloud", "kimi-k2.5:cloud", "gemma4:cloud", "glm-5.1:cloud"];
+      const OLLAMA_MODEL_PREFERENCES = ["qwen2.5-coder:3b-instruct", "glm-5.2:cloud", "minimax-m3:cloud", "kimi-k2.5:cloud", "gemma4:cloud", "glm-5.1:cloud"];
       let selectedOllamaModel = OLLAMA_MODEL;
       function chooseOllamaModel(models) { return OLLAMA_MODEL_PREFERENCES.find((m) => models.includes(m)) || models.find((m) => m.toLowerCase().includes("qwen")) || models[0] || OLLAMA_MODEL; }
 
@@ -1827,7 +1946,7 @@ COMANDOS QUE VOCÊ CONHECE:
             sel.innerHTML = models.map(m => '<option value="' + m + '"' + (m === selectedOllamaModel ? " selected" : "") + ">" + m + "</option>").join("");
             status.textContent = "🟢 Conectado — Modelo: " + selectedOllamaModel;
             status.style.color = "var(--accent2)";
-          } else { status.textContent = "🟡 Sem modelos. Execute: ollama pull qwen2.5-coder:1.5b"; status.style.color = "#f0ad4e"; }
+          } else { status.textContent = "🟡 Sem modelos. Execute: ollama pull qwen2.5-coder:3b-instruct"; status.style.color = "#f0ad4e"; }
         } catch { status.textContent = "🔴 Ollama offline — Execute 'ollama serve'"; status.style.color = "var(--danger)"; }
       }
       document.addEventListener("DOMContentLoaded", () => {
@@ -1944,12 +2063,78 @@ COMANDOS QUE VOCÊ CONHECE:
         if (e.ctrlKey && e.key === "/") { e.preventDefault(); openAI(); }
         if (e.key === "Escape") { closeIA(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; }
       });
-      // ===== Boot (padrão V7 + dashboard + intervalos V10) =====
-      checkServer();
+      // ===== BOOT com polling otimizado =====
       renderFavorites();
       renderQueue();
-      setInterval(checkServer, 10000);
-      setInterval(loadDashboard, 5000);
+      refreshAll();
+
+      // Polling otimizado: ciclo único sequencial, sem sobreposição,
+      // pausa quando a aba está oculta e sobe o intervalo em erro.
+      const POLL_INTERVAL_VISIBLE = 10000;
+      const POLL_INTERVAL_HIDDEN = 30000;
+      const DASH_INTERVAL_VISIBLE = 5000;
+      const DASH_INTERVAL_HIDDEN = 15000;
+      let pollTimer = null;
+      let dashboardTimer = null;
+      let isPolling = false;
+      let isDashboardPolling = false;
+
+      function getPollInterval() {
+        return document.hidden ? POLL_INTERVAL_HIDDEN : POLL_INTERVAL_VISIBLE;
+      }
+
+      function getDashboardInterval() {
+        return document.hidden ? DASH_INTERVAL_HIDDEN : DASH_INTERVAL_VISIBLE;
+      }
+
+      async function runServerPollCycle() {
+        if (isPolling) return;
+        isPolling = true;
+        try { await checkServer(); }
+        catch (e) { console.error("Server poll error:", e); }
+        finally {
+          isPolling = false;
+          pollTimer = setTimeout(runServerPollCycle, getPollInterval());
+        }
+      }
+
+      async function runDashboardCycle() {
+        if (isDashboardPolling) {
+          dashboardTimer = setTimeout(runDashboardCycle, 1000);
+          return;
+        }
+        if (!serverOnline) {
+          dashboardTimer = setTimeout(runDashboardCycle, getDashboardInterval());
+          return;
+        }
+        isDashboardPolling = true;
+        try { await loadDashboard(); }
+        catch (e) { console.error("Dashboard poll error:", e); }
+        finally {
+          isDashboardPolling = false;
+          dashboardTimer = setTimeout(runDashboardCycle, getDashboardInterval());
+        }
+      }
+
+      function resetPollTimer() {
+        if (pollTimer) { clearTimeout(pollTimer); }
+        pollTimer = setTimeout(runServerPollCycle, getPollInterval());
+      }
+
+      function resetDashboardTimer() {
+        if (dashboardTimer) { clearTimeout(dashboardTimer); }
+        dashboardTimer = setTimeout(runDashboardCycle, getDashboardInterval());
+      }
+
+      // Iniciar polling com delay inicial para não bloquear carregamento
+      setTimeout(runServerPollCycle, 3000);
+      setTimeout(runDashboardCycle, 2000);
+
+      // Pausar/reagendar polling conforme visibilidade da aba
+      document.addEventListener("visibilitychange", () => {
+        resetPollTimer();
+        resetDashboardTimer();
+      });
 
       // ===== ANIMAÇÕES: Partículas decorativas =====
       function createParticles() {
@@ -2103,5 +2288,7 @@ COMANDOS QUE VOCÊ CONHECE:
 
       console.log('🎬 Mestre do PC V10 - Animações carregadas!');
     </script>
+    <!-- Módulo de Diagnóstico de Rede (Casa5G Dashboard integrado) -->
+    <script src="rede-dashboard.js" defer></script>
   </body>
 </html>

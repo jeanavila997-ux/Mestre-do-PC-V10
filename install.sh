@@ -101,8 +101,8 @@ fi
 # Baixar modelo padrão (opcional)
 if command -v ollama >/dev/null 2>&1; then
   if ! ollama list 2>/dev/null | grep -q "qwen2.5-coder"; then
-    warn "Baixando modelo padrão qwen2.5-coder:1.5b (~1 GB)..."
-    ollama pull qwen2.5-coder:1.5b && ok "Modelo baixado." || warn "Falha ao baixar modelo (faça manualmente: ollama pull qwen2.5-coder:1.5b)"
+    warn "Baixando modelo padrão qwen2.5-coder:3b-instruct (~2 GB)..."
+    ollama pull qwen2.5-coder:3b-instruct && ok "Modelo baixado." || warn "Falha ao baixar modelo (faça manualmente: ollama pull qwen2.5-coder:3b-instruct)"
   else
     ok "Modelo qwen2.5-coder já presente."
   fi
