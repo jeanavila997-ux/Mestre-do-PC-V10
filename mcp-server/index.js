@@ -16,6 +16,85 @@ const MESTRE_STATUS_URL = MESTRE_BASE_URL + "/run-status";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function stripHtml(html) {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+async function searchWeb(query, maxResults = 5) {
+  const limit = Math.min(Math.max(1, Math.floor(Number(maxResults) || 5)), 10);
+  const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}&kl=br-pt`;
+
+  const res = await fetch(searchUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept-Language": "pt-BR,pt;q=0.9",
+    },
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    throw new Error(`DuckDuckGo retornou HTTP ${res.status}`);
+  }
+
+  const html = await res.text();
+
+  // Se DuckDuckGo devolver a pagina de desafio (por rate-limit/bot detection), avisa.
+  if (html.includes("anomaly.js") || html.includes("challenge-form")) {
+    throw new Error("DuckDuckGo bloqueou a requisicao (anti-bot). Tente novamente em alguns segundos.");
+  }
+
+  const results = [];
+
+  // DuckDuckGo HTML: resultados em <div class="result"> ...
+  const resultBlocks = html.split(/<div class="result[^"]*">/i).slice(1);
+
+  for (const block of resultBlocks.slice(0, limit)) {
+    const titleMatch = block.match(/<a[^>]*class="result__a"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
+    const snippetMatch = block.match(/<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/i);
+
+    if (titleMatch) {
+      const rawUrl = titleMatch[1];
+      let url = rawUrl;
+      // DuckDuckGo redirect: //duckduckgo.com/l/?uddg=...
+      const uddgMatch = rawUrl.match(/[?&]uddg=([^&]+)/i);
+      if (uddgMatch) {
+        try {
+          url = decodeURIComponent(uddgMatch[1]);
+        } catch {}
+      }
+      results.push({
+        title: stripHtml(titleMatch[2]).trim(),
+        url: url.trim(),
+        snippet: snippetMatch ? stripHtml(snippetMatch[1]).trim() : "",
+      });
+    }
+  }
+
+  if (results.length === 0) {
+    // Fallback: tenta extrair links genericos
+    const linkMatches = [...html.matchAll(/<a[^>]*href="([^"]+)"[^>]*class="result[^"]*"[^>]*>([\s\S]*?)<\/a>/gi)];
+    for (const m of linkMatches.slice(0, limit)) {
+      results.push({
+        title: stripHtml(m[2]).trim(),
+        url: m[1].trim(),
+        snippet: "",
+      });
+    }
+  }
+
+  return results;
+}
+
 async function executeLauncherCommand(commandOrPayload, options = {}) {
   const payload = typeof commandOrPayload === "string" ? { cmd: commandOrPayload } : commandOrPayload;
 
@@ -231,6 +310,7 @@ const mestreTools = {
 
 const OLLAMA_URL = (process.env.OLLAMA_URL || "http://127.0.0.1:11434").replace(/\/+$/, "");
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct";
+const OLLAMA_NUM_CTX = parseInt(process.env.OLLAMA_NUM_CTX || "8192", 10);
 const OLLAMA_SYSTEM_PROMPT = `Você é o Mestre do PC, um assistente especializado em manutenção de computadores Windows.
 Responda SEMPRE em português brasileiro.
 Quando sugerir uma ação, inclua o comando PowerShell exato.
@@ -265,6 +345,7 @@ const TOOLS = [
       type: "object",
       properties: {
         pergunta: { type: "string", description: "A pergunta ou problema do usuário sobre o PC." },
+        usar_web: { type: "boolean", description: "Se true, faz uma busca na web antes e envia os resultados como contexto para a IA." },
       },
       required: ["pergunta"],
     },
@@ -296,6 +377,18 @@ const TOOLS = [
         prompt: { type: "string", description: "O texto do prompt a ser analisado." },
       },
       required: ["prompt"],
+    },
+  },
+  {
+    name: "buscar_na_web",
+    description: "Busca na web usando DuckDuckGo e retorna titulo, URL e trecho dos resultados. Use para obter informacoes atualizadas.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Termo de busca." },
+        max_results: { type: "number", description: "Quantidade maxima de resultados (padrao 5, maximo 10)." },
+      },
+      required: ["query"],
     },
   },
 ];
@@ -339,6 +432,31 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return { content: [{ type: "text", text: lines.join("\n") }] };
   }
 
+  if (name === "buscar_na_web") {
+    const query = args?.query;
+    if (!query || typeof query !== "string") {
+      throw new McpError(ErrorCode.InvalidParams, "Parametro 'query' obrigatorio.");
+    }
+    const maxResults = Math.min(Math.max(1, Math.floor(Number(args?.max_results) || 5)), 10);
+    try {
+      const results = await searchWeb(query, maxResults);
+      if (results.length === 0) {
+        return { content: [{ type: "text", text: "Nenhum resultado encontrado para a busca." }] };
+      }
+      const lines = [`🔎 Resultados para: ${query}`, ""];
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        lines.push(`${i + 1}. ${r.title}`);
+        lines.push(`   URL: ${r.url}`);
+        if (r.snippet) lines.push(`   ${r.snippet}`);
+        lines.push("");
+      }
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha na busca: ${e.message}` }] };
+    }
+  }
+
   if (name === "analisar_logs_sistema") {
     try {
       const logCmd = "Get-EventLog -LogName System -EntryType Error -Newest 20 | Select-Object TimeGenerated,Source,Message | ConvertTo-Json";
@@ -369,24 +487,38 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const pergunta = args?.pergunta;
     if (!pergunta) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'pergunta' obrigatório.");
     try {
+      let context = "";
+      if (args?.usar_web === true) {
+        try {
+          const webResults = await searchWeb(pergunta, 3);
+          if (webResults.length > 0) {
+            context = "Aqui estão resultados da web para contextualizar:\n\n" +
+              webResults.map((r, i) => `${i + 1}. ${r.title}\nURL: ${r.url}\n${r.snippet}`).join("\n\n") +
+              "\n\nCom base nisso e em seu conhecimento, responda:\n";
+          }
+        } catch (e) {
+          context = `A busca na web falhou: ${e.message}. Responda com base no conhecimento local.\n\n`;
+        }
+      }
       const ollamaRes = await fetch(OLLAMA_URL + "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: OLLAMA_MODEL,
+          options: { num_ctx: OLLAMA_NUM_CTX },
           messages: [
             { role: "system", content: OLLAMA_SYSTEM_PROMPT },
-            { role: "user", content: pergunta },
+            { role: "user", content: context + pergunta },
           ],
           stream: false,
         }),
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(60000),
       });
       const ollamaData = await ollamaRes.json();
       return { content: [{ type: "text", text: ollamaData.message?.content || "Sem resposta." }] };
     } catch (error) {
       if (error.name === "AbortError" || error.name === "TimeoutError") {
-        return { isError: true, content: [{ type: "text", text: "⏱️ Timeout: Ollama demorou mais de 15s para responder. Tente novamente." }] };
+        return { isError: true, content: [{ type: "text", text: "⏱️ Timeout: Ollama demorou mais de 60s para responder. Tente novamente." }] };
       }
       return { isError: true, content: [{ type: "text", text: `Falha no Ollama: ${error.message}` }] };
     }
