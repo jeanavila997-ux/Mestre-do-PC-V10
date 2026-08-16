@@ -1,0 +1,40 @@
+=== INTEGRAÇÃO MCP COM MESTRE DO PC ===
+
+✅ MESTRE_PROJETO_PATH configurado para C:\Users\Jeanc\Mestre-do-PC-V10-clean
+✅ MCP server: dependências instaladas, testes 54/54 passaram
+✅ allowed-operations.json: corrigido com os 5 novos IDs de operação
+⚠️ Launcher: não iniciado automaticamente (requer privilégios elevados)
+
+📌 Para concluir a ativação:
+
+1. Execute INSTALAR.bat como Administrador (na raiz do projeto)
+   - Isso registra a tarefa agendada "MestreDoPC_Admin_Launcher"
+   - Solicitará UAC uma vez
+
+2. Após instalar, execute:
+   - start-v10.bat (inicia o launcher e abre http://127.0.0.1:7777)
+   - Ou abra diretamente http://127.0.0.1:7777
+
+3. Para testar sem instalar (modo debug):
+   powershell -ExecutionPolicy Bypass -File C:\Users\Jeanc\Mestre-do-PC-V10-clean\mcp-server\start-launcher-manual.ps1
+   - Abre uma janela visível com logs
+   - Permite interagir com UAC
+
+🔧 Ferramentas disponíveis no MCP:
+- 66 ferramentas de diagnóstico, limpeza, reparo, rede, Ollama, Git
+- 5 novas ferramentas V11.1:
+  • consultar_fonte_oficial_gov
+  • extrair_evidencia_de_pdf_local
+  • simular_cenario_economico
+  • congelar_tabela_final
+  • gerar_snapshot_git
+
+📂 Estrutura do projeto:
+- mcp-server/: servidor MCP (stdio, Node.js)
+- v10/: interface web e launcher.js (Node.js)
+- INSTALAR.bat: registra tarefa agendada para o launcher elevado
+- start-v10.bat: inicia o launcher e abre a interface
+
+💡 Dica: Após instalar, o launcher roda em background como tarefa agendada.
+Para parar: schtasks /End /TN "MestreDoPC_Admin_Launcher"
+Para iniciar: schtasks /Run /TN "MestreDoPC_Admin_Launcher"

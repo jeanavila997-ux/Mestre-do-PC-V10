@@ -323,6 +323,19 @@ try {
             continue
         }
 
+        if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath -eq "/novidades-v11.html") {
+            $novidadesPath = Join-Path $V10_HTML "..\novidades-v11.html"
+            $novidadesPath = [System.IO.Path]::GetFullPath($novidadesPath)
+            if (Test-Path $novidadesPath) {
+                $res.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+                Write-FileResponse -Response $res -Path $novidadesPath -ContentType "text/html; charset=utf-8"
+            } else {
+                $res.StatusCode = 404
+                $res.Close()
+            }
+            continue
+        }
+
         if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath -eq "/favicon.png") {
             $res.Headers["Cache-Control"] = "public, max-age=604800, immutable"
             Write-FileResponse -Response $res -Path (Join-Path $PROJECT_DIR "favicon.png") -ContentType "image/png"

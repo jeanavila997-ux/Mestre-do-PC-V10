@@ -10,9 +10,11 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { sanitizeToolArgument, checkPromptInjection } from "./security.js";
 import { auditLog, AuditLevel, queryAuditLog } from "./audit-logger.js";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir, access, constants } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve, extname } from "node:path";
+import { spawn } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -35,6 +37,82 @@ function stripHtml(html) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
 }
+
+// ===== NOVOS TOOLS V11.1 — Helpers =====
+
+const ALLOWED_GOV_DOMAINS = ["gov.br", "ibge.gov.br", "embrapa.br", "usp.br", "in.gov.br", "datasus.gov.br"];
+const MESTRE_PROJETO_PATH = process.env.MESTRE_PROJETO_PATH || "";
+const PDF_BASE_DIR = MESTRE_PROJETO_PATH ? join(MESTRE_PROJETO_PATH, "06_REFERENCIAS", "pdfs") : "";
+const FINAL_TABLE_DIR = MESTRE_PROJETO_PATH ? join(MESTRE_PROJETO_PATH, "02_DADOS", "03_final") : "";
+const APPROVALS_FILE = join(__dirname, "..", "logs", "audit", "approvals.json");
+
+function isAllowedGovDomain(url) {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    return ALLOWED_GOV_DOMAINS.some((d) => host === d || host.endsWith("." + d));
+  } catch {
+    return false;
+  }
+}
+
+async function extractTextFromPdf(pdfPath, searchTerm, contextLines = 3) {
+  // Extração simples de texto de PDF usando leitura binária + regex de texto.
+  // Para produção, considere instalar pdf-parse ou pdfplumber.
+  const buf = await readFile(pdfPath);
+  const text = buf.toString("latin1");
+  const lines = text.split(/\r?\n/);
+  const matches = [];
+  const maxCtx = Math.min(Math.max(1, contextLines), 5);
+
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].toLowerCase().includes(searchTerm.toLowerCase())) {
+      const start = Math.max(0, i - maxCtx);
+      const end = Math.min(lines.length, i + maxCtx + 1);
+      const snippet = lines.slice(start, end).join("\n").trim();
+      matches.push({ line: i + 1, snippet });
+    }
+  }
+  return matches;
+}
+
+async function loadFontesMestreCsv() {
+  const csvPath = join(MESTRE_PROJETO_PATH || "", "06_REFERENCIAS", "fontes_mestre.csv");
+  if (!existsSync(csvPath)) return [];
+  const raw = await readFile(csvPath, "utf8");
+  const lines = raw.split(/\r?\n/).filter(Boolean);
+  return lines.slice(1).map((line) => {
+    const cols = line.split(/[,;]/);
+    return { id_fonte: cols[0]?.trim(), caminho: cols[1]?.trim(), descricao: cols[2]?.trim() };
+  });
+}
+
+async function validateApprovalId(approvalId) {
+  if (!existsSync(APPROVALS_FILE)) return false;
+  try {
+    const raw = await readFile(APPROVALS_FILE, "utf8");
+    const data = JSON.parse(raw);
+    return Array.isArray(data.approvals) && data.approvals.some((a) => a.id === approvalId && a.expires_at && new Date(a.expires_at) > new Date());
+  } catch {
+    return false;
+  }
+}
+
+function runChildProcess(command, args, options = {}) {
+  return new Promise((resolveObj, reject) => {
+    const proc = spawn(command, args, { timeout: options.timeoutMs || 30000, ...options });
+    let stdout = "";
+    let stderr = "";
+    proc.stdout.on("data", (d) => (stdout += d.toString()));
+    proc.stderr.on("data", (d) => (stderr += d.toString()));
+    proc.on("error", reject);
+    proc.on("close", (code) => {
+      resolveObj({ stdout, stderr, code });
+    });
+  });
+}
+
+// ===== FIM HELPERS V11.1 =====
 
 async function searchWeb(query, maxResults = 5) {
   const limit = Math.min(Math.max(1, Math.floor(Number(maxResults) || 5)), 10);
@@ -1028,6 +1106,69 @@ const TOOLS = [
       required: [],
     },
   },
+  {
+    name: "consultar_fonte_oficial_gov",
+    description: "Extrai tabelas ou textos de uma URL, mas a requisição falhará se o domínio não for gov.br, usp.br ou embrapa.br.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url_alvo: { type: "string", description: "A URL exata do órgão oficial contendo os dados." },
+        seletor_css: { type: "string", description: "(Opcional) Tabela ou div específica para extrair." },
+      },
+      required: ["url_alvo"],
+    },
+  },
+  {
+    name: "extrair_evidencia_de_pdf_local",
+    description: "Busca menções a um termo específico dentro de um PDF já validado e listado no fontes_mestre.csv.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id_fonte: { type: "string", description: "ID da fonte, ex: FON-0012." },
+        termo_de_busca: { type: "string", description: "Palavra-chave ou conceito a procurar no PDF." },
+        contexto_linhas: { type: "integer", description: "Linhas antes/depois do termo (máx 5)." },
+      },
+      required: ["id_fonte", "termo_de_busca"],
+    },
+  },
+  {
+    name: "simular_cenario_economico",
+    description: "Injeta premissas no modelo matemático oficial do projeto para calcular impacto econômico.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tamanho_rebanho: { type: "number", description: "Tamanho total do rebanho." },
+        prevalencia_pct: { type: "number", description: "% do rebanho afetado (ex: 5.5)" },
+        perda_arroba_por_animal: { type: "number", description: "Perda de arrobas por animal afetado." },
+        preco_arroba_brl: { type: "number", description: "Preço da arroba em BRL." },
+      },
+      required: ["tamanho_rebanho", "prevalencia_pct", "perda_arroba_por_animal", "preco_arroba_brl"],
+    },
+  },
+  {
+    name: "congelar_tabela_final",
+    description: "Altera permissões do SO para 'Somente Leitura' de um CSV já aprovado, impedindo edições acidentais.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nome_tabela: { type: "string", description: "Nome do CSV em 02_DADOS/03_final/" },
+        approval_id: { type: "string", description: "Token de aprovação humano." },
+      },
+      required: ["nome_tabela", "approval_id"],
+    },
+  },
+  {
+    name: "gerar_snapshot_git",
+    description: "Executa git commit automatizado para registrar um marco do projeto.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        mensagem_commit: { type: "string", description: "Mensagem clara do que foi concluído." },
+        fase_cronograma: { type: "string", description: "Fase atingida (ex: F2, F3)." },
+      },
+      required: ["mensagem_commit"],
+    },
+  },
 ];
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -1447,6 +1588,180 @@ Responda apenas com o comando PowerShell, nada mais.`,
   }
 
   // ===== FIM NOVAS FERRAMENTAS AUDITORIA V11 =====
+
+  // ===== NOVOS TOOLS V11.1 =====
+
+  if (name === "consultar_fonte_oficial_gov") {
+    const urlAlvo = args?.url_alvo;
+    if (!urlAlvo || typeof urlAlvo !== "string") {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'url_alvo' obrigatório.");
+    }
+    if (!isAllowedGovDomain(urlAlvo)) {
+      await auditLog(AuditLevel.SECURITY, "consultar_fonte_oficial_gov_blocked", { url: urlAlvo });
+      return {
+        isError: true,
+        content: [{ type: "text", text: `🚫 Domínio não permitido. Apenas fontes oficiais são aceitas: ${ALLOWED_GOV_DOMAINS.join(", ")}` }],
+      };
+    }
+    try {
+      const res = await fetch(urlAlvo, {
+        headers: { "User-Agent": "MestreDoPC-V11/1.0", "Accept-Language": "pt-BR,pt;q=0.9" },
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!res.ok) {
+        return { isError: true, content: [{ type: "text", text: `Erro HTTP ${res.status} ao acessar ${urlAlvo}` }] };
+      }
+      const html = await res.text();
+      const text = stripHtml(html);
+      const maxChars = 5000;
+      const truncated = text.length > maxChars ? text.slice(0, maxChars) + "\n\n[... truncado ...]" : text;
+      await auditLog(AuditLevel.INFO, "consultar_fonte_oficial_gov_success", { url: urlAlvo, chars: text.length });
+      return {
+        content: [{ type: "text", text: `📄 Conteúdo extraído de ${urlAlvo}:\n\n${truncated}` }],
+      };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao acessar fonte oficial: ${e.message}` }] };
+    }
+  }
+
+  if (name === "extrair_evidencia_de_pdf_local") {
+    const idFonte = args?.id_fonte;
+    const termoBusca = args?.termo_de_busca;
+    if (!idFonte || !termoBusca) {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'id_fonte' e 'termo_de_busca' são obrigatórios.");
+    }
+    try {
+      const fontes = await loadFontesMestreCsv();
+      const fonte = fontes.find((f) => f.id_fonte === idFonte);
+      if (!fonte) {
+        return { isError: true, content: [{ type: "text", text: `❌ Fonte '${idFonte}' não encontrada no fontes_mestre.csv. Fontes cadastradas: ${fontes.map((f) => f.id_fonte).join(", ") || "nenhuma"}` }] };
+      }
+      const pdfPath = fonte.caminho ? resolve(MESTRE_PROJETO_PATH, fonte.caminho) : join(PDF_BASE_DIR, `${idFonte}.pdf`);
+      if (!existsSync(pdfPath)) {
+        return { isError: true, content: [{ type: "text", text: `❌ PDF não encontrado em: ${pdfPath}` }] };
+      }
+      const contextoLinhas = args?.contexto_linhas || 3;
+      const matches = await extractTextFromPdf(pdfPath, termoBusca, contextoLinhas);
+      await auditLog(AuditLevel.INFO, "extrair_evidencia_de_pdf_local", { idFonte, termo: termoBusca, matches: matches.length });
+      if (matches.length === 0) {
+        return { content: [{ type: "text", text: `ℹ️ Termo '${termoBusca}' não encontrado no PDF ${idFonte}.` }] };
+      }
+      const lines = [`📖 ${matches.length} ocorrência(s) de '${termoBusca}' em ${idFonte}:\n`];
+      for (let i = 0; i < matches.length; i++) {
+        lines.push(`--- Ocorrência ${i + 1} (linha ${matches[i].line}) ---`);
+        lines.push(matches[i].snippet);
+        lines.push("");
+      }
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao extrair evidência do PDF: ${e.message}` }] };
+    }
+  }
+
+  if (name === "simular_cenario_economico") {
+    const tamanhoRebanho = Number(args?.tamanho_rebanho);
+    const prevalenciaPct = Number(args?.prevalencia_pct);
+    const perdaArroba = Number(args?.perda_arroba_por_animal);
+    const precoArroba = Number(args?.preco_arroba_brl);
+    if (!tamanhoRebanho || !prevalenciaPct || !perdaArroba || !precoArroba) {
+      throw new McpError(ErrorCode.InvalidParams, "Todos os parâmetros numéricos são obrigatórios.");
+    }
+    try {
+      const scriptPath = join(MESTRE_PROJETO_PATH, "03_ANALISE", "scripts", "03_modelo_perdas.py");
+      if (existsSync(scriptPath)) {
+        const result = await runChildProcess("python", [
+          scriptPath,
+          String(tamanhoRebanho),
+          String(prevalenciaPct),
+          String(perdaArroba),
+          String(precoArroba),
+        ], { timeoutMs: 30000 });
+        if (result.code !== 0) {
+          return { isError: true, content: [{ type: "text", text: `Erro no script Python: ${result.stderr || result.stdout}` }] };
+        }
+        await auditLog(AuditLevel.INFO, "simular_cenario_economico_script", { exitCode: result.code });
+        return { content: [{ type: "text", text: `📊 Resultado da simulação (script oficial):\n\n${result.stdout}` }] };
+      }
+      const animaisAfetados = Math.round(tamanhoRebanho * (prevalenciaPct / 100));
+      const perdaTotalArrobas = animaisAfetados * perdaArroba;
+      const perdaFinanceiraBRL = perdaTotalArrobas * precoArroba;
+      const resumo = [
+        "📊 SIMULAÇÃO DE CENÁRIO ECONÔMICO",
+        "=====================================",
+        `Tamanho do rebanho: ${tamanhoRebanho.toLocaleString("pt-BR")} animais`,
+        `Prevalência: ${prevalenciaPct}% (${animaisAfetados.toLocaleString("pt-BR")} animais afetados)`,
+        `Perda por animal: ${perdaArroba} arrobas`,
+        `Perda total: ${perdaTotalArrobas.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} arrobas`,
+        `Preço da arroba: R$ ${precoArroba.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+        `IMPACTO FINANCEIRO TOTAL: R$ ${perdaFinanceiraBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        "",
+        "⚠️ Cálculo feito em modo fallback (script Python oficial não encontrado).",
+        `   Esperado em: ${scriptPath}`,
+      ];
+      await auditLog(AuditLevel.INFO, "simular_cenario_economico_fallback", { tamanhoRebanho, prevalenciaPct, perdaFinanceiraBRL });
+      return { content: [{ type: "text", text: resumo.join("\n") }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha na simulação: ${e.message}` }] };
+    }
+  }
+
+  if (name === "congelar_tabela_final") {
+    const nomeTabela = args?.nome_tabela;
+    const approvalId = args?.approval_id;
+    if (!nomeTabela || !approvalId) {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'nome_tabela' e 'approval_id' são obrigatórios.");
+    }
+    try {
+      const valid = await validateApprovalId(approvalId);
+      if (!valid) {
+        await auditLog(AuditLevel.SECURITY, "congelar_tabela_final_unauthorized", { nomeTabela, approvalId });
+        return { isError: true, content: [{ type: "text", text: "🚫 Token de aprovação inválido ou expirado. Operação bloqueada." }] };
+      }
+      const filePath = join(FINAL_TABLE_DIR, nomeTabela.endsWith(".csv") ? nomeTabela : `${nomeTabela}.csv`);
+      if (!existsSync(filePath)) {
+        return { isError: true, content: [{ type: "text", text: `❌ Tabela não encontrada: ${filePath}` }] };
+      }
+      const result = await runChildProcess("attrib", ["+R", filePath], { timeoutMs: 10000 });
+      if (result.code !== 0) {
+        return { isError: true, content: [{ type: "text", text: `Erro ao congelar tabela: ${result.stderr || result.stdout}` }] };
+      }
+      await auditLog(AuditLevel.SECURITY, "congelar_tabela_final_success", { nomeTabela, filePath });
+      return { content: [{ type: "text", text: `🔒 Tabela '${nomeTabela}' congelada (Somente Leitura).\n   Caminho: ${filePath}` }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao congelar tabela: ${e.message}` }] };
+    }
+  }
+
+  if (name === "gerar_snapshot_git") {
+    const mensagemCommit = args?.mensagem_commit;
+    if (!mensagemCommit || typeof mensagemCommit !== "string") {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'mensagem_commit' obrigatório.");
+    }
+    try {
+      if (!MESTRE_PROJETO_PATH) {
+        return { isError: true, content: [{ type: "text", text: "❌ MESTRE_PROJETO_PATH não definido." }] };
+      }
+      const fase = args?.fase_cronograma ? ` [${args.fase_cronograma}]` : "";
+      const msg = `snapshot: ${mensagemCommit}${fase}`;
+      const addResult = await runChildProcess("git", ["add", "-A"], { cwd: MESTRE_PROJETO_PATH, timeoutMs: 15000 });
+      if (addResult.code !== 0) {
+        return { isError: true, content: [{ type: "text", text: `Erro no git add: ${addResult.stderr || addResult.stdout}` }] };
+      }
+      const commitResult = await runChildProcess("git", ["commit", "-m", msg], { cwd: MESTRE_PROJETO_PATH, timeoutMs: 15000 });
+      if (commitResult.code !== 0 && !commitResult.stdout.includes("nothing to commit")) {
+        return { isError: true, content: [{ type: "text", text: `Erro no git commit: ${commitResult.stderr || commitResult.stdout}` }] };
+      }
+      await auditLog(AuditLevel.INFO, "gerar_snapshot_git", { mensagem: msg });
+      const cleanMsg = commitResult.stdout.includes("nothing to commit")
+        ? "ℹ️ Nenhuma alteração para commit (working tree limpa)."
+        : `✅ Snapshot criado: ${msg}`;
+      return { content: [{ type: "text", text: cleanMsg }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao gerar snapshot: ${e.message}` }] };
+    }
+  }
+
+  // ===== FIM NOVOS TOOLS V11.1 =====
 
   const toolConfig = mestreTools[name];
   if (!toolConfig) throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);

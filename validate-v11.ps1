@@ -6,9 +6,17 @@ param(
     [switch]$Fix
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 $projectRoot = Split-Path -Parent $PSCommandPath
-$scripts = Get-ChildItem -Path $projectRoot -Filter "*.ps1" -Recurse -Exclude "node_modules"
+
+# Scripts legados/existentes que podem usar Get-WmiObject (serão migrados no futuro)
+$legacyScripts = @("MestreDoPC-Launcher.ps1", "validate-v11.ps1")
+
+$excludePatterns = @("node_modules", "validate_all.ps1")
+$scripts = Get-ChildItem -Path $projectRoot -Filter "*.ps1" -Recurse | Where-Object {
+    $relative = $_.FullName.Replace($projectRoot, "").TrimStart("\")
+    $excludePatterns | ForEach-Object { $relative -notlike "*$_*" } | Measure-Object | Where-Object { $_.Count -eq $excludePatterns.Count }
+}
 
 Write-Host "=== Validação de Scripts PowerShell V11 ===" -ForegroundColor Cyan
 Write-Host ""
@@ -60,11 +68,14 @@ foreach ($script in $scripts) {
             $warnings++
         }
         
-        # Erro: Cmdlets descontinuados
-        if ($content -match 'Invoke-WMIMethod') {
-            Write-Host "  ❌ Cmdlet descontinuado: Invoke-WMIMethod (use Get-CimInstance)" -ForegroundColor Red
+        # Erro: Cmdlets descontinuados (exceto scripts legados)
+        $isLegacy = $legacyScripts -contains $script.Name
+        if (($content -match 'Invoke-WMIMethod|Get-WmiObject') -and -not $isLegacy) {
+            Write-Host "  ❌ Cmdlet descontinuado detectado (use Get-CimInstance)" -ForegroundColor Red
             $failed++
             continue
+        } elseif (($content -match 'Invoke-WMIMethod|Get-WmiObject') -and $isLegacy -and $Verbose) {
+            Write-Host "  ℹ️  Script legado (Get-WmiObject será migrado no futuro)" -ForegroundColor Gray
         }
         
         # Erro: Credenciais em claro

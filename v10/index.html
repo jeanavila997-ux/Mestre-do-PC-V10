@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mestre do PC V10 - Ultimate Plus</title>
+    <title>Mestre do PC V11 - Ultimate Plus</title>
     <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
     <style>
       /* ===== ANIMAÇÕES AVANÇADAS (inspirado Hyperframes) ===== */
@@ -566,6 +566,77 @@
       /* NOVO V10 revisao: aviso visual em comandos destrutivos */
       .cmd-card.danger { border-color: var(--danger); }
       .cmd-card.danger:hover { border-color: var(--danger); box-shadow: 0 0 12px rgba(248,81,73,0.35); }
+
+      /* ===== ANIMAÇÃO NEON VERDE PARA COMANDOS NOVOS V11 ===== */
+      @keyframes neonGreenPulse {
+        0%   { box-shadow: 0 0 5px rgba(0,255,136,0.3), 0 0 10px rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.3); }
+        25%  { box-shadow: 0 0 12px rgba(0,255,136,0.5), 0 0 24px rgba(0,255,136,0.25), 0 0 36px rgba(0,255,136,0.1); border-color: rgba(0,255,136,0.6); }
+        50%  { box-shadow: 0 0 18px rgba(0,255,136,0.7), 0 0 36px rgba(0,255,136,0.35), 0 0 54px rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.85); }
+        75%  { box-shadow: 0 0 12px rgba(0,255,136,0.5), 0 0 24px rgba(0,255,136,0.25), 0 0 36px rgba(0,255,136,0.1); border-color: rgba(0,255,136,0.6); }
+        100% { box-shadow: 0 0 5px rgba(0,255,136,0.3), 0 0 10px rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.3); }
+      }
+      @keyframes neonGreenTextGlow {
+        0%   { text-shadow: 0 0 2px rgba(0,255,136,0.5), 0 0 4px rgba(0,255,136,0.2); }
+        50%  { text-shadow: 0 0 6px rgba(0,255,136,0.9), 0 0 12px rgba(0,255,136,0.5), 0 0 18px rgba(0,255,136,0.25); }
+        100% { text-shadow: 0 0 2px rgba(0,255,136,0.5), 0 0 4px rgba(0,255,136,0.2); }
+      }
+      @keyframes neonGreenBtnGlow {
+        0%   { box-shadow: 0 0 4px rgba(0,255,136,0.4), 0 0 8px rgba(0,255,136,0.15); }
+        50%  { box-shadow: 0 0 10px rgba(0,255,136,0.8), 0 0 20px rgba(0,255,136,0.4), 0 0 30px rgba(0,255,136,0.15); }
+        100% { box-shadow: 0 0 4px rgba(0,255,136,0.4), 0 0 8px rgba(0,255,136,0.15); }
+      }
+      .cmd-card-new {
+        border-left: 3px solid rgba(0,255,136,0.5) !important;
+        position: relative;
+      }
+      .cmd-card-new::before {
+        content: "NOVO";
+        position: absolute;
+        top: -7px;
+        right: 38px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        background: linear-gradient(135deg, #00ff88, #00d4ff);
+        color: #000;
+        padding: 2px 8px;
+        border-radius: 20px;
+        box-shadow: 0 0 8px rgba(0,255,136,0.5);
+        animation: neonGreenPulse 2s ease-in-out infinite;
+        z-index: 2;
+      }
+      .cmd-card-new h4 { transition: 0.3s; }
+      .cmd-card-new:hover {
+        border-color: rgba(0,255,136,0.7) !important;
+        animation: neonGreenPulse 1.5s ease-in-out infinite;
+        transform: translateY(-4px) scale(1.01);
+      }
+      .cmd-card-new:hover h4 {
+        animation: neonGreenTextGlow 1.5s ease-in-out infinite;
+        color: #00ff88 !important;
+      }
+      .cmd-card-new:hover .btn-run {
+        animation: neonGreenBtnGlow 1.5s ease-in-out infinite;
+        background: #00ff88 !important;
+        color: #000 !important;
+      }
+      .cmd-card-new:hover .btn-copy,
+      .cmd-card-new:hover .btn-queue-add,
+      .cmd-card-new:hover .btn-live {
+        animation: neonGreenBtnGlow 1.5s ease-in-out infinite;
+      }
+      /* Tema claro: neon verde funciona nos dois temas */
+      body.light .cmd-card-new::before {
+        background: linear-gradient(135deg, #00cc6a, #00b8d4);
+        color: #fff;
+      }
+      body.light .cmd-card-new:hover h4 {
+        color: #00b85c !important;
+      }
+      body.light .cmd-card-new:hover .btn-run {
+        background: #00cc6a !important;
+        color: #fff !important;
+      }
       .danger-badge {
         display: inline-block;
         margin-left: 8px;
@@ -662,10 +733,11 @@
     </div>
     <div class="main">
       <div class="header">
-        <h1>🛡️ Mestre do PC V10 <span class="header-license">| <span class="header-license-name">JEAN</span></span></h1>
+        <h1>🛡️ Mestre do PC V11 <span class="header-license">| <span class="header-license-name">JEAN</span></span></h1>
         <div class="header-right">
           <input type="text" id="searchInput" class="search" placeholder="🔍 Buscar comando..." />
           <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
+          <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11">🎉 Novidades V11</button></a>
           <button class="btn-open-ps" onclick="openPS()">⚡ PowerShell</button>
           <button class="btn-open-ps btn-ia-local" onclick="openAI()">🤖 IA Local</button>
         </div>
@@ -1372,7 +1444,7 @@
         if (c.subcategories) n += c.subcategories.reduce((sum, s) => sum + (s.cmds || []).length, 0);
         return n;
       }
-      function renderCards(list, prefix) {
+      function renderCards(list, prefix, isNew = false) {
         let cards = "";
         (list || []).forEach((cmd, i) => {
           const uid = `${prefix}_${i}`;
@@ -1381,7 +1453,8 @@
           const star = isFav ? "⭐" : "☆";
           const danger = isDangerous(cmd[1]);
           const dangerBadge = danger ? `<span class="danger-badge" title="Comando destrutivo — use com cuidado">⚠️ destrutivo</span>` : "";
-          cards += `<div class="cmd-card ${danger ? "danger" : ""}">
+          const newClass = isNew ? "cmd-card-new" : "";
+          cards += `<div class="cmd-card ${danger ? "danger" : ""} ${newClass}">
       <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
       ${dangerBadge}
       <h4>${cmd[0]}</h4>
@@ -1396,20 +1469,23 @@
         });
         return cards;
       }
+      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec"];
       CATS.forEach((c) => {
         const div = document.createElement("div");
         div.className = "category";
         div.id = c.id;
         const total = countCmds(c);
-        const badge = `<span class="badge">${total} cmds</span>`;
+        const isNewCat = NEW_V11_CATEGORIES.includes(c.id);
+        const newBadge = isNewCat ? ` <span class="badge" style="background:rgba(0,255,136,0.2);color:#00ff88;border:1px solid rgba(0,255,136,0.4)">NOVO V11</span>` : "";
+        const badge = `<span class="badge">${total} cmds</span>${newBadge}`;
         let content = "";
         if (c.subcategories) {
           c.subcategories.forEach((sub, idx) => {
             content += `<div class="subcategory-header">${sub.label}</div>`;
-            content += renderCards(sub.cmds, `${c.id}_sub${idx}`);
+            content += renderCards(sub.cmds, `${c.id}_sub${idx}`, isNewCat);
           });
         } else {
-          content += renderCards(c.cmds, c.id);
+          content += renderCards(c.cmds, c.id, isNewCat);
         }
         div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${c.label}${badge} <span class="chevron">▼</span></div><div class="category-content">${content}</div>`;
         container.appendChild(div);

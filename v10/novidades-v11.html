@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎉 Novidades V11.1 - Mestre do PC</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
+    <style>
+      :root {
+        --bg: #05070a;
+        --panel: #0d1117;
+        --accent: #00d4ff;
+        --accent2: #00ff88;
+        --text: #e6edf3;
+        --border: rgba(255, 255, 255, 0.1);
+        --card: #161b22;
+        --danger: #f85149;
+        --success: #238636;
+        --warning: #f0a800;
+        --purple: #a200ff;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 24px;
+        line-height: 1.6;
+      }
+      .container { max-width: 1200px; margin: 0 auto; }
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,255,136,0.1));
+        border: 1px solid rgba(0,212,255,0.3);
+        border-radius: 16px;
+      }
+      .header h1 { font-size: 2.5rem; color: var(--accent); margin-bottom: 10px; }
+      .header p { color: #8b949e; font-size: 1.1rem; }
+      .version-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(0,212,255,0.2);
+        border: 1px solid var(--accent);
+        border-radius: 20px;
+        font-weight: 600;
+        margin-top: 10px;
+      }
+      .section {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border);
+      }
+      .section-icon { font-size: 2rem; }
+      .section-title { font-size: 1.5rem; color: var(--accent); }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+      }
+      .feature-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+        transition: 0.3s;
+      }
+      .feature-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,212,255,0.2);
+      }
+      .feature-title {
+        color: var(--accent2);
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .feature-desc { color: #8b949e; font-size: 0.9rem; line-height: 1.7; }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+      }
+      .stat-card {
+        text-align: center;
+        padding: 20px;
+        background: rgba(0,212,255,0.05);
+        border: 1px solid rgba(0,212,255,0.2);
+        border-radius: 10px;
+      }
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--accent);
+        font-family: "Cascadia Mono", monospace;
+      }
+      .stat-label {
+        color: #8b949e;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 8px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 12px 24px;
+        background: var(--accent);
+        color: #000;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .btn:hover { background: var(--accent2); transform: scale(1.05); }
+      .btn-secondary { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+      .changelog {
+        background: #010409;
+        padding: 20px;
+        border-radius: 8px;
+        font-family: "Cascadia Mono", monospace;
+        font-size: 0.85rem;
+        color: #79c0ff;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .changelog-item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+      .changelog-item:last-child { border-bottom: none; }
+      .tag {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 8px;
+      }
+      .tag-new { background: rgba(0,255,136,0.2); color: var(--accent2); }
+      .tag-fix { background: rgba(248,81,73,0.2); color: var(--danger); }
+      .tag-improve { background: rgba(0,212,255,0.2); color: var(--accent); }
+      .tag-mcp { background: rgba(162,0,255,0.2); color: var(--purple); }
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--accent);
+        text-decoration: none;
+        margin-bottom: 20px;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+      .back-link:hover { color: var(--accent2); transform: translateX(-5px); }
+      .highlight { color: var(--warning); font-weight: 600; }
+      .code-inline {
+        background: rgba(0,0,0,0.3);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: "Cascadia Mono", monospace;
+        font-size: 0.85rem;
+        color: var(--accent2);
+      }
+      .new-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        background: var(--accent2);
+        color: #000;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin-left: 6px;
+      }
+      .category-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .category-pill {
+        padding: 4px 12px;
+        background: rgba(0,212,255,0.08);
+        border: 1px solid rgba(0,212,255,0.2);
+        border-radius: 16px;
+        font-size: 0.8rem;
+        color: var(--text);
+      }
+      .category-pill strong { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="/" class="back-link">← Voltar ao Dashboard</a>
+
+      <div class="header">
+        <h1>🎉 Mestre do PC V11.1</h1>
+        <p>Atualização Completa — Agosto 2026</p>
+        <span class="version-badge">Versão 11.1.0</span>
+      </div>
+
+      <!-- Estatísticas reais -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">📊</span>
+          <h2 class="section-title">Estatísticas da Atualização</h2>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">243</div>
+            <div class="stat-label">Operações MCP</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">24</div>
+            <div class="stat-label">Categorias</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">33</div>
+            <div class="stat-label">Modelos Ollama</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">16</div>
+            <div class="stat-label">Apps Instaláveis</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">+5</div>
+            <div class="stat-label">Novas V11.1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Novidades V11.1 -->
+      <div class="section" style="border-color: var(--accent2);">
+        <div class="section-header">
+          <span class="section-icon">✨</span>
+          <h2 class="section-title">Novidades V11.1 <span class="new-badge">NOVO</span></h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>🏛️</span>
+              Consultar Fonte Oficial Gov
+            </div>
+            <div class="feature-desc">
+              <span class="code-inline">consultar_fonte_oficial_gov</span><br>
+              Pesquisa em fontes oficiais do governo brasileiro (gov.br). Útil para validar documentos, leis e informações oficiais.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>📄</span>
+              Extrair Evidência de PDF Local
+            </div>
+            <div class="feature-desc">
+              <span class="code-inline">extrair_evidencia_de_pdf_local</span><br>
+              Extrai texto e evidências de arquivos PDF locais sem enviar para a nuvem. Preserva privacidade dos dados.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>📈</span>
+              Simular Cenário Econômico
+            </div>
+            <div class="feature-desc">
+              <span class="code-inline">simular_cenario_economico</span><br>
+              Simula cenários econômicos com variáveis personalizáveis. Projeções, análises de sensibilidade e relatórios.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>❄️</span>
+              Congelar Tabela Final
+            </div>
+            <div class="feature-desc">
+              <span class="code-inline">congelar_tabela_final</span><br>
+              Congela uma tabela de dados para preservar seu estado final. Evita alterações acidentais em dados consolidados.
+              <br><strong style="color:var(--danger)">⚠️ Comando destrutivo</strong>
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>📸</span>
+              Gerar Snapshot Git
+            </div>
+            <div class="feature-desc">
+              <span class="code-inline">gerar_snapshot_git</span><br>
+              Cria um snapshot completo do estado do repositório Git (branch, commit, diff, arquivos). Ideal para auditoria.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Integração Snippets & Skills -->
+      <div class="section" style="border-color: var(--purple);">
+        <div class="section-header">
+          <span class="section-icon">🔗</span>
+          <h2 class="section-title">Integração com Snippets & Skills <span class="new-badge">NOVO</span></h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card" style="border-color: var(--purple);">
+            <div class="feature-title">
+              <span>📋</span>
+              Skills MCP Importáveis
+            </div>
+            <div class="feature-desc">
+              Todas as 243 operações MCP agora podem ser importadas como <strong>Skills</strong> no app Snippets & Skills.
+              Cada skill tem botão <strong>▶ Executar</strong> para rodar o comando direto do app.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--purple);">
+            <div class="feature-title">
+              <span>🔒</span>
+              Confirmação de Destrutivos
+            </div>
+            <div class="feature-desc">
+              Comandos destrutivos pedem <strong>confirmação explícita</strong> antes de executar.
+              Proteção adicional contra execuções acidentais.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--purple);">
+            <div class="feature-title">
+              <span>🖥️</span>
+              Resultado em Modal
+            </div>
+            <div class="feature-desc">
+              O resultado de cada comando é exibido em um <strong>modal interativo</strong> dentro do app,
+              com formatação monospace e copiar para a área de transferência.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categorias de Operações -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🗂️</span>
+          <h2 class="section-title">Categorias de Operações (24)</h2>
+        </div>
+        <div class="category-list">
+          <span class="category-pill">📦 <strong>Outros</strong>: 66</span>
+          <span class="category-pill">🧹 <strong>Limpeza</strong>: 37</span>
+          <span class="category-pill">🤖 <strong>Modelos Ollama</strong>: 33</span>
+          <span class="category-pill">📦 <strong>Instalações</strong>: 16</span>
+          <span class="category-pill">💾 <strong>Backup</strong>: 13</span>
+          <span class="category-pill">📚 <strong>Bibliotecas</strong>: 10</span>
+          <span class="category-pill">🔒 <strong>Privacidade</strong>: 8</span>
+          <span class="category-pill">🧠 <strong>Memória</strong>: 7</span>
+          <span class="category-pill">🌿 <strong>Git</strong>: 7</span>
+          <span class="category-pill">⚡ <strong>Performance</strong>: 6</span>
+          <span class="category-pill">📊 <strong>Processos</strong>: 6</span>
+          <span class="category-pill">💾 <strong>Disco</strong>: 5</span>
+          <span class="category-pill">🔧 <strong>Reparo</strong>: 5</span>
+          <span class="category-pill">💻 <strong>Sistema</strong>: 5</span>
+          <span class="category-pill">🛡️ <strong>Defender</strong>: 4</span>
+          <span class="category-pill">🔄 <strong>Atualizações</strong>: 4</span>
+          <span class="category-pill">🔍 <strong>Pesquisa</strong>: 2</span>
+          <span class="category-pill">🦙 <strong>Ollama</strong>: 2</span>
+          <span class="category-pill">📋 <strong>Tarefas</strong>: 2</span>
+          <span class="category-pill">❄️ <strong>Dados</strong>: 1</span>
+          <span class="category-pill">📈 <strong>Análise</strong>: 1</span>
+          <span class="category-pill">📁 <strong>Projeto</strong>: 1</span>
+          <span class="category-pill">🖨️ <strong>Drivers</strong>: 1</span>
+          <span class="category-pill">🌐 <strong>Rede</strong>: 1</span>
+        </div>
+      </div>
+
+      <!-- Limpeza -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🧹</span>
+          <h2 class="section-title">Limpeza (37 operações)</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>🗑️</span> Limpeza Rápida e Profunda</div>
+            <div class="feature-desc">
+              Limpa TEMP do usuário e do Windows, esvazia lixeira, limpa cache DNS, Prefetch, Minidumps,
+              cache de navegadores (Chrome, Edge), WinSxS, e muito mais.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🎮</span> Cache de Aplicativos</div>
+            <div class="feature-desc">
+              Limpa cache de Discord, Spotify, Teams, Microsoft Store, Thumbnail Cache,
+              cache de fontes e cache de sombras da GPU.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>⚙️</span> Cleanmgr Automático</div>
+            <div class="feature-desc">
+              Configura e executa o Cleanmgr em modo silencioso, limpa arquivos de log
+              do Windows e logs do EventViewer.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modelos Ollama -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🤖</span>
+          <h2 class="section-title">Modelos Ollama (33 modelos)</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>💬</span> Modelos de Código</div>
+            <div class="feature-desc">
+              qwen2.5-coder:3b/7b, codellama:7b/13b, codegemma:2b, deepseek-coder-v2,
+              kimi-k2.7-code, athene-v2:agent
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>👁️</span> Visão e Imagem</div>
+            <div class="feature-desc">
+              llava:13b, llava-phi3, bakllava, moondream2, minicpm-v, llama3.2-vision,
+              granite3.2-vision, llava-llama3
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🧠</span> Modelos Gerais</div>
+            <div class="feature-desc">
+              llama3.2, phi4, phi3, phi3:medium, gemma2:2b, mistral, qwen2.5 (0.5b–14b),
+              command-r7b, tinyllama, smollm2:135m, deepseek-r1:1.5b
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instalações -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">📦</span>
+          <h2 class="section-title">Instalações de Apps (16 apps)</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>🌐</span> Navegadores</div>
+            <div class="feature-desc">Google Chrome, Mozilla Firefox, Microsoft Edge</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🛠️</span> Desenvolvimento</div>
+            <div class="feature-desc">VS Code, Git, Node.js LTS, Python 3, PowerShell 7, Windows Terminal</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🎵</span> Produtividade e Lazer</div>
+            <div class="feature-desc">VLC, 7-Zip, WinRAR, Notepad++, Discord, Spotify, Ollama</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">💾</span>
+          <h2 class="section-title">Backup e Recuperação (13 operações)</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>🔒</span> Backup do Registro</div>
+            <div class="feature-desc">Exporta todo o registro do Windows para arquivo .reg. Permite restauração completa.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🖨️</span> Backup de Drivers</div>
+            <div class="feature-desc">Exporta todos os drivers via pnputil. Lista drivers de terceiros e drivers problemáticos.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🔄</span> Pontos de Restauração</div>
+            <div class="feature-desc">Cria e lista pontos de restauração do sistema. Restauração rápida do último ponto.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🌐</span> Backup de Rede</div>
+            <div class="feature-desc">Backup de drivers de rede, backup do arquivo hosts, reparo de registro.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monitoramento de Hardware -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🌡️</span>
+          <h2 class="section-title">Monitoramento de Hardware</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>🔥</span> Temperatura CPU</div>
+            <div class="feature-desc">Lê temperatura via WMI. <span class="code-inline">temperatura_do_cpu_wmi</span></div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>⚡</span> Otimizar TRIM SSD</div>
+            <div class="feature-desc">Executa TRIM em SSDs. <span class="code-inline">trim_ssd</span></div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🎮</span> Placa de Vídeo (GPU)</div>
+            <div class="feature-desc">Info da GPU. <span class="code-inline">placa_de_video_gpu</span></div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🏥</span> Saúde do Disco (SMART)</div>
+            <div class="feature-desc">Verifica SMART. <span class="code-inline">verificar_saude_do_disco_smart</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reparo -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🔧</span>
+          <h2 class="section-title">Reparo do Sistema (5 operações)</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>🔍</span> SFC Scan</div>
+            <div class="feature-desc"><span class="code-inline">sfc_scan_reparo_de_arquivos</span> — Repara arquivos de sistema corrompidos.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🛠️</span> DISM Restaurar Saúde</div>
+            <div class="feature-desc"><span class="code-inline">dism_restaurar_saude</span> — Restaura a imagem do Windows.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>✅</span> Verificação Completa</div>
+            <div class="feature-desc"><span class="code-inline">verificar_integridade_do_sistema_sfc_dism</span> — SFC + DISM em sequência.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Git -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🌿</span>
+          <h2 class="section-title">Git (7 operações)</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>📊</span> Status do Projeto</div>
+            <div class="feature-desc"><span class="code-inline">git_status_do_projeto</span> — Ver branch, arquivos modificados e não commitados.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>📤</span> Add + Commit + Push</div>
+            <div class="feature-desc"><span class="code-inline">git_add_commit_push</span> — Commit e push em um comando. <strong style="color:var(--danger)">⚠️ Destrutivo</strong></div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>📥</span> Pull</div>
+            <div class="feature-desc"><span class="code-inline">git_pull_atualizar_local</span> — Atualiza repositório local.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>📸</span> Snapshot Git</div>
+            <div class="feature-desc"><span class="code-inline">gerar_snapshot_git</span> <span class="new-badge">NOVO</span> — Snapshot completo do repositório.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Privacidade -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🔒</span>
+          <h2 class="section-title">Privacidade (8 operações)</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>🛑</span> Remover Telemetria</div>
+            <div class="feature-desc">Remove telemetria da Microsoft, desativa DiagTrack, bloqueia no hosts.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🚫</span> Remover Cortana</div>
+            <div class="feature-desc">Remove e desativa a Cortana completamente.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🎯</span> Desativar Rastreamento</div>
+            <div class="feature-desc">Desativa ID de publicidade e rastreamento de localização.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>📢</span> Desativar Anúncios</div>
+            <div class="feature-desc">Desativa anúncios na tela de bloqueio, sugestões no menu Iniciar e experiências tailored.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bibliotecas -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">📚</span>
+          <h2 class="section-title">Bibliotecas e Dependências (10)</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>🐍</span> pip (Python)</div>
+            <div class="feature-desc">requests, numpy+pandas, matplotlib, psutil, openpyxl, pywin32, pillow</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>📦</span> npm (Node.js)</div>
+            <div class="feature-desc">npm install no projeto, TypeScript global, nodemon global</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Segurança e Auditoria -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🔐</span>
+          <h2 class="section-title">Segurança e Auditoria</h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-title"><span>🛡️</span> Windows Defender</div>
+            <div class="feature-desc">Verifica status, atualiza definições, scan rápido e scan completo.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🔥</span> Firewall</div>
+            <div class="feature-desc">Verifica firewall, ativa em todos os perfis, lista regras ativas.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>🔍</span> Processos Suspeitos</div>
+            <div class="feature-desc">Lista processos sem assinatura digital, lista startups do sistema.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title"><span>📝</span> Logs de Auditoria</div>
+            <div class="feature-desc">7 níveis: INFO, WARNING, ERROR, SECURITY, COMMAND_EXEC, IA_OPERATION, WEBHOOK. Rotação automática em 10MB.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Correções Aplicadas -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-icon">🔧</span>
+          <h2 class="section-title">Correções Aplicadas</h2>
+        </div>
+        <div class="changelog">
+          <div class="changelog-item">
+            <span class="tag tag-new">NEW</span>
+            <strong>V11.1</strong> — 5 novas operações: consultar_fonte_oficial_gov, extrair_evidencia_de_pdf_local, simular_cenario_economico, congelar_tabela_final, gerar_snapshot_git
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-new">NEW</span>
+            <strong>V11.1</strong> — Integração com Snippets & Skills: 243 skills MCP importáveis com botão Executar
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-new">NEW</span>
+            <strong>V11.1</strong> — allowed-operations.json atualizado com todas as 243 operações
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-fix">FIX</span>
+            Removido <span class="code-inline">param()</span> de comandos interativos
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-fix">FIX</span>
+            Substituído <span class="code-inline">Get-WmiObject</span> por cmdlets modernos
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-fix">FIX</span>
+            Removido <span class="code-inline">Read-Host</span> de automação
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-improve">IMPROVE</span>
+            Webhooks agora usam variáveis de ambiente
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-improve">IMPROVE</span>
+            Backup de programas usa Registro (mais rápido)
+          </div>
+        </div>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div style="text-align: center; margin-top: 40px; padding: 30px; background: var(--panel); border-radius: 12px; border: 1px solid var(--border);">
+        <h3 style="color: var(--accent); margin-bottom: 20px;">🚀 Comece a Usar V11.1</h3>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <a href="/" class="btn">Abrir Dashboard</a>
+          <button onclick="window.open('https://github.com/jeanavila997-ux/Mestre-do-PC-V10', '_blank')" class="btn btn-secondary">Ver no GitHub</button>
+          <button onclick="window.open('../README-V11.md', '_blank')" class="btn btn-secondary">Ler Documentação</button>
+        </div>
+      </div>
+
+      <footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: #8b949e;">
+        <p><strong>Mestre do PC V11.1</strong> — Desenvolvido por JEAN</p>
+        <p style="font-size: 0.85rem; margin-top: 8px;">Versão 11.1.0 | Agosto 2026 | 243 operações MCP</p>
+      </footer>
+    </div>
+  </body>
+</html>
