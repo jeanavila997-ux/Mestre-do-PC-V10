@@ -1,6 +1,55 @@
 {
     "operations":  [
                        {
+                           "id":  "listar_atualizacoes_winget",
+                           "title":  "Listar Atualizações do Winget",
+                           "category":  "Atualizações",
+                           "destructive":  false,
+                           "command":  "winget upgrade"
+                       },
+                       {
+                           "id":  "atualizar_todos_winget",
+                           "title":  "Atualizar Todos os Apps (Winget)",
+                           "category":  "Atualizações",
+                           "destructive":  false,
+                           "command":  "winget upgrade --all --accept-source-agreements --accept-package-agreements"
+                       },
+                       {
+                           "id":  "atualizar_todos_winget_silencioso",
+                           "title":  "Atualizar Todos os Apps (Winget Silencioso)",
+                           "category":  "Atualizações",
+                           "destructive":  false,
+                           "command":  "winget upgrade --all --silent --accept-source-agreements --accept-package-agreements"
+                       },
+                       {
+                           "id":  "instalar_modulo_pswindowsupdate",
+                           "title":  "Instalar Módulo PSWindowsUpdate",
+                           "category":  "Atualizações",
+                           "destructive":  false,
+                           "command":  "Install-Module PSWindowsUpdate -Force -SkipPublisherCheck -AcceptLicense"
+                       },
+                       {
+                           "id":  "listar_atualizacoes_windows",
+                           "title":  "Listar Atualizações do Windows",
+                           "category":  "Atualizações",
+                           "destructive":  false,
+                           "command":  "Get-WindowsUpdate"
+                       },
+                       {
+                           "id":  "instalar_atualizacoes_windows",
+                           "title":  "Instalar Atualizações do Windows",
+                           "category":  "Atualizações",
+                           "destructive":  false,
+                           "command":  "Install-WindowsUpdate -AcceptAll -AutoReboot"
+                       },
+                       {
+                           "id":  "atualizar_assinaturas_defender",
+                           "title":  "Atualizar Assinaturas do Windows Defender",
+                           "category":  "Segurança",
+                           "destructive":  false,
+                           "command":  "Update-MpSignature -UpdateSource MicrosoftUpdateServer"
+                       },
+                       {
                            "id":  "limpeza_rapida_completa",
                            "title":  "Limpeza Rápida Completa",
                            "category":  "Outros",
