@@ -274,6 +274,34 @@
                            "command":  "Restart-Service -Name audiosrv -Force -ErrorAction SilentlyContinue; Start-Service -Name AudioEndpointBuilder -ErrorAction SilentlyContinue; Write-Host '✅ Serviço de áudio reiniciado!' -ForegroundColor Green"
                         },
                        {
+                           "id":  "verificar_status_servicos_audio",
+                           "title":  "Verificar Status dos Serviços de Áudio",
+                           "category":  "Sistema",
+                           "destructive":  false,
+                           "command":  "Get-Service -Name audiosrv,AudioEndpointBuilder | Select-Object Name, DisplayName, Status, StartType | Format-Table -AutoSize"
+                       },
+                       {
+                           "id":  "listar_dispositivos_de_audio",
+                           "title":  "Listar Dispositivos de Áudio",
+                           "category":  "Sistema",
+                           "destructive":  false,
+                           "command":  "Get-PnpDevice -Class MEDIA | Where-Object { $_.Status -eq 'OK' } | Select-Object FriendlyName, Status | Format-Table -AutoSize"
+                       },
+                       {
+                           "id":  "resetar_subsistema_de_audio",
+                           "title":  "Resetar Subsistema de Áudio",
+                           "category":  "Sistema",
+                           "destructive":  false,
+                           "command":  "Stop-Service -Name AudioEndpointBuilder -Force -ErrorAction SilentlyContinue; Stop-Service -Name audiosrv -Force -ErrorAction SilentlyContinue; Get-PnpDevice -Class MEDIA | Where-Object { $_.FriendlyName -match 'Audio|Som|Realtek|NVIDIA|AMD|Intel' } | Disable-PnpDevice -Confirm:$false -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3; Get-PnpDevice -Class MEDIA | Where-Object { $_.FriendlyName -match 'Audio|Som|Realtek|NVIDIA|AMD|Intel' } | Enable-PnpDevice -Confirm:$false -ErrorAction SilentlyContinue; Start-Service -Name AudioEndpointBuilder -ErrorAction SilentlyContinue; Start-Service -Name audiosrv -ErrorAction SilentlyContinue; Write-Host '✅ Subsistema de áudio resetado!' -ForegroundColor Green"
+                       },
+                       {
+                           "id":  "reparar_arquivos_sistema_audio",
+                           "title":  "Reparar Arquivos do Sistema (DISM/SFC)",
+                           "category":  "Sistema",
+                           "destructive":  false,
+                           "command":  "DISM /Online /Cleanup-Image /RestoreHealth; sfc /scannow"
+                       },
+                       {
                            "id":  "verificar_modo_de_memoria_virtual",
                            "title":  "Verificar Modo de Memória Virtual",
                            "category":  "Memória",
