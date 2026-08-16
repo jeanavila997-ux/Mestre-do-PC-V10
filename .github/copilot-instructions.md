@@ -68,8 +68,16 @@ PowerShell                    ← only whitelisted commands execute
 |---|---|---|
 | `MESTRE_BASE_URL` | `http://127.0.0.1:7777` | Launcher endpoint |
 | `MESTRE_PROJETO_PATH` | launcher directory | Project root for git/log tools |
-| `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama API |
+| `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama API (auto: `https://ollama.com/api` se `OLLAMA_API_KEY` definida) |
+| `OLLAMA_API_KEY` | *(vazio)* | API key para Ollama Cloud (ollama.com) — ativa modo cloud + auth header |
 | `OLLAMA_MODEL` | `qwen2.5-coder:1.5b` | Default model |
+| `OLLAMA_NUM_CTX` | `8192` | Context window (tokens) |
+| `OLLAMA_TEMPERATURE` | `0.7` | Creatividade (0=determinístico, 2=caótico) |
+| `OLLAMA_TOP_P` | `0.9` | Nucleus sampling |
+| `OLLAMA_TOP_K` | `40` | Top-K sampling |
+| `OLLAMA_NUM_PREDICT` | `0` (ilimitado) | Máximo de tokens na resposta |
+| `OLLAMA_SEED` | `0` (aleatório) | Seed para reprodutibilidade |
+| `OLLAMA_KEEP_ALIVE` | `5m` | Tempo que o modelo fica em memória após uso |
 | `MPC_PORT` | `7777` | Launcher port (used in tests) |
 | `MPC_HOST` | `127.0.0.1` | Launcher bind address |
 

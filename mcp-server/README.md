@@ -25,7 +25,7 @@ Normalmente o Claude Desktop ou Codex inicia `index.js`; não é necessário man
 - `buscar_na_web` — busca no DuckDuckGo e retorna título, URL e trecho.
 - `analisar_logs_sistema` — coleta erros do Event Viewer e resume com IA.
 - `verificar_prompt` — detecta prompt injection/jailbreak.
-- `verificar_modelo_ollama` — checa se o modelo padrão está instalado.
+- `verificar_modelo_ollama` — checa se o modelo padrão está disponível (local ou cloud).
 
 ## Variáveis de ambiente
 
@@ -33,9 +33,16 @@ Normalmente o Claude Desktop ou Codex inicia `index.js`; não é necessário man
 |---|---|---|
 | `MESTRE_BASE_URL` | `http://127.0.0.1:7777` | Launcher administrativo |
 | `MESTRE_PROJETO_PATH` | Diretório do launcher | Diretório usado pelas ferramentas Git/logs |
-| `OLLAMA_URL` | `http://127.0.0.1:11434` | API do Ollama |
+| `OLLAMA_URL` | `http://127.0.0.1:11434` | API do Ollama (auto: `https://ollama.com/api` se `OLLAMA_API_KEY` definida) |
+| `OLLAMA_API_KEY` | *(vazio)* | API key para Ollama Cloud — ativa modo cloud + auth |
 | `OLLAMA_MODEL` | `qwen2.5-coder:3b-instruct` | Modelo padrão |
 | `OLLAMA_NUM_CTX` | `8192` | Contexto máximo (tokens) enviado ao Ollama |
+| `OLLAMA_TEMPERATURE` | `0.7` | Creatividade (0=determinístico, 2=caótico) |
+| `OLLAMA_TOP_P` | `0.9` | Nucleus sampling |
+| `OLLAMA_TOP_K` | `40` | Top-K sampling |
+| `OLLAMA_NUM_PREDICT` | `0` (ilimitado) | Máximo de tokens na resposta |
+| `OLLAMA_SEED` | `0` (aleatório) | Seed para reprodutibilidade |
+| `OLLAMA_KEEP_ALIVE` | `5m` | Tempo que o modelo fica em memória após uso |
 
 ## Claude Desktop
 
@@ -47,7 +54,8 @@ Normalmente o Claude Desktop ou Codex inicia `index.js`; não é necessário man
       "args": ["C:\\Users\\Jeanc\\Mestre-do-PC-V10-clean\\mcp-server\\index.js"],
       "env": {
         "MESTRE_PROJETO_PATH": "C:\\Users\\Jeanc\\Mestre-do-PC-V10-clean",
-        "OLLAMA_NUM_CTX": "8192"
+        "OLLAMA_NUM_CTX": "8192",
+        "OLLAMA_API_KEY": "sua_api_key_aqui"
       }
     }
   }

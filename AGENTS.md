@@ -7,6 +7,7 @@ Mestre do PC V10 é um aplicativo Windows de diagnóstico e manutenção:
 - `v10/index.html`: interface ativa, servida pelo launcher.
 - `MestreDoPC-Launcher.ps1`: backend elevado em `127.0.0.1:7777`.
 - `mcp-server/index.js`: servidor MCP por `stdio`.
+- `browser-extension/`: extensão Manifest V3 para integrar o navegador com o launcher.
 - Ollama: IA local/cloud em `127.0.0.1:11434`.
 - `legado/`: versões antigas; não altere para corrigir a V10.
 
@@ -30,11 +31,20 @@ com `X-Mestre-Client: mcp`; o launcher executa o comando em um job elevado e o
 MCP consulta `/run-status`.
 
 A interface abre em `http://127.0.0.1:7777/` e usa
-`X-Mestre-Client: v10-web`. Não volte a abrir a V10 por `file://`, não restaure
+`X-Mestre-Client: v10-web`. A extensão do navegador usa
+`X-Mestre-Client: browser-extension` e um token configurado via
+`MESTRE_EXTENSION_TOKEN`. Não volte a abrir a V10 por `file://`, não restaure
 CORS `*` e não remova a validação de origem dos endpoints POST.
 
 O modelo Ollama padrão é configurável por `OLLAMA_MODEL`, com
-`qwen2.5-coder:1.5b` como fallback local.
+`qwen2.5-coder:1.5b` como fallback local. Perfis de modelos locais para
+automação de desktop estão em `mcp-server/model-profiles.json` (fast,
+balanced, agent, coding, reasoning) e são selecionados pela env var
+`OLLAMA_MODEL_PROFILE`. A API key do Ollama Cloud (`OLLAMA_API_KEY`)
+ativa modo cloud com auth header e muda a base URL para
+`https://ollama.com/api` automaticamente. Opções de geração
+(temperature, top_p, top_k, seed, num_predict, keep_alive) são
+configuráveis por env vars `OLLAMA_*` e têm precedência sobre o perfil.
 
 ## Regras para mudanças
 
