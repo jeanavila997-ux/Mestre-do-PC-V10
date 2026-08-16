@@ -240,8 +240,8 @@ function runPowerShell(cmd, meta = {}) {
 }
 
 // Proxy Ollama com streaming (NDJSON passado direto para o cliente).
-async function proxyOllamaStream(path, req, res, allowOrigin = BASE_URL) {
-  const body = await readBody(req);
+async function proxyOllamaStream(path, req, res, allowOrigin = BASE_URL, maxBodyBytes = 2 * 1024 * 1024) {
+  const body = await readBody(req, maxBodyBytes);
   let upstream;
   try {
     upstream = await fetch(OLLAMA_URL + path, {
@@ -400,7 +400,7 @@ const server = http.createServer(async (req, res) => {
     if (path === "/ollama/tags") return proxyOllamaJson("/api/tags", res, allowedOrigin);
     if (path === "/ollama/chat" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
-      return proxyOllamaStream("/api/chat", req, res, allowedOrigin);
+      return proxyOllamaStream("/api/chat", req, res, allowedOrigin, 16 * 1024 * 1024);
     }
     if (path === "/ollama/pull" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);

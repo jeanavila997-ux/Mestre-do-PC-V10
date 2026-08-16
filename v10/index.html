@@ -663,7 +663,7 @@
       /* ===== Modal IA (padrão V7) ===== */
       .ia-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 10000; display: none; justify-content: center; align-items: center; }
       .ia-overlay.open { display: flex; }
-      .ia-modal { width: 700px; max-width: 95vw; height: 80vh; max-height: 700px; background: var(--panel); border: 1px solid rgba(0,212,255,0.3); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
+      .ia-modal { width: 760px; max-width: 95vw; height: 85vh; max-height: 760px; background: var(--panel); border: 1px solid rgba(0,212,255,0.3); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
       .ia-header { padding: 14px 20px; background: linear-gradient(135deg, rgba(162,0,255,0.2), rgba(0,212,255,0.15)); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
       .ia-header h3 { color: var(--accent); font-size: 1rem; }
       .ia-header .ia-status { font-size: 0.75rem; color: #8b949e; }
@@ -696,7 +696,39 @@
       .ia-input-area { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: rgba(0,0,0,0.3); }
       .ia-input-area input { flex: 1; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 50px; color: var(--text); font-size: 0.9rem; outline: none; }
       .ia-input-area input:focus { border-color: var(--accent); }
-      .ia-input-area button { padding: 10px 20px; background: linear-gradient(135deg, #a200ff, #00d4ff); border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+      .ia-input-area button { padding: 10px 18px; background: linear-gradient(135deg, #a200ff, #00d4ff); border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+      .ia-input-area button.secondary { background: var(--card); border: 1px solid var(--border); color: var(--text); }
+      .ia-input-area button.icon-btn { padding: 10px 12px; border-radius: 50%; font-size: 1rem; }
+      .ia-tabs { display:flex; gap:4px; padding:8px 16px 0; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.2); }
+      .ia-tab { padding:8px 16px; background:transparent; border:none; border-bottom:2px solid transparent; color:#8b949e; font-size:0.85rem; cursor:pointer; transition:0.2s; }
+      .ia-tab:hover { color:var(--text); }
+      .ia-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+      .ia-tab-body { display:none; flex:1; flex-direction:column; overflow:hidden; }
+      .ia-tab-body.active { display:flex; }
+      .ia-memory-chips { display:flex; gap:8px; flex-wrap:wrap; padding:6px 16px; }
+      .ia-memory-chip { padding:4px 10px; background:rgba(162,0,255,0.15); border:1px solid rgba(162,0,255,0.4); border-radius:16px; font-size:0.75rem; color:#c9a0ff; display:inline-flex; align-items:center; gap:5px; }
+      .ia-memory-chip button { background:none; border:none; color:#c9a0ff; cursor:pointer; font-size:0.75rem; padding:0; }
+      .ia-memories-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); }
+      .ia-memories-new { padding:8px 14px; background:linear-gradient(135deg, #a200ff, #00d4ff); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer; font-size:0.85rem; }
+      .ia-memories-count { font-size:0.8rem; color:#8b949e; }
+      .ia-memories-list { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+      .ia-memory-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+      .ia-memory-card.active { border-color:rgba(0,255,136,0.5); background:rgba(0,255,136,0.08); }
+      .ia-memory-card h4 { margin:0; font-size:0.92rem; color:var(--text); }
+      .ia-memory-card p { margin:0; font-size:0.8rem; color:#8b949e; line-height:1.4; max-height:3.6em; overflow:hidden; }
+      .ia-memory-card-actions { display:flex; gap:8px; flex-wrap:wrap; }
+      .ia-memory-card-actions button { padding:5px 10px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.75rem; cursor:pointer; }
+      .ia-memory-card-actions button.use { background:rgba(0,255,136,0.15); border-color:rgba(0,255,136,0.4); color:#00ff88; }
+      .ia-memory-card-actions button.use.active { background:rgba(0,255,136,0.35); }
+      .ia-memory-editor { display:none; padding:14px 16px; border-top:1px solid var(--border); background:rgba(0,0,0,0.2); flex-direction:column; gap:10px; }
+      .ia-memory-editor.open { display:flex; }
+      .ia-memory-editor input, .ia-memory-editor textarea { background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:10px 12px; font-size:0.85rem; outline:none; }
+      .ia-memory-editor textarea { min-height:120px; resize:vertical; font-family:inherit; }
+      .ia-memory-editor-actions { display:flex; gap:10px; justify-content:flex-end; }
+      .ia-memory-editor-actions button { padding:8px 16px; border-radius:8px; border:none; background:linear-gradient(135deg, #a200ff, #00d4ff); color:white; font-weight:600; cursor:pointer; font-size:0.85rem; }
+      .ia-memory-editor-actions button.secondary { background:var(--card); border:1px solid var(--border); color:var(--text); }
+      .ia-image-preview { max-width:120px; max-height:90px; border-radius:6px; border:1px solid var(--border); object-fit:cover; }
+      .ia-empty-state { text-align:center; color:#8b949e; font-size:0.85rem; padding:40px 20px; }
       /* ===== Modal parâmetro (padrão V7) ===== */
       .param-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 9000; justify-content: center; align-items: center; }
       .param-modal { background: var(--panel); border: 1px solid rgba(0,212,255,0.3); border-radius: 14px; padding: 28px 32px; width: 420px; max-width: 95vw; }
@@ -818,26 +850,54 @@
           </div>
           <button class="ia-close" onclick="closeIA()">✕</button>
         </div>
-        <div class="ia-toolbar">
-          <button onclick="attachContext('dashboard')" title="Enviar métricas atuais de CPU/RAM/disco">📊 Painel</button>
-          <button onclick="attachContext('models')" title="Listar modelos Ollama instalados">🤖 Modelos</button>
-          <button onclick="attachContext('memory')" title="Enviar uso de RAM e processos pesados">🧠 Memória</button>
-          <button onclick="attachContext('files')" title="Selecionar arquivo local para análise">📁 Arquivo</button>
-          <button onclick="attachContext('terminal')" title="Enviar último output do terminal">🖥️ Terminal</button>
-          <button onclick="attachContext('app')" title="Enviar informações do app Mestre do PC">🛡️ App</button>
-          <button onclick="clearAttachments()" title="Limpar contextos anexados">🧹 Limpar</button>
+        <div class="ia-tabs">
+          <button class="ia-tab active" id="iaTabChat" onclick="switchIATab('chat')">💬 Chat</button>
+          <button class="ia-tab" id="iaTabMemories" onclick="switchIATab('memories')">🧠 Memórias</button>
         </div>
-        <div class="ia-attach-panel" id="iaAttachPanel">
-          <h4 id="iaAttachTitle">Anexos ao contexto</h4>
-          <div class="ia-attach-list" id="iaAttachList"></div>
+        <div class="ia-tab-body active" id="iaBodyChat">
+          <div class="ia-toolbar">
+            <button onclick="attachContext('dashboard')" title="Enviar métricas atuais de CPU/RAM/disco">📊 Painel</button>
+            <button onclick="attachContext('models')" title="Listar modelos Ollama instalados">🤖 Modelos</button>
+            <button onclick="attachContext('memory')" title="Enviar uso de RAM e processos pesados">🧠 Memória</button>
+            <button onclick="attachContext('files')" title="Selecionar arquivo local para análise">📁 Arquivo</button>
+            <button onclick="attachContext('terminal')" title="Enviar último output do terminal">🖥️ Terminal</button>
+            <button onclick="attachContext('app')" title="Enviar informações do app Mestre do PC">🛡️ App</button>
+            <button onclick="attachImageFile()" title="Anexar imagem para análise visual">🖼️ Imagem</button>
+            <button onclick="downloadChatContext()" title="Baixar todo o contexto do chat em JSON">💾 Salvar</button>
+            <button onclick="clearAttachments()" title="Limpar contextos anexados">🧹 Limpar</button>
+          </div>
+          <div class="ia-attach-panel" id="iaAttachPanel">
+            <h4 id="iaAttachTitle">Anexos ao contexto</h4>
+            <div class="ia-attach-list" id="iaAttachList"></div>
+          </div>
+          <div class="ia-memory-chips" id="iaActiveMemoryChips"></div>
+          <input type="file" id="iaFileInput" style="display:none" onchange="onIAFileSelected(this)" accept=".txt,.md,.json,.csv,.log,.ps1,.bat,.cmd,.xml,.yaml,.yml,.ini,.conf,.env,.html,.css,.js,.ts,.py" />
+          <input type="file" id="iaImageInput" style="display:none" onchange="onIAImageSelected(this)" accept="image/*" />
+          <div class="ia-messages" id="iaMessages">
+            <div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>
+          </div>
+          <div class="ia-input-area">
+            <input type="text" id="iaInput" placeholder="Digite sua mensagem..." autocomplete="off" />
+            <button id="iaAttachFileBtn" onclick="attachContext('files')" title="Anexar arquivo de texto">📎</button>
+            <button id="iaAttachImageBtn" onclick="attachImageFile()" title="Anexar imagem">🖼️</button>
+            <button id="iaSendBtn" onclick="sendIA()">Enviar ➤</button>
+          </div>
         </div>
-        <input type="file" id="iaFileInput" style="display:none" onchange="onIAFileSelected(this)" />
-        <div class="ia-messages" id="iaMessages">
-          <div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>
-        </div>
-        <div class="ia-input-area">
-          <input type="text" id="iaInput" placeholder="Digite sua mensagem..." autocomplete="off" />
-          <button id="iaSendBtn" onclick="sendIA()">Enviar ➤</button>
+        <div class="ia-tab-body" id="iaBodyMemories">
+          <div class="ia-memories-header">
+            <button class="ia-memories-new" onclick="openMemoryEditor()">➕ Nova memória</button>
+            <span class="ia-memories-count" id="iaMemoriesCount">0 memórias</span>
+          </div>
+          <div class="ia-memories-list" id="iaMemoriesList"></div>
+          <div class="ia-memory-editor" id="iaMemoryEditor">
+            <input type="hidden" id="iaMemoryId" />
+            <input type="text" id="iaMemoryTitle" placeholder="Título da memória..." />
+            <textarea id="iaMemoryContent" placeholder="Conteúdo que o modelo deve lembrar..."></textarea>
+            <div class="ia-memory-editor-actions">
+              <button onclick="saveMemory()">💾 Salvar</button>
+              <button class="secondary" onclick="closeMemoryEditor()">Cancelar</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1906,6 +1966,9 @@ COMANDOS QUE VOCÊ CONHECE:
 - Privacidade: AllowTelemetry, AdvertisingInfo, Cortana`;
       let iaConversation = [];
       let iaAttachments = [];
+      let activeMemoryIds = new Set();
+      let memoriesListCache = [];
+      let memoriesDb = null;
       let lastTerminalOutput = "";
       let lastDashboardData = null;
       let lastModelsList = [];
@@ -1923,7 +1986,10 @@ COMANDOS QUE VOCÊ CONHECE:
           if (a.type === "files") icon = "📁";
           if (a.type === "terminal") icon = "🖥️";
           if (a.type === "app") icon = "🛡️";
-          return `<span class="ia-attach-chip active" title="${a.title}: ${a.preview}" onclick="removeAttachment(${i})">${icon} ${a.title} ✕</span>`;
+          if (a.type === "image") icon = "🖼️";
+          let extra = "";
+          if (a.type === "image") extra = ` <img src="${a.dataUrl}" class="ia-image-preview" alt="" />`;
+          return `<span class="ia-attach-chip active" title="${a.title}: ${a.preview}" onclick="removeAttachment(${i})">${icon} ${a.title}${a.used ? ' ✅' : ''} ✕${extra}</span>`;
         }).join("");
       }
       function addAttachment(type, title, preview, content) {
@@ -1992,16 +2058,75 @@ COMANDOS QUE VOCÊ CONHECE:
           const preview = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
           addAttachment("files", file.name, preview, `Arquivo local "${file.name}":\n\n${text.slice(0, 12000)}${text.length > 12000 ? "\n\n[... arquivo truncado por limite de contexto ...]" : ""}`);
         };
+        reader.onerror = () => showToast("Falha ao ler arquivo", "#f85149");
         reader.readAsText(file);
         input.value = "";
       }
-      function buildContextPrompt(userMessage) {
+      function attachImageFile() { document.getElementById("iaImageInput").click(); }
+      async function onIAImageSelected(input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) { showToast("Arquivo não é uma imagem", "#f85149"); input.value = ""; return; }
+        try {
+          const dataUrl = await resizeImageToDataUrl(file, 1024, 0.8);
+          const base64 = dataUrl.split(",")[1];
+          const preview = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          iaAttachments.push({ type: "image", name: file.name, mime: file.type, dataUrl, base64, preview, title: file.name, used: false });
+          renderAttachments();
+          showToast("🖼️ Imagem anexada", "#00d4ff");
+        } catch (err) { showToast("Erro ao processar imagem: " + err.message, "#f85149"); }
+        input.value = "";
+      }
+      function resizeImageToDataUrl(file, maxSide = 1024, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          img.onload = () => {
+            URL.revokeObjectURL(url);
+            let { width, height } = img;
+            if (width > maxSide || height > maxSide) {
+              const ratio = Math.min(maxSide / width, maxSide / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
+            const outQuality = file.type === "image/png" ? undefined : quality;
+            resolve(canvas.toDataURL(outType, outQuality));
+          };
+          img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Não foi possível carregar a imagem")); };
+          img.src = url;
+        });
+      }
+      function buildContextPrompt(userMessage, imageCount = 0) {
         let extra = "";
         for (const a of iaAttachments) {
+          if (a.type === "image") continue;
           extra += `\n\n[${a.title}]\n${a.content}`;
         }
-        if (extra) return `${userMessage}\n\n---\nContexto local anexado:${extra}`;
-        return userMessage;
+        const memoryExtras = [];
+        if (activeMemoryIds.size > 0) {
+          for (const mem of memoriesListCache) {
+            if (activeMemoryIds.has(mem.id)) {
+              memoryExtras.push(`[Memória: ${mem.title}]\n${mem.content}`);
+            }
+          }
+        }
+        let result = userMessage;
+        if (memoryExtras.length) {
+          result += "\n\n---\nMemórias ativas para esta mensagem:\n\n" + memoryExtras.join("\n\n");
+        }
+        if (extra) {
+          result += "\n\n---\nContexto local anexado:" + extra;
+        }
+        if (imageCount > 0) {
+          result += `\n\n[${imageCount} imagem(ns) anexada(s) — analise-as se o modelo suportar visão]`;
+        }
+        return result;
       }
       // NOVO V10: pré-carrega o modelo no Ollama ao abrir o chat (primeiro token mais rápido)
       async function preloadModel() {
@@ -2011,8 +2136,21 @@ COMANDOS QUE VOCÊ CONHECE:
           await res.text();
         } catch {}
       }
-      function openAI() { document.getElementById("iaOverlay").classList.add("open"); document.getElementById("iaInput").focus(); checkOllama().then(preloadModel); }
+      function openAI() {
+        document.getElementById("iaOverlay").classList.add("open");
+        document.getElementById("iaInput").focus();
+        checkOllama().then(preloadModel);
+        initMemoriesDb().then(loadMemories).catch(() => loadMemories());
+      }
       function closeIA() { document.getElementById("iaOverlay").classList.remove("open"); }
+      function switchIATab(tab) {
+        document.getElementById("iaTabChat").classList.toggle("active", tab === "chat");
+        document.getElementById("iaTabMemories").classList.toggle("active", tab === "memories");
+        document.getElementById("iaBodyChat").classList.toggle("active", tab === "chat");
+        document.getElementById("iaBodyMemories").classList.toggle("active", tab === "memories");
+        if (tab === "memories") loadMemories();
+        if (tab === "chat") setTimeout(() => document.getElementById("iaInput").focus(), 50);
+      }
       async function checkOllama() {
         const status = document.getElementById("iaStatus");
         try {
@@ -2031,14 +2169,17 @@ COMANDOS QUE VOCÊ CONHECE:
       }
       document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("iaInput").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendIA(); } });
+        initMemoriesDb().then(loadMemories).catch(() => loadMemories());
         renderFavorites();
       });
       async function sendIA() {
         const input = document.getElementById("iaInput");
         const btn = document.getElementById("iaSendBtn");
         const msg = input.value.trim();
-        if (!msg) return;
-        addIAMessage(msg, "user");
+        if (!msg && !iaAttachments.some(a => a.type === "image")) return;
+        const imageAttachments = iaAttachments.filter(a => a.type === "image" && !a.used);
+        const displayMsg = msg || (imageAttachments.length ? "[imagem anexada]" : "");
+        addIAMessage(displayMsg, "user");
         input.value = "";
         btn.disabled = true;
         const typingEl = document.createElement("div");
@@ -2046,10 +2187,14 @@ COMANDOS QUE VOCÊ CONHECE:
         typingEl.innerHTML = "<span></span><span></span><span></span>";
         document.getElementById("iaMessages").appendChild(typingEl);
         scrollIAToBottom();
-        iaConversation.push({ role: "user", content: msg });
-        const fullMessage = buildContextPrompt(msg);
+        const fullMessage = buildContextPrompt(msg, imageAttachments.length);
+        const userPayload = { role: "user", content: fullMessage };
+        if (imageAttachments.length > 0) {
+          userPayload.images = imageAttachments.map(a => a.base64);
+        }
+        iaConversation.push({ role: "user", content: displayMsg, images: imageAttachments.map(a => ({ name: a.name, mime: a.mime })) });
         try {
-          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map((m, i, arr) => { const isLastUser = m.role === "user" && i === arr.length - 1; return { role: m.role, content: isLastUser ? buildContextPrompt(m.content) : m.content }; })], stream: true, keep_alive: "10m" }) });
+          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map((m, i, arr) => { const isLastUser = m.role === "user" && i === arr.length - 1; const out = { role: m.role }; if (isLastUser) { out.content = fullMessage; if (userPayload.images) out.images = userPayload.images; } else { out.content = m.content; } return out; })], stream: true, keep_alive: "10m" }) });
           if (!res.ok || !res.body) throw new Error("Falha no proxy Ollama: HTTP " + res.status);
           typingEl.remove();
           const aiMsgEl = addIAMessage("", "ai");
@@ -2072,6 +2217,8 @@ COMANDOS QUE VOCÊ CONHECE:
             try { const json = JSON.parse(pending); if (json.message?.content) { fullResponse += json.message.content; renderIAContent(aiMsgEl, fullResponse); } } catch {}
           }
           iaConversation.push({ role: "assistant", content: fullResponse });
+          for (const a of iaAttachments) { if (a.type === "image") a.used = true; }
+          if (activeMemoryIds.size > 0) { activeMemoryIds.clear(); renderActiveMemoryChips(); }
         } catch (err) { typingEl.remove(); addIAMessage("❌ Erro ao conectar ao Ollama: " + err.message, "ai"); }
         btn.disabled = false;
         input.focus();
@@ -2116,6 +2263,174 @@ COMANDOS QUE VOCÊ CONHECE:
         content.style.color = "#e6edf3";
         panel.style.display = "block";
         panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      async function downloadChatContext() {
+        const activeMemories = memoriesListCache.filter(m => activeMemoryIds.has(m.id));
+        const payload = {
+          app: "Mestre do PC V10",
+          date: new Date().toISOString(),
+          model: selectedOllamaModel,
+          messages: iaConversation,
+          attachments: iaAttachments.map(a => ({ type: a.type, title: a.title, preview: a.preview, content: a.type === "image" ? a.dataUrl : a.content, used: a.used })),
+          activeMemories: activeMemories.map(m => ({ id: m.id, title: m.title, content: m.content })),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const pad = (n) => String(n).padStart(2, "0");
+        const d = new Date();
+        a.download = `mestre-contexto-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast("💾 Contexto baixado", "#00ff88");
+      }
+      // ===== IndexedDB Memories =====
+      async function initMemoriesDb() {
+        if (memoriesDb) return memoriesDb;
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open("MestreDoPC_V10", 1);
+          req.onerror = () => reject(req.error);
+          req.onsuccess = () => { memoriesDb = req.result; resolve(memoriesDb); };
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("memories")) {
+              db.createObjectStore("memories", { keyPath: "id", autoIncrement: true });
+            }
+          };
+        });
+      }
+      async function getAllMemories() {
+        try {
+          const db = await initMemoriesDb();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction("memories", "readonly");
+            const store = tx.objectStore("memories");
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => reject(req.error);
+          });
+        } catch {
+          try {
+            const raw = localStorage.getItem("mestre_v10_memories");
+            return raw ? JSON.parse(raw) : [];
+          } catch { return []; }
+        }
+      }
+      async function saveMemoryToDb(memory) {
+        try {
+          const db = await initMemoriesDb();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction("memories", "readwrite");
+            const store = tx.objectStore("memories");
+            const req = store.put(memory);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+          });
+        } catch {
+          const list = await getAllMemories();
+          if (memory.id) {
+            const idx = list.findIndex(m => m.id === memory.id);
+            if (idx >= 0) list[idx] = memory; else list.push(memory);
+          } else {
+            memory.id = Date.now();
+            list.push(memory);
+          }
+          localStorage.setItem("mestre_v10_memories", JSON.stringify(list));
+          return memory.id;
+        }
+      }
+      async function deleteMemoryFromDb(id) {
+        try {
+          const db = await initMemoriesDb();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction("memories", "readwrite");
+            const store = tx.objectStore("memories");
+            const req = store.delete(id);
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+          });
+        } catch {
+          const list = (await getAllMemories()).filter(m => m.id !== id);
+          localStorage.setItem("mestre_v10_memories", JSON.stringify(list));
+        }
+      }
+      async function loadMemories() {
+        memoriesListCache = await getAllMemories();
+        memoriesListCache.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        document.getElementById("iaMemoriesCount").textContent = `${memoriesListCache.length} memória${memoriesListCache.length === 1 ? "" : "s"}`;
+        renderMemoriesList();
+        renderActiveMemoryChips();
+      }
+      function renderMemoriesList() {
+        const container = document.getElementById("iaMemoriesList");
+        if (!memoriesListCache.length) {
+          container.innerHTML = `<div class="ia-empty-state">Nenhuma memória salva ainda.<br/>Clique em <strong>Nova memória</strong> para criar uma.</div>`;
+          return;
+        }
+        container.innerHTML = memoriesListCache.map(m => {
+          const isActive = activeMemoryIds.has(m.id);
+          return `<div class="ia-memory-card ${isActive ? 'active' : ''}" data-id="${m.id}">
+            <h4>${escapeHtml(m.title)}</h4>
+            <p>${escapeHtml(m.content)}</p>
+            <div class="ia-memory-card-actions">
+              <button class="use ${isActive ? 'active' : ''}" onclick="toggleActiveMemory(${m.id})">${isActive ? '✅ Usando' : '⚡ Usar agora'}</button>
+              <button onclick="editMemory(${m.id})">✏️ Editar</button>
+              <button onclick="deleteMemory(${m.id})">🗑️ Excluir</button>
+            </div>
+          </div>`;
+        }).join("");
+      }
+      function renderActiveMemoryChips() {
+        const container = document.getElementById("iaActiveMemoryChips");
+        const active = memoriesListCache.filter(m => activeMemoryIds.has(m.id));
+        if (!active.length) { container.innerHTML = ""; return; }
+        container.innerHTML = active.map(m => `<span class="ia-memory-chip">🧠 ${escapeHtml(m.title)} <button onclick="toggleActiveMemory(${m.id})">✕</button></span>`).join("");
+      }
+      function escapeHtml(str) {
+        if (str == null) return "";
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function openMemoryEditor(id = null) {
+        const mem = id ? memoriesListCache.find(m => m.id === id) : null;
+        document.getElementById("iaMemoryId").value = mem ? mem.id : "";
+        document.getElementById("iaMemoryTitle").value = mem ? mem.title : "";
+        document.getElementById("iaMemoryContent").value = mem ? mem.content : "";
+        document.getElementById("iaMemoryEditor").classList.add("open");
+        setTimeout(() => document.getElementById("iaMemoryTitle").focus(), 50);
+      }
+      function closeMemoryEditor() { document.getElementById("iaMemoryEditor").classList.remove("open"); }
+      async function saveMemory() {
+        const idRaw = document.getElementById("iaMemoryId").value;
+        const title = document.getElementById("iaMemoryTitle").value.trim();
+        const content = document.getElementById("iaMemoryContent").value.trim();
+        if (!title || !content) { showToast("Preencha título e conteúdo", "#f0a800"); return; }
+        const now = Date.now();
+        const memory = { title, content, updatedAt: now };
+        if (idRaw) memory.id = Number(idRaw);
+        else memory.createdAt = now;
+        await saveMemoryToDb(memory);
+        closeMemoryEditor();
+        await loadMemories();
+        showToast("💾 Memória salva", "#00ff88");
+      }
+      function editMemory(id) { openMemoryEditor(id); }
+      async function deleteMemory(id) {
+        if (!confirm("Tem certeza que deseja excluir esta memória?")) return;
+        activeMemoryIds.delete(id);
+        await deleteMemoryFromDb(id);
+        await loadMemories();
+        showToast("🗑️ Memória excluída", "#00d4ff");
+      }
+      function toggleActiveMemory(id) {
+        if (activeMemoryIds.has(id)) activeMemoryIds.delete(id); else activeMemoryIds.add(id);
+        renderMemoriesList();
+        renderActiveMemoryChips();
+        if (document.getElementById("iaBodyChat").classList.contains("active")) {
+          showToast(activeMemoryIds.has(id) ? "🧠 Memória ativada para a próxima mensagem" : "Memória desativada", "#00d4ff");
+        }
       }
       // ===== Busca em tempo real (padrão V7) =====
       document.getElementById("searchInput").addEventListener("input", function () {
