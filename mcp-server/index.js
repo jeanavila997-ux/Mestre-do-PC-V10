@@ -9,6 +9,7 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { sanitizeToolArgument, checkPromptInjection } from "./security.js";
+import { auditLog, AuditLevel, queryAuditLog } from "./audit-logger.js";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -103,6 +104,14 @@ async function searchWeb(query, maxResults = 5) {
 async function executeLauncherCommand(commandOrPayload, options = {}) {
   const payload = typeof commandOrPayload === "string" ? { cmd: commandOrPayload } : commandOrPayload;
 
+  // Auditoria: log do comando enviado
+  const commandId = typeof payload === "object" && payload.id ? payload.id : "unknown";
+  await auditLog(AuditLevel.COMMAND_EXEC, "execute_launcher_command", {
+    commandId,
+    payload: typeof payload === "string" ? { cmd: "[REDACTED]" } : { id: payload.id },
+    options: { timeoutMs: options.timeoutMs },
+  });
+
   const submitRes = await fetch(MESTRE_RUN_URL, {
     method: "POST",
     headers: {
@@ -120,6 +129,10 @@ async function executeLauncherCommand(commandOrPayload, options = {}) {
     submitData.accepted !== true ||
     submitData.jobId == null
   ) {
+    await auditLog(AuditLevel.ERROR, "execute_launcher_command_failed", {
+      commandId,
+      error: submitData.output,
+    });
     throw new Error(submitData.output || "Falha ao enviar comando para o Launcher.");
   }
 
@@ -136,6 +149,11 @@ async function executeLauncherCommand(commandOrPayload, options = {}) {
     const statusData = await statusRes.json();
 
     if (statusRes.ok === false) {
+      await auditLog(AuditLevel.ERROR, "execute_launcher_command_status_failed", {
+        commandId,
+        jobId: submitData.jobId,
+        error: statusData.output,
+      });
       throw new Error(statusData.output || "Falha ao consultar status do Launcher.");
     }
 
@@ -144,9 +162,21 @@ async function executeLauncherCommand(commandOrPayload, options = {}) {
       continue;
     }
 
+    // Auditoria: comando concluído
+    await auditLog(AuditLevel.COMMAND_EXEC, "execute_launcher_command_completed", {
+      commandId,
+      jobId: submitData.jobId,
+      success: statusData.success,
+      exitCode: statusData.exitCode,
+    });
+
     return statusData;
   }
 
+  await auditLog(AuditLevel.ERROR, "execute_launcher_command_timeout", {
+    commandId,
+    jobId: submitData.jobId,
+  });
   throw new Error("Timeout aguardando conclusão do comando no Launcher.");
 }
 
@@ -481,6 +511,288 @@ async function ollamaChat({ messages, system, timeoutMs = 60000, think }) {
   };
 }
 
+/**
+ * RAG (Retrieval-Augmented Generation) - Busca contexto em documentos locais.
+ * @param {string} query - Consulta do usuário
+ * @param {string[]} contextDocs - Array de documentos/contexto
+ * @returns {Promise<string>} Resposta enriquecida com contexto
+ */
+async function ragQuery(query, contextDocs = []) {
+  if (contextDocs.length === 0) {
+    // Sem contexto, usa apenas o conhecimento do modelo
+    return await ollamaChat({
+      messages: [{ role: "user", content: query }],
+      system: OLLAMA_SYSTEM_PROMPT,
+      timeoutMs: 90000,
+    });
+  }
+
+  // Constrói prompt com contexto
+  const context = contextDocs
+    .map((doc, i) => `[Contexto ${i + 1}]\n${doc}`)
+    .join("\n\n");
+
+  const enhancedPrompt = `Com base nestes documentos de contexto, responda à pergunta.
+Se o contexto não for suficiente, use seu conhecimento geral mas mencione isso.
+
+${context}
+
+---
+PERGUNTA: ${query}`;
+
+  return await ollamaChat({
+    messages: [{ role: "user", content: enhancedPrompt }],
+    system: OLLAMA_SYSTEM_PROMPT,
+    timeoutMs: 120000,
+  });
+}
+
+/**
+ * Chain-of-Thought - Divide problema complexo em passos
+ * @param {string} problem - Problema a ser resolvido
+ * @returns {Promise<{steps: string[], finalAnswer: string}>}
+ */
+async function chainOfThought(problem) {
+  const step1 = await ollamaChat({
+    messages: [{ role: "user", content: `Analise este problema e divida em passos lógicos: ${problem}` }],
+    system: "Você é um especialista em resolução de problemas. Sempre responda em português do Brasil.",
+    timeoutMs: 60000,
+  });
+
+  const step2 = await ollamaChat({
+    messages: [
+      { role: "user", content: `Com base nesta análise:\n${step1.content}\n\nExecute cada passo e forneça a solução final:` }
+    ],
+    system: OLLAMA_SYSTEM_PROMPT,
+    timeoutMs: 90000,
+  });
+
+  return {
+    steps: step1.content.split("\n").filter(s => s.trim()),
+    finalAnswer: step2.content,
+    thinking: step2.thinking || "",
+  };
+}
+
+/**
+ * Multi-model comparison - Compara respostas de diferentes modelos
+ * @param {string} query - Pergunta
+ * @param {string[]} models - Lista de modelos para comparar
+ * @returns {Promise<object>} Respostas comparativas
+ */
+async function compareModels(query, models = [OLLAMA_MODEL, "llama3.1:8b", "mistral:7b"]) {
+  const results = {};
+
+  for (const model of models) {
+    try {
+      const res = await fetch(OLLAMA_URL + "/api/chat", {
+        method: "POST",
+        headers: ollamaHeaders(),
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: "user", content: query }],
+          stream: false,
+        }),
+        signal: AbortSignal.timeout(90000),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        results[model] = {
+          content: data.message?.content || "Sem resposta",
+          success: true,
+        };
+      } else {
+        results[model] = { success: false, error: parseOllamaError(res, "") };
+      }
+    } catch (e) {
+      results[model] = { success: false, error: e.message };
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Análise de código PowerShell com sugestões de melhoria
+ * @param {string} code - Código PowerShell
+ * @returns {Promise<{analysis: string, improvements: string[], securityNotes: string[]}>}
+ */
+async function analyzePowerShellCode(code) {
+  const result = await ollamaChat({
+    messages: [{
+      role: "user",
+      content: `Analise este código PowerShell e forneça:
+1. Explicação do que o código faz
+2. Sugestões de melhoria (performance, legibilidade)
+3. Notas de segurança (riscos potenciais)
+
+Código:
+${code}`,
+    }],
+    system: "Você é um especialista em PowerShell e segurança Windows. Responda em português do Brasil.",
+    timeoutMs: 90000,
+  });
+
+  return {
+    analysis: result.content,
+    thinking: result.thinking,
+  };
+}
+
+/**
+ * Enviar mensagem formatada para Discord webhook
+ */
+async function sendDiscordWebhook(webhookUrl, title, message, color = "00ff00") {
+  // Auditoria
+  await auditLog(AuditLevel.WEBHOOK, "discord_webhook_send", {
+    title: title || "Mestre do PC - Notificação",
+    messagePreview: message.substring(0, 100),
+    color,
+  });
+
+  const embed = {
+    title: title || "Mestre do PC - Notificação",
+    description: message,
+    color: parseInt(color, 16) || 0x00ff00,
+    timestamp: new Date().toISOString(),
+    footer: {
+      text: "Mestre do PC V11",
+      icon_url: "https://avatars.githubusercontent.com/u/123456789",
+    },
+  };
+
+  const res = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ embeds: [embed] }),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    await auditLog(AuditLevel.ERROR, "discord_webhook_failed", {
+      statusCode: res.status,
+    });
+    throw new Error(`Discord retornou HTTP ${res.status}`);
+  }
+
+  return { success: true, message: "Notificação enviada ao Discord" };
+}
+
+/**
+ * Enviar mensagem formatada para Teams webhook
+ */
+async function sendTeamsWebhook(webhookUrl, title, message, theme = "Information") {
+  const themeColors = {
+    Information: "#0078D4",
+    Warning: "#FFA500",
+    Danger: "#DC3545",
+    Success: "#28A745",
+  };
+
+  const body = {
+    "@type": "MessageCard",
+    "@context": "http://schema.org/extensions",
+    themeColor: themeColors[theme] || themeColors.Information,
+    summary: title || "Mestre do PC - Notificação",
+    sections: [{
+      activityTitle: title || "Mestre do PC",
+      activitySubtitle: new Date().toLocaleString("pt-BR"),
+      activityText: message.replace(/\n/g, "<br/>"),
+    }],
+  };
+
+  const res = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Teams retornou HTTP ${res.status}`);
+  }
+
+  return { success: true, message: "Notificação enviada ao Teams" };
+}
+
+/**
+ * Enviar mensagem formatada para Slack webhook
+ */
+async function sendSlackWebhook(webhookUrl, message, channel, emoji = ":robot_face:") {
+  const body = {
+    text: message,
+    username: "Mestre do PC",
+    icon_emoji: emoji,
+  };
+
+  if (channel && channel.startsWith("#")) {
+    body.channel = channel;
+  }
+
+  const res = await fetch(webhookUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Slack retornou HTTP ${res.status}`);
+  }
+
+  return { success: true, message: "Notificação enviada ao Slack" };
+}
+
+/**
+ * Monitorar recursos e enviar alerta se ultrapassar limites
+ */
+async function monitorAndAlert(webhookUrl, cpuLimite = 80, ramLimite = 80, discoLimite = 90, plataforma = "discord") {
+  const os = await fetch("http://127.0.0.1:7777/status", {
+    signal: AbortSignal.timeout(5000),
+  }).then(r => r.json()).catch(() => null);
+
+  if (!os) {
+    throw new Error("Não foi possível obter status do sistema. Launcher offline?");
+  }
+
+  const alerts = [];
+
+  if (os.cpu > cpuLimite) {
+    alerts.push(`⚠️ CPU: ${os.cpu}% (limite: ${cpuLimite}%)`);
+  }
+  if (os.ramFree !== undefined && os.ramTotal !== undefined) {
+    const ramUsed = Math.round(((os.ramTotal - os.ramFree) / os.ramTotal) * 100);
+    if (ramUsed > ramLimite) {
+      alerts.push(`⚠️ RAM: ${ramUsed}% usada (limite: ${ramLimite}%)`);
+    }
+  }
+  if (os.diskFree !== undefined && os.diskUsed !== undefined) {
+    const diskTotal = os.diskFree + os.diskUsed;
+    const diskUsed = Math.round((os.diskUsed / diskTotal) * 100);
+    if (diskUsed > discoLimite) {
+      alerts.push(`⚠️ Disco: ${diskUsed}% usado (limite: ${discoLimite}%)`);
+    }
+  }
+
+  if (alerts.length === 0) {
+    return { success: true, message: "Sistema dentro dos limites normais. Nenhum alerta necessário." };
+  }
+
+  const message = `**ALERTA - Mestre do PC**\nPC: ${process.env.COMPUTERNAME || "Desconhecido"}\n\n${alerts.join("\n")}\n\nData: ${new Date().toLocaleString("pt-BR")}`;
+
+  switch (plataforma.toLowerCase()) {
+    case "discord":
+      return await sendDiscordWebhook(webhookUrl, "🚨 Alerta de Sistema", message, "ff0000");
+    case "teams":
+      return await sendTeamsWebhook(webhookUrl, "🚨 Alerta de Sistema", message, "Danger");
+    case "slack":
+      return await sendSlackWebhook(webhookUrl, `🚨 *Alerta de Sistema*\n${message}`, null, ":warning:");
+    default:
+      return await sendDiscordWebhook(webhookUrl, "🚨 Alerta de Sistema", message, "ff0000");
+  }
+}
+
 const TOOLS = [
   ...Object.entries(mestreTools).map(([name, config]) => {
     const cmdStr = typeof config.command === "string" ? config.command : "";
@@ -573,6 +885,147 @@ const TOOLS = [
         max_results: { type: "number", description: "Quantidade maxima de resultados (padrao 5, maximo 10)." },
       },
       required: ["query"],
+    },
+  },
+  {
+    name: "perguntar_ia_com_contexto",
+    description: "Envia uma pergunta à IA com contexto adicional (RAG). Útil para analisar documentos, logs ou códigos junto com a pergunta.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        pergunta: { type: "string", description: "A pergunta principal." },
+        contexto: { type: "string", description: "Texto de contexto (logs, código, documento) para enriquecer a resposta." },
+      },
+      required: ["pergunta"],
+    },
+  },
+  {
+    name: "resolver_problema_passo_a_passo",
+    description: "Usa chain-of-thought para dividir um problema complexo em passos lógicos e fornecer solução detalhada.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        problema: { type: "string", description: "Descrição do problema a ser resolvido." },
+      },
+      required: ["problema"],
+    },
+  },
+  {
+    name: "comparar_modelos_ia",
+    description: "Compara respostas de múltiplos modelos de IA para a mesma pergunta. Útil para validar consistência.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        pergunta: { type: "string", description: "Pergunta para comparar entre modelos." },
+        modelos: { type: "string", description: "Lista de modelos separados por vírgula (ex: qwen2.5-coder:3b,llama3.1:8b,mistral:7b)." },
+      },
+      required: ["pergunta"],
+    },
+  },
+  {
+    name: "analisar_codigo_powershell",
+    description: "Analisa um script PowerShell e fornece explicação, sugestões de melhoria e notas de segurança.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        codigo: { type: "string", description: "Código PowerShell para análise." },
+      },
+      required: ["codigo"],
+    },
+  },
+  {
+    name: "ia_comando_sugerir",
+    description: "Descreva uma tarefa e a IA sugere o comando PowerShell exato para executá-la.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        tarefa: { type: "string", description: "Descrição da tarefa (ex: 'listar processos usando mais de 1GB de RAM')." },
+        confirmar: { type: "boolean", description: "Se true, pede confirmação antes de executar." },
+      },
+      required: ["tarefa"],
+    },
+  },
+  {
+    name: "enviar_webhook_discord",
+    description: "Envia uma mensagem formatada para um webhook do Discord. Útil para notificações e alertas.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        webhook_url: { type: "string", description: "URL do webhook do Discord." },
+        titulo: { type: "string", description: "Título da mensagem." },
+        mensagem: { type: "string", description: "Conteúdo da mensagem." },
+        cor: { type: "string", description: "Cor do embed em hexadecimal (ex: 00ff00 para verde)." },
+      },
+      required: ["webhook_url", "mensagem"],
+    },
+  },
+  {
+    name: "enviar_webhook_teams",
+    description: "Envia uma mensagem formatada para um webhook do Microsoft Teams.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        webhook_url: { type: "string", description: "URL do webhook do Teams." },
+        titulo: { type: "string", description: "Título da mensagem." },
+        mensagem: { type: "string", description: "Conteúdo da mensagem." },
+        tema: { type: "string", description: "Tema de cor (Information, Warning, Danger)." },
+      },
+      required: ["webhook_url", "mensagem"],
+    },
+  },
+  {
+    name: "enviar_webhook_slack",
+    description: "Envia uma mensagem formatada para um webhook do Slack.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        webhook_url: { type: "string", description: "URL do webhook do Slack (https://hooks.slack.com/...)." },
+        canal: { type: "string", description: "Canal para enviar (ex: #geral)." },
+        mensagem: { type: "string", description: "Conteúdo da mensagem." },
+        emoji: { type: "string", description: "Emoji do bot (ex: :robot_face:)." },
+      },
+      required: ["webhook_url", "mensagem"],
+    },
+  },
+  {
+    name: "monitorar_e_notificar",
+    description: "Monitora CPU, RAM e disco e envia alerta via webhook se ultrapassar limites.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        webhook_url: { type: "string", description: "URL do webhook para alertas." },
+        cpu_limite: { type: "number", description: "Limite de CPU em porcentagem (padrão: 80)." },
+        ram_limite: { type: "number", description: "Limite de RAM em porcentagem (padrão: 80)." },
+        disco_limite: { type: "number", description: "Limite de disco em porcentagem (padrão: 90)." },
+        plataforma: { type: "string", description: "Plataforma do webhook (discord, teams, slack)." },
+      },
+      required: ["webhook_url"],
+    },
+  },
+  {
+    name: "consultar_logs_auditoria",
+    description: "Consulta logs de auditoria do MCP server. Útil para investigar operações recentes.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        level: { type: "string", description: "Filtrar por nível (INFO, WARNING, ERROR, SECURITY, COMMAND_EXEC, IA_OPERATION, WEBHOOK)." },
+        action: { type: "string", description: "Filtrar por ação (termo de busca)." },
+        limit: { type: "number", description: "Máximo de entradas (padrão: 50)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "exportar_relatorio_auditoria",
+    description: "Exporta relatório completo de auditoria em formato Markdown.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        start_date: { type: "string", description: "Data inicial (ISO format)." },
+        end_date: { type: "string", description: "Data final (ISO format)." },
+        limit: { type: "number", description: "Máximo de entradas (padrão: 100)." },
+      },
+      required: [],
     },
   },
 ];
@@ -756,6 +1209,244 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return { isError: true, content: [{ type: "text", text: `Falha no Ollama: ${error.message}` }] };
     }
   }
+
+  // ===== NOVAS FERRAMENTAS IA V11 =====
+
+  if (name === "perguntar_ia_com_contexto") {
+    const pergunta = args?.pergunta;
+    const contexto = args?.contexto;
+    if (!pergunta) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'pergunta' obrigatório.");
+    
+    try {
+      const contextDocs = contexto ? [contexto] : [];
+      const result = await ragQuery(pergunta, contextDocs);
+      let text = result.content;
+      if (result.thinking) text = `💭 Raciocínio:\n${result.thinking}\n\n---\n\n${text}`;
+      return { content: [{ type: "text", text: text + result.meta }] };
+    } catch (error) {
+      if (error.name === "AbortError" || error.name === "TimeoutError") {
+        return { isError: true, content: [{ type: "text", text: "⏱️ Timeout: IA demorou mais de 90s. Tente novamente." }] };
+      }
+      return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
+    }
+  }
+
+  if (name === "resolver_problema_passo_a_passo") {
+    const problema = args?.problema;
+    if (!problema) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'problema' obrigatório.");
+    
+    try {
+      const result = await chainOfThought(problema);
+      const lines = [
+        "🔍 **Análise do Problema**",
+        "",
+        ...result.steps.map((s, i) => `${i + 1}. ${s}`),
+        "",
+        "✅ **Solução Final**",
+        result.finalAnswer,
+      ];
+      if (result.thinking) {
+        lines.unshift("💭 **Raciocínio**", result.thinking, "");
+      }
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
+    }
+  }
+
+  if (name === "comparar_modelos_ia") {
+    const pergunta = args?.pergunta;
+    if (!pergunta) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'pergunta' obrigatório.");
+    
+    const modelosStr = args?.modelos || "qwen2.5-coder:3b-instruct,llama3.1:8b,mistral:7b";
+    const modelos = modelosStr.split(",").map(m => m.trim()).filter(m => m);
+    
+    try {
+      const results = await compareModels(pergunta, modelos);
+      const lines = [`📊 **Comparação de Modelos**`, ``, `*Pergunta:* ${pergunta}`, ``];
+      
+      for (const [model, result] of Object.entries(results)) {
+        lines.push(`---`);
+        lines.push(`🤖 **${model}**`);
+        if (result.success) {
+          lines.push(result.content.substring(0, 500) + (result.content.length > 500 ? "..." : ""));
+        } else {
+          lines.push(`❌ Erro: ${result.error}`);
+        }
+        lines.push(``);
+      }
+      
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
+    }
+  }
+
+  if (name === "analisar_codigo_powershell") {
+    const codigo = args?.codigo;
+    if (!codigo) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'codigo' obrigatório.");
+    
+    try {
+      const result = await analyzePowerShellCode(codigo);
+      const lines = ["🔍 **Análise de Código PowerShell**", "", result.analysis];
+      if (result.thinking) {
+        lines.unshift("💭 **Raciocínio**", result.thinking, "");
+      }
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
+    }
+  }
+
+  if (name === "ia_comando_sugerir") {
+    const tarefa = args?.tarefa;
+    if (!tarefa) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'tarefa' obrigatório.");
+    
+    try {
+      const result = await ollamaChat({
+        messages: [{
+          role: "user",
+          content: `Descreva APENAS o comando PowerShell exato para esta tarefa (sem explicações, apenas o comando):
+          
+Tarefa: ${tarefa}
+
+Responda apenas com o comando PowerShell, nada mais.`,
+        }],
+        system: "Você é um especialista em PowerShell. Responda APENAS com o comando, sem explicações.",
+        timeoutMs: 60000,
+      });
+      
+      const comando = result.content.trim();
+      const lines = [
+        "💡 **Comando Sugerido**",
+        "",
+        "```powershell",
+        comando,
+        "```",
+        "",
+        "⚠️ **Importante:** Revise o comando antes de executar. Use 'executar_comando' para rodar este script.",
+      ];
+      
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
+    }
+  }
+
+  // ===== NOVAS FERRAMENTAS WEBHOOK V11 =====
+
+  if (name === "enviar_webhook_discord") {
+    const webhook_url = args?.webhook_url;
+    const mensagem = args?.mensagem;
+    if (!webhook_url || !mensagem) {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'webhook_url' e 'mensagem' obrigatórios.");
+    }
+    
+    try {
+      const result = await sendDiscordWebhook(webhook_url, args?.titulo, mensagem, args?.cor);
+      return { content: [{ type: "text", text: `✅ ${result.message}` }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao enviar: ${error.message}` }] };
+    }
+  }
+
+  if (name === "enviar_webhook_teams") {
+    const webhook_url = args?.webhook_url;
+    const mensagem = args?.mensagem;
+    if (!webhook_url || !mensagem) {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'webhook_url' e 'mensagem' obrigatórios.");
+    }
+    
+    try {
+      const result = await sendTeamsWebhook(webhook_url, args?.titulo, mensagem, args?.tema);
+      return { content: [{ type: "text", text: `✅ ${result.message}` }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao enviar: ${error.message}` }] };
+    }
+  }
+
+  if (name === "enviar_webhook_slack") {
+    const webhook_url = args?.webhook_url;
+    const mensagem = args?.mensagem;
+    if (!webhook_url || !mensagem) {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'webhook_url' e 'mensagem' obrigatórios.");
+    }
+    
+    try {
+      const result = await sendSlackWebhook(webhook_url, mensagem, args?.canal, args?.emoji);
+      return { content: [{ type: "text", text: `✅ ${result.message}` }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao enviar: ${error.message}` }] };
+    }
+  }
+
+  if (name === "monitorar_e_notificar") {
+    const webhook_url = args?.webhook_url;
+    if (!webhook_url) {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'webhook_url' obrigatório.");
+    }
+    
+    try {
+      const result = await monitorAndAlert(
+        webhook_url,
+        args?.cpu_limite || 80,
+        args?.ram_limite || 80,
+        args?.disco_limite || 90,
+        args?.plataforma || "discord"
+      );
+      return { content: [{ type: "text", text: `✅ ${result.message}` }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
+    }
+  }
+
+  // ===== FIM NOVAS FERRAMENTAS WEBHOOK V11 =====
+
+  if (name === "consultar_logs_auditoria") {
+    try {
+      const entries = await queryAuditLog({
+        level: args?.level,
+        action: args?.action,
+        limit: args?.limit || 50,
+      });
+      
+      if (entries.length === 0) {
+        return { content: [{ type: "text", text: "📝 Nenhum log de auditoria encontrado." }] };
+      }
+      
+      const lines = [`📋 **Logs de Auditoria** (${entries.length} entradas)`, ""];
+      for (const entry of entries) {
+        const icon = entry.level === AuditLevel.ERROR ? "🔴" :
+                     entry.level === AuditLevel.WARNING ? "🟡" :
+                     entry.level === AuditLevel.SECURITY ? "🔴" : "🟢";
+        lines.push(`${icon} [${entry.level}] ${entry.action}`);
+        lines.push(`   🕐 ${new Date(entry.timestamp).toLocaleString("pt-BR")}`);
+        lines.push(`   👤 Usuário: ${entry.userId}`);
+        lines.push("");
+      }
+      
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
+    }
+  }
+
+  if (name === "exportar_relatorio_auditoria") {
+    try {
+      const { exportAuditReport } = await import("./audit-logger.js");
+      const report = await exportAuditReport({
+        startDate: args?.start_date,
+        endDate: args?.end_date,
+        limit: args?.limit || 100,
+      });
+      
+      return { content: [{ type: "text", text: report }] };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
+    }
+  }
+
+  // ===== FIM NOVAS FERRAMENTAS AUDITORIA V11 =====
 
   const toolConfig = mestreTools[name];
   if (!toolConfig) throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);

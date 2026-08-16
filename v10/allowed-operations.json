@@ -2361,6 +2361,209 @@
       "category": "Rede",
       "destructive": false,
       "command": "$t = Measure-Command { Invoke-WebRequest -Uri 'http://speedtest.tele2.net/1MB.zip' -OutFile \"$env:TEMP\\speedtest.tmp\" -UseBasicParsing }; $mb = 1; $s = [math]::Round($t.TotalSeconds,2); $mbps = [math]::Round(($mb * 8) / $s,2); Remove-Item \"$env:TEMP\\speedtest.tmp\" -Force -ErrorAction SilentlyContinue; Write-Host \"Velocidade estimada: ~$mbps Mbps (download de 1MB em ${s}s)\" -ForegroundColor Cyan"
+    },
+    {
+      "id": "backup_registro_completo",
+      "title": "Backup Completo do Registro",
+      "category": "Backup",
+      "destructive": false,
+      "command": "$backupDir = Join-Path $env:USERPROFILE \"MestrePC-Backups\"; New-Item -ItemType Directory -Force -Path $backupDir | Out-Null; $date = Get-Date -Format 'yyyyMMdd-HHmmss'; $backupFile = Join-Path $backupDir \"registry-backup-$date.reg\"; reg export HKLM $backupFile /y; reg export HKCU $backupFile /y; Write-Host \"✅ Backup do registro salvo em: $backupFile\" -ForegroundColor Green"
+    },
+    {
+      "id": "backup_drivers_instalados",
+      "title": "Backup de Drivers Instalados",
+      "category": "Backup",
+      "destructive": false,
+      "command": "$backupDir = Join-Path $env:USERPROFILE \"MestrePC-Backups\\Drivers\"; New-Item -ItemType Directory -Force -Path $backupDir | Out-Null; pnputil /export-driver * $backupDir; Write-Host \"✅ Drivers exportados para: $backupDir\" -ForegroundColor Green"
+    },
+    {
+      "id": "backup_lista_de_programas_instalados",
+      "title": "Backup de Programas Instalados",
+      "category": "Backup",
+      "destructive": false,
+      "command": "$backupDir = Join-Path $env:USERPROFILE \"MestrePC-Backups\"; New-Item -ItemType Directory -Force -Path $backupDir | Out-Null; $date = Get-Date -Format 'yyyyMMdd-HHmmss'; $backupFile = Join-Path $backupDir \"programas-instalados-$date.txt\"; Get-WmiObject Win32_Product | Select-Object Name,Version,Vendor | Sort-Object Name | Out-File -FilePath $backupFile -Encoding UTF8; Write-Host \"✅ Lista salva em: $backupFile\" -ForegroundColor Green"
+    },
+    {
+      "id": "backup_configuracao_de_rede",
+      "title": "Backup de Configuração de Rede",
+      "category": "Backup",
+      "destructive": false,
+      "command": "$backupDir = Join-Path $env:USERPROFILE \"MestrePC-Backups\"; New-Item -ItemType Directory -Force -Path $backupDir | Out-Null; $date = Get-Date -Format 'yyyyMMdd-HHmmss'; $backupFile = Join-Path $backupDir \"network-config-$date.txt\"; netsh interface dump | Out-File -FilePath $backupFile -Encoding UTF8; Write-Host \"✅ Config de rede salva em: $backupFile\" -ForegroundColor Green"
+    },
+    {
+      "id": "backup_chaves_de_registro_especificas",
+      "title": "Backup de Chaves de Registro Específicas",
+      "category": "Backup",
+      "destructive": false,
+      "command": "param([string]$KeyPath = \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\"); $backupDir = Join-Path $env:USERPROFILE \"MestrePC-Backups\"; New-Item -ItemType Directory -Force -Path $backupDir | Out-Null; $date = Get-Date -Format 'yyyyMMdd-HHmmss'; $keyName = $KeyPath -replace '\\\\','_'; $backupFile = Join-Path $backupDir \"registry-$keyName-$date.reg\"; reg export $KeyPath $backupFile /y; Write-Host \"✅ Chave $KeyPath exportada para: $backupFile\" -ForegroundColor Green"
+    },
+    {
+      "id": "temperatura_cpu_leitura_direta",
+      "title": "Temperatura CPU (Leitura Direta)",
+      "category": "Monitoramento",
+      "destructive": false,
+      "command": "try { $temp = Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace 'root/wmi' | ForEach-Object { [math]::Round(($_.CurrentTemperature - 2732) / 10, 1) }; Write-Host \"Temperatura CPU: $temp °C\" -ForegroundColor $(if($temp -gt 80){'Red'}elseif($temp -gt 60){'Yellow'}else{'Green'}) } catch { Write-Host '⚠️ Sensor de temperatura não disponível via WMI. Use HWMonitor ou OpenHardwareMonitor.' -ForegroundColor Yellow }"
+    },
+    {
+      "id": "temperatura_monitoramento_continuo",
+      "title": "Monitoramento Contínuo de Temperatura",
+      "category": "Monitoramento",
+      "destructive": false,
+      "command": "for($i=1; $i -le 10; $i++) { try { $temp = Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace 'root/wmi' | ForEach-Object { [math]::Round(($_.CurrentTemperature - 2732) / 10, 1) }; Write-Host \"[$i] CPU: $temp °C - $(Get-Date -Format 'HH:mm:ss')\" -ForegroundColor $(if($temp -gt 80){'Red'}elseif($temp -gt 60){'Yellow'}else{'Green'}) } catch { Write-Host 'Leitura indisponível' -ForegroundColor Yellow }; Start-Sleep -Seconds 5 }"
+    },
+    {
+      "id": "monitorar_temperatura_gpu",
+      "title": "Monitorar Temperatura GPU",
+      "category": "Monitoramento",
+      "destructive": false,
+      "command": "try { $gpu = Get-WmiObject Win32_VideoController; foreach($g in $gpu) { Write-Host \"GPU: $($g.Name)\" -ForegroundColor Cyan; $temp = Get-WmiObject -Namespace 'root/openhardwaremonitor' -Class Sensor -Filter \"SensorType='Temperature'\" -ErrorAction Stop | Where-Object { $_.Name -like '*GPU*' -or $_.Name -like '*Video*' } | Select-Object -First 1 -ExpandProperty Value; if($temp) { Write-Host \"  Temperatura: $temp °C\" -ForegroundColor $(if($temp -gt 85){'Red'}elseif($temp -gt 70){'Yellow'}else{'Green'}) } else { Write-Host '  Sensor indisponível' -ForegroundColor Yellow } } } catch { Write-Host '⚠️ Instale Open Hardware Monitor para leitura GPU' -ForegroundColor Yellow }"
+    },
+    {
+      "id": "alerta_temperatura_alta",
+      "title": "Alerta Temperatura Alta",
+      "category": "Monitoramento",
+      "destructive": false,
+      "command": "$threshold = 85; try { $temp = Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace 'root/wmi' | ForEach-Object { [math]::Round(($_.CurrentTemperature - 2732) / 10, 1) }; if($temp -ge $threshold) { Write-Host \"⚠️ ALERTA: Temperatura CRÍTICA ($temp °C)\" -ForegroundColor Red; [System.Console]::Beep(1000, 500); [System.Console]::Beep(1000, 500) } else { Write-Host \"✅ Temperatura normal: $temp °C\" -ForegroundColor Green } } catch { Write-Host 'Sensor indisponível' -ForegroundColor Yellow }"
+    },
+    {
+      "id": "driver_listar_todos_instalados",
+      "title": "Listar Todos os Drivers Instalados",
+      "category": "Drivers",
+      "destructive": false,
+      "command": "Get-WmiObject Win32_PnPSignedDriver | Where-Object {$_.DriverDate -ne $null} | Select-Object DeviceName,DriverVersion,Manufacturer,@{N='Data';E={[Management.ManagementDateTimeConverter]::ToDateTime($_.DriverDate).ToString('dd/MM/yyyy')}} | Sort-Object DeviceName | Format-Table -AutoSize -Wrap"
+    },
+    {
+      "id": "driver_atualizar_via_windows_update",
+      "title": "Atualizar Drivers via Windows Update",
+      "category": "Drivers",
+      "destructive": false,
+      "command": "pnputil /scan-devices; pnputil /install-device *; Write-Host \"✅ Busca e instalação de drivers iniciada!\" -ForegroundColor Green"
+    },
+    {
+      "id": "driver_reinstalar_dispositivo",
+      "title": "Reinstalar Driver de Dispositivo",
+      "category": "Drivers",
+      "destructive": true,
+      "command": "param([string]$DeviceName = 'Read-Host \"Nome do dispositivo\"'); if($DeviceName -eq 'Read-Host \"Nome do dispositivo\"') { $DeviceName = Read-Host 'Nome do dispositivo' }; $device = Get-PnpDevice | Where-Object {$_.FriendlyName -like \"*$DeviceName*\"} | Select-Object -First 1; if($device) { Disable-PnpDevice -InstanceId $device.InstanceId -Confirm:$false; Start-Sleep -Seconds 2; Enable-PnpDevice -InstanceId $device.InstanceId -Confirm:$false; Write-Host \"✅ Driver de '$DeviceName' reinstalado!\" -ForegroundColor Green } else { Write-Host \"⚠️ Dispositivo '$DeviceName' não encontrado\" -ForegroundColor Yellow }"
+    },
+    {
+      "id": "driver_rollback_versao_anterior",
+      "title": "Rollback de Driver (Versão Anterior)",
+      "category": "Drivers",
+      "destructive": true,
+      "command": "param([string]$DeviceName); if(-not $DeviceName) { $DeviceName = Read-Host 'Nome do dispositivo' }; $device = Get-PnpDevice | Where-Object {$_.FriendlyName -like \"*$DeviceName*\"} | Select-Object -First 1; if($device) { pnputil /enum-drivers | Select-String -Pattern $device.InstanceId -Context 5; Write-Host \"⚠️ Use 'pnputil /delete-driver <oem#.inf>' para remover driver antigo\" -ForegroundColor Yellow } else { Write-Host \"⚠️ Dispositivo não encontrado\" -ForegroundColor Yellow }"
+    },
+    {
+      "id": "driver_exportar_lista_completa",
+      "title": "Exportar Lista Completa de Drivers",
+      "category": "Drivers",
+      "destructive": false,
+      "command": "$backupDir = Join-Path $env:USERPROFILE \"MestrePC-Backups\"; New-Item -ItemType Directory -Force -Path $backupDir | Out-Null; $date = Get-Date -Format 'yyyyMMdd-HHmmss'; $backupFile = Join-Path $backupDir \"drivers-list-$date.csv\"; Get-WmiObject Win32_PnPSignedDriver | Where-Object {$_.DriverDate -ne $null} | Select-Object DeviceName,DriverVersion,Manufacturer,DriverDate | Export-Csv -Path $backupFile -NoTypeInformation -Encoding UTF8; Write-Host \"✅ Lista exportada: $backupFile\" -ForegroundColor Green"
+    },
+    {
+      "id": "uwp_listar_todos_apps",
+      "title": "Listar Todos os Apps UWP",
+      "category": "UWP",
+      "destructive": false,
+      "command": "Get-AppxPackage -AllUsers | Select-Object Name,Version,Architecture,InstallLocation | Sort-Object Name | Format-Table -AutoSize -Wrap"
+    },
+    {
+      "id": "uwp_reinstalar_todos_apps_padrao",
+      "title": "Reinstalar Todos Apps Padrão",
+      "category": "UWP",
+      "destructive": true,
+      "command": "Get-AppxPackage -AllUsers | Foreach { Add-AppxPackage -DisableDevelopmentMode -Register \"$($_.InstallLocation)\\AppXManifest.xml\" -ErrorAction SilentlyContinue }; Write-Host \"✅ Apps UWP reinstalados!\" -ForegroundColor Green"
+    },
+    {
+      "id": "uwp_reset_app_especifico",
+      "title": "Reset de App UWP Específico",
+      "category": "UWP",
+      "destructive": true,
+      "command": "param([string]$AppName); if(-not $AppName) { $AppName = Read-Host 'Nome do app' }; $app = Get-AppxPackage | Where-Object {$_.Name -like \"*$AppName*\"} | Select-Object -First 1; if($app) { Get-AppxPackage $app.Name | Reset-AppxPackage -ErrorAction SilentlyContinue; Write-Host \"✅ App '$AppName' resetado!\" -ForegroundColor Green } else { Write-Host \"⚠️ App '$AppName' não encontrado\" -ForegroundColor Yellow }"
+    },
+    {
+      "id": "uwp_limpar_cache_de_todos_apps",
+      "title": "Limpar Cache de Todos os Apps UWP",
+      "category": "UWP",
+      "destructive": true,
+      "command": "$appData = $env:LOCALAPPDATA; $packages = Get-ChildItem \"$appData\\Packages\" -Directory; foreach($pkg in $packages) { $cachePath = Join-Path $pkg.FullName \"AppCache\"; if(Test-Path $cachePath) { Remove-Item $cachePath -Recurse -Force -ErrorAction SilentlyContinue }; $tempPath = Join-Path $pkg.FullName \"TempState\"; if(Test-Path $tempPath) { Remove-Item $tempPath -Recurse -Force -ErrorAction SilentlyContinue } }; Write-Host \"✅ Cache de apps UWP limpo!\" -ForegroundColor Green"
+    },
+    {
+      "id": "uwp_diagnostico_de_apps",
+      "title": "Diagnóstico de Apps UWP",
+      "category": "UWP",
+      "destructive": false,
+      "command": "Write-Host \"=== DIAGNÓSTICO UWP ===\" -ForegroundColor Cyan; $total = (Get-AppxPackage).Count; $corrupted = Get-AppxPackage | Where-Object { $_.InstallLocation -eq $null }; Write-Host \"Total de apps: $total\" -ForegroundColor Green; Write-Host \"Apps corrompidos: $($corrupted.Count)\" -ForegroundColor $(if($corrupted.Count -gt 0){'Red'}else{'Green'}); if($corrupted.Count -gt 0) { $corrupted | ForEach-Object { Write-Host \"  - $($_.Name)\" -ForegroundColor Yellow } }"
+    },
+    {
+      "id": "ssd_otimizar_trim_todos_drives",
+      "title": "Otimizar TRIM (Todos os Drives)",
+      "category": "SSD",
+      "destructive": false,
+      "command": "$drives = Get-PhysicalDisk | Where-Object {$_.MediaType -eq 'SSD' -or $_.MediaType -eq 'Unspecified'}; foreach($drive in $drives) { $driveLetter = (Get-Partition -DiskNumber $drive.DeviceId | Where-Object {$_.DriveLetter}).DriveLetter; if($driveLetter) { Write-Host \"Otimizando drive $driveLetter...\" -ForegroundColor Yellow; Optimize-Volume -DriveLetter $driveLetter -ReTrim -Verbose } }; Write-Host \"✅ TRIM executado nos SSDs!\" -ForegroundColor Green"
+    },
+    {
+      "id": "ssd_verificar_saude_completa",
+      "title": "Verificar Saúde Completa do SSD",
+      "category": "SSD",
+      "destructive": false,
+      "command": "Get-PhysicalDisk | ForEach-Object { Write-Host \"=== $($_.FriendlyName) ===\" -ForegroundColor Cyan; Write-Host \"Tipo: $($_.MediaType)\" -ForegroundColor White; Write-Host \"Saúde: $($_.HealthStatus)\" -ForegroundColor $(if($_.HealthStatus -eq 'Healthy'){'Green'}else{'Red'}); Write-Host \"Tamanho: $([math]::Round($_.Size/1GB,2)) GB\" -ForegroundColor White; Write-Host \"Status: $($_.OperationalStatus)\" -ForegroundColor White; if($_.HealthStatus -ne 'Healthy') { Write-Host \"⚠️ DISCO COM PROBLEMAS!\" -ForegroundColor Red } }"
+    },
+    {
+      "id": "ssd_historico_de_uso",
+      "title": "Histórico de Uso do SSD (SMART)",
+      "category": "SSD",
+      "destructive": false,
+      "command": "Get-PhysicalDisk | ForEach-Object { $disk = $_; Get-WmiObject -Namespace root/WMI -Class MSStorageDriver_FailurePredictData -Filter \"InstanceName LIKE '%$($disk.DeviceId)%'\" | ForEach-Object { Write-Host \"=== $($disk.FriendlyName) ===\" -ForegroundColor Cyan; Write-Host \"⚠️ Dados SMART brutos disponíveis. Use CrystalDiskInfo para análise detalhada.\" -ForegroundColor Yellow } }"
+    },
+    {
+      "id": "ssd_alinhar_particoes",
+      "title": "Verificar Alinhamento de Partições",
+      "category": "SSD",
+      "destructive": false,
+      "command": "Get-Partition | ForEach-Object { $offset = $_.Offset; $aligned = ($offset % 1MB) -eq 0; Write-Host \"$($_.DriveLetter):) Offset: $offset bytes - $(if($aligned){'✅ Alinhado'}else{'⚠️ NÃO Alinhado!'}\" -ForegroundColor $(if($aligned){'Green'}else{'Red'}) }"
+    },
+    {
+      "id": "ssd_configurar_prefetch_para_ssd",
+      "title": "Otimizar Windows para SSD",
+      "category": "SSD",
+      "destructive": true,
+      "command": "fsutil behavior query disabledeletenotify | Select-String '0' | ForEach-Object { Write-Host '✅ TRIM já está habilitado' -ForegroundColor Green }; Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management' -Name 'PrefetchParameters' -Value 3 -Force; Write-Host '✅ Prefetch otimizado para SSD' -ForegroundColor Green; Disable-ScheduledTask -TaskName 'Microsoft\\Windows\\Defrag\\ScheduledDefrag' -ErrorAction SilentlyContinue; Write-Host '✅ Desfragmentação automática desativada' -ForegroundColor Green"
+    },
+    {
+      "id": "monitorar_uso_de_cpu_ram_disk",
+      "title": "Monitorar Uso de CPU, RAM e Disco",
+      "category": "Monitoramento",
+      "destructive": false,
+      "command": "for($i=1; $i -le 5; $i++) { $cpu = (Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; $ram = Get-WmiObject Win32_OperatingSystem; $ramPct = [math]::Round((($ram.TotalVisibleMemorySize - $ram.FreePhysicalMemory) / $ram.TotalVisibleMemorySize) * 100, 1); $disk = Get-PSDrive C; $diskPct = [math]::Round(($disk.Used / ($disk.Used + $disk.Free)) * 100, 1); Write-Host \"[$i] CPU: $cpu% | RAM: $ramPct% | Disco: $diskPct%\" -ForegroundColor $(if($cpu -gt 80 -or $ramPct -gt 80){'Red'}else{'Green'}); Start-Sleep -Seconds 3 }"
+    },
+    {
+      "id": "exportar_relatorio_completo_em_pdf",
+      "title": "Exportar Relatório Completo (HTML)",
+      "category": "Relatórios",
+      "destructive": false,
+      "command": "$reportDir = Join-Path $env:USERPROFILE \"MestrePC-Relatorios\"; New-Item -ItemType Directory -Force -Path $reportDir | Out-Null; $date = Get-Date -Format 'yyyyMMdd-HHmmss'; $reportFile = Join-Path $reportDir \"relatorio-$date.html\"; $os = Get-WmiObject Win32_OperatingSystem; $cpu = Get-WmiObject Win32_Processor | Select-Object -First 1; $ram = [math]::Round($os.FreePhysicalMemory/1MB,2); $totalRam = [math]::Round($os.TotalVisibleMemorySize/1MB,2); $disk = Get-PSDrive C; $html = @\" <html><head><title>Relatório do Sistema</title></head><body><h1>Relatório do PC - $(Get-Date -Format 'dd/MM/yyyy HH:mm')</h1><h2>Informações Gerais</h2><ul><li>Windows: $($os.Caption) Build $($os.BuildNumber)</li><li>CPU: $($cpu.Name)</li><li>RAM: $ram GB livre de $totalRam GB</li><li>Disco C: $([math]::Round($disk.Free/1GB,2)) GB livre</li></ul></body></html> \"@; $html | Out-File -FilePath $reportFile -Encoding UTF8; Start-Process $reportFile; Write-Host \"✅ Relatório gerado: $reportFile\" -ForegroundColor Green"
+    },
+    {
+      "id": "agendar_tarefa_de_limpeza_diaria",
+      "title": "Agendar Limpeza Diária Automática",
+      "category": "Tarefas",
+      "destructive": true,
+      "command": "$taskName = 'MestrePC-LimpezaDiaria'; $script = 'Remove-Item \"$env:TEMP\\*\" -Recurse -Force -EA 0; Clear-RecycleBin -Force -EA 0'; $action = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument \"-NoProfile -WindowStyle Hidden -Command \\\"$script\\\"\"; $trigger = New-ScheduledTaskTrigger -Daily -At 3am; $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest; Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Force; Write-Host \"✅ Tarefa '$taskName' agendada diariamente às 03:00!\" -ForegroundColor Green"
+    },
+    {
+      "id": "webhook_enviar_status_para_discord",
+      "title": "Enviar Status para Discord (Webhook)",
+      "category": "Integrações",
+      "destructive": false,
+      "command": "param([string]$WebhookUrl); if(-not $WebhookUrl) { Write-Host '⚠️ Informe a URL do webhook: -WebhookUrl \"https://discord.com/api/webhooks/...\"' -ForegroundColor Yellow; return }; $os = Get-WmiObject Win32_OperatingSystem; $cpu = (Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; $ram = [math]::Round($os.FreePhysicalMemory/1MB,2); $body = @{ content = \"**Mestre do PC - Status**`n🖥️ PC: $env:COMPUTERNAME`n⚙️ CPU: $cpu%`n💾 RAM Livre: $ram GB`n🪟 Windows: $($os.Caption)\" } | ConvertTo-Json; Invoke-RestMethod -Uri $WebhookUrl -Method POST -ContentType 'application/json' -Body $body; Write-Host \"✅ Status enviado para Discord!\" -ForegroundColor Green"
+    },
+    {
+      "id": "integracao_teams_enviar_notificacao",
+      "title": "Enviar Notificação para Teams (Webhook)",
+      "category": "Integrações",
+      "destructive": false,
+      "command": "param([string]$WebhookUrl); if(-not $WebhookUrl) { Write-Host '⚠️ Informe a URL do webhook do Teams' -ForegroundColor Yellow; return }; $body = @{ text = \"🔔 **Mestre do PC**`nStatus do sistema: $env:COMPUTERNAME`nData: $(Get-Date -Format 'dd/MM/yyyy HH:mm')\" } | ConvertTo-Json; Invoke-RestMethod -Uri $WebhookUrl -Method POST -ContentType 'application/json' -Body $body; Write-Host \"✅ Notificação enviada para Teams!\" -ForegroundColor Green"
     }
   ]
 }
