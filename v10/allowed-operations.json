@@ -260,6 +260,20 @@
                            "command":  "Set-Service -Name \"SysMain\" -StartupType Automatic; Start-Service -Name \"SysMain\"; Write-Host \"✅ SysMain reativado!\" -ForegroundColor Green"
                        },
                        {
+                           "id":  "iniciar_servico_audio",
+                           "title":  "Iniciar Serviço de Áudio",
+                           "category":  "Sistema",
+                           "destructive":  false,
+                           "command":  "Start-Service -Name audiosrv -ErrorAction SilentlyContinue; if ((Get-Service -Name audiosrv).Status -eq 'Running') { Write-Host '✅ Serviço de áudio iniciado com sucesso!' -ForegroundColor Green } else { Write-Warning 'O serviço de áudio não conseguiu iniciar.' }"
+                       },
+                       {
+                           "id":  "reiniciar_servico_audio",
+                           "title":  "Reiniciar Serviço de Áudio",
+                           "category":  "Sistema",
+                           "destructive":  false,
+                           "command":  "Restart-Service -Name audiosrv -Force -ErrorAction SilentlyContinue; Start-Service -Name AudioEndpointBuilder -ErrorAction SilentlyContinue; Write-Host '✅ Serviço de áudio reiniciado!' -ForegroundColor Green"
+                        },
+                       {
                            "id":  "verificar_modo_de_memoria_virtual",
                            "title":  "Verificar Modo de Memória Virtual",
                            "category":  "Memória",
