@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mestre do PC</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 320px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      font-size: 14px;
+    }
+    .header {
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #a200ff, #00d4ff);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header img { width: 28px; height: 28px; }
+    .header h1 { margin: 0; font-size: 15px; }
+    .status-list { padding: 12px 16px; }
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #21262d;
+    }
+    .status-item:last-child { border-bottom: none; }
+    .status-label { display: flex; align-items: center; gap: 8px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #8b949e; }
+    .status-dot.online { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+    .status-dot.offline { background: #f85149; }
+    .status-dot.unknown { background: #f0ad4e; }
+    .actions { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+    button {
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      background: #21262d;
+      color: #e6edf3;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    button:hover { background: #30363d; }
+    button.primary { background: linear-gradient(135deg, #a200ff, #00d4ff); color: #fff; }
+    button.primary:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .footer {
+      padding: 10px 16px;
+      border-top: 1px solid #21262d;
+      text-align: center;
+      font-size: 11px;
+      color: #8b949e;
+    }
+    .footer a { color: #00d4ff; text-decoration: none; }
+    .message {
+      margin: 0 16px 12px;
+      padding: 10px;
+      border-radius: 6px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      font-size: 12px;
+      display: none;
+    }
+    .message.show { display: block; }
+    .message.error { border-color: #f85149; color: #f85149; }
+    .message.success { border-color: #00ff88; color: #00ff88; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icons/icon32.png" alt="Mestre do PC" />
+    <h1>Mestre do PC V10</h1>
+  </div>
+
+  <div class="status-list">
+    <div class="status-item">
+      <span class="status-label"><span class="status-dot unknown" id="launcherDot"></span> Launcher</span>
+      <span id="launcherText">Verificando...</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label"><span class="status-dot unknown" id="ollamaDot"></span> Ollama</span>
+      <span id="ollamaText">Verificando...</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label"><span class="status-dot unknown" id="chathubDot"></span> Chat Hub</span>
+      <span id="chathubText">Não configurado</span>
+    </div>
+  </div>
+
+  <div id="message" class="message"></div>
+
+  <div class="actions">
+    <button id="btnDiagnostico" class="primary">🖥️ Diagnóstico rápido</button>
+    <button id="btnLimpeza">🧹 Limpeza rápida</button>
+    <button id="btnEnviarPagina">📄 Enviar página para IA</button>
+    <button id="btnOptions">⚙️ Configurações</button>
+  </div>
+
+  <div class="footer">
+    <a href="#" id="linkOpenApp">Abrir app local</a> · <a href="#" id="linkRefresh">Atualizar</a>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

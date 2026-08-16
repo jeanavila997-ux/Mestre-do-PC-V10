@@ -9,6 +9,11 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { sanitizeToolArgument, checkPromptInjection } from "./security.js";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MESTRE_BASE_URL = (process.env.MESTRE_BASE_URL || "http://127.0.0.1:7777").replace(/\/+$/, "");
 const MESTRE_RUN_URL = MESTRE_BASE_URL + "/run";
@@ -308,15 +313,173 @@ const mestreTools = {
   },
 };
 
-const OLLAMA_URL = (process.env.OLLAMA_URL || "http://127.0.0.1:11434").replace(/\/+$/, "");
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct";
-const OLLAMA_NUM_CTX = parseInt(process.env.OLLAMA_NUM_CTX || "8192", 10);
-const OLLAMA_SYSTEM_PROMPT = `Você é o Mestre do PC, um assistente especializado em manutenção de computadores Windows.
+// --- Model profiles (local automation desktop models) ---
+let modelProfiles = { defaultProfile: "balanced", profiles: {} };
+try {
+  const profilesRaw = await readFile(join(__dirname, "model-profiles.json"), "utf8");
+  modelProfiles = JSON.parse(profilesRaw);
+} catch (e) {
+  console.error("Aviso: nao foi possivel carregar model-profiles.json:", e.message);
+}
+
+const activeProfileName = process.env.OLLAMA_MODEL_PROFILE || modelProfiles.defaultProfile || "balanced";
+const activeProfile = modelProfiles.profiles?.[activeProfileName] || modelProfiles.profiles?.[modelProfiles.defaultProfile] || {};
+
+function getProfileModel(profile = activeProfile) {
+  return process.env.OLLAMA_MODEL || profile.model || "qwen2.5-coder:3b-instruct";
+}
+
+function getProfileOptions(profile = activeProfile) {
+  const envOptions = {
+    num_ctx: OLLAMA_NUM_CTX,
+    temperature: OLLAMA_TEMPERATURE,
+    top_p: OLLAMA_TOP_P,
+    top_k: OLLAMA_TOP_K,
+    num_predict: OLLAMA_NUM_PREDICT,
+    seed: OLLAMA_SEED,
+  };
+  const profileOptions = profile.options || {};
+  const merged = { ...profileOptions, ...envOptions };
+  // Remove valores que ainda sao defaults nao configurados (0 para seed/num_predict).
+  if (merged.seed === 0) delete merged.seed;
+  if (merged.num_predict === 0) delete merged.num_predict;
+  return merged;
+}
+
+function listProfiles() {
+  const entries = Object.entries(modelProfiles.profiles || {});
+  return entries.map(([key, p]) => ({
+    id: key,
+    label: p.label || key,
+    description: p.description || "",
+    model: p.model || "",
+    fallbackModel: p.fallbackModel || "",
+    recommended: p.recommended || {},
+    active: key === activeProfileName,
+  }));
+}
+
+// --- Ollama configuration (local + cloud) ---
+// Local:  http://127.0.0.1:11434  (no auth)
+// Cloud:  https://ollama.com/api  (requires OLLAMA_API_KEY)
+const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || "";
+const OLLAMA_URL = (process.env.OLLAMA_URL || (OLLAMA_API_KEY ? "https://ollama.com/api" : "http://127.0.0.1:11434")).replace(/\/+$/, "");
+const OLLAMA_MODEL = getProfileModel();
+const OLLAMA_NUM_CTX = parseInt(process.env.OLLAMA_NUM_CTX || (activeProfile.options?.num_ctx ?? "8192"), 10);
+const OLLAMA_TEMPERATURE = parseFloat(process.env.OLLAMA_TEMPERATURE || (activeProfile.options?.temperature ?? "0.7"));
+const OLLAMA_TOP_P = parseFloat(process.env.OLLAMA_TOP_P || (activeProfile.options?.top_p ?? "0.9"));
+const OLLAMA_TOP_K = parseInt(process.env.OLLAMA_TOP_K || (activeProfile.options?.top_k ?? "40"), 10);
+const OLLAMA_NUM_PREDICT = parseInt(process.env.OLLAMA_NUM_PREDICT || (activeProfile.options?.num_predict ?? "0"), 10);
+const OLLAMA_SEED = parseInt(process.env.OLLAMA_SEED || "0", 10);
+const OLLAMA_KEEP_ALIVE = process.env.OLLAMA_KEEP_ALIVE || "5m";
+const OLLAMA_SYSTEM_PROMPT = `Você é o Mestre do PC, um assistente especializado em automação e manutenção de computadores Windows no desktop do usuário.
 Responda SEMPRE em português brasileiro.
-Quando sugerir uma ação, inclua o comando PowerShell exato.
-NUNCA invente comandos. Use APENAS comandos PowerShell reais do Windows.
-Se o usuário pedir para analisar logs, identifique os erros mais críticos e sugira comandos sfc ou dism se necessário.
-Seja direto e objetivo.`;
+Priorize comandos PowerShell nativos do Windows e ferramentas já disponíveis no sistema (Get-Process, Get-Service, sfc, dism, ipconfig, netsh, wmic/CIM, etc).
+Quando sugerir uma ação, inclua o comando PowerShell exato, comentado e seguro.
+NUNCA invente comandos, caminhos de arquivo ou nomes de serviço. Use APENAS comandos PowerShell reais do Windows.
+Para automação local, prefira comandos não destrutivos primeiro; só sugira ações destrutivas (limpar, parar serviços, encerrar processos) quando necessário e com confirmação.
+Se o usuário pedir para analisar logs, identifique os 3 erros mais críticos, explique o impacto e sugira comandos sfc, dism ou Get-EventLog filtrados se necessário.
+Seja direto, objetivo e organize a resposta em passos numerados quando for um procedimento.
+Se não souber algo, diga claramente e sugira uma busca ou verificação manual.`;
+
+/**
+ * Build the default options object for Ollama requests from env-configured params.
+ * Only includes non-default values to avoid overriding model defaults unnecessarily.
+ */
+function buildOllamaOptions() {
+  const options = getProfileOptions();
+  // Env vars têm precedência sobre o perfil.
+  options.num_ctx = OLLAMA_NUM_CTX;
+  if (OLLAMA_TEMPERATURE !== (activeProfile.options?.temperature ?? 0.7)) options.temperature = OLLAMA_TEMPERATURE;
+  if (OLLAMA_TOP_P !== (activeProfile.options?.top_p ?? 0.9)) options.top_p = OLLAMA_TOP_P;
+  if (OLLAMA_TOP_K !== (activeProfile.options?.top_k ?? 40)) options.top_k = OLLAMA_TOP_K;
+  if (OLLAMA_NUM_PREDICT > 0) options.num_predict = OLLAMA_NUM_PREDICT;
+  if (OLLAMA_SEED > 0) options.seed = OLLAMA_SEED;
+  return options;
+}
+
+/**
+ * Build headers for Ollama API requests, including auth when using cloud.
+ */
+function ollamaHeaders(extra = {}) {
+  const headers = { "Content-Type": "application/json", ...extra };
+  if (OLLAMA_API_KEY) {
+    headers["Authorization"] = `Bearer ${OLLAMA_API_KEY}`;
+  }
+  return headers;
+}
+
+/**
+ * Format Ollama response metadata (token counts, durations) for display.
+ */
+function formatOllamaMeta(data) {
+  const parts = [];
+  if (data.prompt_eval_count != null) parts.push(`prompt: ${data.prompt_eval_count} tokens`);
+  if (data.eval_count != null) parts.push(`resposta: ${data.eval_count} tokens`);
+  if (data.total_duration != null) {
+    const ms = Math.round(data.total_duration / 1_000_000);
+    if (ms > 0) parts.push(`${ms}ms`);
+  }
+  return parts.length > 0 ? `\n\n📊 ${parts.join(" | ")}` : "";
+}
+
+/**
+ * Parse an Ollama API error response into a human-readable message.
+ */
+function parseOllamaError(res, fallback) {
+  const status = res.status;
+  const statusMessages = {
+    400: "Requisição inválida (model ou prompt incorreto)",
+    404: "Modelo não encontrado no Ollama",
+    429: "Limite de requisições excedido (rate limit)",
+    500: "Erro interno do Ollama",
+    502: "Modelo cloud inacessível (bad gateway)",
+  };
+  let msg = statusMessages[status] || `HTTP ${status}`;
+  try {
+    const body = JSON.parse(fallback);
+    if (body.error) msg = body.error;
+  } catch { /* not JSON, use status-based message */ }
+  return msg;
+}
+
+/**
+ * Centralized Ollama chat call with error handling, options, and keep_alive.
+ * @param {object} opts - { messages, system, timeoutMs, think }
+ * @returns {Promise<{content: string, thinking: string, meta: string, raw: object}>}
+ */
+async function ollamaChat({ messages, system, timeoutMs = 60000, think }) {
+  const body = {
+    model: OLLAMA_MODEL,
+    options: buildOllamaOptions(),
+    keep_alive: OLLAMA_KEEP_ALIVE,
+    messages: system
+      ? [{ role: "system", content: system }, ...messages]
+      : messages,
+    stream: false,
+  };
+  if (think) body.think = think;
+
+  const res = await fetch(OLLAMA_URL + "/api/chat", {
+    method: "POST",
+    headers: ollamaHeaders(),
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(parseOllamaError(res, text));
+  }
+
+  const data = await res.json();
+  return {
+    content: data.message?.content || "Sem resposta.",
+    thinking: data.message?.thinking || "",
+    meta: formatOllamaMeta(data),
+    raw: data,
+  };
+}
 
 const TOOLS = [
   ...Object.entries(mestreTools).map(([name, config]) => {
@@ -340,12 +503,13 @@ const TOOLS = [
   }),
   {
     name: "perguntar_ia",
-    description: "Envia uma pergunta ao modelo de IA local (Ollama) para obter sugestões de manutenção. Use para análise inteligente.",
+    description: "Envia uma pergunta ao modelo de IA (Ollama local ou cloud) para obter sugestões de manutenção. Use para análise inteligente.",
     inputSchema: {
       type: "object",
       properties: {
         pergunta: { type: "string", description: "A pergunta ou problema do usuário sobre o PC." },
         usar_web: { type: "boolean", description: "Se true, faz uma busca na web antes e envia os resultados como contexto para a IA." },
+        pensar: { type: "boolean", description: "Se true, ativa modo de raciocínio (thinking) para modelos compatíveis (ex: gpt-oss, deepseek-r1)." },
       },
       required: ["pergunta"],
     },
@@ -361,11 +525,31 @@ const TOOLS = [
   },
   {
     name: "verificar_modelo_ollama",
-    description: "Verifica se o modelo qwen2.5-coder:3b-instruct está instalado no Ollama e tenta baixá-lo se necessário.",
+    description: "Verifica se o modelo Ollama configurado está disponível (local ou cloud) e tenta baixá-lo se necessário (apenas local).",
     inputSchema: {
       type: "object",
       properties: {},
       required: [],
+    },
+  },
+  {
+    name: "listar_perfis_modelo",
+    description: "Lista os perfis de modelos locais recomendados para automação do desktop (rápido, equilibrado, agente, código, raciocínio).",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "definir_perfil_modelo",
+    description: "Define o perfil de modelo ativo para as próximas chamadas da IA. Requer reiniciar o MCP server para aplicar totalmente; retorna as variáveis de ambiente sugeridas.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        perfil: { type: "string", description: "ID do perfil (fast, balanced, agent, coding, reasoning)." },
+      },
+      required: ["perfil"],
     },
   },
   {
@@ -402,20 +586,80 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "verificar_modelo_ollama") {
     try {
-      const res = await fetch(OLLAMA_URL + "/api/tags");
+      const res = await fetch(OLLAMA_URL + "/api/tags", {
+        headers: ollamaHeaders(),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        return { isError: true, content: [{ type: "text", text: `Erro ao listar modelos: ${parseOllamaError(res, text)}` }] };
+      }
       const data = await res.json();
       const hasModel = data.models?.some((m) => (m.name || m.model) === OLLAMA_MODEL);
+      const isCloud = OLLAMA_URL.includes("ollama.com");
       if (hasModel) {
-        return { content: [{ type: "text", text: `✅ Modelo ${OLLAMA_MODEL} encontrado e pronto para uso.` }] };
+        const detail = data.models.find((m) => (m.name || m.model) === OLLAMA_MODEL);
+        const sizeInfo = detail?.size ? ` (${Math.round(detail.size / 1_000_000)}MB)` : "";
+        return { content: [{ type: "text", text: `✅ Modelo ${OLLAMA_MODEL} encontrado${sizeInfo}${isCloud ? " [cloud]" : ""} e pronto para uso.` }] };
+      }
+      if (isCloud) {
+        return { content: [{ type: "text", text: `ℹ️ Modelo ${OLLAMA_MODEL} não listado localmente (modo cloud). Modelos cloud são acessados sob demanda.` }] };
       }
       void fetch(OLLAMA_URL + "/api/pull", {
         method: "POST",
+        headers: ollamaHeaders(),
         body: JSON.stringify({ name: OLLAMA_MODEL, stream: false }),
       });
       return { content: [{ type: "text", text: `🟡 Modelo ${OLLAMA_MODEL} não encontrado. Solicitação de download enviada ao Ollama. Isso pode demorar.` }] };
     } catch (e) {
-      return { isError: true, content: [{ type: "text", text: "Erro ao conectar ao Ollama. Verifique se 'ollama serve' está rodando." }] };
+      const isCloud = OLLAMA_URL.includes("ollama.com");
+      const hint = isCloud
+        ? "Verifique se OLLAMA_API_KEY está configurada corretamente."
+        : "Verifique se 'ollama serve' está rodando.";
+      return { isError: true, content: [{ type: "text", text: `Erro ao conectar ao Ollama em ${OLLAMA_URL}. ${hint} Detalhe: ${e.message}` }] };
     }
+  }
+
+  if (name === "listar_perfis_modelo") {
+    const profiles = listProfiles();
+    const lines = [
+      `🤖 Perfis de modelo locais (ativo: ${activeProfileName} -> ${OLLAMA_MODEL})`,
+      "",
+      ...profiles.map((p) => {
+        const indicator = p.active ? "▶ " : "  ";
+        const fallback = p.fallbackModel ? ` (fallback: ${p.fallbackModel})` : "";
+        const ram = p.recommended?.minRamGB ? ` | RAM mínima: ${p.recommended.minRamGB}GB` : "";
+        return `${indicator}${p.label} [${p.id}]\n   Modelo: ${p.model}${fallback}${ram}\n   ${p.description}`;
+      }),
+      "",
+      "Para trocar de perfil, defina a variável de ambiente OLLAMA_MODEL_PROFILE e reinicie o MCP server.",
+      "Exemplo: $env:OLLAMA_MODEL_PROFILE=\"agent\"",
+    ];
+    return { content: [{ type: "text", text: lines.join("\n") }] };
+  }
+
+  if (name === "definir_perfil_modelo") {
+    const perfil = args?.perfil;
+    if (!perfil || typeof perfil !== "string") {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'perfil' obrigatório.");
+    }
+    const profile = modelProfiles.profiles?.[perfil];
+    if (!profile) {
+      const available = Object.keys(modelProfiles.profiles || {}).join(", ");
+      return { isError: true, content: [{ type: "text", text: `Perfil '${perfil}' não encontrado. Disponíveis: ${available}` }] };
+    }
+    const lines = [
+      `✅ Perfil '${perfil}' (${profile.label}) selecionado.`,
+      "",
+      "Aplique as variáveis de ambiente abaixo e reinicie o MCP server para usar este perfil:",
+      `  $env:OLLAMA_MODEL_PROFILE="${perfil}"`,
+      `  $env:OLLAMA_MODEL="${profile.model}"`,
+    ];
+    if (profile.fallbackModel) {
+      lines.push(`  # Fallback caso ${profile.model} não esteja instalado:`);
+      lines.push(`  # $env:OLLAMA_MODEL="${profile.fallbackModel}"`);
+    }
+    return { content: [{ type: "text", text: lines.join("\n") }] };
   }
 
   if (name === "verificar_prompt") {
@@ -463,21 +707,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const dataLogs = await executeLauncherCommand(logCmd, { timeoutMs: 300000 });
       if (!dataLogs.success) throw new Error(dataLogs.output);
       const prompt = `Aqui estão os últimos 20 erros do Windows (JSON). Resuma os 3 problemas mais críticos e sugira comandos para resolvê-los:\n\n${dataLogs.output}`;
-      const resIA = await fetch(OLLAMA_URL + "/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: OLLAMA_MODEL,
-          messages: [{ role: "user", content: prompt }],
-          stream: false,
-        }),
-        signal: AbortSignal.timeout(30000),
+      const result = await ollamaChat({
+        messages: [{ role: "user", content: prompt }],
+        system: OLLAMA_SYSTEM_PROMPT,
+        timeoutMs: 60000,
       });
-      const dataIA = await resIA.json();
-      return { content: [{ type: "text", text: dataIA.message?.content || "A IA não conseguiu analisar os logs." }] };
+      let text = result.content;
+      if (result.thinking) text = `💭 Raciocínio:\n${result.thinking}\n\n---\n\n${text}`;
+      return { content: [{ type: "text", text: text + result.meta }] };
     } catch (e) {
       if (e.name === "AbortError" || e.name === "TimeoutError") {
-        return { isError: true, content: [{ type: "text", text: "⏱️ Timeout ao analisar logs (30s). Ollama pode estar sobrecarregado." }] };
+        return { isError: true, content: [{ type: "text", text: "⏱️ Timeout ao analisar logs (60s). Ollama pode estar sobrecarregado." }] };
       }
       return { isError: true, content: [{ type: "text", text: "Falha na análise: " + e.message }] };
     }
@@ -500,22 +740,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           context = `A busca na web falhou: ${e.message}. Responda com base no conhecimento local.\n\n`;
         }
       }
-      const ollamaRes = await fetch(OLLAMA_URL + "/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: OLLAMA_MODEL,
-          options: { num_ctx: OLLAMA_NUM_CTX },
-          messages: [
-            { role: "system", content: OLLAMA_SYSTEM_PROMPT },
-            { role: "user", content: context + pergunta },
-          ],
-          stream: false,
-        }),
-        signal: AbortSignal.timeout(60000),
+      const result = await ollamaChat({
+        messages: [{ role: "user", content: context + pergunta }],
+        system: OLLAMA_SYSTEM_PROMPT,
+        timeoutMs: 60000,
+        think: args?.pensar === true ? true : undefined,
       });
-      const ollamaData = await ollamaRes.json();
-      return { content: [{ type: "text", text: ollamaData.message?.content || "Sem resposta." }] };
+      let text = result.content;
+      if (result.thinking) text = `💭 Raciocínio:\n${result.thinking}\n\n---\n\n${text}`;
+      return { content: [{ type: "text", text: text + result.meta }] };
     } catch (error) {
       if (error.name === "AbortError" || error.name === "TimeoutError") {
         return { isError: true, content: [{ type: "text", text: "⏱️ Timeout: Ollama demorou mais de 60s para responder. Tente novamente." }] };

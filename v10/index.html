@@ -682,6 +682,7 @@
           <div id="launcherStatus"><span id="launcherStatusIcon">🔴</span> <span id="statusText">Launcher offline — <strong>Execute o atalho Mestre do PC</strong></span></div>
           <div id="mcpStatus" class="status-divider"><span id="mcpStatusIcon">⚪</span> MCP: <span id="mcpStatusText">Indisponível</span></div>
           <div id="ollamaStatus" class="status-divider"><span id="ollamaStatusIcon">⚪</span> Ollama: <span id="ollamaStatusText">Verificando...</span></div>
+          <div id="modelProfileStatus" class="status-divider" title="Perfil de modelo ativo no MCP"><span id="modelProfileIcon">🤖</span> Perfil: <span id="modelProfileText">-</span></div>
           <button class="btn-verify" onclick="refreshAll()">↻ Verificar</button>
         </div>
       </div>
@@ -1708,8 +1709,11 @@
             el.textContent = d.status === "online" ? "Online" : "Desconectado";
             el.style.color = d.status === "online" ? "var(--accent2)" : "var(--danger)";
             document.getElementById("mcpStatusIcon").textContent = d.status === "online" ? "🟢" : "🔴";
-          } catch { document.getElementById("mcpStatusText").textContent = "Erro"; document.getElementById("mcpStatusIcon").textContent = "🔴"; }
-        } else { document.getElementById("mcpStatusText").textContent = "Indisponível"; document.getElementById("mcpStatusIcon").textContent = "⚪"; }
+            const profileText = d.modelProfile ? `${d.modelProfile} (${d.model || ""})` : (d.model || "-");
+            document.getElementById("modelProfileText").textContent = profileText;
+            document.getElementById("modelProfileText").title = `Perfil ativo: ${d.modelProfile || "balanced"}\nModelo: ${d.model || ""}`;
+          } catch { document.getElementById("mcpStatusText").textContent = "Erro"; document.getElementById("mcpStatusIcon").textContent = "🔴"; document.getElementById("modelProfileText").textContent = "-"; }
+        } else { document.getElementById("mcpStatusText").textContent = "Indisponível"; document.getElementById("mcpStatusIcon").textContent = "⚪"; document.getElementById("modelProfileText").textContent = "-"; }
         try {
           const ro = await fetch(API + "/ollama/tags", { signal: AbortSignal.timeout(3000) });
           const do_ = await ro.json();

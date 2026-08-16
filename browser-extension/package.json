@@ -1,0 +1,11 @@
+{
+  "name": "mestre-do-pc-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Extensão do navegador para integração com o Mestre do PC V10.",
+  "scripts": {
+    "build:chrome": "node build.js chrome",
+    "build:firefox": "node build.js firefox"
+  }
+}

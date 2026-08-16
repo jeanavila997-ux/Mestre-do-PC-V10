@@ -17,6 +17,11 @@ const HOST = process.env.MPC_HOST || "127.0.0.1";
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
 const BASE_URL = `http://${HOST}:${PORT}`;
 const PROJECT_DIR = join(__dirname, "..");
+const EXTENSION_TOKEN = process.env.MESTRE_EXTENSION_TOKEN || "";
+const EXTENSION_ORIGINS = (process.env.MESTRE_EXTENSION_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 const MAX_CONCURRENT_JOBS = 3;
 const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 const JOB_RETENTION_MS = 30 * 60 * 1000;
@@ -61,33 +66,49 @@ const compiledTemplates = allowedTemplates.filter((tpl) => typeof tpl.pattern ==
 
 const jobs = new Map();
 
-function cors(res) {
-  res.setHeader("Access-Control-Allow-Origin", BASE_URL);
+function cors(res, origin = BASE_URL) {
+  res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Mestre-Client");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token");
   res.setHeader("Vary", "Origin");
+}
+
+function isExtensionOrigin(origin) {
+  if (!origin) return false;
+  return EXTENSION_ORIGINS.some((allowed) => allowed === origin || (allowed.endsWith("/*") && origin.startsWith(allowed.slice(0, -1))));
 }
 
 function isAuthorized(req) {
   const origin = req.headers.origin || "";
   const client = req.headers["x-mestre-client"] || "";
-  return (
-    (origin === BASE_URL && client === "v10-web") ||
-    (!origin && client === "mcp")
-  );
+  if (origin === BASE_URL && client === "v10-web") return true;
+  if (!origin && client === "mcp") return true;
+  if (EXTENSION_TOKEN && client === "browser-extension" && req.headers["x-mestre-extension-token"] === EXTENSION_TOKEN) {
+    // Origem da extensão deve estar na allowlist ou requisição sem origin (ex: service worker).
+    return !origin || isExtensionOrigin(origin);
+  }
+  return false;
 }
 
 function getRunningJobCount() {
   return [...jobs.values()].filter((j) => j.state === "running").length;
 }
 
-function sendJson(res, status, data) {
+function getAllowedOrigin(req) {
+  const origin = req.headers.origin || "";
+  if (origin === BASE_URL) return BASE_URL;
+  if (isExtensionOrigin(origin)) return origin;
+  return BASE_URL;
+}
+
+function sendJson(res, status, data, allowOrigin = BASE_URL) {
   const body = JSON.stringify(data);
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
-    "Access-Control-Allow-Origin": BASE_URL,
+    "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Mestre-Client",
+    "Access-Control-Allow-Headers": "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token",
+    "Vary": "Origin",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "Cache-Control": "no-store",
@@ -219,7 +240,7 @@ function runPowerShell(cmd, meta = {}) {
 }
 
 // Proxy Ollama com streaming (NDJSON passado direto para o cliente).
-async function proxyOllamaStream(path, req, res) {
+async function proxyOllamaStream(path, req, res, allowOrigin = BASE_URL) {
   const body = await readBody(req);
   let upstream;
   try {
@@ -229,15 +250,15 @@ async function proxyOllamaStream(path, req, res) {
       body: req.method === "POST" ? JSON.stringify(body) : undefined,
     });
   } catch (e) {
-    return sendJson(res, 502, { error: "Ollama offline: " + e.message });
+    return sendJson(res, 502, { error: "Ollama offline: " + e.message }, allowOrigin);
   }
   if (!upstream.ok || !upstream.body) {
     const text = await upstream.text().catch(() => "");
-    return sendJson(res, upstream.status || 502, { error: text || "Ollama error" });
+    return sendJson(res, upstream.status || 502, { error: text || "Ollama error" }, allowOrigin);
   }
   res.writeHead(upstream.status, {
     "Content-Type": "application/x-ndjson; charset=utf-8",
-    "Access-Control-Allow-Origin": BASE_URL,
+    "Access-Control-Allow-Origin": allowOrigin,
     "Cache-Control": "no-cache",
     "X-Content-Type-Options": "nosniff",
   });
@@ -256,17 +277,17 @@ async function proxyOllamaStream(path, req, res) {
 }
 
 // Proxy Ollama simples (JSON único, ex: /api/tags).
-async function proxyOllamaJson(path, res) {
+async function proxyOllamaJson(path, res, allowOrigin = BASE_URL) {
   let upstream;
   try {
     upstream = await fetch(OLLAMA_URL + path, { signal: AbortSignal.timeout(5000) });
   } catch (e) {
-    return sendJson(res, 502, { error: "Ollama offline", models: [] });
+    return sendJson(res, 502, { error: "Ollama offline", models: [] }, allowOrigin);
   }
   const text = await upstream.text();
   let data;
   try { data = JSON.parse(text); } catch { data = { output: text }; }
-  sendJson(res, upstream.status, data);
+  sendJson(res, upstream.status, data, allowOrigin);
 }
 
 // Métricas do sistema via PowerShell (para o dashboard V10).
@@ -296,9 +317,12 @@ $uptime = [int]((Get-Date) - $boot).TotalSeconds
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${HOST}`);
   const path = url.pathname;
+  const allowedOrigin = getAllowedOrigin(req);
   if (req.method === "OPTIONS") {
-    if (req.headers.origin !== BASE_URL) return sendJson(res, 403, { error: "Origem não autorizada." });
-    cors(res);
+    if (allowedOrigin === BASE_URL && req.headers.origin !== BASE_URL) {
+      return sendJson(res, 403, { error: "Origem não autorizada." }, BASE_URL);
+    }
+    cors(res, allowedOrigin);
     res.writeHead(204);
     return res.end();
   }
@@ -312,11 +336,16 @@ const server = http.createServer(async (req, res) => {
         activeJobs: getRunningJobCount(),
         version: "10.1.0",
         pid: process.pid,
-      });
+      }, allowedOrigin);
     }
 
     if (path === "/mcp-status") {
-      return sendJson(res, 200, { status: "unknown", version: "10.1.0" });
+      return sendJson(res, 200, {
+        status: "unknown",
+        version: "10.1.0",
+        modelProfile: process.env.OLLAMA_MODEL_PROFILE || "balanced",
+        model: process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct",
+      }, allowedOrigin);
     }
 
     if (path === "/status") {
@@ -324,14 +353,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (path === "/run" && req.method === "POST") {
-      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado.", state: "forbidden" });
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado.", state: "forbidden" }, allowedOrigin);
       if (getRunningJobCount() >= MAX_CONCURRENT_JOBS) {
-        return sendJson(res, 429, { success: false, output: "Limite de comandos simultâneos atingido.", state: "busy" });
+        return sendJson(res, 429, { success: false, output: "Limite de comandos simultâneos atingido.", state: "busy" }, allowedOrigin);
       }
       const body = await readBody(req);
       const resolved = resolveCommand(body);
       if (resolved.error) {
-        return sendJson(res, 403, { success: false, output: resolved.error });
+        return sendJson(res, 403, { success: false, output: resolved.error }, allowedOrigin);
       }
       const id = runPowerShell(resolved.cmd, { id: resolved.id, destructive: resolved.destructive });
       return sendJson(res, 202, {
@@ -341,13 +370,13 @@ const server = http.createServer(async (req, res) => {
         state: "running",
         activeJobs: getRunningJobCount(),
         operationId: resolved.id,
-      });
+      }, allowedOrigin);
     }
 
     if (path === "/run-status") {
       const id = url.searchParams.get("id");
       const job = jobs.get(id);
-      if (!job) return sendJson(res, 404, { success: false, output: "Job not found", state: "not_found" });
+      if (!job) return sendJson(res, 404, { success: false, output: "Job not found", state: "not_found" }, allowedOrigin);
       return sendJson(res, 200, {
         jobId: job.id,
         state: job.state,
@@ -358,24 +387,24 @@ const server = http.createServer(async (req, res) => {
         output: job.output || "",
         activeJobs: getRunningJobCount(),
         operationId: job.operationId,
-      });
+      }, allowedOrigin);
     }
 
     if (path === "/open-terminal" && req.method === "POST") {
-      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado." });
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado." }, allowedOrigin);
       spawn("powershell.exe", ["-NoLogo", "-NoExit", "-Command", "Set-Location '" + __dirname.replace(/'/g, "''") + "'"], { windowsHide: false, detached: true, stdio: "ignore" }).unref();
-      return sendJson(res, 200, { success: true, output: "Terminal aberto." });
+      return sendJson(res, 200, { success: true, output: "Terminal aberto." }, allowedOrigin);
     }
 
     // Proxy Ollama
-    if (path === "/ollama/tags") return proxyOllamaJson("/api/tags", res);
+    if (path === "/ollama/tags") return proxyOllamaJson("/api/tags", res, allowedOrigin);
     if (path === "/ollama/chat" && req.method === "POST") {
-      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." });
-      return proxyOllamaStream("/api/chat", req, res);
+      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
+      return proxyOllamaStream("/api/chat", req, res, allowedOrigin);
     }
     if (path === "/ollama/pull" && req.method === "POST") {
-      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." });
-      return proxyOllamaStream("/api/pull", req, res);
+      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
+      return proxyOllamaStream("/api/pull", req, res, allowedOrigin);
     }
 
     // Servir frontend estático
@@ -413,6 +442,7 @@ server.listen(PORT, HOST, () => {
   console.log(`Mestre do PC V10 - Launcher ativo em http://${HOST}:${PORT}`);
   console.log(`Operações cadastradas: ${allowedOperations.length}; templates: ${allowedTemplates.length}`);
   console.log(`Ollama proxy -> ${OLLAMA_URL}`);
+  console.log(`Extensão do navegador: ${EXTENSION_TOKEN ? "habilitada" : "desabilitada (defina MESTRE_EXTENSION_TOKEN)"}`);
   console.log(`Dashboard /status | Streaming /ollama/chat`);
 });
 

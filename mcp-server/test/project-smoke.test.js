@@ -28,3 +28,11 @@ test("V10 usa caminho de projeto do ambiente e cabeçalho privilegiado", async (
   assert.doesNotMatch(html, /C:\\\\MestreDoPC_V7/);
   assert.doesNotMatch(html, /C:\\\\Users\\\\Jeanc\\\\MestreDoPC_V7/);
 });
+
+test("V10 exibe status do perfil de modelo na interface", async () => {
+  const html = await readFile(join(root, "v10", "index.html"), "utf8");
+  assert.match(html, /modelProfileStatus/);
+  assert.match(html, /modelProfileText/);
+  assert.match(html, /modelProfile/);
+  assert.match(html, /modelProfileIcon/);
+});

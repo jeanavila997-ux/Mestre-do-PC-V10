@@ -1,0 +1,88 @@
+{
+  "defaultProfile": "balanced",
+  "profiles": {
+    "fast": {
+      "label": "Rápido",
+      "description": "Latência baixa para tarefas simples e respostas curtas. Ideal para consultas rápidas no desktop.",
+      "model": "qwen2.5-coder:1.5b",
+      "recommended": {
+        "minRamGB": 4,
+        "gpuRecommended": false
+      },
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.5,
+        "top_p": 0.85,
+        "top_k": 30,
+        "num_predict": 512
+      }
+    },
+    "balanced": {
+      "label": "Equilibrado",
+      "description": "Bom equilíbrio entre velocidade e qualidade para automação e manutenção do Windows.",
+      "model": "qwen2.5-coder:3b-instruct",
+      "recommended": {
+        "minRamGB": 8,
+        "gpuRecommended": false
+      },
+      "options": {
+        "num_ctx": 8192,
+        "temperature": 0.6,
+        "top_p": 0.9,
+        "top_k": 40,
+        "num_predict": 1024
+      }
+    },
+    "agent": {
+      "label": "Agente de Automação",
+      "description": "Modelo especializado em automação de tarefas e execução de ferramentas no desktop.",
+      "model": "fazendaavila2026/agente:latest",
+      "fallbackModel": "qwen2.5-coder:7b",
+      "recommended": {
+        "minRamGB": 8,
+        "gpuRecommended": true
+      },
+      "options": {
+        "num_ctx": 8192,
+        "temperature": 0.4,
+        "top_p": 0.85,
+        "top_k": 30,
+        "num_predict": 1024
+      }
+    },
+    "coding": {
+      "label": "Código",
+      "description": "Melhor qualidade para geração de scripts PowerShell, correções e automações complexas.",
+      "model": "qwen2.5-coder:7b",
+      "recommended": {
+        "minRamGB": 12,
+        "gpuRecommended": true
+      },
+      "options": {
+        "num_ctx": 16384,
+        "temperature": 0.3,
+        "top_p": 0.85,
+        "top_k": 30,
+        "num_predict": 2048
+      }
+    },
+    "reasoning": {
+      "label": "Raciocínio",
+      "description": "Modelo de raciocínio para diagnósticos complexos e análise de logs críticos.",
+      "model": "deepseek-r1:7b",
+      "fallbackModel": "phi4:14b",
+      "recommended": {
+        "minRamGB": 16,
+        "gpuRecommended": true
+      },
+      "options": {
+        "num_ctx": 16384,
+        "temperature": 0.6,
+        "top_p": 0.9,
+        "top_k": 40,
+        "num_predict": 2048,
+        "think": true
+      }
+    }
+  }
+}
