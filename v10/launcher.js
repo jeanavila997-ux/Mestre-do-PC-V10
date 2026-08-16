@@ -22,6 +22,7 @@ const EXTENSION_ORIGINS = (process.env.MESTRE_EXTENSION_ORIGINS || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+const NPP_TOKEN = process.env.MESTRE_NPP_TOKEN || "";
 const MAX_CONCURRENT_JOBS = 3;
 const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 const JOB_RETENTION_MS = 30 * 60 * 1000;
@@ -69,13 +70,24 @@ const jobs = new Map();
 function cors(res, origin = BASE_URL) {
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token, X-Mestre-Npp-Token");
   res.setHeader("Vary", "Origin");
 }
 
 function isExtensionOrigin(origin) {
   if (!origin) return false;
   return EXTENSION_ORIGINS.some((allowed) => allowed === origin || (allowed.endsWith("/*") && origin.startsWith(allowed.slice(0, -1))));
+}
+
+function isNppOrigin(origin) {
+  // PythonScript/WinInet pode enviar origin vazio ou 127.0.0.1 com porta dinâmica.
+  if (!origin) return true;
+  try {
+    const parsed = new URL(origin);
+    return parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
+  } catch {
+    return origin.startsWith("http://127.0.0.1") || origin.startsWith("http://localhost");
+  }
 }
 
 function isAuthorized(req) {
@@ -86,6 +98,9 @@ function isAuthorized(req) {
   if (EXTENSION_TOKEN && client === "browser-extension" && req.headers["x-mestre-extension-token"] === EXTENSION_TOKEN) {
     // Origem da extensão deve estar na allowlist ou requisição sem origin (ex: service worker).
     return !origin || isExtensionOrigin(origin);
+  }
+  if (NPP_TOKEN && client === "notepad-plus-plus" && req.headers["x-mestre-npp-token"] === NPP_TOKEN) {
+    return isNppOrigin(origin);
   }
   return false;
 }
@@ -98,6 +113,7 @@ function getAllowedOrigin(req) {
   const origin = req.headers.origin || "";
   if (origin === BASE_URL) return BASE_URL;
   if (isExtensionOrigin(origin)) return origin;
+  if (isNppOrigin(origin)) return origin || BASE_URL;
   return BASE_URL;
 }
 
@@ -107,7 +123,7 @@ function sendJson(res, status, data, allowOrigin = BASE_URL) {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token",
+    "Access-Control-Allow-Headers": "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token, X-Mestre-Npp-Token",
     "Vary": "Origin",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
@@ -290,6 +306,133 @@ async function proxyOllamaJson(path, res, allowOrigin = BASE_URL) {
   sendJson(res, upstream.status, data, allowOrigin);
 }
 
+// ===== Notepad++ integration helpers =====
+const NPP_ALLOWED_ACTIONS = new Set(["explain_code", "ask_ai", "suggest_cmd", "quick_diag", "search_web"]);
+
+function isNppAuthorized(req) {
+  const client = req.headers["x-mestre-client"] || "";
+  const token = req.headers["x-mestre-npp-token"] || "";
+  return NPP_TOKEN && client === "notepad-plus-plus" && token === NPP_TOKEN;
+}
+
+async function callOllamaChat(messages, allowOrigin = BASE_URL) {
+  const model = process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct";
+  const upstream = await fetch(OLLAMA_URL + "/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model, messages, stream: false, keep_alive: "10m" }),
+    signal: AbortSignal.timeout(60000),
+  });
+  if (!upstream.ok) {
+    const text = await upstream.text().catch(() => "");
+    throw new Error("Ollama error HTTP " + upstream.status + ": " + text);
+  }
+  const data = await upstream.json();
+  return data.message?.content || "";
+}
+
+async function runAllowedOperation(operationId, params = {}) {
+  const op = operationsById.get(operationId);
+  if (!op) throw new Error("Operação não encontrada: " + operationId);
+  const resolved = resolveCommand({ id: operationId, params });
+  if (resolved.error) throw new Error(resolved.error);
+  const id = runPowerShell(resolved.cmd, { id: operationId, destructive: !!op.destructive });
+  return new Promise((resolve, reject) => {
+    const timer = setInterval(() => {
+      const job = jobs.get(id);
+      if (!job) return;
+      if (job.state === "completed") {
+        clearInterval(timer);
+        resolve(job.output || "");
+      }
+    }, 250);
+    setTimeout(() => { clearInterval(timer); reject(new Error("Timeout ao aguardar operação")); }, 60000);
+  });
+}
+
+async function searchWebDuckDuckGo(query, maxResults = 5) {
+  const limit = Math.min(Math.max(1, Math.floor(Number(maxResults) || 5)), 10);
+  const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}&kl=br-pt`;
+  const res = await fetch(searchUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept-Language": "pt-BR,pt;q=0.9",
+    },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) throw new Error("DuckDuckGo retornou HTTP " + res.status);
+  const html = await res.text();
+  if (html.includes("anomaly.js") || html.includes("challenge-form")) {
+    throw new Error("DuckDuckGo bloqueou a requisição (anti-bot).");
+  }
+  const results = [];
+  const blocks = html.split(/<div class="result[^"]*">/i).slice(1);
+  for (const block of blocks.slice(0, limit)) {
+    const titleMatch = block.match(/<a[^\u003e]*class="result__a"[^\u003e]*href="([^"]+)"[^\u003e]*>([\s\S]*?)<\/a>/i);
+    const snippetMatch = block.match(/<a[^\u003e]*class="result__snippet"[^\u003e]*>([\s\S]*?)<\/a>/i);
+    if (titleMatch) {
+      let url = titleMatch[1];
+      const uddg = url.match(/[?&]uddg=([^\u0026]+)/i);
+      if (uddg) try { url = decodeURIComponent(uddg[1]); } catch {}
+      results.push({
+        title: stripTags(titleMatch[2]).trim(),
+        url: url.trim(),
+        snippet: snippetMatch ? stripTags(snippetMatch[1]).trim() : "",
+      });
+    }
+  }
+  return results;
+}
+
+function stripTags(html) {
+  return html
+    .replace(/<script\b[^\u003c]*(?:(?!<\/script>)<[^\u003c]*)*<\/script>/gi, "")
+    .replace(/<style\b[^\u003c]*(?:(?!<\/style>)<[^\u003c]*)*<\/style>/gi, "")
+    .replace(/<[^\u003e]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+async function handleNppAction(action, payload) {
+  const text = (payload.text || "").slice(0, 8000);
+  const language = (payload.language || "").slice(0, 64);
+  switch (action) {
+    case "explain_code": {
+      const system = "Você é um assistente técnico. Explique o código ou texto fornecido de forma clara e objetiva em português.";
+      const user = language ? `[${language}]\n${text}` : text;
+      return await callOllamaChat([{ role: "system", content: system }, { role: "user", content: user }]);
+    }
+    case "ask_ai": {
+      const question = (payload.question || "Responda sobre o texto/código fornecido.").slice(0, 2000);
+      return await callOllamaChat([
+        { role: "system", content: "Você é um assistente técnico. Responda em português com base no contexto fornecido." },
+        { role: "user", content: `Contexto:\n${text}\n\nPergunta: ${question}` },
+      ]);
+    }
+    case "suggest_cmd": {
+      const prompt = `Dado o seguinte problema/descrição, sugira um comando do Mestre do PC (PowerShell/Windows) que ajudaria a resolver. Responda apenas com o comando e uma breve explicação em português.\n\n${text}`;
+      return await callOllamaChat([{ role: "user", content: prompt }]);
+    }
+    case "quick_diag": {
+      return await runAllowedOperation("relatorio_rapido_do_pc");
+    }
+    case "search_web": {
+      const query = (payload.query || text || "").slice(0, 256);
+      if (!query) throw new Error("Query vazia para busca na web.");
+      const results = await searchWebDuckDuckGo(query, payload.max_results);
+      if (!results.length) return "Nenhum resultado encontrado.";
+      return results.map((r, i) => `${i + 1}. ${r.title}\n   URL: ${r.url}\n   ${r.snippet}`).join("\n\n");
+    }
+    default:
+      throw new Error("Ação não suportada: " + action);
+  }
+}
+
 // Métricas do sistema via PowerShell (para o dashboard V10).
 function getSystemStatus(res) {
   const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `
@@ -396,6 +539,23 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { success: true, output: "Terminal aberto." }, allowedOrigin);
     }
 
+    // Notepad++ integration endpoint
+    if (path === "/npp" && req.method === "POST") {
+      if (!NPP_TOKEN) return sendJson(res, 501, { success: false, error: "Integração Notepad++ não configurada. Defina MESTRE_NPP_TOKEN." }, allowedOrigin);
+      if (!isNppAuthorized(req)) return sendJson(res, 403, { success: false, error: "Cliente não autorizado." }, allowedOrigin);
+      const body = await readBody(req, 64 * 1024);
+      const action = (body.action || "").toString();
+      if (!NPP_ALLOWED_ACTIONS.has(action)) {
+        return sendJson(res, 400, { success: false, error: "Ação não permitida." }, allowedOrigin);
+      }
+      try {
+        const output = await handleNppAction(action, body.payload || {});
+        return sendJson(res, 200, { success: true, action, output }, allowedOrigin);
+      } catch (e) {
+        return sendJson(res, 500, { success: false, error: e.message }, allowedOrigin);
+      }
+    }
+
     // Proxy Ollama
     if (path === "/ollama/tags") return proxyOllamaJson("/api/tags", res, allowedOrigin);
     if (path === "/ollama/chat" && req.method === "POST") {
@@ -443,7 +603,8 @@ server.listen(PORT, HOST, () => {
   console.log(`Operações cadastradas: ${allowedOperations.length}; templates: ${allowedTemplates.length}`);
   console.log(`Ollama proxy -> ${OLLAMA_URL}`);
   console.log(`Extensão do navegador: ${EXTENSION_TOKEN ? "habilitada" : "desabilitada (defina MESTRE_EXTENSION_TOKEN)"}`);
-  console.log(`Dashboard /status | Streaming /ollama/chat`);
+  console.log(`Notepad++: ${NPP_TOKEN ? "habilitado" : "desabilitado (defina MESTRE_NPP_TOKEN)"}`);
+  console.log(`Dashboard /status | Streaming /ollama/chat | Notepad++ /npp`);
 });
 
 const cleanupTimer = setInterval(() => {

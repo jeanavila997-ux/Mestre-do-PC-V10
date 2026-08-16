@@ -44,7 +44,12 @@ Este projeto executa funções administrativas. Leia [SECURITY.md](SECURITY.md) 
 - `v10/`: interface e launcher local;
 - `mcp-server/`: integração MCP;
 - `docs/`: documentação;
-- `startup/`: arquivos auxiliares de inicialização.
+- `startup/`: arquivos auxiliares de inicialização;
+- `v10/notepad-plus-plus/`: integração com Notepad++.
+
+## Integração com Notepad++
+
+O Mestre do PC pode ser invocado diretamente do Notepad++ para explicar código, perguntar à IA, sugerir comandos, gerar diagnósticos e buscar na web. Veja [docs/notepad-plus-plus-integration.md](docs/notepad-plus-plus-integration.md).
 
 ## Produto comercial
 
