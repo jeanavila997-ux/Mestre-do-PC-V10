@@ -122,10 +122,15 @@
         opacity: 0.4;
         animation: float 4s ease-in-out infinite;
       }
-      /* Card entrance animation */
+      /* Card entrance animation.
+         Usa `backwards` (e NÃO `forwards` + opacity:0 na base): o estado normal do
+         card precisa ser visível por si só. Com `forwards`, a visibilidade dependia
+         do preenchimento da fadeInUp — e qualquer regra que substituísse a
+         propriedade `animation` (ex.: .cmd-card-new:hover) derrubava o card de volta
+         para opacity:0, fazendo o comando sumir ao passar o mouse.
+         Com `backwards`, o estado base é visível e a animação de entrada continua. */
       .cmd-card {
-        opacity: 0;
-        animation: fadeInUp 0.4s ease-out forwards;
+        animation: fadeInUp 0.4s ease-out backwards;
       }
       /* Progress bar animation */
       .progress-fill {
@@ -394,6 +399,8 @@
         transition: 0.2s;
       }
       .btn-open-ps:hover { background: var(--accent); color: #000; }
+      .btn-stop { border-color: rgba(248,81,73,0.5); color: var(--danger); }
+      .btn-stop:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
       .btn-ia-local { background: linear-gradient(135deg, #a200ff, #00d4ff); color: white; border: none; }
       /* ===== NOVO: botão tema ===== */
       .btn-theme {
@@ -791,6 +798,7 @@
           <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11">🎉 Novidades V11</button></a>
           <button class="btn-open-ps" onclick="openPS()">⚡ PowerShell</button>
           <button class="btn-open-ps btn-ia-local" onclick="openAI()">🤖 IA Local</button>
+          <button class="btn-open-ps btn-stop" onclick="stopLauncher()" title="Parar o launcher (encerra o servidor local)">⏻ Parar</button>
         </div>
       </div>
       <!-- NOVO: Dashboard de métricas -->
@@ -1972,6 +1980,39 @@
           showToast("✅ Terminal admin aberto.", "var(--accent2)");
         } catch (err) { showToast("❌ " + err.message, "#f85149"); }
       }
+      // Encerra o launcher (POST /shutdown). Operação destrutiva: exige confirmação
+      // explícita e avisa quando há comandos em andamento que serão interrompidos.
+      async function stopLauncher() {
+        if (serverOnline === false) { showToast("ℹ️ O launcher já está parado.", "#00d4ff"); return; }
+        let aviso = "Parar o Mestre do PC?\n\nA interface deixa de funcionar até você iniciar o launcher de novo.";
+        try {
+          const ping = await fetch(API + "/ping", { signal: AbortSignal.timeout(3000) });
+          const info = await ping.json();
+          if (info.activeJobs > 0) {
+            aviso += `\n\n⚠️ ${info.activeJobs} comando(s) em execução serão interrompidos.`;
+          }
+        } catch { /* segue com o aviso padrão */ }
+        if (!confirm(aviso)) return;
+        showToast("⏻ Encerrando launcher...", "#f85149");
+        try {
+          const res = await fetch(API + "/shutdown", { method: "POST", headers: { "X-Mestre-Client": "v10-web" }, signal: AbortSignal.timeout(10000) });
+          const data = await res.json();
+          if (res.ok === false || data.success !== true) throw new Error(data.output || "Falha ao encerrar.");
+          serverOnline = false;
+          showToast("✅ " + data.output, "var(--accent2)");
+        } catch (err) {
+          // O processo pode morrer antes de a resposta chegar — confirma pelo /ping.
+          try {
+            await fetch(API + "/ping", { signal: AbortSignal.timeout(2000) });
+            showToast("❌ " + err.message, "#f85149");
+          } catch {
+            serverOnline = false;
+            showToast("✅ Launcher encerrado.", "var(--accent2)");
+          }
+        }
+        if (typeof checkServer === "function") checkServer();
+      }
+
       // ===== INTEGRAÇÃO OLLAMA (padrão V7) =====
       // V10 usa SEMPRE o proxy do launcher (resolve CORS do file://).
       // O Ollama nativo continua rodando em localhost:11434, mas o browser
@@ -2780,10 +2821,16 @@ COMANDOS QUE VOCÊ CONHECE:
       });
 
       // ===== ANIMAÇÕES: Entrada staggered dos cards =====
+      // O stagger é por categoria e com teto: o índice global chegava a 331 cards,
+      // gerando delays de até ~9,9s — a categoria abria e os últimos comandos só
+      // apareciam segundos depois.
+      const STAGGER_STEP = 0.03;
+      const STAGGER_MAX = 0.3;
       function animateCardsStagger() {
-        const cards = document.querySelectorAll('.cmd-card');
-        cards.forEach((card, index) => {
-          card.style.animationDelay = (index * 0.03) + 's';
+        document.querySelectorAll('.category-content').forEach((grupo) => {
+          grupo.querySelectorAll('.cmd-card').forEach((card, index) => {
+            card.style.animationDelay = Math.min(index * STAGGER_STEP, STAGGER_MAX) + 's';
+          });
         });
       }
       animateCardsStagger();

@@ -224,6 +224,8 @@ function runPowerShell(cmd, meta = {}) {
     windowsHide: true,
     env: { ...process.env, MESTRE_PROJETO_PATH: PROJECT_DIR },
   });
+  // Referência usada por /shutdown para interromper comandos em andamento.
+  job.child = ps;
   const timeout = setTimeout(() => {
     if (job.state === "running") {
       ps.kill();
@@ -533,6 +535,34 @@ const server = http.createServer(async (req, res) => {
       }, allowedOrigin);
     }
 
+    // Encerra o próprio launcher. Usa a mesma autorização do /run (origem + header
+    // X-Mestre-Client), então só a UI local, o MCP ou a extensão autenticada podem
+    // chamar. Responde antes de sair para o cliente receber a confirmação.
+    if (path === "/shutdown" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado." }, allowedOrigin);
+      const ativos = getRunningJobCount();
+      sendJson(res, 200, {
+        success: true,
+        output: ativos > 0
+          ? `Launcher encerrando. ${ativos} comando(s) em execução serão interrompidos.`
+          : "Launcher encerrando.",
+        activeJobs: ativos,
+        pid: process.pid,
+      }, allowedOrigin);
+      res.on("finish", () => {
+        console.log(`Encerrando launcher por solicitação da interface (jobs ativos: ${ativos}).`);
+        for (const job of jobs.values()) {
+          if (job.state === "running" && job.child) {
+            try { job.child.kill(); } catch { /* processo já saiu */ }
+          }
+        }
+        server.close(() => process.exit(0));
+        // Rede de segurança: se alguma conexão keep-alive travar o close.
+        setTimeout(() => process.exit(0), 1500).unref();
+      });
+      return;
+    }
+
     if (path === "/open-terminal" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado." }, allowedOrigin);
       spawn("powershell.exe", ["-NoLogo", "-NoExit", "-Command", "Set-Location '" + __dirname.replace(/'/g, "''") + "'"], { windowsHide: false, detached: true, stdio: "ignore" }).unref();
@@ -603,6 +633,38 @@ const server = http.createServer(async (req, res) => {
         });
         return res.end(js);
       } catch { return sendJson(res, 404, { error: "rede-dashboard.js não encontrado" }); }
+    }
+
+    // ===== NOVO V11.2: Páginas .html estáticas do diretório v10 (ex: /novidades-v11.html) =====
+    // Regex restringe a um único nome de arquivo seguro (sem path traversal).
+    if (req.method === "GET" && /^\/[a-z0-9-]+\.html$/i.test(path)) {
+      try {
+        const html = await readFile(join(__dirname, path.slice(1)), "utf8");
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "Cache-Control": "no-store",
+        });
+        return res.end(html);
+      } catch { return sendJson(res, 404, { error: "página não encontrada" }); }
+    }
+
+    // ===== NOVO V11.2: SPA fallback — rotas de seção (ex: /8.diagnostico) servem index.html =====
+    // Rotas de API acima já retornaram; qualquer GET sem extensão de arquivo é rota de seção.
+    if (req.method === "GET" && !path.includes(".")) {
+      try {
+        const html = await readFile(join(__dirname, "index.html"), "utf8");
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "Cache-Control": "no-store",
+        });
+        return res.end(html);
+      } catch { return sendJson(res, 404, { error: "index.html não encontrado" }); }
     }
 
     sendJson(res, 404, { success: false, output: "Rota não encontrada." });

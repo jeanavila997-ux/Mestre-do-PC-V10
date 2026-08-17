@@ -1,5 +1,9 @@
 node_modules/
 package-lock.json
+# Lockfile do mcp-server é rastreado de propósito: o CI usa `npm ci` e faz
+# cache a partir dele (.github/workflows/ci.yml). npm é o gerenciador oficial
+# do projeto — não commitar pnpm-lock.yaml nem yarn.lock.
+!mcp-server/package-lock.json
 npm-debug.log*
 yarn.lock
 pnpm-lock.yaml

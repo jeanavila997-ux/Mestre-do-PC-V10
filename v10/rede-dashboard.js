@@ -141,18 +141,26 @@ const RedeDashboard = {
   // Estilos CSS
   getStyles() {
     return `
+      /* O painel é injetado dentro de #dashboard, que é um grid de métricas
+         (repeat(auto-fit, minmax(160px,1fr))). Sem grid-column ele caía numa célula
+         de ~187px e o layout inteiro dependia do container de métricas: os botões
+         vazavam da caixa e os 6 mini-cards viravam uma pilha de 1130px de altura.
+         grid-column: 1/-1 dá ao painel a linha inteira e o torna autônomo.
+         O margin vira 0 porque o espaçamento já vem do gap do grid pai. */
       #rede-dash {
-        background: linear-gradient(135deg, #0f1923 0%, #1a2332 100%);
+        grid-column: 1 / -1;
+        background: var(--panel);
         border-radius: 16px;
         padding: 20px;
-        margin: 16px 0;
+        margin: 0;
         border: 1px solid rgba(0,212,255,.2);
         font-family: 'Segoe UI', system-ui, sans-serif;
       }
       .rd-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-      .rd-title { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: #e6edf3; }
+      .rd-title { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--text); }
       .rd-icon { font-size: 24px; }
-      .rd-actions { display: flex; gap: 8px; }
+      /* flex-wrap evita que os 3 botões estourem a caixa em larguras estreitas. */
+      .rd-actions { display: flex; gap: 8px; flex-wrap: wrap; }
       .rd-btn { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all .2s; }
       .rd-btn:disabled { opacity: .4; cursor: not-allowed; }
       .rd-on { background: linear-gradient(135deg,#00c853,#00e676); color: #000; }
@@ -160,16 +168,16 @@ const RedeDashboard = {
       .rd-test { background: linear-gradient(135deg,#2196f3,#21bbf3); color: #fff; }
       .rd-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.3); }
       .rd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 16px; }
-      .rd-card { background: rgba(255,255,255,.04); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,.06); transition: all .3s; }
+      .rd-card { background: var(--card); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); transition: all .3s; }
       .rd-card:hover { background: rgba(255,255,255,.07); transform: translateY(-2px); }
       .rd-card-icon { font-size: 22px; }
       .rd-card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: .5px; }
-      .rd-card-value { font-size: 16px; font-weight: 700; color: #e6edf3; }
+      .rd-card-value { font-size: 16px; font-weight: 700; color: var(--text); }
       .rd-card-value.ok { color: #00e676; }
       .rd-card-value.warn { color: #ffc107; }
       .rd-card-value.err { color: #ff5252; }
       .rd-info { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px; background: rgba(0,0,0,.2); border-radius: 10px; margin-bottom: 16px; font-size: 13px; color: #8b949e; }
-      .rd-info b { color: #e6edf3; }
+      .rd-info b { color: var(--text); }
       .rd-status { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,.03); border-radius: 10px; }
       .rd-badge { padding: 6px 18px; border-radius: 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
       .rd-badge.saudavel { background: linear-gradient(135deg,#00c853,#00e676); color: #000; }
@@ -177,17 +185,17 @@ const RedeDashboard = {
       .rd-badge.critico { background: linear-gradient(135deg,#ff5252,#ff1744); color: #fff; animation: rd-pulse 1.5s infinite; }
       @keyframes rd-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
       .rd-history { margin-bottom: 16px; }
-      .rd-history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; color: #e6edf3; }
+      .rd-history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; color: var(--text); }
       .rd-btn-sm { background: rgba(255,255,255,.1); border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all .2s; }
       .rd-btn-sm:hover { background: rgba(255,255,255,.15); }
       .rd-history-body { overflow-x: auto; background: rgba(0,0,0,.2); border-radius: 10px; }
       .rd-table { width: 100%; border-collapse: collapse; font-size: 12px; }
       .rd-table th { background: rgba(0,212,255,.15); color: #00d4ff; padding: 10px 8px; text-align: left; font-weight: 600; }
-      .rd-table td { padding: 8px; color: #e6edf3; border-bottom: 1px solid rgba(255,255,255,.04); }
+      .rd-table td { padding: 8px; color: var(--text); border-bottom: 1px solid rgba(255,255,255,.04); }
       .rd-table tr:hover { background: rgba(255,255,255,.03); }
       .rd-ai { background: rgba(0,0,0,.2); border-radius: 10px; padding: 14px; }
       .rd-ai-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 600; color: #a78bfa; }
-      .rd-ai-body { color: #e6edf3; font-size: 13px; line-height: 1.6; }
+      .rd-ai-body { color: var(--text); font-size: 13px; line-height: 1.6; }
       .rd-ai-body.loading { opacity: .6; }
       .rd-ai-body p { margin: 0; color: #8b949e; }
     `;
