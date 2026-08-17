@@ -28,6 +28,21 @@ const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 const JOB_RETENTION_MS = 30 * 60 * 1000;
 const MAX_CMD_LENGTH = 32768;
 
+// O /ping reportava admin:false fixo, entao a interface mostrava "sem elevacao"
+// mesmo com o launcher rodando como Administrador. `net session` só responde 0
+// para conta elevada — é a checagem clássica no Windows. Roda uma vez no boot e
+// fica em cache; o estado de elevação não muda durante a vida do processo.
+let isElevated = false;
+function detectarElevacao() {
+  return new Promise((resolve) => {
+    try {
+      const p = spawn("net", ["session"], { windowsHide: true, stdio: "ignore" });
+      p.on("close", (code) => resolve(code === 0));
+      p.on("error", () => resolve(false));
+    } catch { resolve(false); }
+  });
+}
+
 const operationsFile = join(__dirname, "allowed-operations.json");
 const rawCatalog = JSON.parse(await readFile(operationsFile, "utf8"));
 
@@ -476,7 +491,7 @@ const server = http.createServer(async (req, res) => {
     if (path === "/ping") {
       return sendJson(res, 200, {
         status: "ok",
-        admin: false,
+        admin: isElevated,
         state: getRunningJobCount() > 0 ? "busy" : "idle",
         activeJobs: getRunningJobCount(),
         version: "10.1.0",
@@ -673,9 +688,11 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, async () => {
   console.log(`Mestre do PC V10 - Launcher ativo em http://${HOST}:${PORT}`);
   console.log(`Operações cadastradas: ${allowedOperations.length}; templates: ${allowedTemplates.length}`);
+  isElevated = await detectarElevacao();
+  console.log(`Elevação: ${isElevated ? "Administrador" : "usuário comum (comandos administrativos vão falhar)"}`);
   console.log(`Ollama proxy -> ${OLLAMA_URL}`);
   console.log(`Extensão do navegador: ${EXTENSION_TOKEN ? "habilitada" : "desabilitada (defina MESTRE_EXTENSION_TOKEN)"}`);
   console.log(`Notepad++: ${NPP_TOKEN ? "habilitado" : "desabilitado (defina MESTRE_NPP_TOKEN)"}`);
