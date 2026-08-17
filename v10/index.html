@@ -401,6 +401,9 @@
       .btn-open-ps:hover { background: var(--accent); color: #000; }
       .btn-stop { border-color: rgba(248,81,73,0.5); color: var(--danger); }
       .btn-stop:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+      .btn-start { border-color: rgba(0,255,136,0.5); color: var(--accent2); }
+      .btn-start:hover { background: var(--accent2); color: #000; border-color: var(--accent2); }
+      .btn-start.aguardando { animation: neonGreenPulse 1.5s ease-in-out infinite; }
       .btn-ia-local { background: linear-gradient(135deg, #a200ff, #00d4ff); color: white; border: none; }
       /* ===== NOVO: botão tema ===== */
       .btn-theme {
@@ -798,7 +801,7 @@
           <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11">🎉 Novidades V11</button></a>
           <button class="btn-open-ps" onclick="openPS()">⚡ PowerShell</button>
           <button class="btn-open-ps btn-ia-local" onclick="openAI()">🤖 IA Local</button>
-          <button class="btn-open-ps btn-stop" onclick="stopLauncher()" title="Parar o launcher (encerra o servidor local)">⏻ Parar</button>
+          <button class="btn-open-ps btn-stop" id="btnPower" onclick="togglePower()" title="Parar o launcher (encerra o servidor local)">⏻ Parar</button>
         </div>
       </div>
       <!-- NOVO: Dashboard de métricas -->
@@ -1880,6 +1883,7 @@
           document.getElementById("launcherStatusIcon").textContent = "🔴";
           document.getElementById("statusText").innerHTML = "Launcher offline — <strong>Execute o atalho Mestre do PC</strong>";
         }
+        atualizarBotaoPower();
         if (serverOnline) {
           try {
             const r = await fetch(API + "/mcp-status", { signal: AbortSignal.timeout(3000) });
@@ -1980,8 +1984,73 @@
           showToast("✅ Terminal admin aberto.", "var(--accent2)");
         } catch (err) { showToast("❌ " + err.message, "#f85149"); }
       }
+      // ===== LIGA/DESLIGA DO LAUNCHER =====
+      // Um botão só, que troca de papel conforme o estado do servidor.
+      let aguardandoLauncher = false;
+
+      function atualizarBotaoPower() {
+        const b = document.getElementById("btnPower");
+        if (!b || aguardandoLauncher) return;
+        if (serverOnline) {
+          b.textContent = "⏻ Parar";
+          b.className = "btn-open-ps btn-stop";
+          b.title = "Parar o launcher (encerra o servidor local)";
+        } else {
+          b.textContent = "▶ Ativar";
+          b.className = "btn-open-ps btn-start";
+          b.title = "Ativar o launcher";
+        }
+      }
+
+      function togglePower() { return serverOnline ? stopLauncher() : ativarLauncher(); }
+
+      // Uma página web não consegue iniciar um processo local sozinha — sem launcher
+      // no ar não há nada que aceite o pedido. Então "Ativar" entrega o comando pronto
+      // e fica vigiando a porta: assim que o launcher sobe, a interface se recupera
+      // sozinha, sem o usuário precisar recarregar na mão.
+      const COMANDO_ATIVAR = "powershell -ExecutionPolicy Bypass -File .\\start-mestre-v10.ps1";
+
+      async function ativarLauncher() {
+        const b = document.getElementById("btnPower");
+        // Pode ter voltado por fora (atalho, terminal) desde a última verificação.
+        await checkServer();
+        if (serverOnline) { showToast("✅ Launcher já está ativo.", "var(--accent2)"); atualizarBotaoPower(); return; }
+
+        try { await navigator.clipboard.writeText(COMANDO_ATIVAR); } catch { /* sem clipboard, o texto do toast basta */ }
+        showToast("📋 Comando copiado — cole no PowerShell ou use o atalho Mestre do PC.", "#00d4ff");
+
+        aguardandoLauncher = true;
+        if (b) { b.textContent = "⏳ Aguardando..."; b.className = "btn-open-ps btn-start aguardando"; b.title = COMANDO_ATIVAR; }
+
+        // Vigia por 2 minutos; passou disso, devolve o botão ao estado normal.
+        const limite = Date.now() + 120000;
+        const timer = setInterval(async () => {
+          let vivo = false;
+          try {
+            const r = await fetch(API + "/ping", { signal: AbortSignal.timeout(1200), cache: "no-store" });
+            vivo = r.ok;
+          } catch { /* ainda subindo */ }
+
+          if (vivo) {
+            clearInterval(timer);
+            aguardandoLauncher = false;
+            serverOnline = true;
+            // Devolve o botão ao estado real ANTES de tentar recarregar: se o reload
+            // não acontecer, o botão nao pode continuar preso em "Aguardando".
+            atualizarBotaoPower();
+            showToast("✅ Launcher ativo! Recarregando...", "var(--accent2)");
+            setTimeout(() => location.reload(), 700);
+          } else if (Date.now() > limite) {
+            clearInterval(timer);
+            aguardandoLauncher = false;
+            atualizarBotaoPower();
+            showToast("⏱️ Launcher não subiu. Rode o atalho Mestre do PC.", "#f0a800");
+          }
+        }, 2000);
+      }
+
       // Encerra o launcher (POST /shutdown). Operação destrutiva: exige confirmação
-      // explícita e avisa quando há comandos em andamento que serão interrompidos.
+      // explícita e avisa quantos comandos serão interrompidos.
       async function stopLauncher() {
         if (serverOnline === false) { showToast("ℹ️ O launcher já está parado.", "#00d4ff"); return; }
         let aviso = "Parar o Mestre do PC?\n\nA interface deixa de funcionar até você iniciar o launcher de novo.";
@@ -1999,6 +2068,7 @@
           const data = await res.json();
           if (res.ok === false || data.success !== true) throw new Error(data.output || "Falha ao encerrar.");
           serverOnline = false;
+          atualizarBotaoPower();
           showToast("✅ " + data.output, "var(--accent2)");
         } catch (err) {
           // O processo pode morrer antes de a resposta chegar — confirma pelo /ping.
