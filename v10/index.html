@@ -399,6 +399,8 @@
         transition: 0.2s;
       }
       .btn-open-ps:hover { background: var(--accent); color: #000; }
+      .btn-stop { border-color: rgba(248,81,73,0.5); color: var(--danger); }
+      .btn-stop:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
       .btn-ia-local { background: linear-gradient(135deg, #a200ff, #00d4ff); color: white; border: none; }
       /* ===== NOVO: botão tema ===== */
       .btn-theme {
@@ -796,6 +798,7 @@
           <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11">🎉 Novidades V11</button></a>
           <button class="btn-open-ps" onclick="openPS()">⚡ PowerShell</button>
           <button class="btn-open-ps btn-ia-local" onclick="openAI()">🤖 IA Local</button>
+          <button class="btn-open-ps btn-stop" onclick="stopLauncher()" title="Parar o launcher (encerra o servidor local)">⏻ Parar</button>
         </div>
       </div>
       <!-- NOVO: Dashboard de métricas -->
@@ -1977,6 +1980,39 @@
           showToast("✅ Terminal admin aberto.", "var(--accent2)");
         } catch (err) { showToast("❌ " + err.message, "#f85149"); }
       }
+      // Encerra o launcher (POST /shutdown). Operação destrutiva: exige confirmação
+      // explícita e avisa quando há comandos em andamento que serão interrompidos.
+      async function stopLauncher() {
+        if (serverOnline === false) { showToast("ℹ️ O launcher já está parado.", "#00d4ff"); return; }
+        let aviso = "Parar o Mestre do PC?\n\nA interface deixa de funcionar até você iniciar o launcher de novo.";
+        try {
+          const ping = await fetch(API + "/ping", { signal: AbortSignal.timeout(3000) });
+          const info = await ping.json();
+          if (info.activeJobs > 0) {
+            aviso += `\n\n⚠️ ${info.activeJobs} comando(s) em execução serão interrompidos.`;
+          }
+        } catch { /* segue com o aviso padrão */ }
+        if (!confirm(aviso)) return;
+        showToast("⏻ Encerrando launcher...", "#f85149");
+        try {
+          const res = await fetch(API + "/shutdown", { method: "POST", headers: { "X-Mestre-Client": "v10-web" }, signal: AbortSignal.timeout(10000) });
+          const data = await res.json();
+          if (res.ok === false || data.success !== true) throw new Error(data.output || "Falha ao encerrar.");
+          serverOnline = false;
+          showToast("✅ " + data.output, "var(--accent2)");
+        } catch (err) {
+          // O processo pode morrer antes de a resposta chegar — confirma pelo /ping.
+          try {
+            await fetch(API + "/ping", { signal: AbortSignal.timeout(2000) });
+            showToast("❌ " + err.message, "#f85149");
+          } catch {
+            serverOnline = false;
+            showToast("✅ Launcher encerrado.", "var(--accent2)");
+          }
+        }
+        if (typeof checkServer === "function") checkServer();
+      }
+
       // ===== INTEGRAÇÃO OLLAMA (padrão V7) =====
       // V10 usa SEMPRE o proxy do launcher (resolve CORS do file://).
       // O Ollama nativo continua rodando em localhost:11434, mas o browser

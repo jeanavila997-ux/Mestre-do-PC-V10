@@ -224,6 +224,8 @@ function runPowerShell(cmd, meta = {}) {
     windowsHide: true,
     env: { ...process.env, MESTRE_PROJETO_PATH: PROJECT_DIR },
   });
+  // Referência usada por /shutdown para interromper comandos em andamento.
+  job.child = ps;
   const timeout = setTimeout(() => {
     if (job.state === "running") {
       ps.kill();
@@ -531,6 +533,34 @@ const server = http.createServer(async (req, res) => {
         activeJobs: getRunningJobCount(),
         operationId: job.operationId,
       }, allowedOrigin);
+    }
+
+    // Encerra o próprio launcher. Usa a mesma autorização do /run (origem + header
+    // X-Mestre-Client), então só a UI local, o MCP ou a extensão autenticada podem
+    // chamar. Responde antes de sair para o cliente receber a confirmação.
+    if (path === "/shutdown" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado." }, allowedOrigin);
+      const ativos = getRunningJobCount();
+      sendJson(res, 200, {
+        success: true,
+        output: ativos > 0
+          ? `Launcher encerrando. ${ativos} comando(s) em execução serão interrompidos.`
+          : "Launcher encerrando.",
+        activeJobs: ativos,
+        pid: process.pid,
+      }, allowedOrigin);
+      res.on("finish", () => {
+        console.log(`Encerrando launcher por solicitação da interface (jobs ativos: ${ativos}).`);
+        for (const job of jobs.values()) {
+          if (job.state === "running" && job.child) {
+            try { job.child.kill(); } catch { /* processo já saiu */ }
+          }
+        }
+        server.close(() => process.exit(0));
+        // Rede de segurança: se alguma conexão keep-alive travar o close.
+        setTimeout(() => process.exit(0), 1500).unref();
+      });
+      return;
     }
 
     if (path === "/open-terminal" && req.method === "POST") {
