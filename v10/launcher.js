@@ -592,6 +592,19 @@ const server = http.createServer(async (req, res) => {
       } catch { return sendJson(res, 404, { error: "recurso não encontrado" }); }
     }
 
+    // ===== CORREÇÃO V10.1.1: Servir rede-dashboard.js como JavaScript =====
+    if (path === "/rede-dashboard.js") {
+      try {
+        const js = await readFile(join(__dirname, "rede-dashboard.js"), "utf8");
+        res.writeHead(200, {
+          "Content-Type": "text/javascript; charset=utf-8",
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
+        });
+        return res.end(js);
+      } catch { return sendJson(res, 404, { error: "rede-dashboard.js não encontrado" }); }
+    }
+
     sendJson(res, 404, { success: false, output: "Rota não encontrada." });
   } catch (e) {
     sendJson(res, 500, { error: e.message });

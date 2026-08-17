@@ -744,6 +744,25 @@
       .output-title { color: var(--accent); font-weight: bold; font-size: 0.9rem; }
       .output-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 1.1rem; }
       .output-content { padding: 16px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: #e6edf3; white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow-y: auto; margin: 0; }
+      /* ===== NOVO V11.1: Output History + toolbar ===== */
+      .output-header-actions { display: flex; gap: 6px; align-items: center; }
+      .output-action-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+      .output-action-btn:hover { border-color: var(--accent); background: rgba(0,212,255,0.1); }
+      .output-history { max-height: 320px; overflow-y: auto; border-top: 1px solid rgba(0,212,255,0.2); }
+      .output-empty { padding: 12px 16px; font-size: 0.8rem; color: #8b949e; }
+      .output-entry { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 10px 16px; border-left: 3px solid transparent; }
+      .output-entry.ok { border-left-color: var(--success); }
+      .output-entry.err { border-left-color: var(--danger); }
+      .output-entry-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; align-items: baseline; }
+      .output-entry-title { font-size: 0.8rem; font-weight: 600; color: var(--text); word-break: break-all; }
+      .output-entry-date { font-size: 0.7rem; color: #8b949e; white-space: nowrap; }
+      .output-entry-body { font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.78rem; color: #79c0ff; white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; margin: 0 0 6px; }
+      body.light .output-entry-body { background: rgba(0,0,0,0.05); color: #0550ae; }
+      .output-entry-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+      .output-entry-actions button { padding: 4px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.72rem; cursor: pointer; transition: 0.2s; }
+      .output-entry-actions button:hover { border-color: var(--accent); }
+      .output-entry-actions button.btn-ia:hover { border-color: var(--purple); color: #c9a0ff; }
+      .output-entry-actions button.btn-mem:hover { border-color: var(--accent2); color: var(--accent2); }
       /* ===== NOVO: Terminal modal com output ao vivo ===== */
       .term-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 9500; justify-content: center; align-items: center; }
       .term-overlay.open { display: flex; }
@@ -823,9 +842,14 @@
       <div id="outputPanel" class="output-panel">
         <div class="output-header">
           <span class="output-title">⚡ Output do Comando</span>
-          <button class="output-close" onclick="document.getElementById('outputPanel').style.display='none'">✕</button>
+          <div class="output-header-actions">
+            <button class="output-action-btn" onclick="downloadOutputReport()" title="Baixar relatório completo em Markdown">📥 Relatório</button>
+            <button class="output-action-btn" onclick="clearOutputHistory()" title="Limpar histórico de outputs">🗑️ Limpar</button>
+            <button class="output-close" onclick="document.getElementById('outputPanel').style.display='none'">✕</button>
+          </div>
         </div>
         <pre id="outputContent" class="output-content"></pre>
+        <div class="output-history" id="outputHistory"></div>
       </div>
       <!-- NOVO: Terminal modal com output ao vivo -->
       <div class="term-overlay" id="termOverlay">
@@ -864,7 +888,9 @@
             <button onclick="attachContext('app')" title="Enviar informações do app Mestre do PC">🛡️ App</button>
             <button onclick="attachImageFile()" title="Anexar imagem para análise visual">🖼️ Imagem</button>
             <button onclick="downloadChatContext()" title="Baixar todo o contexto do chat em JSON">💾 Salvar</button>
+            <button onclick="downloadChatMarkdown()" title="Baixar conversa em relatório Markdown">📥 MD</button>
             <button onclick="clearAttachments()" title="Limpar contextos anexados">🧹 Limpar</button>
+            <button onclick="clearIaConversation()" title="Limpar todo o histórico de chat da IA" style="border-color:rgba(248,81,73,0.4);color:var(--danger)">🗑️ Limpar Chat</button>
           </div>
           <div class="ia-attach-panel" id="iaAttachPanel">
             <h4 id="iaAttachTitle">Anexos ao contexto</h4>
@@ -1468,7 +1494,13 @@
       // ===== NOVO V10: Estado persistente (favoritos, histórico, tema) =====
       let favorites = JSON.parse(localStorage.getItem("mestre_v10_favs") || "[]");
       let cmdHistory = JSON.parse(localStorage.getItem("mestre_v10_history") || "[]");
-      let queue = [];
+      let queue = JSON.parse(localStorage.getItem("mestre_v10_queue") || "[]");
+
+      // ===== Persistência da fila de comandos =====
+      function saveQueue() {
+        try { localStorage.setItem("mestre_v10_queue", JSON.stringify(queue)); }
+        catch (e) { console.warn("Falha ao salvar fila:", e); }
+      }
       const DANGER_PATTERNS = [
         /cipher\s+\/w:/i,
         /format\s+[a-z]:/i,
@@ -1649,6 +1681,7 @@
         if (!codeEl) return;
         const title = codeEl.parentElement.querySelector("h4").textContent;
         queue.push({ uid, title, cmd: codeEl.innerText.trim() });
+        saveQueue();
         renderQueue();
         showToast("📋 Adicionado à fila");
       }
@@ -1667,9 +1700,9 @@
           list.appendChild(div);
         });
       }
-      function removeFromQueue(i) { queue.splice(i, 1); renderQueue(); }
+      function removeFromQueue(i) { queue.splice(i, 1); saveQueue(); renderQueue(); }
       // ===== NOVO V10: clearQueue() =====
-      function clearQueue() { queue = []; renderQueue(); showToast("📋 Fila limpa"); }
+      function clearQueue() { queue = []; saveQueue(); renderQueue(); showToast("📋 Fila limpa"); }
       // ===== NOVO V10: runQueue() — executa comandos em sequência =====
       async function runQueue() {
         if (queue.length === 0) { showToast("⚠️ Fila vazia"); return; }
@@ -1681,8 +1714,9 @@
           try {
             if (!confirmBeforeExecution(item.cmd, "queue")) continue;
             const data = await dispatchCommand(item.cmd, {});
+            addOutputEntry(item.cmd, data.output || "", data.success === true && data.state === "completed");
             cmdHistory.push({ title: item.title, cmd: item.cmd, output: data.output || "", success: data.success, date: new Date().toISOString() });
-            localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-50)));
+            localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-200)));
           } catch (e) { showToast(`❌ Erro: ${item.title}`, "#f85149"); }
         }
         clearQueue();
@@ -1742,8 +1776,9 @@
           const ok = data.success === true && data.state === "completed";
           lastTerminalOutput = data.output || "";
           setTerminalLive((data.output || "(sem output)") + `\n\n[exit ${data.exitCode ?? data.code}] [${data.state}]`, false);
+          addOutputEntry(code, data.output || "", ok);
           cmdHistory.push({ title, cmd: code, output: data.output || "", success: data.success, date: new Date().toISOString() });
-          localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-50)));
+          localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-200)));
           showToast(ok ? "✅ Comando concluído" : "❌ Comando falhou", ok ? "var(--accent2)" : "#f85149");
         } catch (e) { setTerminalLive("❌ Erro: " + e.message, false); showToast("❌ Falha na conexão", "#f85149"); }
       }
@@ -1914,13 +1949,15 @@
           const ok = data.success === true && data.state === "completed";
           content.textContent = data.output || (ok ? "(sem output)" : "Comando finalizado sem saída.");
           content.style.color = ok ? "#e6edf3" : "#f85149";
+          addOutputEntry(code, data.output || "", ok);
           cmdHistory.push({ title: code.slice(0, 60), cmd: code, output: data.output || "", success: data.success, date: new Date().toISOString() });
-          localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-50)));
+          localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-200)));
           showToast(ok ? "✅ Comando executado." : "❌ Erro na execução", ok ? "var(--accent2)" : "#f85149");
           checkServer();
         } catch (err) {
           content.textContent = "Erro de conexão: " + err.message;
           content.style.color = "#f85149";
+          addOutputEntry(code, "Erro de conexão: " + err.message, false);
           showToast("❌ Falha na conexão", "#f85149");
           serverOnline = false; checkServer();
         }
@@ -1964,7 +2001,7 @@ COMANDOS QUE VOCÊ CONHECE:
 - Backup: Checkpoint-Computer, Export-WindowsDriver, reg export
 - Drivers: Get-WmiObject Win32_PnPSignedDriver, pnputil
 - Privacidade: AllowTelemetry, AdvertisingInfo, Cortana`;
-      let iaConversation = [];
+      let iaConversation = JSON.parse(localStorage.getItem("mestre_v10_ia_conversation") || "[]");
       let iaAttachments = [];
       let activeMemoryIds = new Set();
       let memoriesListCache = [];
@@ -1973,6 +2010,50 @@ COMANDOS QUE VOCÊ CONHECE:
       let lastDashboardData = null;
       let lastModelsList = [];
       let lastMemoryInfo = null;
+
+      // ===== Persistência de sessão IA =====
+      function saveIaConversation() {
+        try {
+          // Limita a 100 mensagens para não estourar localStorage
+          localStorage.setItem("mestre_v10_ia_conversation", JSON.stringify(iaConversation.slice(-100)));
+        } catch (e) { console.warn("Falha ao salvar conversa IA:", e); }
+      }
+
+      function restoreIaConversation() {
+        try {
+          const saved = localStorage.getItem("mestre_v10_ia_conversation");
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              iaConversation = parsed;
+              const container = document.getElementById("iaMessages");
+              if (container) {
+                // Limpa mensagem inicial padrão
+                container.innerHTML = "";
+                for (const msg of iaConversation) {
+                  addIAMessage(msg.content, msg.role === "user" ? "user" : "ai");
+                }
+              }
+            }
+          } else {
+            // Mensagem inicial padrão se não há sessão salva
+            const container = document.getElementById("iaMessages");
+            if (container && container.children.length === 0) {
+              container.innerHTML = '<div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>';
+            }
+          }
+        } catch (e) { console.warn("Falha ao restaurar conversa IA:", e); }
+      }
+
+      function clearIaConversation() {
+        iaConversation = [];
+        localStorage.removeItem("mestre_v10_ia_conversation");
+        const container = document.getElementById("iaMessages");
+        if (container) {
+          container.innerHTML = '<div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>';
+        }
+        showToast("💬 Sessão de chat limpa", "#00d4ff");
+      }
       function renderAttachments() {
         const panel = document.getElementById("iaAttachPanel");
         const list = document.getElementById("iaAttachList");
@@ -2171,6 +2252,18 @@ COMANDOS QUE VOCÊ CONHECE:
         document.getElementById("iaInput").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendIA(); } });
         initMemoriesDb().then(loadMemories).catch(() => loadMemories());
         renderFavorites();
+        renderQueue();
+        restoreIaConversation();
+        // ===== CORREÇÃO V10.1: Expandir primeira categoria automaticamente =====
+        const firstCat = document.getElementById("cat0");
+        if (firstCat) {
+          firstCat.classList.add("active");
+          const firstHeader = firstCat.querySelector(".category-header");
+          if (firstHeader) {
+            const chevron = firstHeader.querySelector(".chevron");
+            if (chevron) chevron.style.transform = "rotate(180deg)";
+          }
+        }
       });
       async function sendIA() {
         const input = document.getElementById("iaInput");
@@ -2193,6 +2286,7 @@ COMANDOS QUE VOCÊ CONHECE:
           userPayload.images = imageAttachments.map(a => a.base64);
         }
         iaConversation.push({ role: "user", content: displayMsg, images: imageAttachments.map(a => ({ name: a.name, mime: a.mime })) });
+        saveIaConversation();
         try {
           const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map((m, i, arr) => { const isLastUser = m.role === "user" && i === arr.length - 1; const out = { role: m.role }; if (isLastUser) { out.content = fullMessage; if (userPayload.images) out.images = userPayload.images; } else { out.content = m.content; } return out; })], stream: true, keep_alive: "10m" }) });
           if (!res.ok || !res.body) throw new Error("Falha no proxy Ollama: HTTP " + res.status);
@@ -2217,6 +2311,7 @@ COMANDOS QUE VOCÊ CONHECE:
             try { const json = JSON.parse(pending); if (json.message?.content) { fullResponse += json.message.content; renderIAContent(aiMsgEl, fullResponse); } } catch {}
           }
           iaConversation.push({ role: "assistant", content: fullResponse });
+          saveIaConversation();
           for (const a of iaAttachments) { if (a.type === "image") a.used = true; }
           if (activeMemoryIds.size > 0) { activeMemoryIds.clear(); renderActiveMemoryChips(); }
         } catch (err) { typingEl.remove(); addIAMessage("❌ Erro ao conectar ao Ollama: " + err.message, "ai"); }
@@ -2250,6 +2345,7 @@ COMANDOS QUE VOCÊ CONHECE:
         btn.disabled = true;
         try {
           const data = await dispatchCommand(cmd, { onProgress() { btn.textContent = "⏳ Executando..."; } });
+          addOutputEntry(cmd, data.output || "", data.success === true && data.state === "completed");
           if (data.success === true && data.state === "completed") { showOutput(data.output); btn.textContent = "✅ Executado"; btn.style.background = "var(--success)"; }
           else { showOutput(data.output || "Erro."); btn.textContent = "❌ Falhou"; btn.style.background = "var(--danger)"; }
         } catch (err) { showOutput("Erro: " + err.message); btn.textContent = "❌ Erro"; btn.style.background = "var(--danger)"; }
@@ -2263,6 +2359,123 @@ COMANDOS QUE VOCÊ CONHECE:
         content.style.color = "#e6edf3";
         panel.style.display = "block";
         panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      // ===== NOVO V11.1: Histórico de Outputs com persistência =====
+      let outputHistory = JSON.parse(localStorage.getItem("mestre_v10_output_history") || "[]");
+      function saveOutputHistory() {
+        try { localStorage.setItem("mestre_v10_output_history", JSON.stringify(outputHistory.slice(-100))); }
+        catch (e) { console.warn("Falha ao salvar histórico de outputs:", e); }
+      }
+      function addOutputEntry(cmd, output, success) {
+        const entry = { id: Date.now() + Math.floor(Math.random() * 1000), cmd: cmd || "", output: output || "", success: success === true, date: new Date().toISOString() };
+        outputHistory.push(entry);
+        saveOutputHistory();
+        renderOutputHistory();
+        return entry;
+      }
+      function renderOutputHistory() {
+        const container = document.getElementById("outputHistory");
+        if (!container) return;
+        if (!outputHistory.length) { container.innerHTML = ""; return; }
+        container.innerHTML = outputHistory.slice().reverse().map(e => {
+          const icon = e.success ? "✅" : "❌";
+          const dateStr = new Date(e.date).toLocaleString("pt-BR");
+          const shortCmd = e.cmd.length > 90 ? e.cmd.slice(0, 90) + "…" : e.cmd;
+          return `<div class="output-entry ${e.success ? "ok" : "err"}">
+            <div class="output-entry-head">
+              <span class="output-entry-title">${icon} ${escapeHtml(shortCmd)}</span>
+              <span class="output-entry-date">${dateStr}</span>
+            </div>
+            <pre class="output-entry-body">${escapeHtml(e.output) || "(sem output)"}</pre>
+            <div class="output-entry-actions">
+              <button onclick="copyOutputEntry(${e.id})" title="Copiar output">📋 Copiar</button>
+              <button class="btn-ia" onclick="sendOutputToIA(${e.id})" title="Anexar output ao chat da IA">🤖 Enviar p/ IA</button>
+              <button class="btn-mem" onclick="saveOutputAsMemory(${e.id})" title="Salvar output como memória permanente da IA">🧠 Memória</button>
+            </div>
+          </div>`;
+        }).join("");
+      }
+      function copyOutputEntry(id) {
+        const entry = outputHistory.find(e => e.id === id);
+        if (!entry) return;
+        navigator.clipboard.writeText(entry.output || "").then(() => showToast("📋 Output copiado!"));
+      }
+      function clearOutputHistory() {
+        if (!outputHistory.length) { showToast("⚠️ Histórico de outputs já está vazio", "#f0a800"); return; }
+        if (!confirm("Limpar todo o histórico de outputs?")) return;
+        outputHistory = [];
+        saveOutputHistory();
+        renderOutputHistory();
+        showToast("🗑️ Histórico de outputs limpo");
+      }
+      // ===== NOVO V11.1: Integração Output ↔ Chat IA =====
+      function sendOutputToIA(id) {
+        const entry = outputHistory.find(e => e.id === id);
+        if (!entry) return;
+        const text = `Output do comando executado em ${new Date(entry.date).toLocaleString("pt-BR")}:\n\n${entry.cmd}\n\nResultado (${entry.success ? "sucesso" : "FALHA"}):\n${entry.output || "(sem output)"}`;
+        addAttachment("terminal", "Output", `cmd (${(entry.output || "").length} chars)`, text);
+        openAI();
+        showToast("🤖 Output anexado ao chat IA", "#00d4ff");
+      }
+      async function saveOutputAsMemory(id) {
+        const entry = outputHistory.find(e => e.id === id);
+        if (!entry) return;
+        const now = Date.now();
+        const memory = {
+          title: `Output: ${entry.cmd.slice(0, 50)}`,
+          content: `Comando executado em ${new Date(entry.date).toLocaleString("pt-BR")}:\n\n${entry.cmd}\n\nResultado (${entry.success ? "sucesso" : "FALHA"}):\n${entry.output || "(sem output)"}`,
+          createdAt: now,
+          updatedAt: now
+        };
+        await saveMemoryToDb(memory);
+        await loadMemories();
+        showToast("🧠 Output salvo como memória da IA", "#a200ff");
+      }
+      // ===== NOVO V11.1: Download de relatório do Output =====
+      function downloadOutputReport() {
+        if (!outputHistory.length) { showToast("⚠️ Nenhum output para exportar", "#f0a800"); return; }
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const okCount = outputHistory.filter(e => e.success).length;
+        let md = `# 📋 Relatório de Comandos — Mestre do PC V11\n\n`;
+        md += `**Data:** ${d.toLocaleString("pt-BR")}\n`;
+        md += `**Computador:** ${location.hostname || "local"}\n`;
+        md += `**Total de comandos:** ${outputHistory.length}\n`;
+        md += `**Sucessos:** ${okCount} | **Falhas:** ${outputHistory.length - okCount}\n\n---\n\n`;
+        outputHistory.forEach((e, i) => {
+          md += `## ${i + 1}. ${e.success ? "✅" : "❌"} Comando\n\n`;
+          md += `**Data:** ${new Date(e.date).toLocaleString("pt-BR")}\n\n`;
+          md += `\`\`\`powershell\n${e.cmd}\n\`\`\`\n\n`;
+          md += `**Output:**\n\n\`\`\`\n${e.output || "(sem output)"}\n\`\`\`\n\n---\n\n`;
+        });
+        const blob = new Blob([md], { type: "text/markdown" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `mestre-output-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}.md`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast("📥 Relatório de outputs baixado", "var(--accent2)");
+      }
+      // ===== NOVO V11.1: Download do chat em Markdown =====
+      function downloadChatMarkdown() {
+        if (!iaConversation.length) { showToast("⚠️ Chat vazio — nada para exportar", "#f0a800"); return; }
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        let md = `# 💬 Conversa — Mestre IA (Ollama)\n\n`;
+        md += `**Data:** ${d.toLocaleString("pt-BR")}\n`;
+        md += `**Modelo:** ${selectedOllamaModel}\n`;
+        md += `**Mensagens:** ${iaConversation.length}\n\n---\n\n`;
+        for (const m of iaConversation) {
+          const who = m.role === "user" ? "👤 **Você**" : "🤖 **Mestre IA**";
+          md += `${who}:\n\n${m.content}\n\n---\n\n`;
+        }
+        const blob = new Blob([md], { type: "text/markdown" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `mestre-chat-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}.md`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast("📥 Chat baixado em Markdown", "var(--accent2)");
       }
       async function downloadChatContext() {
         const activeMemories = memoriesListCache.filter(m => activeMemoryIds.has(m.id));
@@ -2461,6 +2674,7 @@ COMANDOS QUE VOCÊ CONHECE:
       // ===== BOOT com polling otimizado =====
       renderFavorites();
       renderQueue();
+      renderOutputHistory();
       refreshAll();
 
       // Polling otimizado: ciclo único sequencial, sem sobreposição,

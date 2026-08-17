@@ -15,7 +15,6 @@ $OllamaExe = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
 $OllamaApi = "http://localhost:11434"
 $LauncherUrl = "http://127.0.0.1:7777"
 $LauncherPs1 = Join-Path $InstallDir "MestreDoPC-Launcher.ps1"
-$PidFile = Join-Path $InstallDir "MestreDoPC-Launcher.pid"
 $LogFile = Join-Path $InstallDir "logs\shortcut.log"
 
 function Write-Log {
@@ -62,17 +61,11 @@ function Start-MestreLauncher {
         return $true
     }
 
-    # Tenta ler PID antigo
-    if (Test-Path $PidFile) {
-        try {
-            $oldPid = [int](Get-Content $PidFile -Raw).Trim()
-            $proc = Get-Process -Id $oldPid -ErrorAction SilentlyContinue
-            if ($proc) {
-                Write-Log "Launcher encontrado via PID $oldPid." -level "OK"
-                return $true
-            }
-        } catch {}
-    }
+    # A porta 7777 é a fonte da verdade. O PID file pode apontar para um
+    # processo que já morreu e teve o PID reutilizado por outro programa —
+    # confiar nele faz o script achar que o launcher está no ar quando não está.
+    # Por isso não lemos o PID file aqui: se a porta não respondeu acima,
+    # simplesmente iniciamos o launcher de novo.
 
     Write-Log "Iniciando MestreDoPC-Launcher.ps1..."
     if (-not (Test-Path $LauncherPs1)) {
