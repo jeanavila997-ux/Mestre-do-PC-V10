@@ -635,6 +635,38 @@ const server = http.createServer(async (req, res) => {
       } catch { return sendJson(res, 404, { error: "rede-dashboard.js não encontrado" }); }
     }
 
+    // ===== NOVO V11.2: Páginas .html estáticas do diretório v10 (ex: /novidades-v11.html) =====
+    // Regex restringe a um único nome de arquivo seguro (sem path traversal).
+    if (req.method === "GET" && /^\/[a-z0-9-]+\.html$/i.test(path)) {
+      try {
+        const html = await readFile(join(__dirname, path.slice(1)), "utf8");
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "Cache-Control": "no-store",
+        });
+        return res.end(html);
+      } catch { return sendJson(res, 404, { error: "página não encontrada" }); }
+    }
+
+    // ===== NOVO V11.2: SPA fallback — rotas de seção (ex: /8.diagnostico) servem index.html =====
+    // Rotas de API acima já retornaram; qualquer GET sem extensão de arquivo é rota de seção.
+    if (req.method === "GET" && !path.includes(".")) {
+      try {
+        const html = await readFile(join(__dirname, "index.html"), "utf8");
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "Cache-Control": "no-store",
+        });
+        return res.end(html);
+      } catch { return sendJson(res, 404, { error: "index.html não encontrado" }); }
+    }
+
     sendJson(res, 404, { success: false, output: "Rota não encontrada." });
   } catch (e) {
     sendJson(res, 500, { error: e.message });
