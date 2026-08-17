@@ -336,6 +336,21 @@ try {
             continue
         }
 
+        # GET /rede-dashboard.js — o painel de Diagnostico de Rede. Sem esta rota o
+        # backend elevado servia o index.html mas nao o script, e o painel nunca
+        # aparecia quando o app rodava como Administrador.
+        if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath -eq "/rede-dashboard.js") {
+            $redePath = [System.IO.Path]::GetFullPath((Join-Path $V10_HTML "..\rede-dashboard.js"))
+            if (Test-Path $redePath) {
+                $res.Headers["Cache-Control"] = "no-store"
+                Write-FileResponse -Response $res -Path $redePath -ContentType "application/javascript; charset=utf-8"
+            } else {
+                $res.StatusCode = 404
+                $res.Close()
+            }
+            continue
+        }
+
         if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath -eq "/favicon.png") {
             $res.Headers["Cache-Control"] = "public, max-age=604800, immutable"
             Write-FileResponse -Response $res -Path (Join-Path $PROJECT_DIR "favicon.png") -ContentType "image/png"
@@ -390,6 +405,20 @@ try {
             $res.OutputStream.Write($bytes, 0, $bytes.Length)
             $res.Close()
             continue
+        }
+
+        # POST /shutdown — encerra o launcher pelo botao "Parar" da interface.
+        # Mesma autorizacao do /run (Test-PrivilegedClient). Responde antes de sair
+        # para o cliente receber a confirmacao; o $listener.Stop() encerra o loop.
+        if ($req.HttpMethod -eq "POST" -and $req.Url.AbsolutePath -eq "/shutdown") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; output = "Cliente nao autorizado." } -StatusCode 403
+                continue
+            }
+            Write-JsonResponse -Response $res -Payload @{ success = $true; output = "Launcher encerrando."; pid = $PID }
+            Write-Host "Encerrando launcher por solicitacao da interface."
+            try { $listener.Stop() } catch {}
+            break
         }
 
         # POST /open-terminal — abre um terminal no mesmo contexto elevado do launcher
