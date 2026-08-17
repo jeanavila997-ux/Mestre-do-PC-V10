@@ -122,10 +122,15 @@
         opacity: 0.4;
         animation: float 4s ease-in-out infinite;
       }
-      /* Card entrance animation */
+      /* Card entrance animation.
+         Usa `backwards` (e NÃO `forwards` + opacity:0 na base): o estado normal do
+         card precisa ser visível por si só. Com `forwards`, a visibilidade dependia
+         do preenchimento da fadeInUp — e qualquer regra que substituísse a
+         propriedade `animation` (ex.: .cmd-card-new:hover) derrubava o card de volta
+         para opacity:0, fazendo o comando sumir ao passar o mouse.
+         Com `backwards`, o estado base é visível e a animação de entrada continua. */
       .cmd-card {
-        opacity: 0;
-        animation: fadeInUp 0.4s ease-out forwards;
+        animation: fadeInUp 0.4s ease-out backwards;
       }
       /* Progress bar animation */
       .progress-fill {
@@ -2780,10 +2785,16 @@ COMANDOS QUE VOCÊ CONHECE:
       });
 
       // ===== ANIMAÇÕES: Entrada staggered dos cards =====
+      // O stagger é por categoria e com teto: o índice global chegava a 331 cards,
+      // gerando delays de até ~9,9s — a categoria abria e os últimos comandos só
+      // apareciam segundos depois.
+      const STAGGER_STEP = 0.03;
+      const STAGGER_MAX = 0.3;
       function animateCardsStagger() {
-        const cards = document.querySelectorAll('.cmd-card');
-        cards.forEach((card, index) => {
-          card.style.animationDelay = (index * 0.03) + 's';
+        document.querySelectorAll('.category-content').forEach((grupo) => {
+          grupo.querySelectorAll('.cmd-card').forEach((card, index) => {
+            card.style.animationDelay = Math.min(index * STAGGER_STEP, STAGGER_MAX) + 's';
+          });
         });
       }
       animateCardsStagger();
