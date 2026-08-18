@@ -1509,6 +1509,66 @@
           },
         ],
       },
+      {
+        id: "cat_terminal",
+        label: "💻 Terminal",
+        cmds: [
+          ["Abrir Windows Terminal", "Start-Process wt.exe; Write-Host \"✅ Windows Terminal aberto!\" -ForegroundColor Green"],
+          ["Abrir Windows Terminal no Projeto", "Start-Process wt.exe -ArgumentList \"-d\",\"$env:MESTRE_PROJETO_PATH\"; Write-Host \"✅ Windows Terminal aberto no projeto!\" -ForegroundColor Green"],
+          ["Abrir CMD no Projeto", "Start-Process cmd.exe -ArgumentList \"/K\",\"cd /d \"\"$env:MESTRE_PROJETO_PATH\"\"\"; Write-Host \"✅ CMD aberto no projeto!\" -ForegroundColor Green"],
+          ["Verificar Terminal Padrão do Windows", "try { $t = Get-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationConsole -EA Stop; Write-Host \"Terminal padrão configurado: $($t.DelegationConsole)\" } catch { Write-Host \"Nenhuma preferência de terminal padrão definida (usando padrão do sistema).\" -ForegroundColor Yellow }"],
+          ["Definir Windows Terminal como Padrão", "New-Item -Path \"HKCU:\\Console\\%%Startup\" -Force | Out-Null; Set-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationConsole -Value \"{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}\"; Set-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationTerminal -Value \"{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}\"; Write-Host \"✅ Windows Terminal definido como padrão!\" -ForegroundColor Green"],
+          ["Listar Variáveis de Ambiente (PATH)", "($env:Path -split ';') | Where-Object { $_ -ne \"\" } | ForEach-Object { Write-Host $_ }"],
+          ["Verificar Windows Terminal Instalado", "winget list --id Microsoft.WindowsTerminal"],
+          ["Listar Processos de Terminais Abertos", "Get-Process -Name wt,powershell,pwsh,cmd -ErrorAction SilentlyContinue | Select-Object Name,Id,StartTime | Format-Table -AutoSize"],
+          ["Reiniciar Windows Terminal", "Stop-Process -Name WindowsTerminal -Force -EA 0; Write-Host \"✅ Windows Terminal reiniciado (feche e abra novamente)!\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat_nodejs",
+        label: "🟢 Node.js",
+        cmds: [
+          ["Verificar Versão do Node.js", "node -v; npm -v"],
+          ["Listar Pacotes Globais NPM", "npm list -g --depth=0"],
+          ["Atualizar NPM", "npm install -g npm@latest; Write-Host \"✅ NPM atualizado!\" -ForegroundColor Green"],
+          ["Limpar Cache do NPM", "npm cache clean --force; Write-Host \"✅ Cache do NPM limpo!\" -ForegroundColor Green"],
+          ["Verificar Processos Node.js Ativos", "Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
+          ["Verificar Dependências Desatualizadas (npm outdated)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm outdated"],
+          ["Auditar Segurança do Projeto (npm audit)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm audit"],
+          ["Instalar Pacote NPM (Global)", "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm install -g $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
+          ["Desinstalar Pacote NPM (Global)", "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm uninstall -g $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
+        ],
+      },
+      {
+        id: "cat_powershell",
+        label: "🔷 PowerShell",
+        cmds: [
+          ["Verificar Versão do PowerShell", "$PSVersionTable | Format-List"],
+          ["Listar Módulos PowerShell Instalados", "Get-Module -ListAvailable | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
+          ["Verificar Execution Policy", "Get-ExecutionPolicy -List | Format-Table -AutoSize"],
+          ["Definir Execution Policy (RemoteSigned)", "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host \"✅ Execution Policy definida como RemoteSigned!\" -ForegroundColor Green"],
+          ["Atualizar Ajuda do PowerShell", "Update-Help -Force -ErrorAction SilentlyContinue; Write-Host \"✅ Ajuda do PowerShell atualizada!\" -ForegroundColor Green"],
+          ["Verificar Perfil do PowerShell ($PROFILE)", "if (Test-Path $PROFILE) { Write-Host \"Perfil encontrado: $PROFILE\"; Get-Content $PROFILE } else { Write-Host \"Nenhum perfil do PowerShell configurado.\" -ForegroundColor Yellow }"],
+          ["Limpar Histórico do PowerShell", "$h = (Get-PSReadLineOption).HistorySavePath; Remove-Item -Path $h -Force -EA 0; Write-Host \"✅ Histórico do PowerShell limpo!\" -ForegroundColor Green"],
+          ["Listar Todas as Variáveis de Ambiente", "Get-ChildItem Env: | Sort-Object Name | Format-Table -AutoSize"],
+        ],
+      },
+      {
+        id: "cat_python",
+        label: "🐍 Python",
+        cmds: [
+          ["Verificar Versão do Python", "python --version"],
+          ["Verificar Versão do Pip", "pip --version"],
+          ["Listar Pacotes Pip Instalados", "pip list"],
+          ["Atualizar Pip", "python -m pip install --upgrade pip; Write-Host \"✅ Pip atualizado!\" -ForegroundColor Green"],
+          ["Verificar Pacotes Pip Desatualizados", "pip list --outdated"],
+          ["Verificar Processos Python Ativos", "Get-Process -Name python,python3,pythonw -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
+          ["Limpar Cache do Pip", "pip cache purge; Write-Host \"✅ Cache do Pip limpo!\" -ForegroundColor Green"],
+          ["Instalar Pacote Pip", "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip install $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
+          ["Desinstalar Pacote Pip", "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip uninstall -y $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
+          ["Criar Ambiente Virtual (venv)", "$nome = Read-Host \"Nome do ambiente virtual\"; if ($nome -match \"^[a-zA-Z0-9_-]{1,64}$\") { python -m venv $nome; Write-Host \"✅ Ambiente virtual '$nome' criado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome inválido.\" -ForegroundColor Red }"],
+        ],
+      },
 
       ];
       // Render navigation
@@ -1639,7 +1699,7 @@
         });
         return cards;
       }
-      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec"];
+      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python"];
       CATS.forEach((c) => {
         const div = document.createElement("div");
         div.className = "category";

@@ -1968,6 +1968,20 @@
       "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm audit"
     },
     {
+      "id": "instalar_pacote_npm_global_interativo",
+      "title": "Instalar Pacote NPM (Global)",
+      "category": "Node.js",
+      "destructive": false,
+      "command": "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm install -g $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"
+    },
+    {
+      "id": "desinstalar_pacote_npm_global_interativo",
+      "title": "Desinstalar Pacote NPM (Global)",
+      "category": "Node.js",
+      "destructive": true,
+      "command": "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm uninstall -g $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"
+    },
+    {
       "id": "verificar_versao_do_powershell",
       "title": "Verificar Versão do PowerShell",
       "category": "PowerShell",
@@ -2071,6 +2085,27 @@
       "category": "Python",
       "destructive": true,
       "command": "pip cache purge; Write-Host \"✅ Cache do Pip limpo!\" -ForegroundColor Green"
+    },
+    {
+      "id": "instalar_pacote_pip_interativo",
+      "title": "Instalar Pacote Pip",
+      "category": "Python",
+      "destructive": false,
+      "command": "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip install $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"
+    },
+    {
+      "id": "desinstalar_pacote_pip_interativo",
+      "title": "Desinstalar Pacote Pip",
+      "category": "Python",
+      "destructive": true,
+      "command": "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip uninstall -y $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"
+    },
+    {
+      "id": "criar_ambiente_virtual_venv_interativo",
+      "title": "Criar Ambiente Virtual (venv)",
+      "category": "Python",
+      "destructive": false,
+      "command": "$nome = Read-Host \"Nome do ambiente virtual\"; if ($nome -match \"^[a-zA-Z0-9_-]{1,64}$\") { python -m venv $nome; Write-Host \"✅ Ambiente virtual '$nome' criado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome inválido.\" -ForegroundColor Red }"
     }
   ],
   "templates": [
