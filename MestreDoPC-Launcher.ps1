@@ -34,6 +34,157 @@ $CommandJobs = [hashtable]::Synchronized(@{})
 $JobRetentionMinutes = 30
 $JobTimeoutSeconds = 900
 $MaxConcurrentJobs = 3
+$MaxCmdLength = 8192
+
+# ---------------------------------------------------------------
+# Whitelist de operacoes (paridade com v10/launcher.js resolveCommand)
+# Somente comandos cadastrados em v10/allowed-operations.json executam.
+# ---------------------------------------------------------------
+$OPERATIONS_FILE = Join-Path $PROJECT_DIR "v10\allowed-operations.json"
+$script:AllowedOperations = @()
+$script:AllowedTemplates = @()
+$script:OperationsById = @{}
+$script:ExactCommands = @{}
+$script:CompiledTemplates = @()
+
+function Initialize-OperationCatalog {
+    if (-not (Test-Path -LiteralPath $OPERATIONS_FILE)) {
+        throw "Catalogo de operacoes nao encontrado: $OPERATIONS_FILE"
+    }
+    $rawCatalog = Get-Content -LiteralPath $OPERATIONS_FILE -Raw -Encoding UTF8 | ConvertFrom-Json
+    $script:AllowedOperations = @($rawCatalog.operations)
+    $script:AllowedTemplates = @($rawCatalog.templates)
+
+    # Parte das entradas de 'templates' nao e parametrizada: traz 'command' fixo em vez
+    # de 'pattern'. Elas contam como operacoes exatas, senao ficariam inalcancaveis.
+    $fixedEntries = @($script:AllowedOperations) + @($script:AllowedTemplates | Where-Object { $_.command -is [string] })
+    foreach ($op in $fixedEntries) {
+        $script:OperationsById[$op.id] = $op
+        $script:ExactCommands[$op.command] = $op
+    }
+
+    foreach ($tpl in $script:AllowedTemplates) {
+        if (-not ($tpl.pattern -is [string])) { continue }
+        $regexSource = [regex]::Escape($tpl.pattern)
+        $placeholders = [regex]::Matches($tpl.pattern, '\{\{([A-Z_][A-Z0-9_]*)\}\}') | ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique
+        foreach ($ph in $placeholders) {
+            $paramName = $ph.ToLower()
+            $paramRegex = "[a-zA-Z0-9_. -]{1,128}"
+            if ($tpl.params -and $tpl.params.PSObject.Properties[$paramName]) {
+                $paramRegex = [string]$tpl.params.$paramName
+                $paramRegex = $paramRegex.TrimStart('^').TrimEnd('$')
+            }
+            # O placeholder ja foi escapado junto com o resto do pattern, entao a
+            # busca e feita sobre a forma escapada, como texto literal. A primeira
+            # ocorrencia vira grupo nomeado; as demais viram backreference, exigindo
+            # o mesmo valor em todas as posicoes do template.
+            $escapedPh = [regex]::Escape("{{$ph}}")
+            $parts = $regexSource.Split([string[]]@($escapedPh), [System.StringSplitOptions]::None)
+            $rebuilt = $parts[0]
+            for ($i = 1; $i -lt $parts.Count; $i++) {
+                $slot = if ($i -eq 1) { "(?<$paramName>$paramRegex)" } else { "\k<$paramName>" }
+                $rebuilt += $slot + $parts[$i]
+            }
+            $regexSource = $rebuilt
+        }
+        $script:CompiledTemplates += [pscustomobject]@{
+            Id = $tpl.id
+            Title = $tpl.title
+            Pattern = $tpl.pattern
+            Params = $tpl.params
+            Destructive = [bool]$tpl.destructive
+            Regex = [regex]::new("^$regexSource$", [System.Text.RegularExpressions.RegexOptions]::Singleline)
+        }
+    }
+}
+
+function Resolve-MestreCommand {
+    param($Data)
+
+    if (-not $Data) { return @{ error = "Corpo invalido." } }
+
+    # Modo novo: id + params
+    $opId = [string]$Data.id
+    if (-not [string]::IsNullOrWhiteSpace($opId)) {
+        $op = $script:OperationsById[$opId]
+        $tpl = $script:AllowedTemplates | Where-Object { $_.id -eq $opId } | Select-Object -First 1
+        if (-not $op -and -not $tpl) { return @{ error = "Operacao '$opId' nao encontrada." } }
+
+        if ($op) {
+            return @{ cmd = [string]$op.command; destructive = [bool]$op.destructive; id = [string]$op.id }
+        }
+
+        if (-not ($tpl.pattern -is [string])) {
+            return @{ error = "Operacao '$opId' nao e executavel." }
+        }
+
+        $finalCmd = [string]$tpl.pattern
+        foreach ($prop in $tpl.params.PSObject.Properties) {
+            $key = $prop.Name
+            $regexSource = ([string]$prop.Value).TrimStart('^').TrimEnd('$')
+            $val = if ($Data.params) { [string]$Data.params.$key } else { $null }
+            if ([string]::IsNullOrEmpty($val) -or $val.Length -gt 1024 -or ($val -notmatch "^(?:$regexSource)$")) {
+                return @{ error = "Parametro invalido para '$key'." }
+            }
+            $finalCmd = $finalCmd.Replace("{{$($key.ToUpper())}}", $val)
+        }
+        return @{ cmd = $finalCmd; destructive = [bool]$tpl.destructive; id = [string]$tpl.id }
+    }
+
+    # Modo legado: cmd exato ou template compilado
+    $cmd = [string]$Data.cmd
+    if (-not [string]::IsNullOrWhiteSpace($cmd)) {
+        if ($cmd.Length -gt $MaxCmdLength) { return @{ error = "Comando excede o limite de tamanho." } }
+        if ($script:ExactCommands.ContainsKey($cmd)) {
+            $op = $script:ExactCommands[$cmd]
+            return @{ cmd = $cmd; destructive = [bool]$op.destructive; id = [string]$op.id }
+        }
+        foreach ($compiled in $script:CompiledTemplates) {
+            if ($compiled.Regex.IsMatch($cmd)) {
+                return @{ cmd = $cmd; destructive = $compiled.Destructive; id = $compiled.Id }
+            }
+        }
+        return @{ error = "Operacao bloqueada: somente comandos cadastrados na V10 podem ser executados." }
+    }
+
+    return @{ error = "Comando ausente ou invalido." }
+}
+
+# ---------------------------------------------------------------
+# Deteccao heuristica de prompt injection (paridade com
+# mcp-server/security.js checkPromptInjection)
+# ---------------------------------------------------------------
+$script:InjectionPatterns = @(
+    @{ Regex = 'ignore\s+(all\s+)?previous\s+(instructions?|commands?|prompts?)'; Weight = 0.9 },
+    @{ Regex = 'forget\s+(everything|all\s+previous|your\s+instructions)'; Weight = 0.85 },
+    @{ Regex = '(you\s+are\s+now|from\s+now\s+on\s+you\s+are)'; Weight = 0.8 },
+    @{ Regex = '(disregard|override|bypass|circumvent)\s+(rules?|restrictions?|safety|security)'; Weight = 0.85 },
+    @{ Regex = 'system\s*[:\-]?\s*prompt|developer\s*mode|admin\s*mode|DAN\s*mode'; Weight = 0.75 },
+    @{ Regex = '<<<\s*sys\s*>>>|<<<\s*system\s*>>>|\[\s*system\s*\]|\[\s*inst\s*\]|<<<\s*instruction\s*>>>'; Weight = 0.7 },
+    @{ Regex = 'new\s+instructions?[:\-]'; Weight = 0.6 },
+    @{ Regex = '(jailbreak|prompt\s*injection|roleplay\s*as)'; Weight = 0.65 },
+    @{ Regex = '(sudo|admin|root)\s+access'; Weight = 0.5 }
+)
+
+function Test-PromptInjection {
+    param([string] $Text)
+
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return @{ classification = "benigno"; score = 0.0 }
+    }
+    $totalScore = 0.0
+    foreach ($p in $script:InjectionPatterns) {
+        $hits = [regex]::Matches($Text, $p.Regex, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+        if ($hits.Count -gt 0) {
+            $totalScore += $p.Weight * [Math]::Min($hits.Count, 3)
+        }
+    }
+    $score = [Math]::Min($totalScore, 1.0)
+    $classification = "benigno"
+    if ($score -ge 0.7) { $classification = "malicioso" }
+    elseif ($score -ge 0.35) { $classification = "suspeito" }
+    return @{ classification = $classification; score = $score }
+}
 
 function Set-ResponseSecurityHeaders {
     param(
@@ -284,6 +435,16 @@ if ($portaOcupada) {
     }
 }
 
+# Carrega a whitelist antes de aceitar qualquer requisicao.
+# Sem catalogo o launcher nao sobe: seria um servidor elevado sem restricao.
+try {
+    Initialize-OperationCatalog
+    Write-Host "  [OK] Whitelist carregada: $($script:AllowedOperations.Count) operacoes, $($script:CompiledTemplates.Count) templates." -ForegroundColor Green
+} catch {
+    Write-Host "  [FATAL] Nao foi possivel carregar a whitelist de operacoes: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
 # Cria listener HTTP
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add($URL)
@@ -468,12 +629,14 @@ try {
 
                 $rawBody = Read-LimitedRequestBody -Request $req
                 $data = $rawBody | ConvertFrom-Json
-                $cmd = [string]$data.cmd
 
-                if ([string]::IsNullOrWhiteSpace($cmd)) {
-                    Write-JsonResponse -Response $res -Payload @{ success = $false; output = "Comando vazio recebido."; state = "invalid" } -StatusCode 400
+                $resolved = Resolve-MestreCommand -Data $data
+                if ($resolved.error) {
+                    Write-Host "  [BLOQUEADO] $($resolved.error)" -ForegroundColor Red
+                    Write-JsonResponse -Response $res -Payload @{ success = $false; output = $resolved.error; state = "forbidden" } -StatusCode 403
                     continue
                 }
+                $cmd = [string]$resolved.cmd
 
                 Write-Host "  [CMD] " -NoNewline -ForegroundColor Yellow
                 Write-Host $cmd.Split("`n")[0] -ForegroundColor White
@@ -492,6 +655,48 @@ try {
             }
             catch {
                 Write-JsonResponse -Response $res -Payload @{ success = $false; output = "Erro interno: $($_.Exception.Message)"; state = "error" } -StatusCode 500
+            }
+            continue
+        }
+
+        # POST /classify — resolve o comando contra a whitelist SEM executar.
+        # A UI usa isto para decidir entre auto-exec (low-risk) e confirmacao.
+        if ($req.HttpMethod -eq "POST" -and $req.Url.AbsolutePath -eq "/classify") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ allowed = $false; reason = "Cliente nao autorizado." } -StatusCode 403
+                continue
+            }
+            try {
+                $rawBody = Read-LimitedRequestBody -Request $req
+                $data = $rawBody | ConvertFrom-Json
+                $resolved = Resolve-MestreCommand -Data $data
+                if ($resolved.error) {
+                    Write-JsonResponse -Response $res -Payload ([ordered]@{
+                        allowed = $false
+                        destructive = $false
+                        reason = $resolved.error
+                    })
+                    continue
+                }
+
+                $meta = $null
+                if ($resolved.id) {
+                    $meta = $script:OperationsById[[string]$resolved.id]
+                    if (-not $meta) {
+                        $meta = $script:AllowedTemplates | Where-Object { $_.id -eq $resolved.id } | Select-Object -First 1
+                    }
+                }
+                Write-JsonResponse -Response $res -Payload ([ordered]@{
+                    allowed = $true
+                    destructive = [bool]$resolved.destructive
+                    id = [string]$resolved.id
+                    title = if ($meta) { [string]$meta.title } else { "" }
+                    category = if ($meta) { [string]$meta.category } else { "" }
+                    cmd = [string]$resolved.cmd
+                })
+            }
+            catch {
+                Write-JsonResponse -Response $res -Payload @{ allowed = $false; reason = "Erro interno: $($_.Exception.Message)" } -StatusCode 500
             }
             continue
         }
@@ -526,6 +731,23 @@ try {
             $streamingStarted = $false
             try {
                 $rawBody = Read-LimitedRequestBody -Request $req -MaxChars 2097152
+
+                # Bloqueia prompt injection antes de repassar ao Ollama.
+                $chatBody = $rawBody | ConvertFrom-Json
+                $lastUser = @($chatBody.messages | Where-Object { $_.role -eq "user" }) | Select-Object -Last 1
+                if ($lastUser) {
+                    $verdict = Test-PromptInjection -Text ([string]$lastUser.content)
+                    if ($verdict.classification -eq "malicioso") {
+                        Write-Host "  [BLOQUEADO] Prompt injection detectado (score $($verdict.score))." -ForegroundColor Red
+                        Write-JsonResponse -Response $res -Payload ([ordered]@{
+                            error = "Mensagem bloqueada: padrao de prompt injection detectado."
+                            classification = $verdict.classification
+                            score = $verdict.score
+                        }) -StatusCode 400
+                        continue
+                    }
+                }
+
                 $client = New-Object System.Net.Http.HttpClient
                 $client.Timeout = [System.Threading.Timeout]::InfiniteTimeSpan
                 $content = New-Object System.Net.Http.StringContent($rawBody, [System.Text.Encoding]::UTF8, "application/json")

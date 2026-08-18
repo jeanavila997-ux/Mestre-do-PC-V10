@@ -688,6 +688,19 @@
       .ia-msg.ai .ia-code-block { background: #010409; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; margin: 10px 0; }
       .ia-msg.ai .ia-code-block pre { background: transparent; padding: 0; margin: 0 0 8px; border: none; }
       .ia-msg.ai .ia-run-btn { display: inline-block; margin-top: 6px; padding: 5px 12px; background: var(--danger); color: white; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+      /* Modal de confirmação de comando (substitui window.confirm no fluxo da IA) */
+      .cmd-confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(6px); z-index: 10050; display: none; justify-content: center; align-items: center; }
+      .cmd-confirm-overlay.open { display: flex; }
+      .cmd-confirm-modal { width: 620px; max-width: 94vw; background: var(--panel); border: 1px solid var(--danger); border-radius: 14px; overflow: hidden; }
+      .cmd-confirm-modal.safe { border-color: var(--accent2); }
+      .cmd-confirm-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-weight: 700; }
+      .cmd-confirm-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem; }
+      .cmd-confirm-body pre { background: #010409; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; max-height: 220px; overflow: auto; white-space: pre-wrap; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.8rem; color: #79c0ff; }
+      .cmd-confirm-meta { color: #8b949e; font-size: 0.8rem; }
+      .cmd-confirm-foot { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+      .cmd-confirm-foot button { padding: 8px 16px; border-radius: 7px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; }
+      .cmd-confirm-foot button.primary { background: var(--danger); border-color: var(--danger); color: #fff; }
+      .cmd-confirm-foot button.primary.safe { background: var(--accent2); border-color: var(--accent2); color: #000; }
       .ia-toolbar { display:flex; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.2); flex-wrap:wrap; }
       .ia-toolbar button { padding:7px 12px; background:var(--card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:0.8rem; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:5px; }
       .ia-toolbar button:hover { border-color:var(--accent); background:rgba(0,212,255,0.1); }
@@ -873,6 +886,21 @@
         </div>
       </div>
       <div id="categories"></div>
+    </div>
+    <!-- Confirmação de comando (destrutivo ou fora da whitelist) -->
+    <div class="cmd-confirm-overlay" id="cmdConfirmOverlay">
+      <div class="cmd-confirm-modal" id="cmdConfirmModal">
+        <div class="cmd-confirm-head" id="cmdConfirmHead">⚠️ Confirmação de segurança</div>
+        <div class="cmd-confirm-body">
+          <div id="cmdConfirmReason"></div>
+          <pre id="cmdConfirmCode"></pre>
+          <div class="cmd-confirm-meta" id="cmdConfirmMeta"></div>
+        </div>
+        <div class="cmd-confirm-foot">
+          <button type="button" onclick="resolveCmdConfirm(false)">Cancelar</button>
+          <button type="button" class="primary" id="cmdConfirmOk" onclick="resolveCmdConfirm(true)">Executar como Administrador</button>
+        </div>
+      </div>
     </div>
     <!-- Modal Chat IA Ollama -->
     <div class="ia-overlay" id="iaOverlay">
@@ -1532,13 +1560,52 @@
         /git\s+(push|stash\s+pop)/i,
       ];
       function isDangerous(cmd) { return DANGER_PATTERNS.some((re) => re.test(cmd)); }
-      function confirmBeforeExecution(code, source = "catalog") {
+
+      // ===== Modal de confirmação (substitui window.confirm) =====
+      let cmdConfirmResolver = null;
+      function resolveCmdConfirm(ok) {
+        document.getElementById("cmdConfirmOverlay").classList.remove("open");
+        const resolve = cmdConfirmResolver;
+        cmdConfirmResolver = null;
+        if (resolve) resolve(ok);
+      }
+      function askCommandConfirmation({ code, reason, meta = "", safe = false, okLabel = "Executar como Administrador" }) {
+        document.getElementById("cmdConfirmReason").textContent = reason;
+        document.getElementById("cmdConfirmCode").textContent = code;
+        document.getElementById("cmdConfirmMeta").textContent = meta;
+        const modal = document.getElementById("cmdConfirmModal");
+        const okBtn = document.getElementById("cmdConfirmOk");
+        modal.classList.toggle("safe", safe);
+        okBtn.classList.toggle("safe", safe);
+        okBtn.textContent = okLabel;
+        document.getElementById("cmdConfirmOverlay").classList.add("open");
+        return new Promise((resolve) => { cmdConfirmResolver = resolve; });
+      }
+
+      async function confirmBeforeExecution(code, source = "catalog") {
         const fromAI = source === "ai";
         if (!fromAI && !isDangerous(code)) return true;
         const reason = fromAI
           ? "A IA sugeriu este comando. Revise-o antes de autorizar."
           : "Este comando pode alterar ou remover dados/configurações.";
-        return window.confirm(`⚠️ CONFIRMAÇÃO DE SEGURANÇA\n\n${reason}\n\n${code}\n\nDeseja executar como Administrador?`);
+        return askCommandConfirmation({ code, reason });
+      }
+
+      // Consulta a whitelist do launcher sem executar nada.
+      async function classifyCommand(cmd) {
+        try {
+          const res = await fetch(`${API}/classify`, {
+            method: "POST",
+            headers: PRIVILEGED_HEADERS,
+            body: JSON.stringify({ cmd }),
+          });
+          if (!res.ok && res.status !== 200) {
+            return { allowed: false, destructive: false, reason: `Launcher recusou a classificação (HTTP ${res.status}).` };
+          }
+          return await res.json();
+        } catch (e) {
+          return { allowed: false, destructive: false, reason: "Não foi possível falar com o launcher: " + e.message };
+        }
       }
       // Render categories (padrão V7 + estrela de favorito + botão fila + botão live)
       const container = document.getElementById("categories");
@@ -1723,7 +1790,7 @@
           const item = queue[i];
           showToast(`📋 [${i + 1}/${queue.length}] ${item.title}`, "#a200ff");
           try {
-            if (!confirmBeforeExecution(item.cmd, "queue")) continue;
+            if (!await confirmBeforeExecution(item.cmd, "queue")) continue;
             const data = await dispatchCommand(item.cmd, {});
             addOutputEntry(item.cmd, data.output || "", data.success === true && data.state === "completed");
             cmdHistory.push({ title: item.title, cmd: item.cmd, output: data.output || "", success: data.success, date: new Date().toISOString() });
@@ -1775,7 +1842,7 @@
         if (!codeEl) return;
         const code = codeEl.innerText.trim();
         if (!serverOnline) { showToast("❌ Launcher offline. Execute o Launcher primeiro.", "#f85149"); return; }
-        if (!confirmBeforeExecution(code, "live")) return;
+        if (!await confirmBeforeExecution(code, "live")) return;
         const title = codeEl.parentElement.querySelector("h4").textContent;
         openTerminalModal(title);
         setTerminalLive("[enviando comando para o launcher...]\n", true);
@@ -1948,7 +2015,7 @@
       // ===== executeCmd() (padrão V7) + histórico =====
       async function executeCmd(code) {
         if (serverOnline === false) { try { await navigator.clipboard.writeText(code); } catch {} showToast("⚠️ Servidor offline. Comando copiado.", "#f0a800"); return; }
-        if (!confirmBeforeExecution(code)) return;
+        if (!await confirmBeforeExecution(code)) return;
         const panel = document.getElementById("outputPanel");
         const content = document.getElementById("outputContent");
         panel.style.display = "block";
@@ -2400,6 +2467,18 @@ COMANDOS QUE VOCÊ CONHECE:
         saveIaConversation();
         try {
           const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map((m, i, arr) => { const isLastUser = m.role === "user" && i === arr.length - 1; const out = { role: m.role }; if (isLastUser) { out.content = fullMessage; if (userPayload.images) out.images = userPayload.images; } else { out.content = m.content; } return out; })], stream: true, keep_alive: "10m" }) });
+          // 400 = mensagem barrada pelo filtro de prompt injection do launcher.
+          if (res.status === 400) {
+            typingEl.remove();
+            const info = await res.json().catch(() => ({}));
+            const pct = typeof info.score === "number" ? ` (score ${(info.score * 100).toFixed(0)}%)` : "";
+            addIAMessage("🛡️ " + (info.error || "Mensagem bloqueada pelo filtro de segurança.") + pct, "ai");
+            iaConversation.pop();
+            saveIaConversation();
+            btn.disabled = false;
+            input.focus();
+            return;
+          }
           if (!res.ok || !res.body) throw new Error("Falha no proxy Ollama: HTTP " + res.status);
           typingEl.remove();
           const aiMsgEl = addIAMessage("", "ai");
@@ -2451,7 +2530,44 @@ COMANDOS QUE VOCÊ CONHECE:
         if (pre == null) return;
         const cmd = pre.textContent;
         if (serverOnline === false) { showToast("❌ Servidor offline.", "#f85149"); return; }
-        if (!confirmBeforeExecution(cmd, "ai")) return;
+
+        // Política de permissões do chat:
+        //  - na whitelist e não destrutivo  -> executa direto (low-risk)
+        //  - na whitelist e destrutivo      -> confirmação com preview
+        //  - fora da whitelist              -> bloqueado, com opção de copiar
+        btn.textContent = "🔎 Verificando...";
+        btn.disabled = true;
+        const verdict = await classifyCommand(cmd);
+
+        if (!verdict.allowed) {
+          btn.disabled = false;
+          btn.textContent = "🚫 Bloqueado";
+          const copy = await askCommandConfirmation({
+            code: cmd,
+            reason: "Comando fora da whitelist da V10 — não pode ser executado.",
+            meta: verdict.reason || "Somente operações cadastradas em allowed-operations.json são executáveis.",
+            okLabel: "Copiar comando",
+          });
+          if (copy) {
+            try { await navigator.clipboard.writeText(cmd); showToast("📋 Comando copiado."); }
+            catch { showToast("⚠️ Não foi possível copiar.", "#f0a800"); }
+          }
+          setTimeout(() => { btn.textContent = "▶ Executar"; btn.style.background = ""; }, 3000);
+          return;
+        }
+
+        if (verdict.destructive) {
+          btn.disabled = false;
+          const ok = await askCommandConfirmation({
+            code: cmd,
+            reason: "Operação destrutiva sugerida pela IA. Revise antes de autorizar.",
+            meta: [verdict.title, verdict.category].filter(Boolean).join(" • "),
+          });
+          if (!ok) { btn.textContent = "▶ Executar"; return; }
+        } else {
+          showToast(`⚡ ${verdict.title || "Comando"} executado automaticamente (low-risk).`, "#00ff88");
+        }
+
         btn.textContent = "⏳ Executando...";
         btn.disabled = true;
         try {
