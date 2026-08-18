@@ -1,0 +1,84 @@
+{
+  "defaultProfile": "balanced",
+  "note": "Espelha mcp-server/model-profiles.json (model + options) e adiciona persona/systemPrompt/voice para a UI do chat. Ao mudar temperature/top_p/etc, atualize os dois arquivos.",
+  "profiles": {
+    "fast": {
+      "label": "Rápido",
+      "persona": "⚡ Rápido",
+      "description": "Latência baixa para tarefas simples e respostas curtas.",
+      "systemPrompt": "Você é o Mestre IA. Responda de forma curta e direta, sem rodeios. Priorize sempre operações da whitelist do Mestre do PC.",
+      "model": "qwen2.5-coder:1.5b",
+      "voice": { "autoRead": false, "lang": "pt-BR" },
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.5,
+        "top_p": 0.85,
+        "top_k": 30,
+        "num_predict": 512
+      }
+    },
+    "balanced": {
+      "label": "Equilibrado",
+      "persona": "⚖️ Equilibrado",
+      "description": "Bom equilíbrio entre velocidade e qualidade para automação e manutenção do Windows.",
+      "systemPrompt": "Você é o Mestre IA, assistente técnico do Mestre do PC. Priorize sempre operações da whitelist e explique riscos antes de sugerir comandos destrutivos.",
+      "model": "qwen2.5-coder:3b-instruct",
+      "voice": { "autoRead": false, "lang": "pt-BR" },
+      "options": {
+        "num_ctx": 8192,
+        "temperature": 0.6,
+        "top_p": 0.9,
+        "top_k": 40,
+        "num_predict": 1024
+      }
+    },
+    "agent": {
+      "label": "Agente de Automação",
+      "persona": "🤖 Agente",
+      "description": "Modelo especializado em automação de tarefas e execução de ferramentas no desktop.",
+      "systemPrompt": "Você é o Mestre IA em modo agente. Seu foco é sugerir e executar operações da whitelist (allowed-operations.json). Nunca sugira comandos livres. Classifique toda sugestão antes de propor execução.",
+      "model": "fazendaavila2026/agente:latest",
+      "fallbackModel": "qwen2.5-coder:7b",
+      "voice": { "autoRead": false, "lang": "pt-BR" },
+      "options": {
+        "num_ctx": 8192,
+        "temperature": 0.4,
+        "top_p": 0.85,
+        "top_k": 30,
+        "num_predict": 1024
+      }
+    },
+    "coding": {
+      "label": "Código",
+      "persona": "🧑‍💻 Código",
+      "description": "Melhor qualidade para geração de scripts PowerShell, correções e automações complexas.",
+      "systemPrompt": "Você é o Mestre IA especializado em código. Ao gerar PowerShell, siga as convenções do projeto: nunca use Invoke-Expression sobre entrada de usuário, sempre valide contra a whitelist.",
+      "model": "qwen2.5-coder:7b",
+      "voice": { "autoRead": false, "lang": "pt-BR" },
+      "options": {
+        "num_ctx": 16384,
+        "temperature": 0.3,
+        "top_p": 0.85,
+        "top_k": 30,
+        "num_predict": 2048
+      }
+    },
+    "reasoning": {
+      "label": "Raciocínio",
+      "persona": "🧠 Raciocínio",
+      "description": "Modelo de raciocínio para diagnósticos complexos e análise de logs críticos.",
+      "systemPrompt": "Você é o Mestre IA em modo raciocínio. Analise logs e diagnósticos passo a passo antes de concluir. Explique seu raciocínio de forma clara antes da resposta final.",
+      "model": "deepseek-r1:7b",
+      "fallbackModel": "phi4:14b",
+      "voice": { "autoRead": false, "lang": "pt-BR" },
+      "options": {
+        "num_ctx": 16384,
+        "temperature": 0.6,
+        "top_p": 0.9,
+        "top_k": 40,
+        "num_predict": 2048,
+        "think": true
+      }
+    }
+  }
+}
