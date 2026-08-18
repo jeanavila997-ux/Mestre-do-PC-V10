@@ -1559,7 +1559,7 @@
       "title": "npm install no projeto",
       "category": "Bibliotecas",
       "destructive": false,
-      "command": "Set-Location -LiteralPath ; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green"
+      "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green"
     },
     {
       "id": "npm_install_g_typescript",
@@ -1854,6 +1854,223 @@
       "command": "Write-Host \"Geração de snapshot git\"",
       "id": "gerar_snapshot_git",
       "destructive": false
+    },
+    {
+      "id": "abrir_windows_terminal",
+      "title": "Abrir Windows Terminal",
+      "category": "Terminal",
+      "destructive": false,
+      "command": "Start-Process wt.exe; Write-Host \"✅ Windows Terminal aberto!\" -ForegroundColor Green"
+    },
+    {
+      "id": "abrir_windows_terminal_no_projeto",
+      "title": "Abrir Windows Terminal no Projeto",
+      "category": "Terminal",
+      "destructive": false,
+      "command": "Start-Process wt.exe -ArgumentList \"-d\",\"$env:MESTRE_PROJETO_PATH\"; Write-Host \"✅ Windows Terminal aberto no projeto!\" -ForegroundColor Green"
+    },
+    {
+      "id": "abrir_cmd_no_projeto",
+      "title": "Abrir CMD no Projeto",
+      "category": "Terminal",
+      "destructive": false,
+      "command": "Start-Process cmd.exe -ArgumentList \"/K\",\"cd /d \"\"$env:MESTRE_PROJETO_PATH\"\"\"; Write-Host \"✅ CMD aberto no projeto!\" -ForegroundColor Green"
+    },
+    {
+      "id": "verificar_terminal_padrao",
+      "title": "Verificar Terminal Padrão do Windows",
+      "category": "Terminal",
+      "destructive": false,
+      "command": "try { $t = Get-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationConsole -EA Stop; Write-Host \"Terminal padrão configurado: $($t.DelegationConsole)\" } catch { Write-Host \"Nenhuma preferência de terminal padrão definida (usando padrão do sistema).\" -ForegroundColor Yellow }"
+    },
+    {
+      "id": "definir_windows_terminal_como_padrao",
+      "title": "Definir Windows Terminal como Padrão",
+      "category": "Terminal",
+      "destructive": true,
+      "command": "New-Item -Path \"HKCU:\\Console\\%%Startup\" -Force | Out-Null; Set-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationConsole -Value \"{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}\"; Set-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationTerminal -Value \"{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}\"; Write-Host \"✅ Windows Terminal definido como padrão!\" -ForegroundColor Green"
+    },
+    {
+      "id": "listar_variaveis_de_ambiente_path",
+      "title": "Listar Variáveis de Ambiente (PATH)",
+      "category": "Terminal",
+      "destructive": false,
+      "command": "($env:Path -split ';') | Where-Object { $_ -ne \"\" } | ForEach-Object { Write-Host $_ }"
+    },
+    {
+      "id": "verificar_edicoes_do_windows_terminal_instaladas",
+      "title": "Verificar Windows Terminal Instalado",
+      "category": "Terminal",
+      "destructive": false,
+      "command": "winget list --id Microsoft.WindowsTerminal"
+    },
+    {
+      "id": "listar_processos_de_terminais_abertos",
+      "title": "Listar Processos de Terminais Abertos",
+      "category": "Terminal",
+      "destructive": false,
+      "command": "Get-Process -Name wt,powershell,pwsh,cmd -ErrorAction SilentlyContinue | Select-Object Name,Id,StartTime | Format-Table -AutoSize"
+    },
+    {
+      "id": "reiniciar_windows_terminal",
+      "title": "Reiniciar Windows Terminal",
+      "category": "Terminal",
+      "destructive": true,
+      "command": "Stop-Process -Name WindowsTerminal -Force -EA 0; Write-Host \"✅ Windows Terminal reiniciado (feche e abra novamente)!\" -ForegroundColor Green"
+    },
+    {
+      "id": "verificar_versao_node",
+      "title": "Verificar Versão do Node.js",
+      "category": "Node.js",
+      "destructive": false,
+      "command": "node -v; npm -v"
+    },
+    {
+      "id": "listar_pacotes_globais_npm",
+      "title": "Listar Pacotes Globais NPM",
+      "category": "Node.js",
+      "destructive": false,
+      "command": "npm list -g --depth=0"
+    },
+    {
+      "id": "atualizar_npm",
+      "title": "Atualizar NPM",
+      "category": "Node.js",
+      "destructive": false,
+      "command": "npm install -g npm@latest; Write-Host \"✅ NPM atualizado!\" -ForegroundColor Green"
+    },
+    {
+      "id": "limpar_cache_npm",
+      "title": "Limpar Cache do NPM",
+      "category": "Node.js",
+      "destructive": true,
+      "command": "npm cache clean --force; Write-Host \"✅ Cache do NPM limpo!\" -ForegroundColor Green"
+    },
+    {
+      "id": "verificar_processos_node_ativos",
+      "title": "Verificar Processos Node.js Ativos",
+      "category": "Node.js",
+      "destructive": false,
+      "command": "Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_dependencias_desatualizadas_npm",
+      "title": "Verificar Dependências Desatualizadas (npm outdated)",
+      "category": "Node.js",
+      "destructive": false,
+      "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm outdated"
+    },
+    {
+      "id": "auditar_seguranca_npm",
+      "title": "Auditar Segurança do Projeto (npm audit)",
+      "category": "Node.js",
+      "destructive": false,
+      "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm audit"
+    },
+    {
+      "id": "verificar_versao_do_powershell",
+      "title": "Verificar Versão do PowerShell",
+      "category": "PowerShell",
+      "destructive": false,
+      "command": "$PSVersionTable | Format-List"
+    },
+    {
+      "id": "listar_modulos_powershell_instalados",
+      "title": "Listar Módulos PowerShell Instalados",
+      "category": "PowerShell",
+      "destructive": false,
+      "command": "Get-Module -ListAvailable | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_execution_policy",
+      "title": "Verificar Execution Policy",
+      "category": "PowerShell",
+      "destructive": false,
+      "command": "Get-ExecutionPolicy -List | Format-Table -AutoSize"
+    },
+    {
+      "id": "definir_execution_policy_remotesigned",
+      "title": "Definir Execution Policy (RemoteSigned)",
+      "category": "PowerShell",
+      "destructive": true,
+      "command": "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host \"✅ Execution Policy definida como RemoteSigned!\" -ForegroundColor Green"
+    },
+    {
+      "id": "atualizar_ajuda_do_powershell",
+      "title": "Atualizar Ajuda do PowerShell",
+      "category": "PowerShell",
+      "destructive": false,
+      "command": "Update-Help -Force -ErrorAction SilentlyContinue; Write-Host \"✅ Ajuda do PowerShell atualizada!\" -ForegroundColor Green"
+    },
+    {
+      "id": "verificar_perfil_do_powershell",
+      "title": "Verificar Perfil do PowerShell ($PROFILE)",
+      "category": "PowerShell",
+      "destructive": false,
+      "command": "if (Test-Path $PROFILE) { Write-Host \"Perfil encontrado: $PROFILE\"; Get-Content $PROFILE } else { Write-Host \"Nenhum perfil do PowerShell configurado.\" -ForegroundColor Yellow }"
+    },
+    {
+      "id": "limpar_historico_do_powershell",
+      "title": "Limpar Histórico do PowerShell",
+      "category": "PowerShell",
+      "destructive": true,
+      "command": "$h = (Get-PSReadLineOption).HistorySavePath; Remove-Item -Path $h -Force -EA 0; Write-Host \"✅ Histórico do PowerShell limpo!\" -ForegroundColor Green"
+    },
+    {
+      "id": "listar_variaveis_de_ambiente",
+      "title": "Listar Todas as Variáveis de Ambiente",
+      "category": "PowerShell",
+      "destructive": false,
+      "command": "Get-ChildItem Env: | Sort-Object Name | Format-Table -AutoSize"
+    },
+    {
+      "id": "verificar_versao_python",
+      "title": "Verificar Versão do Python",
+      "category": "Python",
+      "destructive": false,
+      "command": "python --version"
+    },
+    {
+      "id": "verificar_versao_pip",
+      "title": "Verificar Versão do Pip",
+      "category": "Python",
+      "destructive": false,
+      "command": "pip --version"
+    },
+    {
+      "id": "listar_pacotes_pip_instalados",
+      "title": "Listar Pacotes Pip Instalados",
+      "category": "Python",
+      "destructive": false,
+      "command": "pip list"
+    },
+    {
+      "id": "atualizar_pip",
+      "title": "Atualizar Pip",
+      "category": "Python",
+      "destructive": false,
+      "command": "python -m pip install --upgrade pip; Write-Host \"✅ Pip atualizado!\" -ForegroundColor Green"
+    },
+    {
+      "id": "verificar_pacotes_desatualizados_pip",
+      "title": "Verificar Pacotes Pip Desatualizados",
+      "category": "Python",
+      "destructive": false,
+      "command": "pip list --outdated"
+    },
+    {
+      "id": "verificar_processos_python_ativos",
+      "title": "Verificar Processos Python Ativos",
+      "category": "Python",
+      "destructive": false,
+      "command": "Get-Process -Name python,python3,pythonw -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"
+    },
+    {
+      "id": "limpar_cache_pip",
+      "title": "Limpar Cache do Pip",
+      "category": "Python",
+      "destructive": true,
+      "command": "pip cache purge; Write-Host \"✅ Cache do Pip limpo!\" -ForegroundColor Green"
     }
   ],
   "templates": [
@@ -2788,6 +3005,46 @@
       "category": "Versionamento",
       "destructive": false,
       "command": "Write-Host \"Operação processada pelo MCP server (não via launcher).\" -ForegroundColor Cyan"
+    },
+    {
+      "id": "instalar_pacote_npm_global",
+      "title": "Instalar Pacote NPM (Global)",
+      "category": "Node.js",
+      "destructive": false,
+      "pattern": "npm install -g {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} instalado!\" -ForegroundColor Green",
+      "params": { "pacote": "^[a-zA-Z0-9_.-]{1,100}$" }
+    },
+    {
+      "id": "desinstalar_pacote_npm_global",
+      "title": "Desinstalar Pacote NPM (Global)",
+      "category": "Node.js",
+      "destructive": true,
+      "pattern": "npm uninstall -g {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} desinstalado!\" -ForegroundColor Green",
+      "params": { "pacote": "^[a-zA-Z0-9_.-]{1,100}$" }
+    },
+    {
+      "id": "instalar_pacote_pip",
+      "title": "Instalar Pacote Pip",
+      "category": "Python",
+      "destructive": false,
+      "pattern": "pip install {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} instalado!\" -ForegroundColor Green",
+      "params": { "pacote": "^[a-zA-Z0-9_.-]{1,100}$" }
+    },
+    {
+      "id": "desinstalar_pacote_pip",
+      "title": "Desinstalar Pacote Pip",
+      "category": "Python",
+      "destructive": true,
+      "pattern": "pip uninstall -y {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} desinstalado!\" -ForegroundColor Green",
+      "params": { "pacote": "^[a-zA-Z0-9_.-]{1,100}$" }
+    },
+    {
+      "id": "criar_ambiente_virtual_venv",
+      "title": "Criar Ambiente Virtual (venv)",
+      "category": "Python",
+      "destructive": false,
+      "pattern": "python -m venv {{NOME}}; Write-Host \"✅ Ambiente virtual '{{NOME}}' criado!\" -ForegroundColor Green",
+      "params": { "nome": "^[a-zA-Z0-9_-]{1,64}$" }
     }
   ]
 }
