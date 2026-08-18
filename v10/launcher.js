@@ -10,6 +10,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { checkPromptInjection } from "../mcp-server/security.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.MPC_PORT ? Number(process.env.MPC_PORT) : 7777;
@@ -49,8 +50,13 @@ const rawCatalog = JSON.parse(await readFile(operationsFile, "utf8"));
 const allowedOperations = Array.isArray(rawCatalog) ? rawCatalog : rawCatalog.operations || [];
 const allowedTemplates = (!Array.isArray(rawCatalog) && rawCatalog.templates) ? rawCatalog.templates : [];
 
-const operationsById = new Map(allowedOperations.map((op) => [op.id, op]));
-const exactCommands = new Set(allowedOperations.map((op) => op.command));
+// Parte das entradas de `templates` não é parametrizada: traz `command` fixo em vez
+// de `pattern`. Elas contam como operações exatas, senão ficariam inalcançáveis.
+const fixedTemplates = allowedTemplates.filter((tpl) => typeof tpl.command === "string");
+const fixedCommandEntries = [...allowedOperations, ...fixedTemplates];
+
+const operationsById = new Map(fixedCommandEntries.map((op) => [op.id, op]));
+const exactCommands = new Set(fixedCommandEntries.map((op) => op.command));
 
 // Compila templates parametrizados em regex seguras.
 // Cada placeholder {{NOME}} é substituído por um grupo nomeado com a regex permitida.
@@ -63,12 +69,22 @@ const compiledTemplates = allowedTemplates.filter((tpl) => typeof tpl.pattern ==
   const paramNames = [...tpl.pattern.matchAll(placeholderRe)].map((m) => m[1].toLowerCase());
   let regexSource = escapeRegex(tpl.pattern);
   for (const name of [...new Set(paramNames)]) {
-    const paramRegex = tpl.params?.[name] || "^[a-zA-Z0-9_. -]{1,128}$";
-    // Usa grupos nomeados para validar e extrair valores.
-    regexSource = regexSource.replace(
-      new RegExp(escapeRegex(`{{${name.toUpperCase()}}}`), "g"),
-      `(?<${name}>${paramRegex})`,
-    );
+    // As regex de params vêm ancoradas (^...$) para uso isolado; embutidas no meio
+    // do template essas âncoras nunca casariam, então são removidas aqui.
+    const paramRegex = (tpl.params?.[name] || "[a-zA-Z0-9_. -]{1,128}")
+      .replace(/^\^/, "")
+      .replace(/\$$/, "");
+    // O placeholder já foi escapado junto com o resto do pattern, então a busca é
+    // feita sobre a forma escapada, como texto literal.
+    const escapedPlaceholder = escapeRegex(`{{${name.toUpperCase()}}}`);
+    const parts = regexSource.split(escapedPlaceholder);
+    // Primeira ocorrência define o grupo nomeado; as demais são backreferences,
+    // garantindo que o mesmo valor apareça em todas as posições do template.
+    regexSource = parts.reduce((acc, part, i) => {
+      if (i === 0) return part;
+      const slot = i === 1 ? `(?<${name}>${paramRegex})` : `\\k<${name}>`;
+      return acc + slot + part;
+    }, "");
   }
   return {
     id: tpl.id,
@@ -188,6 +204,10 @@ function resolveCommand(body) {
       return { cmd: op.command, destructive: !!op.destructive, id: op.id };
     }
 
+    if (typeof tpl.pattern !== "string") {
+      return { error: `Operação '${body.id}' não é executável.` };
+    }
+
     let finalCmd = tpl.pattern;
     const params = body.params || {};
     for (const [key, regexSource] of Object.entries(tpl.params || {})) {
@@ -219,6 +239,45 @@ function resolveCommand(body) {
   }
 
   return { error: "Comando ausente ou inválido." };
+}
+
+// Guard do chat: roda a heurística de prompt injection sobre a última mensagem
+// do usuário. Só bloqueia em "malicioso"; "suspeito" passa e é apenas logado.
+function guardChatInjection(body) {
+  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  const lastUser = [...messages].reverse().find((m) => m?.role === "user");
+  if (!lastUser || typeof lastUser.content !== "string") return null;
+  const verdict = checkPromptInjection(lastUser.content);
+  if (verdict.classification === "malicioso") {
+    console.warn(`[guard] Chat bloqueado por prompt injection (score ${verdict.score.toFixed(2)}).`);
+    return {
+      error: "Mensagem bloqueada: padrão de prompt injection detectado.",
+      classification: verdict.classification,
+      score: verdict.score,
+      details: verdict.details,
+    };
+  }
+  if (verdict.classification === "suspeito") {
+    console.warn(`[guard] Chat suspeito (score ${verdict.score.toFixed(2)}).`);
+  }
+  return null;
+}
+
+// Classifica um comando contra a whitelist sem executar. Base do /classify.
+function classifyCommand(body) {
+  const resolved = resolveCommand(body);
+  if (resolved.error) {
+    return { allowed: false, destructive: false, reason: resolved.error };
+  }
+  const meta = operationsById.get(resolved.id) || allowedTemplates.find((t) => t.id === resolved.id) || {};
+  return {
+    allowed: true,
+    destructive: !!resolved.destructive,
+    id: resolved.id || "",
+    title: meta.title || "",
+    category: meta.category || "",
+    cmd: resolved.cmd,
+  };
 }
 
 // Executa PowerShell e devolve o id do job. Output é acumulado em job.output (ao vivo).
@@ -273,8 +332,12 @@ function runPowerShell(cmd, meta = {}) {
 }
 
 // Proxy Ollama com streaming (NDJSON passado direto para o cliente).
-async function proxyOllamaStream(path, req, res, allowOrigin = BASE_URL, maxBodyBytes = 2 * 1024 * 1024) {
+async function proxyOllamaStream(path, req, res, allowOrigin = BASE_URL, maxBodyBytes = 2 * 1024 * 1024, guard = null) {
   const body = await readBody(req, maxBodyBytes);
+  if (guard) {
+    const blocked = guard(body);
+    if (blocked) return sendJson(res, 400, blocked, allowOrigin);
+  }
   let upstream;
   try {
     upstream = await fetch(OLLAMA_URL + path, {
@@ -533,6 +596,14 @@ const server = http.createServer(async (req, res) => {
       }, allowedOrigin);
     }
 
+    // Resolve o comando contra a whitelist SEM executar. A UI usa isto para decidir
+    // entre execução automática (low-risk) e confirmação explícita.
+    if (path === "/classify" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { allowed: false, reason: "Cliente não autorizado." }, allowedOrigin);
+      const body = await readBody(req, 64 * 1024);
+      return sendJson(res, 200, classifyCommand(body), allowedOrigin);
+    }
+
     if (path === "/run-status") {
       const id = url.searchParams.get("id");
       const job = jobs.get(id);
@@ -605,7 +676,7 @@ const server = http.createServer(async (req, res) => {
     if (path === "/ollama/tags") return proxyOllamaJson("/api/tags", res, allowedOrigin);
     if (path === "/ollama/chat" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
-      return proxyOllamaStream("/api/chat", req, res, allowedOrigin, 16 * 1024 * 1024);
+      return proxyOllamaStream("/api/chat", req, res, allowedOrigin, 16 * 1024 * 1024, guardChatInjection);
     }
     if (path === "/ollama/pull" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);

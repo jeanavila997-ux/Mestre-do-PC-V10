@@ -1,0 +1,130 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+
+const root = fileURLToPath(new URL("../../", import.meta.url));
+
+async function reservePort() {
+  const server = createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const { port } = server.address();
+  await new Promise((resolve) => server.close(resolve));
+  return port;
+}
+
+async function waitForServer(url) {
+  const deadline = Date.now() + 10_000;
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url + "/ping");
+      if (response.ok) return;
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error("Launcher Node não iniciou no prazo.");
+}
+
+async function startLauncher(t) {
+  const port = await reservePort();
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, [join(root, "v10", "launcher.js")], {
+    cwd: join(root, "v10"),
+    env: { ...process.env, MPC_PORT: String(port) },
+    windowsHide: true,
+    stdio: "ignore",
+  });
+  t.after(() => child.kill());
+  await waitForServer(base);
+  return base;
+}
+
+function classify(base, body) {
+  return fetch(base + "/classify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    body: JSON.stringify(body),
+  });
+}
+
+test("launcher PowerShell só executa comandos resolvidos pela whitelist", async () => {
+  const ps1 = await readFile(join(root, "MestreDoPC-Launcher.ps1"), "utf8");
+
+  // O catálogo precisa ser carregado antes de o listener aceitar requisições.
+  assert.match(ps1, /Initialize-OperationCatalog/);
+  assert.match(ps1, /allowed-operations\.json/);
+
+  // O /run resolve antes de agendar; o job nunca recebe o texto cru do cliente.
+  assert.match(ps1, /\$resolved = Resolve-MestreCommand -Data \$data/);
+  assert.match(ps1, /\$cmd = \[string\]\$resolved\.cmd/);
+  assert.doesNotMatch(ps1, /\$cmd = \[string\]\$data\.cmd/);
+
+  // Mensagem de bloqueio em paridade com o launcher Node.
+  assert.match(ps1, /Operacao bloqueada: somente comandos cadastrados na V10/);
+
+  // /classify e a heurística de injection existem no backend elevado também.
+  assert.match(ps1, /AbsolutePath -eq "\/classify"/);
+  assert.match(ps1, /Test-PromptInjection/);
+});
+
+test("catálogo: templates com command fixo são alcançáveis", async () => {
+  const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
+  const fixed = catalog.templates.filter((t) => typeof t.command === "string");
+  const parametrized = catalog.templates.filter((t) => typeof t.pattern === "string");
+
+  // Toda entrada de templates precisa ser executável de alguma forma.
+  assert.equal(fixed.length + parametrized.length, catalog.templates.length);
+  assert.ok(fixed.length > 0, "esperado ao menos um template de comando fixo");
+});
+
+test("/classify aprova operação exata, template válido e bloqueia comando livre", async (t) => {
+  const base = await startLauncher(t);
+  const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
+
+  const lowRisk = catalog.operations.find((op) => !op.destructive);
+  const exact = await (await classify(base, { cmd: lowRisk.command })).json();
+  assert.equal(exact.allowed, true);
+  assert.equal(exact.destructive, false);
+  assert.equal(exact.id, lowRisk.id);
+
+  const destructive = catalog.operations.find((op) => op.destructive);
+  const destructiveResult = await (await classify(base, { id: destructive.id })).json();
+  assert.equal(destructiveResult.allowed, true);
+  assert.equal(destructiveResult.destructive, true);
+
+  const tpl = await (await classify(base, { id: "encerrar_processo", params: { nome: "notepad" } })).json();
+  assert.equal(tpl.allowed, true);
+  assert.equal(tpl.destructive, true);
+  assert.match(tpl.cmd, /notepad/);
+
+  const badParam = await (await classify(base, { id: "encerrar_processo", params: { nome: "notepad; Stop-Computer" } })).json();
+  assert.equal(badParam.allowed, false);
+
+  const free = await (await classify(base, { cmd: "Write-Host LIVRE" })).json();
+  assert.equal(free.allowed, false);
+  assert.match(free.reason, /Operação bloqueada/);
+});
+
+test("/classify exige cliente autorizado", async (t) => {
+  const base = await startLauncher(t);
+  const anon = await fetch(base + "/classify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: "ver_uso_ram" }),
+  });
+  assert.equal(anon.status, 403);
+});
+
+test("template parametrizado casa por cmd literal (modo legado)", async (t) => {
+  const base = await startLauncher(t);
+  const compiled = await (await classify(base, { id: "encerrar_processo", params: { nome: "notepad" } })).json();
+  const legacy = await (await classify(base, { cmd: compiled.cmd })).json();
+  assert.equal(legacy.allowed, true);
+  assert.equal(legacy.id, "encerrar_processo");
+});

@@ -21,6 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const MESTRE_BASE_URL = (process.env.MESTRE_BASE_URL || "http://127.0.0.1:7777").replace(/\/+$/, "");
 const MESTRE_RUN_URL = MESTRE_BASE_URL + "/run";
 const MESTRE_STATUS_URL = MESTRE_BASE_URL + "/run-status";
+const MESTRE_CLASSIFY_URL = MESTRE_BASE_URL + "/classify";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -177,6 +178,49 @@ async function searchWeb(query, maxResults = 5) {
   }
 
   return results;
+}
+
+// Roda a heurística de prompt injection sobre um texto vindo do usuário antes de
+// entregá-lo ao modelo. Retorna a resposta de erro pronta quando bloqueia, ou null.
+async function guardPromptInjection(text, toolName) {
+  const verdict = checkPromptInjection(text);
+  if (verdict.classification === "malicioso") {
+    await auditLog(AuditLevel.SECURITY, "prompt_injection_blocked", {
+      tool: toolName,
+      score: verdict.score,
+      details: verdict.details,
+    });
+    return {
+      isError: true,
+      content: [{
+        type: "text",
+        text: `🛡️ Entrada bloqueada: padrão de prompt injection detectado (score ${(verdict.score * 100).toFixed(0)}%).\n\n${verdict.details.join("\n")}`,
+      }],
+    };
+  }
+  if (verdict.classification === "suspeito") {
+    await auditLog(AuditLevel.SECURITY, "prompt_injection_suspect", {
+      tool: toolName,
+      score: verdict.score,
+      details: verdict.details,
+    });
+  }
+  return null;
+}
+
+// Consulta o launcher para saber se um comando está na whitelist, sem executá-lo.
+async function classifyLauncherCommand(cmd) {
+  try {
+    const res = await fetch(MESTRE_CLASSIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+      body: JSON.stringify({ cmd }),
+      signal: AbortSignal.timeout(5000),
+    });
+    return await res.json();
+  } catch (e) {
+    return { allowed: false, destructive: false, reason: `Launcher indisponível: ${e.message}` };
+  }
 }
 
 async function executeLauncherCommand(commandOrPayload, options = {}) {
@@ -1018,7 +1062,6 @@ const TOOLS = [
       type: "object",
       properties: {
         tarefa: { type: "string", description: "Descrição da tarefa (ex: 'listar processos usando mais de 1GB de RAM')." },
-        confirmar: { type: "boolean", description: "Se true, pede confirmação antes de executar." },
       },
       required: ["tarefa"],
     },
@@ -1320,6 +1363,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "perguntar_ia") {
     const pergunta = args?.pergunta;
     if (!pergunta) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'pergunta' obrigatório.");
+    const blocked = await guardPromptInjection(pergunta, "perguntar_ia");
+    if (blocked) return blocked;
     try {
       let context = "";
       if (args?.usar_web === true) {
@@ -1357,7 +1402,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const pergunta = args?.pergunta;
     const contexto = args?.contexto;
     if (!pergunta) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'pergunta' obrigatório.");
-    
+    const blocked = await guardPromptInjection(`${pergunta}\n${contexto || ""}`, "perguntar_ia_com_contexto");
+    if (blocked) return blocked;
+
     try {
       const contextDocs = contexto ? [contexto] : [];
       const result = await ragQuery(pergunta, contextDocs);
@@ -1442,7 +1489,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "ia_comando_sugerir") {
     const tarefa = args?.tarefa;
     if (!tarefa) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'tarefa' obrigatório.");
-    
+    const blocked = await guardPromptInjection(tarefa, "ia_comando_sugerir");
+    if (blocked) return blocked;
+
     try {
       const result = await ollamaChat({
         messages: [{
@@ -1458,6 +1507,9 @@ Responda apenas com o comando PowerShell, nada mais.`,
       });
       
       const comando = result.content.trim();
+      // A sugestão é classificada contra a whitelist do launcher: só operações
+      // cadastradas são executáveis, e as destrutivas exigem confirmação.
+      const verdict = await classifyLauncherCommand(comando);
       const lines = [
         "💡 **Comando Sugerido**",
         "",
@@ -1465,10 +1517,27 @@ Responda apenas com o comando PowerShell, nada mais.`,
         comando,
         "```",
         "",
-        "⚠️ **Importante:** Revise o comando antes de executar. Use 'executar_comando' para rodar este script.",
       ];
-      
-      return { content: [{ type: "text", text: lines.join("\n") }] };
+
+      if (verdict.allowed && !verdict.destructive) {
+        lines.push(
+          `✅ **Na whitelist** — operação \`${verdict.id}\`${verdict.title ? ` (${verdict.title})` : ""}, não destrutiva.`,
+          "Execute pela ferramenta correspondente do catálogo MCP ou pelo botão ▶ Executar na V10.",
+        );
+      } else if (verdict.allowed) {
+        lines.push(
+          `⚠️ **Na whitelist, porém DESTRUTIVA** — operação \`${verdict.id}\`${verdict.title ? ` (${verdict.title})` : ""}.`,
+          "Exige confirmação explícita do usuário antes de rodar.",
+        );
+      } else {
+        lines.push(
+          "🚫 **Fora da whitelist** — este comando não pode ser executado pela V10.",
+          verdict.reason ? `Motivo: ${verdict.reason}` : "",
+          "Para torná-lo executável, cadastre a operação em `v10/allowed-operations.json`.",
+        );
+      }
+
+      return { content: [{ type: "text", text: lines.filter(Boolean).join("\n") }] };
     } catch (error) {
       return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
     }
