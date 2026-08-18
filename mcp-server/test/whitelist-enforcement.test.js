@@ -128,3 +128,27 @@ test("template parametrizado casa por cmd literal (modo legado)", async (t) => {
   assert.equal(legacy.allowed, true);
   assert.equal(legacy.id, "encerrar_processo");
 });
+
+test("todo id de mestreTools (mcp-server/index.js) existe em allowed-operations.json", async () => {
+  // Regressão: 19 ferramentas MCP já usaram ids que não existiam no catálogo,
+  // ficando bloqueadas pela whitelist mesmo sendo operações legítimas. Este
+  // teste garante que todo `id:` declarado em mestreTools bate com um id real
+  // do catálogo (operations ou templates), sem depender de checagem manual.
+  const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
+  const catalogIds = new Set([
+    ...catalog.operations.map((op) => op.id),
+    ...catalog.templates.map((tpl) => tpl.id),
+  ]);
+
+  const source = await readFile(join(root, "mcp-server", "index.js"), "utf8");
+  const start = source.indexOf("const mestreTools = {");
+  assert.ok(start > 0, "objeto mestreTools não encontrado em index.js");
+  const end = source.indexOf("\n};", start);
+  const mestreToolsSource = source.slice(start, end);
+
+  const mcpIds = [...mestreToolsSource.matchAll(/id:\s*"([a-z_0-9]+)"/g)].map((m) => m[1]);
+  assert.ok(mcpIds.length > 0, "nenhum id extraído de mestreTools — regex pode ter quebrado");
+
+  const missing = mcpIds.filter((id) => !catalogIds.has(id));
+  assert.deepEqual(missing, [], `ids de mestreTools ausentes do catálogo: ${missing.join(", ")}`);
+});

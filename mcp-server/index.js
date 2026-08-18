@@ -463,6 +463,194 @@ const mestreTools = {
     description: "Executa um scan rápido no Defender.",
     command: 'Start-MpScan -ScanType QuickScan; Write-Host "✅ Scan rápido iniciado!" -ForegroundColor Green',
   },
+
+  // ===== Terminal =====
+  abrir_windows_terminal: {
+    id: "abrir_windows_terminal",
+    description: "Abre uma nova janela do Windows Terminal.",
+    command: 'Start-Process wt.exe; Write-Host "✅ Windows Terminal aberto!" -ForegroundColor Green',
+  },
+  abrir_windows_terminal_no_projeto: {
+    id: "abrir_windows_terminal_no_projeto",
+    description: "Abre o Windows Terminal já na pasta do projeto Mestre do PC.",
+    command: 'Start-Process wt.exe -ArgumentList "-d","$env:MESTRE_PROJETO_PATH"; Write-Host "✅ Windows Terminal aberto no projeto!" -ForegroundColor Green',
+  },
+  abrir_cmd_no_projeto: {
+    id: "abrir_cmd_no_projeto",
+    description: "Abre o Prompt de Comando (CMD) já na pasta do projeto Mestre do PC.",
+    command: 'Start-Process cmd.exe -ArgumentList "/K","cd /d ""$env:MESTRE_PROJETO_PATH"""; Write-Host "✅ CMD aberto no projeto!" -ForegroundColor Green',
+  },
+  verificar_terminal_padrao: {
+    id: "verificar_terminal_padrao",
+    description: "Verifica qual aplicativo de terminal está configurado como padrão no Windows.",
+    command: 'try { $t = Get-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationConsole -EA Stop; Write-Host "Terminal padrão configurado: $($t.DelegationConsole)" } catch { Write-Host "Nenhuma preferência de terminal padrão definida (usando padrão do sistema)." -ForegroundColor Yellow }',
+  },
+  definir_windows_terminal_como_padrao: {
+    id: "definir_windows_terminal_como_padrao",
+    description: "Define o Windows Terminal como o terminal padrão do sistema.",
+    command: 'New-Item -Path "HKCU:\\Console\\%%Startup" -Force | Out-Null; Set-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationConsole -Value "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"; Set-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationTerminal -Value "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"; Write-Host "✅ Windows Terminal definido como padrão!" -ForegroundColor Green',
+  },
+  listar_variaveis_de_ambiente_path: {
+    id: "listar_variaveis_de_ambiente_path",
+    description: "Lista todas as entradas da variável de ambiente PATH.",
+    command: '($env:Path -split \';\') | Where-Object { $_ -ne "" } | ForEach-Object { Write-Host $_ }',
+  },
+  verificar_edicoes_do_windows_terminal_instaladas: {
+    id: "verificar_edicoes_do_windows_terminal_instaladas",
+    description: "Verifica se o Windows Terminal está instalado via winget.",
+    command: "winget list --id Microsoft.WindowsTerminal",
+  },
+  listar_processos_de_terminais_abertos: {
+    id: "listar_processos_de_terminais_abertos",
+    description: "Lista processos de terminais abertos (Windows Terminal, PowerShell, pwsh, CMD).",
+    command: 'Get-Process -Name wt,powershell,pwsh,cmd -ErrorAction SilentlyContinue | Select-Object Name,Id,StartTime | Format-Table -AutoSize',
+  },
+  reiniciar_windows_terminal: {
+    id: "reiniciar_windows_terminal",
+    description: "Encerra o processo do Windows Terminal (fecha todas as janelas abertas).",
+    command: 'Stop-Process -Name WindowsTerminal -Force -EA 0; Write-Host "✅ Windows Terminal reiniciado (feche e abra novamente)!" -ForegroundColor Green',
+  },
+
+  // ===== Node.js =====
+  verificar_versao_node: {
+    id: "verificar_versao_node",
+    description: "Mostra a versão instalada do Node.js e do NPM.",
+    command: "node -v; npm -v",
+  },
+  listar_pacotes_globais_npm: {
+    id: "listar_pacotes_globais_npm",
+    description: "Lista os pacotes NPM instalados globalmente.",
+    command: "npm list -g --depth=0",
+  },
+  atualizar_npm: {
+    id: "atualizar_npm",
+    description: "Atualiza o NPM para a versão mais recente.",
+    command: 'npm install -g npm@latest; Write-Host "✅ NPM atualizado!" -ForegroundColor Green',
+  },
+  limpar_cache_npm: {
+    id: "limpar_cache_npm",
+    description: "Limpa o cache do NPM.",
+    command: 'npm cache clean --force; Write-Host "✅ Cache do NPM limpo!" -ForegroundColor Green',
+  },
+  verificar_processos_node_ativos: {
+    id: "verificar_processos_node_ativos",
+    description: "Lista processos Node.js ativos e o uso de RAM de cada um.",
+    command: 'Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize',
+  },
+  verificar_dependencias_desatualizadas_npm: {
+    id: "verificar_dependencias_desatualizadas_npm",
+    description: "Roda 'npm outdated' na pasta do projeto Mestre do PC.",
+    command: "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm outdated",
+  },
+  auditar_seguranca_npm: {
+    id: "auditar_seguranca_npm",
+    description: "Roda 'npm audit' na pasta do projeto Mestre do PC.",
+    command: "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm audit",
+  },
+  instalar_pacote_npm_global: {
+    id: "instalar_pacote_npm_global",
+    description: "Instala um pacote NPM globalmente. Informe o parâmetro 'pacote' com o nome do pacote (ex: typescript, nodemon).",
+    command: 'npm install -g {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} instalado!" -ForegroundColor Green',
+  },
+  desinstalar_pacote_npm_global: {
+    id: "desinstalar_pacote_npm_global",
+    description: "Desinstala um pacote NPM global. Informe o parâmetro 'pacote' com o nome do pacote.",
+    command: 'npm uninstall -g {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} desinstalado!" -ForegroundColor Green',
+  },
+
+  // ===== PowerShell =====
+  verificar_versao_do_powershell: {
+    id: "verificar_versao_do_powershell",
+    description: "Mostra a versão do PowerShell em uso e detalhes da edição.",
+    command: "$PSVersionTable | Format-List",
+  },
+  listar_modulos_powershell_instalados: {
+    id: "listar_modulos_powershell_instalados",
+    description: "Lista os módulos PowerShell instalados.",
+    command: "Get-Module -ListAvailable | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize",
+  },
+  verificar_execution_policy: {
+    id: "verificar_execution_policy",
+    description: "Mostra a Execution Policy configurada em cada escopo.",
+    command: "Get-ExecutionPolicy -List | Format-Table -AutoSize",
+  },
+  definir_execution_policy_remotesigned: {
+    id: "definir_execution_policy_remotesigned",
+    description: "Define a Execution Policy como RemoteSigned no escopo do usuário atual.",
+    command: 'Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host "✅ Execution Policy definida como RemoteSigned!" -ForegroundColor Green',
+  },
+  atualizar_ajuda_do_powershell: {
+    id: "atualizar_ajuda_do_powershell",
+    description: "Atualiza os arquivos de ajuda (Update-Help) do PowerShell.",
+    command: 'Update-Help -Force -ErrorAction SilentlyContinue; Write-Host "✅ Ajuda do PowerShell atualizada!" -ForegroundColor Green',
+  },
+  verificar_perfil_do_powershell: {
+    id: "verificar_perfil_do_powershell",
+    description: "Verifica se existe um perfil do PowerShell ($PROFILE) configurado e mostra seu conteúdo.",
+    command: 'if (Test-Path $PROFILE) { Write-Host "Perfil encontrado: $PROFILE"; Get-Content $PROFILE } else { Write-Host "Nenhum perfil do PowerShell configurado." -ForegroundColor Yellow }',
+  },
+  limpar_historico_do_powershell: {
+    id: "limpar_historico_do_powershell",
+    description: "Limpa o histórico de comandos do PowerShell (PSReadLine).",
+    command: '$h = (Get-PSReadLineOption).HistorySavePath; Remove-Item -Path $h -Force -EA 0; Write-Host "✅ Histórico do PowerShell limpo!" -ForegroundColor Green',
+  },
+  listar_variaveis_de_ambiente: {
+    id: "listar_variaveis_de_ambiente",
+    description: "Lista todas as variáveis de ambiente do sistema.",
+    command: "Get-ChildItem Env: | Sort-Object Name | Format-Table -AutoSize",
+  },
+
+  // ===== Python =====
+  verificar_versao_python: {
+    id: "verificar_versao_python",
+    description: "Mostra a versão instalada do Python.",
+    command: "python --version",
+  },
+  verificar_versao_pip: {
+    id: "verificar_versao_pip",
+    description: "Mostra a versão instalada do Pip.",
+    command: "pip --version",
+  },
+  listar_pacotes_pip_instalados: {
+    id: "listar_pacotes_pip_instalados",
+    description: "Lista os pacotes Python instalados via Pip.",
+    command: "pip list",
+  },
+  atualizar_pip: {
+    id: "atualizar_pip",
+    description: "Atualiza o Pip para a versão mais recente.",
+    command: 'python -m pip install --upgrade pip; Write-Host "✅ Pip atualizado!" -ForegroundColor Green',
+  },
+  verificar_pacotes_desatualizados_pip: {
+    id: "verificar_pacotes_desatualizados_pip",
+    description: "Lista os pacotes Pip que possuem versão mais nova disponível.",
+    command: "pip list --outdated",
+  },
+  verificar_processos_python_ativos: {
+    id: "verificar_processos_python_ativos",
+    description: "Lista processos Python ativos e o uso de RAM de cada um.",
+    command: 'Get-Process -Name python,python3,pythonw -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize',
+  },
+  limpar_cache_pip: {
+    id: "limpar_cache_pip",
+    description: "Limpa o cache de download do Pip.",
+    command: 'pip cache purge; Write-Host "✅ Cache do Pip limpo!" -ForegroundColor Green',
+  },
+  instalar_pacote_pip: {
+    id: "instalar_pacote_pip",
+    description: "Instala um pacote Python via Pip. Informe o parâmetro 'pacote' com o nome do pacote (ex: requests, numpy).",
+    command: 'pip install {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} instalado!" -ForegroundColor Green',
+  },
+  desinstalar_pacote_pip: {
+    id: "desinstalar_pacote_pip",
+    description: "Desinstala um pacote Python via Pip. Informe o parâmetro 'pacote' com o nome do pacote.",
+    command: 'pip uninstall -y {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} desinstalado!" -ForegroundColor Green',
+  },
+  criar_ambiente_virtual_venv: {
+    id: "criar_ambiente_virtual_venv",
+    description: "Cria um ambiente virtual Python (venv). Informe o parâmetro 'nome' com o nome da pasta do ambiente.",
+    command: 'python -m venv {{NOME}}; Write-Host "✅ Ambiente virtual \'{{NOME}}\' criado!" -ForegroundColor Green',
+  },
 };
 
 // --- Model profiles (local automation desktop models) ---
