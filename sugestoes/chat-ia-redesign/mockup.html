@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mestre IA — Protótipo de Redesign do Chat</title>
+<style>
+  /* ===== Tokens extraídos de v10/index.html (:root, linhas 266-292) ===== */
+  :root {
+    --bg: #05070a;
+    --panel: #0d1117;
+    --accent: #00d4ff;
+    --accent2: #00ff88;
+    --text: #e6edf3;
+    --border: rgba(255, 255, 255, 0.1);
+    --card: #161b22;
+    --danger: #f85149;
+    --success: #238636;
+    --warning: #f0a800;
+    --purple: #a200ff;
+  }
+  body.light {
+    --bg: #f6f8fa;
+    --panel: #ffffff;
+    --accent: #0969da;
+    --accent2: #1a7f37;
+    --text: #1f2328;
+    --border: rgba(0,0,0,0.12);
+    --card: #f3f4f6;
+    --danger: #cf222e;
+    --success: #1a7f37;
+    --warning: #9a6700;
+    --purple: #8250df;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background .3s, color .3s;
+  }
+
+  /* ===== Página de fundo simulando o app (só para contexto visual) ===== */
+  .app-shell { display:flex; min-height:100vh; }
+  .fake-sidebar {
+    width: 260px; background: var(--panel); border-right: 1px solid var(--border);
+    padding: 20px 12px; flex-shrink:0;
+  }
+  .fake-sidebar h1 { font-size: .95rem; opacity:.85; margin-bottom: 14px; }
+  .fake-sidebar .nav-item { display:block; padding:9px 14px; border-radius:8px; font-size:.85rem; opacity:.6; margin-bottom:3px; }
+  .fake-main { flex:1; padding: 28px; }
+  .fake-main h2 { font-size: 1.3rem; margin-bottom: 8px; }
+  .fake-main p { opacity:.6; max-width: 560px; line-height:1.5; margin-bottom: 20px;}
+  .mode-toggle { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+  .mode-toggle button {
+    background: var(--card); border:1px solid var(--border); color:var(--text);
+    padding:8px 14px; border-radius:8px; cursor:pointer; font-size:.8rem;
+  }
+  .mode-toggle button.active { border-color: var(--accent); color: var(--accent); }
+  .note-box {
+    background: var(--card); border:1px solid var(--border); border-radius:10px;
+    padding: 14px 16px; font-size: .8rem; opacity:.75; max-width:560px; line-height:1.6;
+  }
+
+  /* =========================================================
+     CHAT — versão redesenhada
+     Estados: docked-thin (padrão), expanded, minimized
+     ========================================================= */
+  #iaPanel {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: 360px;
+    min-width: 300px;
+    max-width: 640px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10000;
+    transition: width .18s ease, transform .22s ease, opacity .22s ease, height .22s ease, bottom .22s ease, border-radius .22s ease;
+  }
+  #iaPanel.expanded { width: 560px; }
+
+  /* Handle de redimensionamento lateral (arrasta a borda esquerda) */
+  .ia-resize-handle {
+    position: absolute; left: -4px; top: 0; bottom: 0; width: 8px;
+    cursor: ew-resize; z-index: 5;
+  }
+  .ia-resize-handle:hover { background: rgba(0,212,255,0.15); }
+
+  /* Estado minimizado: vira uma pílula flutuante no canto */
+  #iaPanel.minimized {
+    width: 60px; height: 60px; bottom: 12px; top: auto; border-radius: 50%;
+    cursor: pointer;
+  }
+  #iaPanel.minimized .ia-body,
+  #iaPanel.minimized .ia-header-title,
+  #iaPanel.minimized .ia-header-actions,
+  #iaPanel.minimized .ia-input-area,
+  #iaPanel.minimized .ia-tabs { display: none; }
+  #iaPanel.minimized .ia-pill-avatar { display: flex; }
+
+  .ia-pill-avatar {
+    display: none; width:100%; height:100%; align-items:center; justify-content:center;
+    font-size: 1.5rem; background: linear-gradient(135deg, var(--purple), var(--accent));
+    position: relative;
+  }
+  .ia-pill-avatar .ia-unread {
+    position:absolute; top:-2px; right:-2px; background: var(--danger); color:#fff;
+    font-size:.65rem; font-weight:700; width:18px; height:18px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; border: 2px solid var(--bg);
+  }
+
+  .ia-header {
+    display:flex; align-items:center; gap:10px; padding: 10px 12px;
+    background: linear-gradient(135deg, rgba(162,0,255,.18), rgba(0,212,255,.12));
+    border-bottom: 1px solid var(--border);
+    flex-shrink:0;
+    cursor: default;
+  }
+  .ia-header-avatar {
+    width:30px; height:30px; border-radius:50%; flex-shrink:0;
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    display:flex; align-items:center; justify-content:center; font-size:1rem;
+  }
+  .ia-header-title { flex:1; min-width:0; }
+  .ia-header-title .name { font-weight:600; font-size:.85rem; display:flex; align-items:center; gap:6px; }
+  .ia-header-title .status { font-size: .68rem; opacity:.6; display:flex; align-items:center; gap:5px; }
+  .status-dot { width:7px; height:7px; border-radius:50%; background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .status-dot.off { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+  .profile-badge {
+    font-size: .6rem; padding: 1px 6px; border-radius: 20px; border:1px solid var(--border);
+    opacity:.8; text-transform:uppercase; letter-spacing:.03em;
+  }
+  .ia-header-actions { display:flex; gap:4px; flex-shrink:0; }
+  .ia-icon-btn {
+    width:26px; height:26px; border-radius:7px; border:1px solid transparent; background:transparent;
+    color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-size:.85rem; opacity:.75; transition: .15s;
+  }
+  .ia-icon-btn:hover { background: rgba(255,255,255,0.08); opacity:1; }
+  .ia-icon-btn.danger:hover { background: rgba(248,81,73,0.15); color: var(--danger); }
+
+  .ia-tabs { display:flex; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .ia-tab {
+    flex:1; text-align:center; padding: 8px 4px; font-size:.72rem; cursor:pointer;
+    opacity:.55; border-bottom: 2px solid transparent;
+  }
+  .ia-tab.active { opacity:1; color: var(--accent); border-bottom-color: var(--accent); }
+
+  .ia-body { flex:1; min-height:0; display:flex; flex-direction:column; }
+  .ia-tab-panel { flex:1; min-height:0; display:none; flex-direction:column; }
+  .ia-tab-panel.active { display:flex; }
+
+  /* ---- Toolbar compacta (ícones apenas, com tooltip nativo) ---- */
+  .ia-toolbar {
+    display:flex; gap:3px; padding: 6px 8px; border-bottom:1px solid var(--border);
+    overflow-x:auto; flex-shrink:0;
+  }
+  .ia-toolbar .ia-icon-btn { flex-shrink:0; }
+
+  .ia-messages {
+    flex:1; overflow-y:auto; padding: 12px; display:flex; flex-direction:column; gap:10px;
+  }
+  .ia-msg { max-width: 88%; padding: 9px 11px; border-radius: 12px; font-size: .82rem; line-height:1.5; }
+  .ia-msg.user { align-self:flex-end; background: linear-gradient(135deg, var(--accent), var(--accent2)); color:#04141a; border-bottom-right-radius:3px; }
+  .ia-msg.ai { align-self:flex-start; background: var(--card); border:1px solid var(--border); border-bottom-left-radius:3px; }
+  .ia-msg .ia-msg-actions { display:flex; gap:6px; margin-top:6px; opacity:.55; }
+  .ia-msg .ia-msg-actions button { background:none; border:none; color:inherit; cursor:pointer; font-size:.7rem; opacity:.8; }
+  .ia-msg .ia-msg-actions button:hover { opacity:1; text-decoration:underline; }
+  .ia-msg pre { background: rgba(0,0,0,.35); padding:8px; border-radius:8px; font-size:.72rem; overflow-x:auto; margin-top:6px; font-family: "Cascadia Mono", Consolas, monospace; }
+
+  .ia-typing { align-self:flex-start; display:flex; gap:4px; padding: 8px 12px; }
+  .ia-typing span { width:6px; height:6px; border-radius:50%; background: var(--accent); animation: iaTyping 1.2s infinite ease-in-out; }
+  .ia-typing span:nth-child(2) { animation-delay:.2s; }
+  .ia-typing span:nth-child(3) { animation-delay:.4s; }
+  @keyframes iaTyping { 0%,80%,100%{ transform: scale(.6); opacity:.4;} 40%{ transform: scale(1); opacity:1;} }
+
+  .ia-input-area {
+    display:flex; align-items:flex-end; gap:6px; padding: 8px 10px; border-top:1px solid var(--border); flex-shrink:0;
+  }
+  .ia-input-area textarea {
+    flex:1; resize:none; max-height:110px; background: var(--card); border:1px solid var(--border);
+    border-radius:10px; color:var(--text); padding:8px 10px; font-size:.82rem; font-family:inherit;
+  }
+  .ia-input-area textarea:focus { outline:none; border-color: var(--accent); }
+  .ia-mic-btn {
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--border); background: var(--card);
+    color:var(--text); cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  }
+  .ia-mic-btn.recording { background: var(--danger); color:#fff; border-color: var(--danger); animation: micPulse 1.1s infinite; }
+  @keyframes micPulse { 0%{box-shadow:0 0 0 0 rgba(248,81,73,.5);} 70%{box-shadow:0 0 0 9px rgba(248,81,73,0);} 100%{box-shadow:0 0 0 0 rgba(248,81,73,0);} }
+  .ia-send-btn {
+    width:34px; height:34px; border-radius:50%; border:none; flex-shrink:0; cursor:pointer;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); color:#04141a; font-size:1rem;
+  }
+
+  /* ---- Aba Perfil do Agente ---- */
+  .ia-profile-panel { padding: 14px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; }
+  .ia-field label { display:block; font-size:.72rem; opacity:.7; margin-bottom:6px; }
+  .ia-field select, .ia-field textarea, .ia-field input[type=text] {
+    width:100%; background: var(--card); border:1px solid var(--border); border-radius:8px;
+    color: var(--text); padding:8px 10px; font-size:.8rem; font-family:inherit;
+  }
+  .ia-field textarea { resize:vertical; min-height:70px; }
+  .profile-grid { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  .profile-card {
+    border:1px solid var(--border); border-radius:9px; padding:9px; cursor:pointer; font-size:.72rem;
+  }
+  .profile-card.selected { border-color: var(--accent); background: rgba(0,212,255,0.08); }
+  .profile-card .p-label { font-weight:600; margin-bottom:2px; }
+  .profile-card .p-desc { opacity:.6; font-size:.66rem; line-height:1.3; }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; font-size:.78rem; }
+  .switch { position:relative; width:38px; height:20px; flex-shrink:0; }
+  .switch input { opacity:0; width:0; height:0; }
+  .switch .slider { position:absolute; inset:0; background: var(--border); border-radius:20px; cursor:pointer; transition:.2s; }
+  .switch .slider:before { content:""; position:absolute; width:16px; height:16px; left:2px; top:2px; background:#fff; border-radius:50%; transition:.2s; }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider:before { transform: translateX(18px); }
+  .slider-row input[type=range] { width:100%; accent-color: var(--accent); }
+  .slider-value { font-size:.68rem; opacity:.6; }
+
+  /* Chips de contexto anexado (mantidos do design original) */
+  .ia-attach-panel { display:flex; gap:6px; flex-wrap:wrap; padding: 0 10px 8px; }
+  .ia-chip {
+    font-size:.65rem; background: var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:3px 9px; display:flex; align-items:center; gap:5px;
+  }
+  .ia-chip button { background:none; border:none; color: var(--danger); cursor:pointer; font-size:.7rem; }
+
+  @media (max-width: 900px) {
+    #iaPanel { left: 12px; width:auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="fake-sidebar">
+    <h1>🖥️ Mestre do PC</h1>
+    <div class="nav-item">📊 Diagnóstico</div>
+    <div class="nav-item">🧹 Limpeza</div>
+    <div class="nav-item">🛡️ Segurança</div>
+    <div class="nav-item">📈 Monitoramento</div>
+  </div>
+  <div class="fake-main">
+    <h2>Protótipo — Redesign do Chat Mestre IA</h2>
+    <p>Este é um mockup interativo e independente (não altera <code>v10/index.html</code>). Ele demonstra o comportamento visual proposto: painel lateral fino, minimizar/expandir, voz e configuração de perfil agêntico. As chamadas de IA aqui são simuladas — este arquivo não fala com o Ollama real.</p>
+
+    <div class="mode-toggle">
+      <button onclick="document.body.classList.toggle('light'); this.classList.toggle('active')">🌗 Alternar tema (claro/escuro)</button>
+      <button onclick="toggleMinimize()">🗕 Minimizar / Restaurar chat</button>
+      <button onclick="toggleExpand()">↔️ Expandir / Encolher largura</button>
+    </div>
+
+    <div class="note-box">
+      <strong>Como testar a voz:</strong> clique no ícone de microfone dentro do chat (funciona em Chrome/Edge via Web Speech API, precisa de permissão do navegador). Clique no ícone de alto-falante numa mensagem da IA para ouvi-la em voz alta.
+    </div>
+  </div>
+</div>
+
+<!-- ================= CHAT REDESENHADO ================= -->
+<div id="iaPanel">
+  <div class="ia-resize-handle" id="iaResizeHandle"></div>
+
+  <div class="ia-pill-avatar" onclick="toggleMinimize()">
+    🧠<span class="ia-unread" id="iaUnreadBadge">2</span>
+  </div>
+
+  <div class="ia-header">
+    <div class="ia-header-avatar">🧠</div>
+    <div class="ia-header-title">
+      <div class="name">Mestre IA <span class="profile-badge" id="profileBadge">Equilibrado</span></div>
+      <div class="status"><span class="status-dot" id="statusDot"></span> <span id="statusText">Conectado · Ollama local</span></div>
+    </div>
+    <div class="ia-header-actions">
+      <button class="ia-icon-btn" title="Minimizar" onclick="toggleMinimize()">🗕</button>
+      <button class="ia-icon-btn" title="Expandir/encolher" onclick="toggleExpand()">↔️</button>
+      <button class="ia-icon-btn danger" title="Fechar">✕</button>
+    </div>
+  </div>
+
+  <div class="ia-tabs">
+    <div class="ia-tab active" data-tab="chat" onclick="switchTab('chat')">💬 Chat</div>
+    <div class="ia-tab" data-tab="memories" onclick="switchTab('memories')">🧩 Memórias</div>
+    <div class="ia-tab" data-tab="profile" onclick="switchTab('profile')">⚙️ Perfil</div>
+  </div>
+
+  <div class="ia-body">
+
+    <!-- ---- Aba Chat ---- -->
+    <div class="ia-tab-panel active" data-panel="chat">
+      <div class="ia-toolbar">
+        <button class="ia-icon-btn" title="Anexar contexto do app">📎</button>
+        <button class="ia-icon-btn" title="Anexar imagem">🖼️</button>
+        <button class="ia-icon-btn" title="Anexar arquivo">📄</button>
+        <button class="ia-icon-btn" title="Anexar terminal">💻</button>
+        <button class="ia-icon-btn" title="Salvar conversa (JSON)">💾</button>
+        <button class="ia-icon-btn" title="Exportar Markdown">📝</button>
+        <button class="ia-icon-btn" title="Limpar anexos">🧹</button>
+        <button class="ia-icon-btn danger" title="Limpar conversa">🗑️</button>
+      </div>
+      <div class="ia-attach-panel" id="attachPanel">
+        <div class="ia-chip">📎 ver_uso_ram <button>✕</button></div>
+      </div>
+      <div class="ia-messages" id="iaMessages">
+        <div class="ia-msg ai">
+          Olá! Sou o Mestre IA. Posso analisar diagnósticos, sugerir comandos da whitelist e responder por voz. Como posso ajudar?
+          <div class="ia-msg-actions"><button onclick="speak(this)">🔊 Ouvir</button><button>📋 Copiar</button></div>
+        </div>
+        <div class="ia-msg user">Qual processo está consumindo mais RAM agora?</div>
+        <div class="ia-msg ai">
+          O processo <code>chrome.exe</code> está usando 2.1 GB. Posso rodar <code>listar_processos_alto_consumo_ram</code> para detalhar — é uma operação segura (whitelist, não destrutiva).
+          <pre>listar_processos_alto_consumo_ram</pre>
+          <div class="ia-msg-actions"><button onclick="speak(this)">🔊 Ouvir</button><button>▶ Executar (low-risk)</button></div>
+        </div>
+      </div>
+      <div class="ia-typing" style="display:none" id="iaTyping"><span></span><span></span><span></span></div>
+      <div class="ia-input-area">
+        <textarea id="iaInput" rows="1" placeholder="Pergunte algo ou dite por voz..."></textarea>
+        <button class="ia-mic-btn" id="micBtn" title="Falar (voz → texto)" onclick="toggleMic()">🎙️</button>
+        <button class="ia-send-btn" title="Enviar">➤</button>
+      </div>
+    </div>
+
+    <!-- ---- Aba Memórias (preservada do original) ---- -->
+    <div class="ia-tab-panel" data-panel="memories">
+      <div class="ia-profile-panel">
+        <div class="ia-field">
+          <label>Memórias salvas</label>
+          <div class="ia-chip" style="display:flex;justify-content:space-between;padding:8px 10px;">
+            <span>💡 Preferência: sempre confirmar limpeza de cache</span>
+          </div>
+        </div>
+        <button class="ia-icon-btn" style="width:auto;padding:6px 12px;">+ Nova memória</button>
+      </div>
+    </div>
+
+    <!-- ---- Aba Perfil do Agente (NOVA) ---- -->
+    <div class="ia-tab-panel" data-panel="profile">
+      <div class="ia-profile-panel">
+        <div class="ia-field">
+          <label>Perfil do modelo (mcp-server/model-profiles.json)</label>
+          <div class="profile-grid">
+            <div class="profile-card" data-profile="fast" onclick="selectProfile(this,'Rápido')">
+              <div class="p-label">⚡ Rápido</div>
+              <div class="p-desc">Respostas curtas, baixa latência</div>
+            </div>
+            <div class="profile-card selected" data-profile="balanced" onclick="selectProfile(this,'Equilibrado')">
+              <div class="p-label">⚖️ Equilibrado</div>
+              <div class="p-desc">Padrão para uso geral</div>
+            </div>
+            <div class="profile-card" data-profile="agent" onclick="selectProfile(this,'Agente')">
+              <div class="p-label">🤖 Agente</div>
+              <div class="p-desc">Automação e execução de tarefas</div>
+            </div>
+            <div class="profile-card" data-profile="coding" onclick="selectProfile(this,'Código')">
+              <div class="p-label">🧑‍💻 Código</div>
+              <div class="p-desc">Scripts e automações complexas</div>
+            </div>
+            <div class="profile-card" data-profile="reasoning" onclick="selectProfile(this,'Raciocínio')">
+              <div class="p-label">🧠 Raciocínio</div>
+              <div class="p-desc">Diagnósticos e análise de logs</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ia-field">
+          <label>Persona / instrução de sistema</label>
+          <textarea placeholder="Ex: Responda de forma direta, sempre priorize comandos seguros da whitelist antes de sugerir alternativas manuais.">Você é o Mestre IA, assistente técnico do Mestre do PC. Priorize sempre operações da whitelist e explique riscos antes de sugerir comandos destrutivos.</textarea>
+        </div>
+
+        <div class="ia-field slider-row">
+          <label>Criatividade (temperature) <span class="slider-value" id="tempVal">0.6</span></label>
+          <input type="range" min="0" max="1" step="0.1" value="0.6" oninput="document.getElementById('tempVal').textContent=this.value">
+        </div>
+
+        <div class="toggle-row">
+          <span>🔊 Ler respostas em voz alta automaticamente</span>
+          <label class="switch"><input type="checkbox" id="autoReadToggle"><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span>🎙️ Enviar automaticamente após ditar</span>
+          <label class="switch"><input type="checkbox" id="autoSendVoice" checked><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span>⚡ Auto-executar sugestões low-risk (sem confirmar)</span>
+          <label class="switch"><input type="checkbox" id="autoExecToggle" checked><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span>📌 Manter chat sempre visível (não fechar ao trocar de aba)</span>
+          <label class="switch"><input type="checkbox" id="pinToggle"><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ===== Minimizar / Restaurar =====
+  function toggleMinimize() {
+    const panel = document.getElementById('iaPanel');
+    panel.classList.toggle('minimized');
+  }
+
+  // ===== Expandir largura =====
+  function toggleExpand() {
+    document.getElementById('iaPanel').classList.toggle('expanded');
+  }
+
+  // ===== Abas =====
+  function switchTab(tab) {
+    document.querySelectorAll('.ia-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('.ia-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+  }
+
+  // ===== Perfil do agente =====
+  function selectProfile(el, label) {
+    document.querySelectorAll('.profile-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('profileBadge').textContent = label;
+  }
+
+  // ===== Redimensionar lateralmente (arrastar borda esquerda) =====
+  (function setupResize() {
+    const handle = document.getElementById('iaResizeHandle');
+    const panel = document.getElementById('iaPanel');
+    let dragging = false;
+    handle.addEventListener('mousedown', (e) => { dragging = true; e.preventDefault(); });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const newWidth = window.innerWidth - e.clientX - 12;
+      panel.style.width = Math.min(640, Math.max(300, newWidth)) + 'px';
+    });
+    window.addEventListener('mouseup', () => dragging = false);
+  })();
+
+  // ===== Voz: ditado (Speech-to-Text) =====
+  let recognition = null;
+  let recording = false;
+  function toggleMic() {
+    const btn = document.getElementById('micBtn');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('Reconhecimento de voz não suportado neste navegador. Use Chrome ou Edge.'); return; }
+    if (recording) { recognition && recognition.stop(); return; }
+    recognition = new SR();
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+    recognition.onstart = () => { recording = true; btn.classList.add('recording'); };
+    recognition.onend = () => { recording = false; btn.classList.remove('recording'); };
+    recognition.onresult = (ev) => {
+      const text = ev.results[0][0].transcript;
+      const input = document.getElementById('iaInput');
+      input.value = (input.value ? input.value + ' ' : '') + text;
+      if (document.getElementById('autoSendVoice').checked) {
+        // No app real, isto chamaria sendIA()
+        showTypingDemo();
+      }
+    };
+    recognition.start();
+  }
+
+  // ===== Voz: leitura (Text-to-Speech) =====
+  function speak(btnEl) {
+    const msgEl = btnEl.closest('.ia-msg');
+    const text = msgEl.childNodes[0].textContent.trim();
+    if (!('speechSynthesis' in window)) { alert('Síntese de voz não suportada neste navegador.'); return; }
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'pt-BR';
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utter);
+  }
+
+  // ===== Demo de "digitando..." só para mostrar o estado visual =====
+  function showTypingDemo() {
+    const typing = document.getElementById('iaTyping');
+    typing.style.display = 'flex';
+    setTimeout(() => { typing.style.display = 'none'; }, 1600);
+  }
+</script>
+
+</body>
+</html>
