@@ -98,16 +98,19 @@ test("handlers de IA aplicam o guard de prompt injection", async () => {
   assert.match(source, /guardPromptInjection\([^)]*"perguntar_ia_com_contexto"\)/);
 });
 
-test("UI do chat consulta /classify e usa modal próprio no fluxo da IA", async () => {
+test("UI do chat consulta /classify e confirma toda execução sugerida pela IA", async () => {
   const html = await readFile(join(root, "v10", "index.html"), "utf8");
 
   // Classificação antes de executar sugestão da IA.
   assert.match(html, /const verdict = await classifyCommand\(cmd\)/);
   assert.match(html, /\/classify/);
 
-  // Destrutivo exige confirmação; low-risk executa direto.
-  assert.match(html, /if \(verdict\.destructive\)/);
-  assert.match(html, /low-risk/);
+  // Todo comando sugerido pela IA exige confirmação, inclusive low-risk.
+  assert.match(html, /Comando sugerido pela IA\. Confirme antes de executar\./);
+  assert.match(html, /const ok = await askCommandConfirmation/);
+  assert.doesNotMatch(html, /executado automaticamente \(low-risk\)/);
+  assert.match(html, /MAX_CHAT_TEXT_FILE_BYTES/);
+  assert.doesNotMatch(html, /sel\.innerHTML = models\.map/);
 
   // Fora da whitelist é bloqueado com opção de copiar.
   assert.match(html, /Comando fora da whitelist/);
@@ -118,4 +121,36 @@ test("UI do chat consulta /classify e usa modal próprio no fluxo da IA", async 
 
   // Resposta 400 do guard vira mensagem no chat.
   assert.match(html, /res\.status === 400/);
+});
+
+test("módulo de chat preserva comandos e trata anexos com segurança", async () => {
+  const source = await readFile(join(root, "v10", "chat", "chat-module.js"), "utf8");
+
+  assert.match(source, /_onFileSelected\(e\.currentTarget\)/);
+  assert.match(source, /_onImageSelected\(e\.currentTarget\)/);
+  assert.match(source, /MAX_CHAT_TEXT_FILE_BYTES/);
+  assert.match(source, /data-cmd="\$\{safe\}"/);
+  assert.doesNotMatch(source, /data-cmd="\$\{escapeHtml\(safe\)\}"/);
+  assert.match(source, /Comando sugerido pela IA\. Confirme antes de executar\./);
+  assert.doesNotMatch(source, /executado automaticamente \(low-risk\)/);
+  assert.doesNotMatch(source, /modelSelect\.innerHTML/);
+});
+
+test("launcher serve o módulo de chat com CSP e bloqueia extensões não permitidas", async (t) => {
+  const base = await startLauncher(t);
+
+  const page = await fetch(base + "/chat/example-integration.html");
+  assert.equal(page.status, 200);
+  assert.match(page.headers.get("content-type") || "", /text\/html/);
+  assert.match(page.headers.get("content-security-policy") || "", /default-src 'self'/);
+
+  const module = await fetch(base + "/chat/chat-module.js");
+  assert.equal(module.status, 200);
+  assert.match(module.headers.get("content-type") || "", /javascript/);
+
+  const unsupported = await fetch(base + "/chat/arquivo.svg");
+  assert.equal(unsupported.status, 403);
+
+  const traversal = await fetch(base + "/chat/../launcher.js");
+  assert.notEqual(traversal.status, 200);
 });

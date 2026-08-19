@@ -1,8 +1,10 @@
 # Chat Agent — pasta dedicada
 
-Home único para tudo relacionado ao agente de chat IA da V10: onde o código de produção do chat deve morar quando for extraído do monólito, os perfis/personas que a UI usa, e o vínculo com a proposta de design.
+Pasta de perfis e referências de design do agente de chat IA da V10.
 
-Esta pasta é **aditiva** — nada em `v10/index.html` foi alterado para criá-la. É o destino planejado para a próxima etapa (extração do chat do monólito), não uma reescrita já aplicada.
+> **Estado atual:** a implementação modular em desenvolvimento está em `../chat/`. Esta pasta permanece como fonte dos perfis/personas e das decisões visuais; não é mais o destino do código executável do chat.
+
+O chat usado pela página principal ainda vive em `v10/index.html`. O componente reutilizável está em `v10/chat/chat-module.js` e ainda não substitui o monólito.
 
 ## Estrutura
 
@@ -23,14 +25,14 @@ Estende `mcp-server/model-profiles.json` (fast/balanced/agent/coding/reasoning) 
 
 Não duplica o mockup — aponta para `../../sugestoes/chat-ia-redesign/` (proposta aprovável) e registra, conforme a proposta evolui, quais decisões visuais já foram validadas e prontas para virar código real aqui dentro.
 
-## Roteiro de extração (ainda não executado)
+## Roteiro de migração (ainda não executado)
 
 Quando a extração do chat do monólito for autorizada, o plano é:
 
-1. Mover a lógica JS (`sendIA`, `addIAMessage`, `renderIAContent`, `runIACmd`, `classifyCommand`, `askCommandConfirmation`, gestão de `iaConversation`/memórias) de `v10/index.html:~1572-2900` para `v10/chat-agent/chat.js`, carregado via `<script src>` no lugar do código inline.
-2. Mover o CSS (`v10/index.html:673-755`) para `v10/chat-agent/chat.css`.
-3. Mover o HTML do painel (`v10/index.html:905-968`) para um template injetado no DOM (evita reescrever todos os `getElementById` de uma vez).
+1. Validar `v10/chat/chat-module.js`, `chat-styles.css` e o exemplo de integração.
+2. Integrar o módulo ao `v10/index.html`, removendo gradualmente o CSS e o JavaScript duplicados.
+3. Preservar os contratos de segurança, os IDs necessários e a confirmação explícita de todo comando sugerido pela IA.
 4. Preservar todos os IDs e o padrão `.cmd-confirm-overlay` já existente — ver `sugestoes/chat-ia-redesign/README.md` para o mapa completo.
 5. Cada etapa acompanhada de teste manual no app real antes do merge (regra do projeto: mudança de comportamento sempre com verificação).
 
-Essa extração não foi feita ainda — esta pasta só contém o scaffold e os perfis.
+Essa migração não foi concluída — esta pasta contém apenas perfis e referências de design.

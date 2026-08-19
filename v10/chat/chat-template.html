@@ -1,0 +1,108 @@
+<!--
+  Template do painel de chat IA do Mestre do PC.
+  Referencia do template interno de chat-module.js. O modulo injeta uma string
+  equivalente no container de initChat({ rootSelector }); mantenha ambos sincronizados.
+-->
+
+<!-- Overlay principal do chat -->
+<div class="mestre-chat-overlay" id="mestreChatOverlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="mestreChatDialogTitle">
+  <div class="mestre-chat-modal">
+    <!-- Cabecalho -->
+    <div class="mestre-chat-header">
+      <div>
+        <h3 id="mestreChatDialogTitle">🧠 Mestre IA (Ollama)</h3>
+        <span class="mestre-chat-status" id="mestreChatStatus">Verificando conexao...</span>
+        <select id="mestreChatModelSelect" class="mestre-chat-model-select" aria-label="Modelo do Ollama"></select>
+      </div>
+      <div class="mestre-chat-header-actions">
+        <button class="mestre-chat-minimize" id="mestreChatMinimize" aria-label="Minimizar chat" title="Minimizar chat">▁</button>
+        <button class="mestre-chat-close" id="mestreChatClose" aria-label="Fechar chat" title="Fechar chat">✕</button>
+      </div>
+    </div>
+
+    <!-- Abas -->
+    <div class="mestre-chat-tabs">
+      <button class="mestre-chat-tab active" data-tab="chat">💬 Chat</button>
+      <button class="mestre-chat-tab" data-tab="memories">🧠 Memórias</button>
+    </div>
+
+    <!-- Corpo: Chat -->
+    <div class="mestre-chat-tab-body active" data-tab-body="chat">
+      <!-- Toolbar de contexto -->
+      <div class="mestre-chat-toolbar">
+        <button data-attach="dashboard" title="Enviar metricas atuais de CPU/RAM/disco">📊 Painel</button>
+        <button data-attach="models" title="Listar modelos Ollama instalados">🤖 Modelos</button>
+        <button data-attach="memory" title="Enviar uso de RAM e processos pesados">🧠 Memória</button>
+        <button data-attach="files" title="Selecionar arquivo local para analise">📁 Arquivo</button>
+        <button data-attach="terminal" title="Enviar ultimo output do terminal">🖥️ Terminal</button>
+        <button data-attach="app" title="Enviar informacoes do app Mestre do PC">🛡️ App</button>
+        <button data-attach="image" title="Anexar imagem para analise visual">🖼️ Imagem</button>
+        <button data-action="save-context" title="Baixar todo o contexto do chat em JSON">💾 Salvar</button>
+        <button data-action="export-md" title="Baixar conversa em relatorio Markdown">📥 MD</button>
+        <button data-action="clear-attachments" title="Limpar contextos anexados">🧹 Limpar</button>
+        <button data-action="clear-chat" title="Limpar todo o historico de chat da IA" style="border-color:rgba(248,81,73,0.4);color:var(--danger)">🗑️ Limpar Chat</button>
+      </div>
+
+      <!-- Painel de anexos -->
+      <div class="mestre-chat-attach-panel" id="mestreChatAttachPanel">
+        <h4 id="mestreChatAttachTitle">Anexos ao contexto</h4>
+        <div class="mestre-chat-attach-list" id="mestreChatAttachList"></div>
+      </div>
+
+      <!-- Chips de memorias ativas -->
+      <div class="mestre-chat-memory-chips" id="mestreChatActiveMemoryChips"></div>
+
+      <!-- Inputs ocultos para arquivo/imagem -->
+      <input type="file" id="mestreChatFileInput" style="display:none" accept=".txt,.md,.json,.csv,.log,.ps1,.bat,.cmd,.xml,.yaml,.yml,.ini,.conf,.env,.html,.css,.js,.ts,.py" />
+      <input type="file" id="mestreChatImageInput" style="display:none" accept="image/*" />
+
+      <!-- Area de mensagens -->
+      <div class="mestre-chat-messages" id="mestreChatMessages">
+        <div class="mestre-chat-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutencao do PC. 🖥️<br/>Me diga o que esta acontecendo e eu sugiro os melhores comandos para resolver!</div>
+      </div>
+
+      <!-- Area de input -->
+      <div class="mestre-chat-input-area">
+        <input type="text" id="mestreChatInput" aria-label="Mensagem para o Mestre IA" placeholder="Digite sua mensagem..." autocomplete="off" />
+        <button id="mestreChatAttachFileBtn" class="icon-btn secondary" title="Anexar arquivo de texto">📎</button>
+        <button id="mestreChatAttachImageBtn" class="icon-btn secondary" title="Anexar imagem">🖼️</button>
+        <button id="mestreChatSendBtn">Enviar ➤</button>
+        <button id="mestreChatStopBtn" class="stop-btn" style="display:none;" title="Parar geracao">⏹ Parar</button>
+      </div>
+    </div>
+
+    <!-- Corpo: Memorias -->
+    <div class="mestre-chat-tab-body" data-tab-body="memories">
+      <div class="mestre-chat-memories-header">
+        <button class="mestre-chat-memories-new" id="mestreChatNewMemoryBtn">➕ Nova memoria</button>
+        <span class="mestre-chat-memories-count" id="mestreChatMemoriesCount">0 memorias</span>
+      </div>
+      <div class="mestre-chat-memories-list" id="mestreChatMemoriesList"></div>
+      <div class="mestre-chat-memory-editor" id="mestreChatMemoryEditor">
+        <input type="hidden" id="mestreChatMemoryId" />
+        <input type="text" id="mestreChatMemoryTitle" placeholder="Titulo da memoria..." />
+        <textarea id="mestreChatMemoryContent" placeholder="Conteudo que o modelo deve lembrar..."></textarea>
+        <div class="mestre-chat-memory-editor-actions">
+          <button id="mestreChatSaveMemoryBtn">💾 Salvar</button>
+          <button class="secondary" id="mestreChatCancelMemoryBtn">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmacao de comando -->
+<div class="mestre-chat-confirm-overlay" id="mestreChatConfirmOverlay">
+  <div class="mestre-chat-confirm-modal" id="mestreChatConfirmModal">
+    <div class="mestre-chat-confirm-head" id="mestreChatConfirmHead">⚠️ Confirmacao de seguranca</div>
+    <div class="mestre-chat-confirm-body">
+      <div id="mestreChatConfirmReason"></div>
+      <pre id="mestreChatConfirmCode"></pre>
+      <div class="mestre-chat-confirm-meta" id="mestreChatConfirmMeta"></div>
+    </div>
+    <div class="mestre-chat-confirm-foot">
+      <button type="button" id="mestreChatConfirmCancel">Cancelar</button>
+      <button type="button" class="primary" id="mestreChatConfirmOk">Executar como Administrador</button>
+    </div>
+  </div>
+</div>

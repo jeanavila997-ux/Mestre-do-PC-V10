@@ -14,7 +14,9 @@ $InstallDir = $PSScriptRoot
 $OllamaExe = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
 $OllamaApi = "http://localhost:11434"
 $LauncherUrl = "http://127.0.0.1:7777"
-$LauncherPs1 = Join-Path $InstallDir "MestreDoPC-Launcher.ps1"
+# V10/V11: o launcher primario e o Node.js (v10\launcher.js). O antigo
+# MestreDoPC-Launcher.ps1 foi removido do repositorio.
+$LauncherJs = Join-Path $InstallDir "v10\launcher.js"
 $LogFile = Join-Path $InstallDir "logs\shortcut.log"
 
 function Write-Log {
@@ -61,21 +63,27 @@ function Start-MestreLauncher {
         return $true
     }
 
-    # A porta 7777 é a fonte da verdade. O PID file pode apontar para um
-    # processo que já morreu e teve o PID reutilizado por outro programa —
-    # confiar nele faz o script achar que o launcher está no ar quando não está.
-    # Por isso não lemos o PID file aqui: se a porta não respondeu acima,
+    # A porta 7777 e a fonte da verdade. O PID file pode apontar para um
+    # processo que ja morreu e teve o PID reutilizado por outro programa —
+    # confiar nele faz o script achar que o launcher esta no ar quando nao esta.
+    # Por isso nao lemos o PID file aqui: se a porta nao respondeu acima,
     # simplesmente iniciamos o launcher de novo.
 
-    Write-Log "Iniciando MestreDoPC-Launcher.ps1..."
-    if (-not (Test-Path $LauncherPs1)) {
-        throw "Launcher nao encontrado: $LauncherPs1"
+    Write-Log "Iniciando v10\launcher.js (Node.js) ..."
+    if (-not (Test-Path $LauncherJs)) {
+        throw "Launcher nao encontrado: $LauncherJs"
     }
 
-    # MestreDoPC-Launcher.ps1 se auto-eleva; aqui chamamos sem admin.
-    Start-Process -FilePath "pwsh.exe" `
-        -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$LauncherPs1`"" `
-        -WorkingDirectory $InstallDir
+    $nodeExe = (Get-Command node -ErrorAction SilentlyContinue).Source
+    if (-not $nodeExe) {
+        throw "Node.js nao encontrado no PATH. Instale o Node.js 20+ e reinicie o terminal."
+    }
+
+    # Inicia o launcher Node.js em background. Para elevacao garantida, use a
+    # tarefa agendada MestreDoPC_Admin_Launcher ou execute este script como Admin.
+    Start-Process -FilePath $nodeExe `
+        -ArgumentList "`"$LauncherJs`"" `
+        -WorkingDirectory $InstallDir -WindowStyle Hidden
 
     if (Wait-Http -Url "$LauncherUrl/ping" -MaxSeconds 30) {
         Write-Log "Launcher iniciado com sucesso." -level "OK"
