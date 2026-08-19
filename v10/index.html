@@ -722,6 +722,10 @@
       .ia-input-area button { padding: 10px 18px; background: linear-gradient(135deg, #a200ff, #00d4ff); border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
       .ia-input-area button.secondary { background: var(--card); border: 1px solid var(--border); color: var(--text); }
       .ia-input-area button.icon-btn { padding: 10px 12px; border-radius: 50%; font-size: 1rem; }
+      .ia-input-area #iaStopBtn { background: var(--danger); }
+      .ia-msg.ai .ia-msg-actions { display: flex; gap: 6px; margin-top: 8px; }
+      .ia-msg.ai .ia-msg-actions button { padding: 3px 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.72rem; cursor: pointer; }
+      .ia-msg.ai .ia-msg-actions button:hover { background: rgba(255,255,255,0.12); }
       .ia-tabs { display:flex; gap:4px; padding:8px 16px 0; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.2); }
       .ia-tab { padding:8px 16px; background:transparent; border:none; border-bottom:2px solid transparent; color:#8b949e; font-size:0.85rem; cursor:pointer; transition:0.2s; }
       .ia-tab:hover { color:var(--text); }
@@ -903,15 +907,15 @@
       </div>
     </div>
     <!-- Modal Chat IA Ollama -->
-    <div class="ia-overlay" id="iaOverlay">
+    <div class="ia-overlay" id="iaOverlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="iaDialogTitle">
       <div class="ia-modal">
         <div class="ia-header">
           <div>
-            <h3>🧠 Mestre IA (Ollama)</h3>
+            <h3 id="iaDialogTitle">🧠 Mestre IA (Ollama)</h3>
             <span class="ia-status" id="iaStatus">Verificando conexão...</span>
-            <select id="ollamaModelSelect" onchange="selectedOllamaModel=this.value" style="margin-left:12px;padding:4px 10px;border-radius:6px;background:#0d1117;color:#00ff88;border:1px solid #00ff88;font-size:0.85rem;outline:none;max-width:240px;"></select>
+            <select id="ollamaModelSelect" aria-label="Modelo do Ollama" onchange="selectedOllamaModel=this.value" style="margin-left:12px;padding:4px 10px;border-radius:6px;background:#0d1117;color:#00ff88;border:1px solid #00ff88;font-size:0.85rem;outline:none;max-width:240px;"></select>
           </div>
-          <button class="ia-close" onclick="closeIA()">✕</button>
+          <button class="ia-close" aria-label="Fechar chat" onclick="closeIA()">✕</button>
         </div>
         <div class="ia-tabs">
           <button class="ia-tab active" id="iaTabChat" onclick="switchIATab('chat')">💬 Chat</button>
@@ -942,10 +946,11 @@
             <div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>
           </div>
           <div class="ia-input-area">
-            <input type="text" id="iaInput" placeholder="Digite sua mensagem..." autocomplete="off" />
+            <input type="text" id="iaInput" aria-label="Mensagem para o Mestre IA" placeholder="Digite sua mensagem..." autocomplete="off" />
             <button id="iaAttachFileBtn" onclick="attachContext('files')" title="Anexar arquivo de texto">📎</button>
             <button id="iaAttachImageBtn" onclick="attachImageFile()" title="Anexar imagem">🖼️</button>
             <button id="iaSendBtn" onclick="sendIA()">Enviar ➤</button>
+            <button id="iaStopBtn" onclick="stopIA()" style="display:none;" title="Parar geração">⏹ Parar</button>
           </div>
         </div>
         <div class="ia-tab-body" id="iaBodyMemories">
@@ -2241,6 +2246,8 @@ COMANDOS QUE VOCÊ CONHECE:
 - Privacidade: AllowTelemetry, AdvertisingInfo, Cortana`;
       let iaConversation = JSON.parse(localStorage.getItem("mestre_v10_ia_conversation") || "[]");
       let iaAttachments = [];
+      let iaAbortController = null;
+      const MAX_CHAT_TEXT_FILE_BYTES = 2 * 1024 * 1024;
       let activeMemoryIds = new Set();
       let memoriesListCache = [];
       let memoriesDb = null;
@@ -2371,6 +2378,11 @@ COMANDOS QUE VOCÊ CONHECE:
       function onIAFileSelected(input) {
         const file = input.files[0];
         if (!file) return;
+        if (file.size > MAX_CHAT_TEXT_FILE_BYTES) {
+          showToast("Arquivo muito grande. O limite para anexos de texto é 2 MB.", "#f85149");
+          input.value = "";
+          return;
+        }
         const reader = new FileReader();
         reader.onload = () => {
           const text = reader.result;
@@ -2456,12 +2468,18 @@ COMANDOS QUE VOCÊ CONHECE:
         } catch {}
       }
       function openAI() {
-        document.getElementById("iaOverlay").classList.add("open");
+        const overlay = document.getElementById("iaOverlay");
+        overlay.classList.add("open");
+        overlay.setAttribute("aria-hidden", "false");
         document.getElementById("iaInput").focus();
         checkOllama().then(preloadModel);
         initMemoriesDb().then(loadMemories).catch(() => loadMemories());
       }
-      function closeIA() { document.getElementById("iaOverlay").classList.remove("open"); }
+      function closeIA() {
+        const overlay = document.getElementById("iaOverlay");
+        overlay.classList.remove("open");
+        overlay.setAttribute("aria-hidden", "true");
+      }
       function switchIATab(tab) {
         document.getElementById("iaTabChat").classList.toggle("active", tab === "chat");
         document.getElementById("iaTabMemories").classList.toggle("active", tab === "memories");
@@ -2480,7 +2498,14 @@ COMANDOS QUE VOCÊ CONHECE:
           if (models.length > 0) {
             selectedOllamaModel = chooseOllamaModel(models);
             const sel = document.getElementById("ollamaModelSelect");
-            sel.innerHTML = models.map(m => '<option value="' + m + '"' + (m === selectedOllamaModel ? " selected" : "") + ">" + m + "</option>").join("");
+            const options = models.map((model) => {
+              const option = document.createElement("option");
+              option.value = model;
+              option.textContent = model;
+              option.selected = model === selectedOllamaModel;
+              return option;
+            });
+            sel.replaceChildren(...options);
             status.textContent = "🟢 Conectado — Modelo: " + selectedOllamaModel;
             status.style.color = "var(--accent2)";
           } else { status.textContent = "🟡 Sem modelos. Execute: ollama pull qwen2.5-coder:3b-instruct"; status.style.color = "#f0ad4e"; }
@@ -2504,20 +2529,14 @@ COMANDOS QUE VOCÊ CONHECE:
         }
       });
       async function sendIA() {
+        if (iaAbortController) { showToast("⏳ Aguarde a resposta atual ou clique em Parar.", "#f0a800"); return; }
         const input = document.getElementById("iaInput");
-        const btn = document.getElementById("iaSendBtn");
         const msg = input.value.trim();
         if (!msg && !iaAttachments.some(a => a.type === "image")) return;
         const imageAttachments = iaAttachments.filter(a => a.type === "image" && !a.used);
         const displayMsg = msg || (imageAttachments.length ? "[imagem anexada]" : "");
         addIAMessage(displayMsg, "user");
         input.value = "";
-        btn.disabled = true;
-        const typingEl = document.createElement("div");
-        typingEl.className = "ia-typing";
-        typingEl.innerHTML = "<span></span><span></span><span></span>";
-        document.getElementById("iaMessages").appendChild(typingEl);
-        scrollIAToBottom();
         const fullMessage = buildContextPrompt(msg, imageAttachments.length);
         const userPayload = { role: "user", content: fullMessage };
         if (imageAttachments.length > 0) {
@@ -2525,26 +2544,67 @@ COMANDOS QUE VOCÊ CONHECE:
         }
         iaConversation.push({ role: "user", content: displayMsg, images: imageAttachments.map(a => ({ name: a.name, mime: a.mime })) });
         saveIaConversation();
+        const messagesForApi = [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map((m, i, arr) => {
+          const isLastUser = m.role === "user" && i === arr.length - 1;
+          const out = { role: m.role };
+          if (isLastUser) { out.content = fullMessage; if (userPayload.images) out.images = userPayload.images; }
+          else { out.content = m.content; }
+          return out;
+        })];
+        const result = await streamOllamaReply(messagesForApi);
+        if (result.ok) {
+          iaConversation.push({ role: "assistant", content: result.content });
+          saveIaConversation();
+          for (const a of iaAttachments) { if (a.type === "image") a.used = true; }
+          if (activeMemoryIds.size > 0) { activeMemoryIds.clear(); renderActiveMemoryChips(); }
+        } else if (result.blocked) {
+          iaConversation.pop();
+          saveIaConversation();
+        }
+      }
+      // NOVO: envia messages já montadas ao proxy /ollama/chat, faz streaming na bolha da IA
+      // e alterna Enviar/Parar. Compartilhado por sendIA() e regenerateIA().
+      async function streamOllamaReply(messagesForApi) {
+        const sendBtn = document.getElementById("iaSendBtn");
+        const stopBtn = document.getElementById("iaStopBtn");
+        const input = document.getElementById("iaInput");
+        sendBtn.style.display = "none";
+        stopBtn.style.display = "";
+        const typingEl = document.createElement("div");
+        typingEl.className = "ia-typing";
+        typingEl.innerHTML = "<span></span><span></span><span></span>";
+        document.getElementById("iaMessages").appendChild(typingEl);
+        scrollIAToBottom();
+        iaAbortController = new AbortController();
+        let aiMsgEl = null;
+        let fullResponse = "";
+        let renderFrameId = null;
+        const flushStreamRender = () => {
+          if (renderFrameId !== null) cancelAnimationFrame(renderFrameId);
+          renderFrameId = null;
+          if (!aiMsgEl) return;
+          renderIAContent(aiMsgEl, fullResponse);
+          scrollIAToBottom();
+        };
+        const scheduleStreamRender = () => {
+          if (renderFrameId !== null) return;
+          renderFrameId = requestAnimationFrame(flushStreamRender);
+        };
         try {
-          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map((m, i, arr) => { const isLastUser = m.role === "user" && i === arr.length - 1; const out = { role: m.role }; if (isLastUser) { out.content = fullMessage; if (userPayload.images) out.images = userPayload.images; } else { out.content = m.content; } return out; })], stream: true, keep_alive: "10m" }) });
+          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: messagesForApi, stream: true, keep_alive: "10m" }), signal: iaAbortController.signal });
           // 400 = mensagem barrada pelo filtro de prompt injection do launcher.
           if (res.status === 400) {
             typingEl.remove();
             const info = await res.json().catch(() => ({}));
             const pct = typeof info.score === "number" ? ` (score ${(info.score * 100).toFixed(0)}%)` : "";
             addIAMessage("🛡️ " + (info.error || "Mensagem bloqueada pelo filtro de segurança.") + pct, "ai");
-            iaConversation.pop();
-            saveIaConversation();
-            btn.disabled = false;
-            input.focus();
-            return;
+            return { ok: false, blocked: true };
           }
           if (!res.ok || !res.body) throw new Error("Falha no proxy Ollama: HTTP " + res.status);
           typingEl.remove();
-          const aiMsgEl = addIAMessage("", "ai");
+          aiMsgEl = addIAMessage("", "ai");
           const reader = res.body.getReader();
           const decoder = new TextDecoder();
-          let fullResponse = "";
           let pending = "";
           while (true) {
             const { done, value } = await reader.read();
@@ -2554,19 +2614,66 @@ COMANDOS QUE VOCÊ CONHECE:
             pending = lines.pop() || "";
             for (const line of lines) {
               if (!line.trim()) continue;
-              try { const json = JSON.parse(line); if (json.message?.content) { fullResponse += json.message.content; renderIAContent(aiMsgEl, fullResponse); scrollIAToBottom(); } } catch {}
+              try { const json = JSON.parse(line); if (json.message?.content) { fullResponse += json.message.content; scheduleStreamRender(); } } catch {}
             }
           }
           if (pending.trim()) {
-            try { const json = JSON.parse(pending); if (json.message?.content) { fullResponse += json.message.content; renderIAContent(aiMsgEl, fullResponse); } } catch {}
+            try { const json = JSON.parse(pending); if (json.message?.content) { fullResponse += json.message.content; } } catch {}
           }
-          iaConversation.push({ role: "assistant", content: fullResponse });
+          flushStreamRender();
+          addIAMessageActions(aiMsgEl, fullResponse);
+          return { ok: true, content: fullResponse };
+        } catch (err) {
+          typingEl.remove();
+          if (err.name === "AbortError") {
+            if (aiMsgEl) { renderIAContent(aiMsgEl, fullResponse + "\n\n⏹ _interrompido pelo usuário_"); }
+            else { addIAMessage("⏹ Geração interrompida.", "ai"); }
+            return { ok: false, aborted: true };
+          }
+          addIAMessage("❌ Erro ao conectar ao Ollama: " + err.message, "ai");
+          return { ok: false, error: err };
+        } finally {
+          if (renderFrameId !== null) cancelAnimationFrame(renderFrameId);
+          iaAbortController = null;
+          sendBtn.style.display = "";
+          stopBtn.style.display = "none";
+          input.focus();
+        }
+      }
+      function stopIA() {
+        if (iaAbortController) iaAbortController.abort();
+      }
+      // NOVO: adiciona ações (copiar / regenerar) sob a última resposta da IA.
+      function addIAMessageActions(el, content) {
+        const bar = document.createElement("div");
+        bar.className = "ia-msg-actions";
+        const copyBtn = document.createElement("button");
+        copyBtn.textContent = "📋 Copiar";
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(content)
+            .then(() => showToast("📋 Resposta copiada", "#00d4ff"))
+            .catch(() => showToast("⚠️ Não foi possível copiar", "#f0a800"));
+        };
+        bar.appendChild(copyBtn);
+        const regenBtn = document.createElement("button");
+        regenBtn.textContent = "🔁 Regenerar";
+        regenBtn.onclick = () => regenerateIA(el);
+        bar.appendChild(regenBtn);
+        el.appendChild(bar);
+      }
+      // NOVO: descarta a última resposta da IA e pede uma nova para o mesmo histórico.
+      async function regenerateIA(el) {
+        if (iaAbortController) { showToast("⏳ Aguarde a geração atual terminar.", "#f0a800"); return; }
+        if (!iaConversation.length || iaConversation[iaConversation.length - 1].role !== "assistant") return;
+        iaConversation.pop();
+        saveIaConversation();
+        el.remove();
+        const messagesForApi = [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map(m => ({ role: m.role, content: m.content }))];
+        const result = await streamOllamaReply(messagesForApi);
+        if (result.ok) {
+          iaConversation.push({ role: "assistant", content: result.content });
           saveIaConversation();
-          for (const a of iaAttachments) { if (a.type === "image") a.used = true; }
-          if (activeMemoryIds.size > 0) { activeMemoryIds.clear(); renderActiveMemoryChips(); }
-        } catch (err) { typingEl.remove(); addIAMessage("❌ Erro ao conectar ao Ollama: " + err.message, "ai"); }
-        btn.disabled = false;
-        input.focus();
+        }
       }
       function addIAMessage(text, role) {
         const el = document.createElement("div");
@@ -2592,8 +2699,7 @@ COMANDOS QUE VOCÊ CONHECE:
         if (serverOnline === false) { showToast("❌ Servidor offline.", "#f85149"); return; }
 
         // Política de permissões do chat:
-        //  - na whitelist e não destrutivo  -> executa direto (low-risk)
-        //  - na whitelist e destrutivo      -> confirmação com preview
+        //  - na whitelist                   -> confirmação explícita com preview
         //  - fora da whitelist              -> bloqueado, com opção de copiar
         btn.textContent = "🔎 Verificando...";
         btn.disabled = true;
@@ -2616,17 +2722,15 @@ COMANDOS QUE VOCÊ CONHECE:
           return;
         }
 
-        if (verdict.destructive) {
-          btn.disabled = false;
-          const ok = await askCommandConfirmation({
-            code: cmd,
-            reason: "Operação destrutiva sugerida pela IA. Revise antes de autorizar.",
-            meta: [verdict.title, verdict.category].filter(Boolean).join(" • "),
-          });
-          if (!ok) { btn.textContent = "▶ Executar"; return; }
-        } else {
-          showToast(`⚡ ${verdict.title || "Comando"} executado automaticamente (low-risk).`, "#00ff88");
-        }
+        btn.disabled = false;
+        const ok = await askCommandConfirmation({
+          code: cmd,
+          reason: verdict.destructive
+            ? "Operação destrutiva sugerida pela IA. Revise antes de autorizar."
+            : "Comando sugerido pela IA. Confirme antes de executar.",
+          meta: [verdict.title, verdict.category].filter(Boolean).join(" • "),
+        });
+        if (!ok) { btn.textContent = "▶ Executar"; return; }
 
         btn.textContent = "⏳ Executando...";
         btn.disabled = true;

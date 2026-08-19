@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mestre do PC — Chat IA (modulo separado)</title>
+  <link rel="stylesheet" href="chat-styles.css" />
+  <style>
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .demo-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 32px;
+      max-width: 560px;
+      text-align: center;
+    }
+    .demo-card h1 {
+      color: var(--accent);
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+    .demo-card p {
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .demo-card button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 50px;
+      color: #000;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .demo-card button:hover {
+      opacity: 0.9;
+      transform: scale(1.02);
+    }
+    .status {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-card">
+    <h1>🤖 Chat IA do Mestre do PC</h1>
+    <p>
+      Esta pagina demonstra o uso do modulo de chat separado.
+      <br />
+      O chat e injetado dinamicamente e realiza chamadas ao launcher local.
+    </p>
+    <button id="btnOpenChat">Abrir Chat IA</button>
+    <div class="status" id="launcherStatus">Verificando launcher...</div>
+  </div>
+
+  <div id="chat-root"></div>
+
+  <script type="module">
+    import { initChat } from './chat-module.js';
+
+    const launcherUrl = window.location.protocol.startsWith('http') ? window.location.origin : 'http://127.0.0.1:7777';
+    const statusEl = document.getElementById('launcherStatus');
+
+    const chat = initChat({
+      rootSelector: '#chat-root',
+      launcherUrl,
+      clientHeader: 'v10-web',
+      onOutput: (cmd, output, success) => {
+        console.log(`[chat output] ${success ? 'OK' : 'FAIL'}: ${cmd}`);
+      },
+      onToast: (msg, type) => {
+        console.log(`[toast ${type}] ${msg}`);
+      }
+    });
+
+    document.getElementById('btnOpenChat').addEventListener('click', () => chat.open());
+
+    // Verifica se o launcher esta respondendo
+    fetch(`${launcherUrl}/ping`, { signal: AbortSignal.timeout(3000) })
+      .then((r) => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then((d) => {
+        statusEl.textContent = `🟢 Launcher ativo (v${d.version || '?'} · PID ${d.pid || '?'})`;
+        statusEl.style.color = 'var(--accent2)';
+      })
+      .catch((e) => {
+        statusEl.textContent = `🔴 Launcher offline — execute o Mestre do PC primeiro. (${e.message})`;
+        statusEl.style.color = 'var(--danger)';
+      });
+  </script>
+</body>
+</html>

@@ -9,7 +9,7 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, extname, join, resolve, sep } from "node:path";
 import { checkPromptInjection } from "../mcp-server/security.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -596,8 +596,8 @@ const server = http.createServer(async (req, res) => {
       }, allowedOrigin);
     }
 
-    // Resolve o comando contra a whitelist SEM executar. A UI usa isto para decidir
-    // entre execução automática (low-risk) e confirmação explícita.
+    // Resolve o comando contra a whitelist SEM executar. A UI usa os metadados
+    // para exibir uma confirmação explícita antes de qualquer execução sugerida pela IA.
     if (path === "/classify" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { allowed: false, reason: "Cliente não autorizado." }, allowedOrigin);
       const body = await readBody(req, 64 * 1024);
@@ -735,6 +735,52 @@ const server = http.createServer(async (req, res) => {
         });
         return res.end(html);
       } catch { return sendJson(res, 404, { error: "página não encontrada" }); }
+    }
+
+    // ===== NOVO: Servir recursos estáticos do módulo de chat (/chat/*) =====
+    if (req.method === "GET" && path.startsWith("/chat/")) {
+      const relative = path.slice("/chat/".length);
+      // Bloqueia path traversal (..) e caracteres perigosos.
+      if (!relative || /\.{2,}|[\\<>|:"*?]|^\//.test(relative)) {
+        return sendJson(res, 403, { error: "Caminho não permitido." });
+      }
+      const chatRoot = resolve(__dirname, "chat");
+      const filePath = resolve(chatRoot, relative);
+      if (!filePath.startsWith(chatRoot + sep)) {
+        return sendJson(res, 403, { error: "Caminho não permitido." });
+      }
+      const ext = extname(filePath).toLowerCase();
+      const mimeTypes = {
+        ".html": "text/html; charset=utf-8",
+        ".css": "text/css; charset=utf-8",
+        ".js": "text/javascript; charset=utf-8",
+        ".json": "application/json; charset=utf-8",
+        ".md": "text/markdown; charset=utf-8",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+      };
+      const contentType = mimeTypes[ext];
+      if (!contentType) {
+        return sendJson(res, 403, { error: "Extensão não permitida." });
+      }
+      try {
+        const content = await readFile(filePath);
+        const headers = {
+          "Content-Type": contentType,
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+        };
+        if (ext === ".js" || ext === ".css" || ext === ".html") {
+          headers["Cache-Control"] = "no-store";
+        } else {
+          headers["Cache-Control"] = "public, max-age=604800, immutable";
+        }
+        if (ext === ".html") {
+          headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
+        }
+        res.writeHead(200, headers);
+        return res.end(content);
+      } catch { return sendJson(res, 404, { error: "recurso do chat não encontrado" }); }
     }
 
     // ===== NOVO V11.2: SPA fallback — rotas de seção (ex: /8.diagnostico) servem index.html =====
