@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mestre do PC V11 - Ultimate Plus</title>
     <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
+    <link rel="stylesheet" href="/chat/chat-styles.css" />
     <style>
       /* ===== ANIMAÇÕES AVANÇADAS (inspirado Hyperframes) ===== */
       @keyframes fadeInUp {
@@ -223,10 +224,6 @@
       }
       /* Toast animation */
       .toast {
-        animation: fadeInScale 0.3s ease-out;
-      }
-      /* Modal animation */
-      .ia-modal {
         animation: fadeInScale 0.3s ease-out;
       }
       .param-modal {
@@ -670,24 +667,6 @@
         font-weight: bold; box-shadow: 0 12px 30px rgba(0,255,136,0.45); z-index: 9999;
         display: none; align-items: center; gap: 8px; font-size: 0.95rem;
       }
-      /* ===== Modal IA (padrão V7) ===== */
-      .ia-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 10000; display: none; justify-content: center; align-items: center; }
-      .ia-overlay.open { display: flex; }
-      .ia-modal { width: 760px; max-width: 95vw; height: 85vh; max-height: 760px; background: var(--panel); border: 1px solid rgba(0,212,255,0.3); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
-      .ia-header { padding: 14px 20px; background: linear-gradient(135deg, rgba(162,0,255,0.2), rgba(0,212,255,0.15)); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-      .ia-header h3 { color: var(--accent); font-size: 1rem; }
-      .ia-header .ia-status { font-size: 0.75rem; color: #8b949e; }
-      .ia-header .ia-close { background: none; border: none; color: #8b949e; font-size: 1.3rem; cursor: pointer; }
-      .ia-header .ia-close:hover { color: var(--danger); }
-      .ia-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-      .ia-msg { max-width: 85%; padding: 12px 16px; border-radius: 14px; font-size: 0.9rem; line-height: 1.5; word-wrap: break-word; }
-      .ia-msg.user { align-self: flex-end; background: linear-gradient(135deg, #00d4ff, #00ff88); color: #000; border-bottom-right-radius: 4px; }
-      .ia-msg.ai { align-self: flex-start; background: var(--card); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-      .ia-msg.ai pre { background: #010409; padding: 10px; border-radius: 6px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.8rem; color: #79c0ff; margin: 8px 0 4px; white-space: pre-wrap; }
-      .ia-msg.ai code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: var(--accent2); }
-      .ia-msg.ai .ia-code-block { background: #010409; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; margin: 10px 0; }
-      .ia-msg.ai .ia-code-block pre { background: transparent; padding: 0; margin: 0 0 8px; border: none; }
-      .ia-msg.ai .ia-run-btn { display: inline-block; margin-top: 6px; padding: 5px 12px; background: var(--danger); color: white; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
       /* Modal de confirmação de comando (substitui window.confirm no fluxo da IA) */
       .cmd-confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(6px); z-index: 10050; display: none; justify-content: center; align-items: center; }
       .cmd-confirm-overlay.open { display: flex; }
@@ -701,61 +680,6 @@
       .cmd-confirm-foot button { padding: 8px 16px; border-radius: 7px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; cursor: pointer; }
       .cmd-confirm-foot button.primary { background: var(--danger); border-color: var(--danger); color: #fff; }
       .cmd-confirm-foot button.primary.safe { background: var(--accent2); border-color: var(--accent2); color: #000; }
-      .ia-toolbar { display:flex; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.2); flex-wrap:wrap; }
-      .ia-toolbar button { padding:7px 12px; background:var(--card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:0.8rem; cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:5px; }
-      .ia-toolbar button:hover { border-color:var(--accent); background:rgba(0,212,255,0.1); }
-      .ia-attach-panel { display:none; padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.15); }
-      .ia-attach-panel.show { display:block; }
-      .ia-attach-panel h4 { color:var(--accent); font-size:0.9rem; margin-bottom:8px; }
-      .ia-attach-list { display:flex; gap:8px; flex-wrap:wrap; }
-      .ia-attach-chip { padding:5px 10px; background:var(--card); border:1px solid var(--border); border-radius:16px; font-size:0.78rem; cursor:pointer; }
-      .ia-attach-chip:hover { border-color:var(--accent2); }
-      .ia-attach-chip.active { border-color:var(--accent2); background:rgba(0,255,136,0.12); }
-      .ia-typing { display: inline-flex; gap: 4px; padding: 10px 16px; align-self: flex-start; }
-      .ia-typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: 0.4; animation: iaTyping 1.2s infinite; }
-      .ia-typing span:nth-child(2) { animation-delay: 0.2s; }
-      .ia-typing span:nth-child(3) { animation-delay: 0.4s; }
-      @keyframes iaTyping { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
-      .ia-input-area { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: rgba(0,0,0,0.3); }
-      .ia-input-area input { flex: 1; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 50px; color: var(--text); font-size: 0.9rem; outline: none; }
-      .ia-input-area input:focus { border-color: var(--accent); }
-      .ia-input-area button { padding: 10px 18px; background: linear-gradient(135deg, #a200ff, #00d4ff); border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
-      .ia-input-area button.secondary { background: var(--card); border: 1px solid var(--border); color: var(--text); }
-      .ia-input-area button.icon-btn { padding: 10px 12px; border-radius: 50%; font-size: 1rem; }
-      .ia-input-area #iaStopBtn { background: var(--danger); }
-      .ia-msg.ai .ia-msg-actions { display: flex; gap: 6px; margin-top: 8px; }
-      .ia-msg.ai .ia-msg-actions button { padding: 3px 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.72rem; cursor: pointer; }
-      .ia-msg.ai .ia-msg-actions button:hover { background: rgba(255,255,255,0.12); }
-      .ia-tabs { display:flex; gap:4px; padding:8px 16px 0; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.2); }
-      .ia-tab { padding:8px 16px; background:transparent; border:none; border-bottom:2px solid transparent; color:#8b949e; font-size:0.85rem; cursor:pointer; transition:0.2s; }
-      .ia-tab:hover { color:var(--text); }
-      .ia-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-      .ia-tab-body { display:none; flex:1; flex-direction:column; overflow:hidden; }
-      .ia-tab-body.active { display:flex; }
-      .ia-memory-chips { display:flex; gap:8px; flex-wrap:wrap; padding:6px 16px; }
-      .ia-memory-chip { padding:4px 10px; background:rgba(162,0,255,0.15); border:1px solid rgba(162,0,255,0.4); border-radius:16px; font-size:0.75rem; color:#c9a0ff; display:inline-flex; align-items:center; gap:5px; }
-      .ia-memory-chip button { background:none; border:none; color:#c9a0ff; cursor:pointer; font-size:0.75rem; padding:0; }
-      .ia-memories-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); }
-      .ia-memories-new { padding:8px 14px; background:linear-gradient(135deg, #a200ff, #00d4ff); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer; font-size:0.85rem; }
-      .ia-memories-count { font-size:0.8rem; color:#8b949e; }
-      .ia-memories-list { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
-      .ia-memory-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
-      .ia-memory-card.active { border-color:rgba(0,255,136,0.5); background:rgba(0,255,136,0.08); }
-      .ia-memory-card h4 { margin:0; font-size:0.92rem; color:var(--text); }
-      .ia-memory-card p { margin:0; font-size:0.8rem; color:#8b949e; line-height:1.4; max-height:3.6em; overflow:hidden; }
-      .ia-memory-card-actions { display:flex; gap:8px; flex-wrap:wrap; }
-      .ia-memory-card-actions button { padding:5px 10px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.75rem; cursor:pointer; }
-      .ia-memory-card-actions button.use { background:rgba(0,255,136,0.15); border-color:rgba(0,255,136,0.4); color:#00ff88; }
-      .ia-memory-card-actions button.use.active { background:rgba(0,255,136,0.35); }
-      .ia-memory-editor { display:none; padding:14px 16px; border-top:1px solid var(--border); background:rgba(0,0,0,0.2); flex-direction:column; gap:10px; }
-      .ia-memory-editor.open { display:flex; }
-      .ia-memory-editor input, .ia-memory-editor textarea { background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:10px 12px; font-size:0.85rem; outline:none; }
-      .ia-memory-editor textarea { min-height:120px; resize:vertical; font-family:inherit; }
-      .ia-memory-editor-actions { display:flex; gap:10px; justify-content:flex-end; }
-      .ia-memory-editor-actions button { padding:8px 16px; border-radius:8px; border:none; background:linear-gradient(135deg, #a200ff, #00d4ff); color:white; font-weight:600; cursor:pointer; font-size:0.85rem; }
-      .ia-memory-editor-actions button.secondary { background:var(--card); border:1px solid var(--border); color:var(--text); }
-      .ia-image-preview { max-width:120px; max-height:90px; border-radius:6px; border:1px solid var(--border); object-fit:cover; }
-      .ia-empty-state { text-align:center; color:#8b949e; font-size:0.85rem; padding:40px 20px; }
       /* ===== Modal parâmetro (padrão V7) ===== */
       .param-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 9000; justify-content: center; align-items: center; }
       .param-modal { background: var(--panel); border: 1px solid rgba(0,212,255,0.3); border-radius: 14px; padding: 28px 32px; width: 420px; max-width: 95vw; }
@@ -817,7 +741,7 @@
           <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
           <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11">🎉 Novidades V11</button></a>
           <button class="btn-open-ps" onclick="openPS()">⚡ PowerShell</button>
-          <button class="btn-open-ps btn-ia-local" onclick="openAI()">🤖 IA Local</button>
+          <button class="btn-open-ps btn-ia-local" onclick="mestreChat.open()">🤖 IA Local</button>
           <button class="btn-open-ps btn-stop" id="btnPower" onclick="togglePower()" title="Parar o launcher (encerra o servidor local)">⏻ Parar</button>
         </div>
       </div>
@@ -906,71 +830,8 @@
         </div>
       </div>
     </div>
-    <!-- Modal Chat IA Ollama -->
-    <div class="ia-overlay" id="iaOverlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="iaDialogTitle">
-      <div class="ia-modal">
-        <div class="ia-header">
-          <div>
-            <h3 id="iaDialogTitle">🧠 Mestre IA (Ollama)</h3>
-            <span class="ia-status" id="iaStatus">Verificando conexão...</span>
-            <select id="ollamaModelSelect" aria-label="Modelo do Ollama" onchange="selectedOllamaModel=this.value" style="margin-left:12px;padding:4px 10px;border-radius:6px;background:#0d1117;color:#00ff88;border:1px solid #00ff88;font-size:0.85rem;outline:none;max-width:240px;"></select>
-          </div>
-          <button class="ia-close" aria-label="Fechar chat" onclick="closeIA()">✕</button>
-        </div>
-        <div class="ia-tabs">
-          <button class="ia-tab active" id="iaTabChat" onclick="switchIATab('chat')">💬 Chat</button>
-          <button class="ia-tab" id="iaTabMemories" onclick="switchIATab('memories')">🧠 Memórias</button>
-        </div>
-        <div class="ia-tab-body active" id="iaBodyChat">
-          <div class="ia-toolbar">
-            <button onclick="attachContext('dashboard')" title="Enviar métricas atuais de CPU/RAM/disco">📊 Painel</button>
-            <button onclick="attachContext('models')" title="Listar modelos Ollama instalados">🤖 Modelos</button>
-            <button onclick="attachContext('memory')" title="Enviar uso de RAM e processos pesados">🧠 Memória</button>
-            <button onclick="attachContext('files')" title="Selecionar arquivo local para análise">📁 Arquivo</button>
-            <button onclick="attachContext('terminal')" title="Enviar último output do terminal">🖥️ Terminal</button>
-            <button onclick="attachContext('app')" title="Enviar informações do app Mestre do PC">🛡️ App</button>
-            <button onclick="attachImageFile()" title="Anexar imagem para análise visual">🖼️ Imagem</button>
-            <button onclick="downloadChatContext()" title="Baixar todo o contexto do chat em JSON">💾 Salvar</button>
-            <button onclick="downloadChatMarkdown()" title="Baixar conversa em relatório Markdown">📥 MD</button>
-            <button onclick="clearAttachments()" title="Limpar contextos anexados">🧹 Limpar</button>
-            <button onclick="clearIaConversation()" title="Limpar todo o histórico de chat da IA" style="border-color:rgba(248,81,73,0.4);color:var(--danger)">🗑️ Limpar Chat</button>
-          </div>
-          <div class="ia-attach-panel" id="iaAttachPanel">
-            <h4 id="iaAttachTitle">Anexos ao contexto</h4>
-            <div class="ia-attach-list" id="iaAttachList"></div>
-          </div>
-          <div class="ia-memory-chips" id="iaActiveMemoryChips"></div>
-          <input type="file" id="iaFileInput" style="display:none" onchange="onIAFileSelected(this)" accept=".txt,.md,.json,.csv,.log,.ps1,.bat,.cmd,.xml,.yaml,.yml,.ini,.conf,.env,.html,.css,.js,.ts,.py" />
-          <input type="file" id="iaImageInput" style="display:none" onchange="onIAImageSelected(this)" accept="image/*" />
-          <div class="ia-messages" id="iaMessages">
-            <div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>
-          </div>
-          <div class="ia-input-area">
-            <input type="text" id="iaInput" aria-label="Mensagem para o Mestre IA" placeholder="Digite sua mensagem..." autocomplete="off" />
-            <button id="iaAttachFileBtn" onclick="attachContext('files')" title="Anexar arquivo de texto">📎</button>
-            <button id="iaAttachImageBtn" onclick="attachImageFile()" title="Anexar imagem">🖼️</button>
-            <button id="iaSendBtn" onclick="sendIA()">Enviar ➤</button>
-            <button id="iaStopBtn" onclick="stopIA()" style="display:none;" title="Parar geração">⏹ Parar</button>
-          </div>
-        </div>
-        <div class="ia-tab-body" id="iaBodyMemories">
-          <div class="ia-memories-header">
-            <button class="ia-memories-new" onclick="openMemoryEditor()">➕ Nova memória</button>
-            <span class="ia-memories-count" id="iaMemoriesCount">0 memórias</span>
-          </div>
-          <div class="ia-memories-list" id="iaMemoriesList"></div>
-          <div class="ia-memory-editor" id="iaMemoryEditor">
-            <input type="hidden" id="iaMemoryId" />
-            <input type="text" id="iaMemoryTitle" placeholder="Título da memória..." />
-            <textarea id="iaMemoryContent" placeholder="Conteúdo que o modelo deve lembrar..."></textarea>
-            <div class="ia-memory-editor-actions">
-              <button onclick="saveMemory()">💾 Salvar</button>
-              <button class="secondary" onclick="closeMemoryEditor()">Cancelar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Chat IA (módulo separado, ver v10/chat/chat-module.js) -->
+    <div id="chat-root"></div>
     <div class="toast" id="toast">✅ Copiado!</div>
     <script>
       const CATS = [
@@ -2215,534 +2076,6 @@
         if (typeof checkServer === "function") checkServer();
       }
 
-      // ===== INTEGRAÇÃO OLLAMA (padrão V7) =====
-      // V10 usa SEMPRE o proxy do launcher (resolve CORS do file://).
-      // O Ollama nativo continua rodando em localhost:11434, mas o browser
-      // NUNCA fala direto com ele — sempre passa por /ollama/* no launcher.
-      const OLLAMA_MODEL = "qwen2.5-coder:3b-instruct";
-      // Modelo LOCAL como padrão (funciona sem login Ollama Cloud).
-      // Cloud models ficam como fallback (exigem `ollama signin`).
-      const OLLAMA_MODEL_PREFERENCES = ["qwen2.5-coder:3b-instruct", "glm-5.2:cloud", "minimax-m3:cloud", "kimi-k2.5:cloud", "gemma4:cloud", "glm-5.1:cloud"];
-      let selectedOllamaModel = OLLAMA_MODEL;
-      function chooseOllamaModel(models) { return OLLAMA_MODEL_PREFERENCES.find((m) => models.includes(m)) || models.find((m) => m.toLowerCase().includes("qwen")) || models[0] || OLLAMA_MODEL; }
-
-      const SYSTEM_PROMPT = `Você é o Mestre do PC V10, um assistente especializado em manutenção de computadores Windows.
-REGRAS:
-1. Responda SEMPRE em português brasileiro.
-2. Quando sugerir uma ação, inclua o comando PowerShell exato entre \`\`\`powershell e \`\`\`.
-3. NUNCA invente comandos. Use APENAS comandos PowerShell reais do Windows.
-4. Seja direto e objetivo. O usuário quer soluções rápidas.
-5. Se o usuário descrever um problema, sugira no máximo 3 ações ordenadas por prioridade.
-COMANDOS QUE VOCÊ CONHECE:
-- Limpeza: Remove-Item no TEMP, Clear-RecycleBin, cleanmgr, DISM StartComponentCleanup
-- RAM: Get-Process, [System.GC]::Collect(), SysMain
-- Disco: Get-PSDrive, Optimize-Volume, chkdsk, Get-PhysicalDisk
-- Rede: ipconfig, Test-Connection, Resolve-DnsName, netsh, Get-NetAdapter
-- Sistema: Get-ComputerInfo, sfc /scannow, DISM, bootrec
-- Segurança: Get-MpComputerStatus, Start-MpScan, Get-NetFirewallProfile
-- Performance: powercfg, Game Mode, efeitos visuais
-- Backup: Checkpoint-Computer, Export-WindowsDriver, reg export
-- Drivers: Get-WmiObject Win32_PnPSignedDriver, pnputil
-- Privacidade: AllowTelemetry, AdvertisingInfo, Cortana`;
-      let iaConversation = JSON.parse(localStorage.getItem("mestre_v10_ia_conversation") || "[]");
-      let iaAttachments = [];
-      let iaAbortController = null;
-      const MAX_CHAT_TEXT_FILE_BYTES = 2 * 1024 * 1024;
-      let activeMemoryIds = new Set();
-      let memoriesListCache = [];
-      let memoriesDb = null;
-      let lastTerminalOutput = "";
-      let lastDashboardData = null;
-      let lastModelsList = [];
-      let lastMemoryInfo = null;
-
-      // ===== Persistência de sessão IA =====
-      function saveIaConversation() {
-        try {
-          // Limita a 100 mensagens para não estourar localStorage
-          localStorage.setItem("mestre_v10_ia_conversation", JSON.stringify(iaConversation.slice(-100)));
-        } catch (e) { console.warn("Falha ao salvar conversa IA:", e); }
-      }
-
-      function restoreIaConversation() {
-        try {
-          const saved = localStorage.getItem("mestre_v10_ia_conversation");
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              iaConversation = parsed;
-              const container = document.getElementById("iaMessages");
-              if (container) {
-                // Limpa mensagem inicial padrão
-                container.innerHTML = "";
-                for (const msg of iaConversation) {
-                  addIAMessage(msg.content, msg.role === "user" ? "user" : "ai");
-                }
-              }
-            }
-          } else {
-            // Mensagem inicial padrão se não há sessão salva
-            const container = document.getElementById("iaMessages");
-            if (container && container.children.length === 0) {
-              container.innerHTML = '<div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>';
-            }
-          }
-        } catch (e) { console.warn("Falha ao restaurar conversa IA:", e); }
-      }
-
-      function clearIaConversation() {
-        iaConversation = [];
-        localStorage.removeItem("mestre_v10_ia_conversation");
-        const container = document.getElementById("iaMessages");
-        if (container) {
-          container.innerHTML = '<div class="ia-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>';
-        }
-        showToast("💬 Sessão de chat limpa", "#00d4ff");
-      }
-      function renderAttachments() {
-        const panel = document.getElementById("iaAttachPanel");
-        const list = document.getElementById("iaAttachList");
-        if (!iaAttachments.length) { panel.classList.remove("show"); return; }
-        panel.classList.add("show");
-        list.innerHTML = iaAttachments.map((a, i) => {
-          let icon = "📎";
-          if (a.type === "dashboard") icon = "📊";
-          if (a.type === "models") icon = "🤖";
-          if (a.type === "memory") icon = "🧠";
-          if (a.type === "files") icon = "📁";
-          if (a.type === "terminal") icon = "🖥️";
-          if (a.type === "app") icon = "🛡️";
-          if (a.type === "image") icon = "🖼️";
-          let extra = "";
-          if (a.type === "image") extra = ` <img src="${a.dataUrl}" class="ia-image-preview" alt="" />`;
-          return `<span class="ia-attach-chip active" title="${a.title}: ${a.preview}" onclick="removeAttachment(${i})">${icon} ${a.title}${a.used ? ' ✅' : ''} ✕${extra}</span>`;
-        }).join("");
-      }
-      function addAttachment(type, title, preview, content) {
-        iaAttachments = iaAttachments.filter((a) => a.type !== type);
-        iaAttachments.push({ type, title, preview, content });
-        renderAttachments();
-        showToast(`${title} anexado ao contexto`, "#00d4ff");
-      }
-      function removeAttachment(index) {
-        iaAttachments.splice(index, 1);
-        renderAttachments();
-      }
-      function clearAttachments() { iaAttachments = []; renderAttachments(); showToast("Contextos limpos", "#00d4ff"); }
-      async function attachContext(type) {
-        if (type === "dashboard") {
-          try {
-            const r = await fetch(API + "/status", { signal: AbortSignal.timeout(3000) });
-            const d = await r.json();
-            lastDashboardData = d;
-            const ramPct = d.ramTotal ? Math.round(100 - (d.ramFree / d.ramTotal * 100)) : 0;
-            const preview = `CPU ${d.cpu ?? 0}% · RAM ${d.ramFree ?? 0}/${d.ramTotal ?? 0} GB · Disco ${d.diskFree ?? 0} GB livre`;
-            const text = `Métricas atuais do PC:\n- CPU: ${d.cpu ?? 0}%\n- RAM livre: ${d.ramFree ?? 0} GB de ${d.ramTotal ?? 0} GB (${ramPct}% usada)\n- Disco C livre: ${d.diskFree ?? 0} GB\n- Uptime: ${fmtUptime(d.uptimeSec || 0)}`;
-            addAttachment("dashboard", "Painel", preview, text);
-          } catch { showToast("Falha ao ler painel", "#f85149"); }
-        } else if (type === "models") {
-          try {
-            const r = await fetch(API + "/ollama/tags", { signal: AbortSignal.timeout(3000) });
-            const data = await r.json();
-            lastModelsList = (data.models || []).map((m) => m.name || m.model);
-            const preview = `${lastModelsList.length} modelos`;
-            const text = `Modelos Ollama instalados:\n${lastModelsList.join("\n") || "Nenhum"}`;
-            addAttachment("models", "Modelos", preview, text);
-          } catch { showToast("Falha ao listar modelos", "#f85149"); }
-        } else if (type === "memory") {
-          try {
-            const ps = `Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize`;
-            const data = await dispatchCommand(ps, { timeoutMs: 15000 });
-            const top = data.output || "";
-            const r = await fetch(API + "/status", { signal: AbortSignal.timeout(3000) });
-            const d = await r.json();
-            lastMemoryInfo = { free: d.ramFree, total: d.ramTotal, top };
-            const preview = `RAM ${d.ramFree ?? 0}/${d.ramTotal ?? 0} GB · 15 processos`;
-            const text = `Uso de memória:\n- RAM livre: ${d.ramFree ?? 0} GB de ${d.ramTotal ?? 0} GB\n- Top 15 processos por RAM:\n\n${top}`;
-            addAttachment("memory", "Memória", preview, text);
-          } catch { showToast("Falha ao ler memória", "#f85149"); }
-        } else if (type === "files") {
-          document.getElementById("iaFileInput").click();
-        } else if (type === "terminal") {
-          if (!lastTerminalOutput) { showToast("Nenhum output de terminal ainda", "#f0a800"); return; }
-          addAttachment("terminal", "Terminal", `output (${lastTerminalOutput.length} chars)`, `Último output do terminal:\n\n${lastTerminalOutput}`);
-        } else if (type === "app") {
-          try {
-            const r = await fetch(API + "/ping", { signal: AbortSignal.timeout(3000) });
-            const d = await r.json();
-            const info = `Informações do app Mestre do PC:\n- Status: ${d.status}\n- Versão: ${d.version || "?"}\n- PID: ${d.pid}\n- Jobs ativos: ${d.activeJobs}\n- Estado: ${d.state}\n- URL: ${API}`;
-            addAttachment("app", "App", `v${d.version || "?"} · PID ${d.pid}`, info);
-          } catch { showToast("Falha ao ler app", "#f85149"); }
-        }
-      }
-      function onIAFileSelected(input) {
-        const file = input.files[0];
-        if (!file) return;
-        if (file.size > MAX_CHAT_TEXT_FILE_BYTES) {
-          showToast("Arquivo muito grande. O limite para anexos de texto é 2 MB.", "#f85149");
-          input.value = "";
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => {
-          const text = reader.result;
-          const preview = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-          addAttachment("files", file.name, preview, `Arquivo local "${file.name}":\n\n${text.slice(0, 12000)}${text.length > 12000 ? "\n\n[... arquivo truncado por limite de contexto ...]" : ""}`);
-        };
-        reader.onerror = () => showToast("Falha ao ler arquivo", "#f85149");
-        reader.readAsText(file);
-        input.value = "";
-      }
-      function attachImageFile() { document.getElementById("iaImageInput").click(); }
-      async function onIAImageSelected(input) {
-        const file = input.files[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) { showToast("Arquivo não é uma imagem", "#f85149"); input.value = ""; return; }
-        try {
-          const dataUrl = await resizeImageToDataUrl(file, 1024, 0.8);
-          const base64 = dataUrl.split(",")[1];
-          const preview = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-          iaAttachments.push({ type: "image", name: file.name, mime: file.type, dataUrl, base64, preview, title: file.name, used: false });
-          renderAttachments();
-          showToast("🖼️ Imagem anexada", "#00d4ff");
-        } catch (err) { showToast("Erro ao processar imagem: " + err.message, "#f85149"); }
-        input.value = "";
-      }
-      function resizeImageToDataUrl(file, maxSide = 1024, quality = 0.8) {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          const url = URL.createObjectURL(file);
-          img.onload = () => {
-            URL.revokeObjectURL(url);
-            let { width, height } = img;
-            if (width > maxSide || height > maxSide) {
-              const ratio = Math.min(maxSide / width, maxSide / height);
-              width = Math.round(width * ratio);
-              height = Math.round(height * ratio);
-            }
-            const canvas = document.createElement("canvas");
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
-            const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
-            const outQuality = file.type === "image/png" ? undefined : quality;
-            resolve(canvas.toDataURL(outType, outQuality));
-          };
-          img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Não foi possível carregar a imagem")); };
-          img.src = url;
-        });
-      }
-      function buildContextPrompt(userMessage, imageCount = 0) {
-        let extra = "";
-        for (const a of iaAttachments) {
-          if (a.type === "image") continue;
-          extra += `\n\n[${a.title}]\n${a.content}`;
-        }
-        const memoryExtras = [];
-        if (activeMemoryIds.size > 0) {
-          for (const mem of memoriesListCache) {
-            if (activeMemoryIds.has(mem.id)) {
-              memoryExtras.push(`[Memória: ${mem.title}]\n${mem.content}`);
-            }
-          }
-        }
-        let result = userMessage;
-        if (memoryExtras.length) {
-          result += "\n\n---\nMemórias ativas para esta mensagem:\n\n" + memoryExtras.join("\n\n");
-        }
-        if (extra) {
-          result += "\n\n---\nContexto local anexado:" + extra;
-        }
-        if (imageCount > 0) {
-          result += `\n\n[${imageCount} imagem(ns) anexada(s) — analise-as se o modelo suportar visão]`;
-        }
-        return result;
-      }
-      // NOVO V10: pré-carrega o modelo no Ollama ao abrir o chat (primeiro token mais rápido)
-      async function preloadModel() {
-        if (!selectedOllamaModel) return;
-        try {
-          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, keep_alive: "10m", messages: [], stream: false }) });
-          await res.text();
-        } catch {}
-      }
-      function openAI() {
-        const overlay = document.getElementById("iaOverlay");
-        overlay.classList.add("open");
-        overlay.setAttribute("aria-hidden", "false");
-        document.getElementById("iaInput").focus();
-        checkOllama().then(preloadModel);
-        initMemoriesDb().then(loadMemories).catch(() => loadMemories());
-      }
-      function closeIA() {
-        const overlay = document.getElementById("iaOverlay");
-        overlay.classList.remove("open");
-        overlay.setAttribute("aria-hidden", "true");
-      }
-      function switchIATab(tab) {
-        document.getElementById("iaTabChat").classList.toggle("active", tab === "chat");
-        document.getElementById("iaTabMemories").classList.toggle("active", tab === "memories");
-        document.getElementById("iaBodyChat").classList.toggle("active", tab === "chat");
-        document.getElementById("iaBodyMemories").classList.toggle("active", tab === "memories");
-        if (tab === "memories") loadMemories();
-        if (tab === "chat") setTimeout(() => document.getElementById("iaInput").focus(), 50);
-      }
-      async function checkOllama() {
-        const status = document.getElementById("iaStatus");
-        try {
-          const res = await fetch(API + "/ollama/tags", { signal: AbortSignal.timeout(5000) });
-          if (!res.ok) throw new Error("ollama offline");
-          const data = await res.json();
-          const models = (data.models || []).map(m => m.name || m.model);
-          if (models.length > 0) {
-            selectedOllamaModel = chooseOllamaModel(models);
-            const sel = document.getElementById("ollamaModelSelect");
-            const options = models.map((model) => {
-              const option = document.createElement("option");
-              option.value = model;
-              option.textContent = model;
-              option.selected = model === selectedOllamaModel;
-              return option;
-            });
-            sel.replaceChildren(...options);
-            status.textContent = "🟢 Conectado — Modelo: " + selectedOllamaModel;
-            status.style.color = "var(--accent2)";
-          } else { status.textContent = "🟡 Sem modelos. Execute: ollama pull qwen2.5-coder:3b-instruct"; status.style.color = "#f0ad4e"; }
-        } catch { status.textContent = "🔴 Ollama offline — Execute 'ollama serve'"; status.style.color = "var(--danger)"; }
-      }
-      document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("iaInput").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendIA(); } });
-        initMemoriesDb().then(loadMemories).catch(() => loadMemories());
-        renderFavorites();
-        renderQueue();
-        restoreIaConversation();
-        // ===== CORREÇÃO V10.1: Expandir primeira categoria automaticamente =====
-        const firstCat = document.getElementById("cat0");
-        if (firstCat) {
-          firstCat.classList.add("active");
-          const firstHeader = firstCat.querySelector(".category-header");
-          if (firstHeader) {
-            const chevron = firstHeader.querySelector(".chevron");
-            if (chevron) chevron.style.transform = "rotate(180deg)";
-          }
-        }
-      });
-      async function sendIA() {
-        if (iaAbortController) { showToast("⏳ Aguarde a resposta atual ou clique em Parar.", "#f0a800"); return; }
-        const input = document.getElementById("iaInput");
-        const msg = input.value.trim();
-        if (!msg && !iaAttachments.some(a => a.type === "image")) return;
-        const imageAttachments = iaAttachments.filter(a => a.type === "image" && !a.used);
-        const displayMsg = msg || (imageAttachments.length ? "[imagem anexada]" : "");
-        addIAMessage(displayMsg, "user");
-        input.value = "";
-        const fullMessage = buildContextPrompt(msg, imageAttachments.length);
-        const userPayload = { role: "user", content: fullMessage };
-        if (imageAttachments.length > 0) {
-          userPayload.images = imageAttachments.map(a => a.base64);
-        }
-        iaConversation.push({ role: "user", content: displayMsg, images: imageAttachments.map(a => ({ name: a.name, mime: a.mime })) });
-        saveIaConversation();
-        const messagesForApi = [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map((m, i, arr) => {
-          const isLastUser = m.role === "user" && i === arr.length - 1;
-          const out = { role: m.role };
-          if (isLastUser) { out.content = fullMessage; if (userPayload.images) out.images = userPayload.images; }
-          else { out.content = m.content; }
-          return out;
-        })];
-        const result = await streamOllamaReply(messagesForApi);
-        if (result.ok) {
-          iaConversation.push({ role: "assistant", content: result.content });
-          saveIaConversation();
-          for (const a of iaAttachments) { if (a.type === "image") a.used = true; }
-          if (activeMemoryIds.size > 0) { activeMemoryIds.clear(); renderActiveMemoryChips(); }
-        } else if (result.blocked) {
-          iaConversation.pop();
-          saveIaConversation();
-        }
-      }
-      // NOVO: envia messages já montadas ao proxy /ollama/chat, faz streaming na bolha da IA
-      // e alterna Enviar/Parar. Compartilhado por sendIA() e regenerateIA().
-      async function streamOllamaReply(messagesForApi) {
-        const sendBtn = document.getElementById("iaSendBtn");
-        const stopBtn = document.getElementById("iaStopBtn");
-        const input = document.getElementById("iaInput");
-        sendBtn.style.display = "none";
-        stopBtn.style.display = "";
-        const typingEl = document.createElement("div");
-        typingEl.className = "ia-typing";
-        typingEl.innerHTML = "<span></span><span></span><span></span>";
-        document.getElementById("iaMessages").appendChild(typingEl);
-        scrollIAToBottom();
-        iaAbortController = new AbortController();
-        let aiMsgEl = null;
-        let fullResponse = "";
-        let renderFrameId = null;
-        const flushStreamRender = () => {
-          if (renderFrameId !== null) cancelAnimationFrame(renderFrameId);
-          renderFrameId = null;
-          if (!aiMsgEl) return;
-          renderIAContent(aiMsgEl, fullResponse);
-          scrollIAToBottom();
-        };
-        const scheduleStreamRender = () => {
-          if (renderFrameId !== null) return;
-          renderFrameId = requestAnimationFrame(flushStreamRender);
-        };
-        try {
-          const res = await fetch(API + "/ollama/chat", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ model: selectedOllamaModel, messages: messagesForApi, stream: true, keep_alive: "10m" }), signal: iaAbortController.signal });
-          // 400 = mensagem barrada pelo filtro de prompt injection do launcher.
-          if (res.status === 400) {
-            typingEl.remove();
-            const info = await res.json().catch(() => ({}));
-            const pct = typeof info.score === "number" ? ` (score ${(info.score * 100).toFixed(0)}%)` : "";
-            addIAMessage("🛡️ " + (info.error || "Mensagem bloqueada pelo filtro de segurança.") + pct, "ai");
-            return { ok: false, blocked: true };
-          }
-          if (!res.ok || !res.body) throw new Error("Falha no proxy Ollama: HTTP " + res.status);
-          typingEl.remove();
-          aiMsgEl = addIAMessage("", "ai");
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
-          let pending = "";
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            pending += decoder.decode(value, { stream: true });
-            const lines = pending.split("\n");
-            pending = lines.pop() || "";
-            for (const line of lines) {
-              if (!line.trim()) continue;
-              try { const json = JSON.parse(line); if (json.message?.content) { fullResponse += json.message.content; scheduleStreamRender(); } } catch {}
-            }
-          }
-          if (pending.trim()) {
-            try { const json = JSON.parse(pending); if (json.message?.content) { fullResponse += json.message.content; } } catch {}
-          }
-          flushStreamRender();
-          addIAMessageActions(aiMsgEl, fullResponse);
-          return { ok: true, content: fullResponse };
-        } catch (err) {
-          typingEl.remove();
-          if (err.name === "AbortError") {
-            if (aiMsgEl) { renderIAContent(aiMsgEl, fullResponse + "\n\n⏹ _interrompido pelo usuário_"); }
-            else { addIAMessage("⏹ Geração interrompida.", "ai"); }
-            return { ok: false, aborted: true };
-          }
-          addIAMessage("❌ Erro ao conectar ao Ollama: " + err.message, "ai");
-          return { ok: false, error: err };
-        } finally {
-          if (renderFrameId !== null) cancelAnimationFrame(renderFrameId);
-          iaAbortController = null;
-          sendBtn.style.display = "";
-          stopBtn.style.display = "none";
-          input.focus();
-        }
-      }
-      function stopIA() {
-        if (iaAbortController) iaAbortController.abort();
-      }
-      // NOVO: adiciona ações (copiar / regenerar) sob a última resposta da IA.
-      function addIAMessageActions(el, content) {
-        const bar = document.createElement("div");
-        bar.className = "ia-msg-actions";
-        const copyBtn = document.createElement("button");
-        copyBtn.textContent = "📋 Copiar";
-        copyBtn.onclick = () => {
-          navigator.clipboard.writeText(content)
-            .then(() => showToast("📋 Resposta copiada", "#00d4ff"))
-            .catch(() => showToast("⚠️ Não foi possível copiar", "#f0a800"));
-        };
-        bar.appendChild(copyBtn);
-        const regenBtn = document.createElement("button");
-        regenBtn.textContent = "🔁 Regenerar";
-        regenBtn.onclick = () => regenerateIA(el);
-        bar.appendChild(regenBtn);
-        el.appendChild(bar);
-      }
-      // NOVO: descarta a última resposta da IA e pede uma nova para o mesmo histórico.
-      async function regenerateIA(el) {
-        if (iaAbortController) { showToast("⏳ Aguarde a geração atual terminar.", "#f0a800"); return; }
-        if (!iaConversation.length || iaConversation[iaConversation.length - 1].role !== "assistant") return;
-        iaConversation.pop();
-        saveIaConversation();
-        el.remove();
-        const messagesForApi = [{ role: "system", content: SYSTEM_PROMPT }, ...iaConversation.slice(-20).map(m => ({ role: m.role, content: m.content }))];
-        const result = await streamOllamaReply(messagesForApi);
-        if (result.ok) {
-          iaConversation.push({ role: "assistant", content: result.content });
-          saveIaConversation();
-        }
-      }
-      function addIAMessage(text, role) {
-        const el = document.createElement("div");
-        el.className = "ia-msg " + role;
-        if (role === "user") el.textContent = text;
-        else renderIAContent(el, text);
-        document.getElementById("iaMessages").appendChild(el);
-        scrollIAToBottom();
-        return el;
-      }
-      function renderIAContent(el, text) {
-        let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-          .replace(/```(?:powershell)?\n?([\s\S]*?)```/g, (_, code) => `<div class="ia-code-block"><pre>${code.trim()}</pre><button class="ia-run-btn" onclick="runIACmd(this)">▶ Executar</button></div>`)
-          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-          .replace(/`([^`]+)`/g, "<code>$1</code>")
-          .replace(/\n/g, "<br>");
-        el.innerHTML = html;
-      }
-      async function runIACmd(btn) {
-        const pre = btn.previousElementSibling;
-        if (pre == null) return;
-        const cmd = pre.textContent;
-        if (serverOnline === false) { showToast("❌ Servidor offline.", "#f85149"); return; }
-
-        // Política de permissões do chat:
-        //  - na whitelist                   -> confirmação explícita com preview
-        //  - fora da whitelist              -> bloqueado, com opção de copiar
-        btn.textContent = "🔎 Verificando...";
-        btn.disabled = true;
-        const verdict = await classifyCommand(cmd);
-
-        if (!verdict.allowed) {
-          btn.disabled = false;
-          btn.textContent = "🚫 Bloqueado";
-          const copy = await askCommandConfirmation({
-            code: cmd,
-            reason: "Comando fora da whitelist da V10 — não pode ser executado.",
-            meta: verdict.reason || "Somente operações cadastradas em allowed-operations.json são executáveis.",
-            okLabel: "Copiar comando",
-          });
-          if (copy) {
-            try { await navigator.clipboard.writeText(cmd); showToast("📋 Comando copiado."); }
-            catch { showToast("⚠️ Não foi possível copiar.", "#f0a800"); }
-          }
-          setTimeout(() => { btn.textContent = "▶ Executar"; btn.style.background = ""; }, 3000);
-          return;
-        }
-
-        btn.disabled = false;
-        const ok = await askCommandConfirmation({
-          code: cmd,
-          reason: verdict.destructive
-            ? "Operação destrutiva sugerida pela IA. Revise antes de autorizar."
-            : "Comando sugerido pela IA. Confirme antes de executar.",
-          meta: [verdict.title, verdict.category].filter(Boolean).join(" • "),
-        });
-        if (!ok) { btn.textContent = "▶ Executar"; return; }
-
-        btn.textContent = "⏳ Executando...";
-        btn.disabled = true;
-        try {
-          const data = await dispatchCommand(cmd, { onProgress() { btn.textContent = "⏳ Executando..."; } });
-          addOutputEntry(cmd, data.output || "", data.success === true && data.state === "completed");
-          if (data.success === true && data.state === "completed") { showOutput(data.output); btn.textContent = "✅ Executado"; btn.style.background = "var(--success)"; }
-          else { showOutput(data.output || "Erro."); btn.textContent = "❌ Falhou"; btn.style.background = "var(--danger)"; }
-        } catch (err) { showOutput("Erro: " + err.message); btn.textContent = "❌ Erro"; btn.style.background = "var(--danger)"; }
-        setTimeout(() => { btn.textContent = "▶ Executar"; btn.disabled = false; btn.style.background = ""; }, 3000);
-      }
-      function scrollIAToBottom() { const el = document.getElementById("iaMessages"); el.scrollTop = el.scrollHeight; }
       function showOutput(text) {
         const panel = document.getElementById("outputPanel");
         const content = document.getElementById("outputContent");
@@ -2804,22 +2137,17 @@ COMANDOS QUE VOCÊ CONHECE:
         const entry = outputHistory.find(e => e.id === id);
         if (!entry) return;
         const text = `Output do comando executado em ${new Date(entry.date).toLocaleString("pt-BR")}:\n\n${entry.cmd}\n\nResultado (${entry.success ? "sucesso" : "FALHA"}):\n${entry.output || "(sem output)"}`;
-        addAttachment("terminal", "Output", `cmd (${(entry.output || "").length} chars)`, text);
-        openAI();
+        mestreChat.lastTerminalOutput = text;
+        mestreChat.attachContext("terminal");
+        mestreChat.open();
         showToast("🤖 Output anexado ao chat IA", "#00d4ff");
       }
       async function saveOutputAsMemory(id) {
         const entry = outputHistory.find(e => e.id === id);
         if (!entry) return;
-        const now = Date.now();
-        const memory = {
-          title: `Output: ${entry.cmd.slice(0, 50)}`,
-          content: `Comando executado em ${new Date(entry.date).toLocaleString("pt-BR")}:\n\n${entry.cmd}\n\nResultado (${entry.success ? "sucesso" : "FALHA"}):\n${entry.output || "(sem output)"}`,
-          createdAt: now,
-          updatedAt: now
-        };
-        await saveMemoryToDb(memory);
-        await loadMemories();
+        const title = `Output: ${entry.cmd.slice(0, 50)}`;
+        const content = `Comando executado em ${new Date(entry.date).toLocaleString("pt-BR")}:\n\n${entry.cmd}\n\nResultado (${entry.success ? "sucesso" : "FALHA"}):\n${entry.output || "(sem output)"}`;
+        await mestreChat.addMemory(title, content);
         showToast("🧠 Output salvo como memória da IA", "#a200ff");
       }
       // ===== NOVO V11.1: Download de relatório do Output =====
@@ -2847,194 +2175,9 @@ COMANDOS QUE VOCÊ CONHECE:
         URL.revokeObjectURL(a.href);
         showToast("📥 Relatório de outputs baixado", "var(--accent2)");
       }
-      // ===== NOVO V11.1: Download do chat em Markdown =====
-      function downloadChatMarkdown() {
-        if (!iaConversation.length) { showToast("⚠️ Chat vazio — nada para exportar", "#f0a800"); return; }
-        const d = new Date();
-        const pad = (n) => String(n).padStart(2, "0");
-        let md = `# 💬 Conversa — Mestre IA (Ollama)\n\n`;
-        md += `**Data:** ${d.toLocaleString("pt-BR")}\n`;
-        md += `**Modelo:** ${selectedOllamaModel}\n`;
-        md += `**Mensagens:** ${iaConversation.length}\n\n---\n\n`;
-        for (const m of iaConversation) {
-          const who = m.role === "user" ? "👤 **Você**" : "🤖 **Mestre IA**";
-          md += `${who}:\n\n${m.content}\n\n---\n\n`;
-        }
-        const blob = new Blob([md], { type: "text/markdown" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `mestre-chat-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}.md`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        showToast("📥 Chat baixado em Markdown", "var(--accent2)");
-      }
-      async function downloadChatContext() {
-        const activeMemories = memoriesListCache.filter(m => activeMemoryIds.has(m.id));
-        const payload = {
-          app: "Mestre do PC V10",
-          date: new Date().toISOString(),
-          model: selectedOllamaModel,
-          messages: iaConversation,
-          attachments: iaAttachments.map(a => ({ type: a.type, title: a.title, preview: a.preview, content: a.type === "image" ? a.dataUrl : a.content, used: a.used })),
-          activeMemories: activeMemories.map(m => ({ id: m.id, title: m.title, content: m.content })),
-        };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        const pad = (n) => String(n).padStart(2, "0");
-        const d = new Date();
-        a.download = `mestre-contexto-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        showToast("💾 Contexto baixado", "#00ff88");
-      }
-      // ===== IndexedDB Memories =====
-      async function initMemoriesDb() {
-        if (memoriesDb) return memoriesDb;
-        return new Promise((resolve, reject) => {
-          const req = indexedDB.open("MestreDoPC_V10", 1);
-          req.onerror = () => reject(req.error);
-          req.onsuccess = () => { memoriesDb = req.result; resolve(memoriesDb); };
-          req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains("memories")) {
-              db.createObjectStore("memories", { keyPath: "id", autoIncrement: true });
-            }
-          };
-        });
-      }
-      async function getAllMemories() {
-        try {
-          const db = await initMemoriesDb();
-          return new Promise((resolve, reject) => {
-            const tx = db.transaction("memories", "readonly");
-            const store = tx.objectStore("memories");
-            const req = store.getAll();
-            req.onsuccess = () => resolve(req.result || []);
-            req.onerror = () => reject(req.error);
-          });
-        } catch {
-          try {
-            const raw = localStorage.getItem("mestre_v10_memories");
-            return raw ? JSON.parse(raw) : [];
-          } catch { return []; }
-        }
-      }
-      async function saveMemoryToDb(memory) {
-        try {
-          const db = await initMemoriesDb();
-          return new Promise((resolve, reject) => {
-            const tx = db.transaction("memories", "readwrite");
-            const store = tx.objectStore("memories");
-            const req = store.put(memory);
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => reject(req.error);
-          });
-        } catch {
-          const list = await getAllMemories();
-          if (memory.id) {
-            const idx = list.findIndex(m => m.id === memory.id);
-            if (idx >= 0) list[idx] = memory; else list.push(memory);
-          } else {
-            memory.id = Date.now();
-            list.push(memory);
-          }
-          localStorage.setItem("mestre_v10_memories", JSON.stringify(list));
-          return memory.id;
-        }
-      }
-      async function deleteMemoryFromDb(id) {
-        try {
-          const db = await initMemoriesDb();
-          return new Promise((resolve, reject) => {
-            const tx = db.transaction("memories", "readwrite");
-            const store = tx.objectStore("memories");
-            const req = store.delete(id);
-            req.onsuccess = () => resolve();
-            req.onerror = () => reject(req.error);
-          });
-        } catch {
-          const list = (await getAllMemories()).filter(m => m.id !== id);
-          localStorage.setItem("mestre_v10_memories", JSON.stringify(list));
-        }
-      }
-      async function loadMemories() {
-        memoriesListCache = await getAllMemories();
-        memoriesListCache.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        document.getElementById("iaMemoriesCount").textContent = `${memoriesListCache.length} memória${memoriesListCache.length === 1 ? "" : "s"}`;
-        renderMemoriesList();
-        renderActiveMemoryChips();
-      }
-      function renderMemoriesList() {
-        const container = document.getElementById("iaMemoriesList");
-        if (!memoriesListCache.length) {
-          container.innerHTML = `<div class="ia-empty-state">Nenhuma memória salva ainda.<br/>Clique em <strong>Nova memória</strong> para criar uma.</div>`;
-          return;
-        }
-        container.innerHTML = memoriesListCache.map(m => {
-          const isActive = activeMemoryIds.has(m.id);
-          return `<div class="ia-memory-card ${isActive ? 'active' : ''}" data-id="${m.id}">
-            <h4>${escapeHtml(m.title)}</h4>
-            <p>${escapeHtml(m.content)}</p>
-            <div class="ia-memory-card-actions">
-              <button class="use ${isActive ? 'active' : ''}" onclick="toggleActiveMemory(${m.id})">${isActive ? '✅ Usando' : '⚡ Usar agora'}</button>
-              <button onclick="editMemory(${m.id})">✏️ Editar</button>
-              <button onclick="deleteMemory(${m.id})">🗑️ Excluir</button>
-            </div>
-          </div>`;
-        }).join("");
-      }
-      function renderActiveMemoryChips() {
-        const container = document.getElementById("iaActiveMemoryChips");
-        const active = memoriesListCache.filter(m => activeMemoryIds.has(m.id));
-        if (!active.length) { container.innerHTML = ""; return; }
-        container.innerHTML = active.map(m => `<span class="ia-memory-chip">🧠 ${escapeHtml(m.title)} <button onclick="toggleActiveMemory(${m.id})">✕</button></span>`).join("");
-      }
       function escapeHtml(str) {
         if (str == null) return "";
         return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-      }
-      function openMemoryEditor(id = null) {
-        const mem = id ? memoriesListCache.find(m => m.id === id) : null;
-        document.getElementById("iaMemoryId").value = mem ? mem.id : "";
-        document.getElementById("iaMemoryTitle").value = mem ? mem.title : "";
-        document.getElementById("iaMemoryContent").value = mem ? mem.content : "";
-        document.getElementById("iaMemoryEditor").classList.add("open");
-        setTimeout(() => document.getElementById("iaMemoryTitle").focus(), 50);
-      }
-      function closeMemoryEditor() { document.getElementById("iaMemoryEditor").classList.remove("open"); }
-      async function saveMemory() {
-        const idRaw = document.getElementById("iaMemoryId").value;
-        const title = document.getElementById("iaMemoryTitle").value.trim();
-        const content = document.getElementById("iaMemoryContent").value.trim();
-        if (!title || !content) { showToast("Preencha título e conteúdo", "#f0a800"); return; }
-        const now = Date.now();
-        const memory = { title, content, updatedAt: now };
-        if (idRaw) memory.id = Number(idRaw);
-        else memory.createdAt = now;
-        await saveMemoryToDb(memory);
-        closeMemoryEditor();
-        await loadMemories();
-        showToast("💾 Memória salva", "#00ff88");
-      }
-      function editMemory(id) { openMemoryEditor(id); }
-      async function deleteMemory(id) {
-        if (!confirm("Tem certeza que deseja excluir esta memória?")) return;
-        activeMemoryIds.delete(id);
-        await deleteMemoryFromDb(id);
-        await loadMemories();
-        showToast("🗑️ Memória excluída", "#00d4ff");
-      }
-      function toggleActiveMemory(id) {
-        if (activeMemoryIds.has(id)) activeMemoryIds.delete(id); else activeMemoryIds.add(id);
-        renderMemoriesList();
-        renderActiveMemoryChips();
-        if (document.getElementById("iaBodyChat").classList.contains("active")) {
-          showToast(activeMemoryIds.has(id) ? "🧠 Memória ativada para a próxima mensagem" : "Memória desativada", "#00d4ff");
-        }
       }
       // ===== Busca em tempo real (padrão V7) =====
       document.getElementById("searchInput").addEventListener("input", function () {
@@ -3059,14 +2202,26 @@ COMANDOS QUE VOCÊ CONHECE:
       // ===== NOVO V10: Atalhos de teclado =====
       document.addEventListener("keydown", (e) => {
         if (e.ctrlKey && e.key === "k") { e.preventDefault(); document.getElementById("searchInput").focus(); }
-        if (e.ctrlKey && e.key === "/") { e.preventDefault(); openAI(); }
-        if (e.key === "Escape") { closeIA(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; }
+        if (e.ctrlKey && e.key === "/") { e.preventDefault(); mestreChat.open(); }
+        if (e.key === "Escape") { mestreChat.close(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; }
       });
       // ===== BOOT com polling otimizado =====
       renderFavorites();
       renderQueue();
       renderOutputHistory();
       refreshAll();
+      // ===== CORREÇÃO V10.1: Expandir primeira categoria automaticamente =====
+      (() => {
+        const firstCat = document.getElementById("cat0");
+        if (firstCat) {
+          firstCat.classList.add("active");
+          const firstHeader = firstCat.querySelector(".category-header");
+          if (firstHeader) {
+            const chevron = firstHeader.querySelector(".chevron");
+            if (chevron) chevron.style.transform = "rotate(180deg)";
+          }
+        }
+      })();
 
       // Polling otimizado: ciclo único sequencial, sem sobreposição,
       // pausa quando a aba está oculta e sobe o intervalo em erro.
@@ -3293,6 +2448,19 @@ COMANDOS QUE VOCÊ CONHECE:
       });
 
       console.log('🎬 Mestre do PC V10 - Animações carregadas!');
+    </script>
+    <!-- Chat IA modular (v10/chat/chat-module.js) -->
+    <script type="module">
+      import { initChat } from "/chat/chat-module.js";
+      const launcherUrl = window.location.protocol.startsWith("http") ? window.location.origin : "http://127.0.0.1:7777";
+      const TOAST_COLORS = { error: "#f85149", warning: "#f0a800", info: "var(--accent2)" };
+      window.mestreChat = initChat({
+        rootSelector: "#chat-root",
+        launcherUrl,
+        clientHeader: "v10-web",
+        onToast: (msg, type) => window.showToast(msg, TOAST_COLORS[type] || TOAST_COLORS.info),
+        onOutput: (cmd, output, success) => addOutputEntry(cmd, output, success),
+      });
     </script>
     <!-- Módulo de Diagnóstico de Rede (Casa5G Dashboard integrado) -->
     <script src="rede-dashboard.js" defer></script>

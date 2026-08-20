@@ -512,6 +512,13 @@ body.light .mestre-chat-model-select {
   font-size: 1rem;
 }
 
+.mestre-chat-input-area button.icon-btn.is-listening {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
 .mestre-chat-input-area .stop-btn {
   background: var(--danger);
 }
