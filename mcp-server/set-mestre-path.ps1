@@ -1,4 +1,5 @@
-$projPath = 'C:\Users\Jeanc\Mestre-do-PC-V10-clean'
+# Raiz do projeto = pai da pasta mcp-server
+$projPath = Split-Path -Parent $PSScriptRoot
 
 # Configura para a sessão atual
 $env:MESTRE_PROJETO_PATH = $projPath

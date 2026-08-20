@@ -1,12 +1,17 @@
-$launcherPath = 'C:\Users\Jeanc\Mestre-do-PC-V10-clean\v10\MestreDoPC-Launcher.ps1'
+# Launcher primário do V10 é o Node.js (v10\launcher.js), não o PowerShell legado.
+$launcherPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'v10\launcher.js'
 
-# Inicia o launcher em background com powershell -WindowStyle Hidden
-$job = Start-Job -ScriptBlock {
-  param($path)
-  powershell -ExecutionPolicy Bypass -File $path
-} -ArgumentList $launcherPath
+if (-not (Test-Path $launcherPath)) {
+  Write-Output ('❌ Launcher não encontrado: ' + $launcherPath)
+  exit 1
+}
 
-Write-Output ('Launcher started in background (Job ID: ' + $job.Id + ')')
+# Inicia o launcher Node.js em background (janela oculta).
+# Obs.: para elevação garantida, use a tarefa agendada MestreDoPC_Admin_Launcher.
+$nodeExe = (Get-Command node).Source
+$proc = Start-Process -FilePath $nodeExe -ArgumentList "`"$launcherPath`"" -WindowStyle Hidden -PassThru
+
+Write-Output ('Launcher started in background (PID: ' + $proc.Id + ')')
 Write-Output 'Waiting 5 seconds for launcher to initialize...'
 Start-Sleep -Seconds 5
 

@@ -1,4 +1,4 @@
-$file = 'C:\Users\Jeanc\Mestre-do-PC-V10-clean\v10\allowed-operations.json'
+$file = Join-Path $PSScriptRoot '..\v10\allowed-operations.json'
 $data = Get-Content $file | ConvertFrom-Json
 
 $newOps = @(

@@ -1,2 +1,2 @@
 @echo off
-powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\Jeanc\Mestre-do-PC-V10-clean\mcp-server\set-mestre-path.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0set-mestre-path.ps1"

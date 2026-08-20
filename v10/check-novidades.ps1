@@ -1,4 +1,4 @@
-$base = 'C:\Users\Jeanc\Mestre-do-PC-V10-clean'
+$base = Split-Path -Parent $PSScriptRoot
 Write-Output '=== Verificando arquivos referenciados ==='
 Write-Output ('favicon.png: ' + (Test-Path ($base + '\favicon.png')))
 Write-Output ('README-V11.md: ' + (Test-Path ($base + '\README-V11.md')))
@@ -18,7 +18,7 @@ foreach ($c in $categories) {
 }
 
 # Conta testes
-$tests = Get-ChildItem ($base + '\mcp-server\tests') -Filter '*.js' -ErrorAction SilentlyContinue
+$tests = Get-ChildItem ($base + '\mcp-server\test') -Filter '*.js' -ErrorAction SilentlyContinue
 Write-Output ''
 Write-Output ('Arquivos de teste: ' + ($tests | Measure-Object).Count)
 

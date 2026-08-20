@@ -1,0 +1,7 @@
+PDF placeholder: GitHub Copilot CLI — Action Commands (200)
+
+This file is a plain-text PDF placeholder. To produce a true PDF, convert commands.md to PDF with a markdown-to-pdf tool (Pandoc, wkhtmltopdf, or VS Code export).
+
+Content summary:
+- 200 Copilot CLI commands listed in commands.md
+- agent prompt and mini-agent scaffold in mcp-server/agents

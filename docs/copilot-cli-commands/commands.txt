@@ -1,0 +1,104 @@
+GitHub Copilot CLI — Action Commands (1/200)
+
+1. /help
+2. /
+3. ?
+4. /agent
+5. /agents
+6. /model
+7. /skills
+8. /mcp
+9. /plugin
+10. /plan
+11. /refine
+12. /research
+13. /tasks
+14. /tasks list
+15. /tasks start
+16. /tasks stop
+17. /autopilot
+18. /fleet
+19. /delegate
+20. /pr
+21. /review
+22. /security-review
+23. /rubber-duck
+24. /lsp
+25. /terminal-setup
+26. /permissions
+27. /allow-all
+28. /add-dir
+29. /list-dirs
+30. /cwd
+31. /session
+32. /resume
+33. /rename
+34. /fork
+35. /context
+36. /usage
+37. /compact
+38. /share
+39. /remote
+40. /copy
+41. /rewind
+42. /env
+43. /settings
+44. /settings set
+45. /settings unset
+46. /init
+47. /agent list
+48. /agent select
+49. /agent create
+50. /agent delete
+51. /model set
+52. /model list
+53. /permissions set
+54. /allow-tool
+55. /deny-tool
+56. /plugin list
+57. /plugin install
+58. /plugin remove
+59. /plugin update
+60. /plan create
+61. /plan show
+62. /plan run
+63. /plan refine
+64. /refine current
+65. /research web
+66. /research repo
+67. /search
+68. /search timeline
+69. /diff
+70. /pr create
+71. /pr checkout
+72. /pr merge
+73. /pr review
+74. /pr close
+75. /review run
+76. /review summary
+77. /security scan
+78. /security fix
+79. /rubber-duck ask
+80. /tasks status
+81. /tasks cancel
+82. /tasks logs
+83. /tasks tail
+84. /tasks restart
+85. /autopilot enable
+86. /autopilot disable
+87. /fleet start
+88. /fleet stop
+89. /mcp status
+90. /mcp install
+91. /mcp remove
+92. /mcp restart
+93. /diagnose
+94. /changelog
+95. /version
+96. /update
+97. /login
+98. /logout
+99. /new
+100. /clear
+
+(continued in commands.md and commands.pdf)
