@@ -29,6 +29,17 @@ const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 const JOB_RETENTION_MS = 30 * 60 * 1000;
 const MAX_CMD_LENGTH = 32768;
 
+// Constrói environment limpo para spawn do PowerShell 5.1, removendo caminhos
+// do PS 7 (MSIX) que poluem PSModulePath e quebram módulos como Microsoft.PowerShell.Security
+function cleanPSEnv(extra = {}) {
+  const psModulePath = [
+    join(process.env.USERPROFILE || "", "OneDrive", "Documents", "WindowsPowerShell", "Modules"),
+    process.env.ProgramFiles ? join(process.env.ProgramFiles, "WindowsPowerShell", "Modules") : "",
+    process.env.SystemRoot ? join(process.env.SystemRoot, "system32", "WindowsPowerShell", "v1.0", "Modules") : "",
+  ].filter(Boolean).join(";");
+  return { ...process.env, PSModulePath: psModulePath, ...extra };
+}
+
 // O /ping reportava admin:false fixo, entao a interface mostrava "sem elevacao"
 // mesmo com o launcher rodando como Administrador. `net session` só responde 0
 // para conta elevada — é a checagem clássica no Windows. Roda uma vez no boot e
@@ -296,7 +307,7 @@ function runPowerShell(cmd, meta = {}) {
   jobs.set(id, job);
   const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd], {
     windowsHide: true,
-    env: { ...process.env, MESTRE_PROJETO_PATH: PROJECT_DIR },
+    env: cleanPSEnv({ MESTRE_PROJETO_PATH: PROJECT_DIR }),
   });
   // Referência usada por /shutdown para interromper comandos em andamento.
   job.child = ps;
@@ -526,7 +537,7 @@ $diskUsed = [math]::Round($disk.Used/1GB, 2)
 $boot = [Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime)
 $uptime = [int]((Get-Date) - $boot).TotalSeconds
 @{cpu=[math]::Round($cpu,1);ramFree=$ramFree;ramTotal=$ramTotal;diskFree=$diskFree;diskUsed=$diskUsed;uptimeSec=$uptime} | ConvertTo-Json -Compress
-`], { windowsHide: true });
+`], { windowsHide: true, env: cleanPSEnv() });
   let out = "";
   ps.stdout.on("data", (d) => (out += d.toString()));
   ps.stderr.on("data", (d) => (out += d.toString()));
