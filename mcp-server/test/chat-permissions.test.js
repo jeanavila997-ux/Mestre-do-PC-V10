@@ -98,29 +98,24 @@ test("handlers de IA aplicam o guard de prompt injection", async () => {
   assert.match(source, /guardPromptInjection\([^)]*"perguntar_ia_com_contexto"\)/);
 });
 
-test("UI do chat consulta /classify e confirma toda execução sugerida pela IA", async () => {
+test("index.html delega o chat inteiramente ao módulo separado (sem lógica de execução inline)", async () => {
   const html = await readFile(join(root, "v10", "index.html"), "utf8");
 
-  // Classificação antes de executar sugestão da IA.
-  assert.match(html, /const verdict = await classifyCommand\(cmd\)/);
-  assert.match(html, /\/classify/);
+  // O app principal importa o módulo já coberto pelo teste
+  // "módulo de chat preserva comandos e trata anexos com segurança" abaixo —
+  // classificação, confirmação e whitelist vivem só lá, não duplicadas aqui.
+  assert.match(html, /import \{ initChat \} from "\/chat\/chat-module\.js"/);
+  assert.match(html, /clientHeader: "v10-web"/);
+  assert.match(html, /rootSelector: "#chat-root"/);
 
-  // Todo comando sugerido pela IA exige confirmação, inclusive low-risk.
-  assert.match(html, /Comando sugerido pela IA\. Confirme antes de executar\./);
-  assert.match(html, /const ok = await askCommandConfirmation/);
-  assert.doesNotMatch(html, /executado automaticamente \(low-risk\)/);
-  assert.match(html, /MAX_CHAT_TEXT_FILE_BYTES/);
-  assert.doesNotMatch(html, /sel\.innerHTML = models\.map/);
+  // Não deve haver mais um segundo caminho de execução de comando sugerido
+  // pela IA duplicado dentro do index.html (o antigo runIACmd/iaOverlay).
+  assert.doesNotMatch(html, /function runIACmd/);
+  assert.doesNotMatch(html, /const verdict = await classifyCommand\(cmd\)/);
+  assert.doesNotMatch(html, /id="iaOverlay"/);
 
-  // Fora da whitelist é bloqueado com opção de copiar.
-  assert.match(html, /Comando fora da whitelist/);
-
-  // window.confirm não é mais usado para autorizar execução.
+  // window.confirm não é mais usado para autorizar execução em nenhum dos dois arquivos.
   assert.doesNotMatch(html, /return window\.confirm\(/);
-  assert.match(html, /askCommandConfirmation/);
-
-  // Resposta 400 do guard vira mensagem no chat.
-  assert.match(html, /res\.status === 400/);
 });
 
 test("módulo de chat preserva comandos e trata anexos com segurança", async () => {

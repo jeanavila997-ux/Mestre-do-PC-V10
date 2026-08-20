@@ -524,6 +524,51 @@ try {
             continue
         }
 
+        # GET /chat/* — recursos estaticos do modulo de chat (paridade com v10/launcher.js).
+        if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath.StartsWith("/chat/")) {
+            $relative = $req.Url.AbsolutePath.Substring(6)
+            if ([string]::IsNullOrEmpty($relative) -or $relative -match '\.{2,}|[\\<>|:"*?]|^/') {
+                $res.StatusCode = 403
+                $res.Close()
+                continue
+            }
+            $chatRoot = [System.IO.Path]::GetFullPath((Join-Path (Split-Path $V10_HTML -Parent) "chat"))
+            $filePath = [System.IO.Path]::GetFullPath((Join-Path $chatRoot $relative))
+            if (-not $filePath.StartsWith($chatRoot + [System.IO.Path]::DirectorySeparatorChar)) {
+                $res.StatusCode = 403
+                $res.Close()
+                continue
+            }
+            $ext = [System.IO.Path]::GetExtension($filePath).ToLowerInvariant()
+            $mimeTypes = @{
+                ".html" = "text/html; charset=utf-8"
+                ".css"  = "text/css; charset=utf-8"
+                ".js"   = "text/javascript; charset=utf-8"
+                ".json" = "application/json; charset=utf-8"
+                ".md"   = "text/markdown; charset=utf-8"
+                ".png"  = "image/png"
+                ".jpg"  = "image/jpeg"
+            }
+            $contentType = $mimeTypes[$ext]
+            if (-not $contentType) {
+                $res.StatusCode = 403
+                $res.Close()
+                continue
+            }
+            $res.Headers["X-Content-Type-Options"] = "nosniff"
+            $res.Headers["Referrer-Policy"] = "no-referrer"
+            if ($ext -in @(".js", ".css", ".html")) {
+                $res.Headers["Cache-Control"] = "no-store"
+            } else {
+                $res.Headers["Cache-Control"] = "public, max-age=604800, immutable"
+            }
+            if ($ext -eq ".html") {
+                $res.Headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+            }
+            Write-FileResponse -Response $res -Path $filePath -ContentType $contentType
+            continue
+        }
+
         # GET /ping — checar se o servidor esta rodando
         if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath -eq "/ping") {
             $payload = [ordered]@{

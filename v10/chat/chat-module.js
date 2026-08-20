@@ -85,6 +85,7 @@ const TEMPLATE = `
         <input type="text" id="mestreChatInput" aria-label="Mensagem para o Mestre IA" placeholder="Digite sua mensagem..." autocomplete="off" />
         <button id="mestreChatAttachFileBtn" class="icon-btn secondary" title="Anexar arquivo de texto">📎</button>
         <button id="mestreChatAttachImageBtn" class="icon-btn secondary" title="Anexar imagem">🖼️</button>
+        <button id="mestreChatVoiceBtn" class="icon-btn secondary" title="Falar mensagem" aria-label="Falar mensagem">🎤</button>
         <button id="mestreChatSendBtn">Enviar ➤</button>
         <button id="mestreChatStopBtn" class="stop-btn" style="display:none;" title="Parar geração">⏹ Parar</button>
       </div>
@@ -165,6 +166,8 @@ export class MestreChat {
     this.abortController = null;
     this.confirmResolver = null;
     this.outputHistory = [];
+    this.voiceRecognition = null;
+    this.isListening = false;
 
     this.headers = {
       "Content-Type": "application/json",
@@ -209,6 +212,7 @@ export class MestreChat {
       stopBtn: $("mestreChatStopBtn"),
       attachFileBtn: $("mestreChatAttachFileBtn"),
       attachImageBtn: $("mestreChatAttachImageBtn"),
+      voiceBtn: $("mestreChatVoiceBtn"),
       fileInput: $("mestreChatFileInput"),
       imageInput: $("mestreChatImageInput"),
       attachPanel: $("mestreChatAttachPanel"),
@@ -252,6 +256,7 @@ export class MestreChat {
     });
     this.el.attachFileBtn.addEventListener("click", () => this.el.fileInput.click());
     this.el.attachImageBtn.addEventListener("click", () => this.el.imageInput.click());
+    this.el.voiceBtn.addEventListener("click", () => this._toggleVoiceInput());
     this.el.fileInput.addEventListener("change", (e) => this._onFileSelected(e.currentTarget));
     this.el.imageInput.addEventListener("change", (e) => this._onImageSelected(e.currentTarget));
 
@@ -346,6 +351,66 @@ export class MestreChat {
     `;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2500);
+  }
+
+  _toggleVoiceInput() {
+    if (this.isListening) {
+      this.voiceRecognition?.stop();
+      return;
+    }
+
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) {
+      this.toast("🎤 Seu navegador não oferece entrada por voz.", "warning");
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = "pt-BR";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    this.voiceRecognition = recognition;
+    this.isListening = true;
+    this.el.voiceBtn.classList.add("is-listening");
+    this.el.voiceBtn.textContent = "⏹";
+    this.el.voiceBtn.title = "Parar entrada por voz";
+    this.el.status.textContent = "🎤 Ouvindo...";
+
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0]?.transcript || "")
+        .join("")
+        .trim();
+      if (transcript) this.el.input.value = transcript;
+    };
+    recognition.onerror = (event) => {
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        this.toast("🎤 Permita o acesso ao microfone para usar a entrada por voz.", "warning");
+      } else if (event.error !== "aborted") {
+        this.toast(`🎤 Falha na entrada por voz: ${event.error}`, "error");
+      }
+    };
+    recognition.onend = () => {
+      this.isListening = false;
+      this.voiceRecognition = null;
+      this.el.voiceBtn.classList.remove("is-listening");
+      this.el.voiceBtn.textContent = "🎤";
+      this.el.voiceBtn.title = "Falar mensagem";
+      if (!this.abortController) this._checkOllama().catch(() => {});
+      this.el.input.focus();
+    };
+
+    try {
+      recognition.start();
+    } catch (error) {
+      recognition.onend = null;
+      this.isListening = false;
+      this.voiceRecognition = null;
+      this.el.voiceBtn.classList.remove("is-listening");
+      this.el.voiceBtn.textContent = "🎤";
+      this.el.voiceBtn.title = "Falar mensagem";
+      this.toast("🎤 Não foi possível iniciar o microfone: " + error.message, "error");
+    }
   }
 
   async _request(path, options = {}) {
@@ -751,6 +816,12 @@ export class MestreChat {
     } else if (type === "image") {
       this.el.imageInput.click();
     }
+  }
+
+  async addMemory(title, content) {
+    const now = Date.now();
+    await this._saveMemoryToDb({ title, content, createdAt: now, updatedAt: now });
+    await this._loadMemories();
   }
 
   _addAttachment(type, title, preview, content) {
