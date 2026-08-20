@@ -11,6 +11,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import { checkPromptInjection } from "../mcp-server/security.js";
+import { handleApiRoute } from "./chat-integrado/api-routes.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.MPC_PORT ? Number(process.env.MPC_PORT) : 7777;
@@ -562,6 +563,12 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    // ── Chat Integrado: rotas /api/* ───────────────────────────────
+    if (path.startsWith("/api/")) {
+      const handled = await handleApiRoute(req, res, url, { isAuthorized, allowedOrigin });
+      if (handled) return;
+    }
+
     if (path === "/ping") {
       return sendJson(res, 200, {
         status: "ok",
@@ -792,6 +799,47 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, headers);
         return res.end(content);
       } catch { return sendJson(res, 404, { error: "recurso do chat não encontrado" }); }
+    }
+
+    // ===== Servir recursos estáticos do chat-integrado (/chat-integrado/*) =====
+    if (req.method === "GET" && path.startsWith("/chat-integrado/")) {
+      const relative = path.slice("/chat-integrado/".length);
+      if (!relative || /\.{2,}|[\\<>|:"*?]|^\//.test(relative)) {
+        return sendJson(res, 403, { error: "Caminho não permitido." });
+      }
+      const ciRoot = resolve(__dirname, "chat-integrado");
+      const filePath = resolve(ciRoot, relative);
+      if (!filePath.startsWith(ciRoot + sep)) {
+        return sendJson(res, 403, { error: "Caminho não permitido." });
+      }
+      const ext = extname(filePath).toLowerCase();
+      const mimeTypes = {
+        ".html": "text/html; charset=utf-8",
+        ".css": "text/css; charset=utf-8",
+        ".js": "text/javascript; charset=utf-8",
+        ".json": "application/json; charset=utf-8",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".svg": "image/svg+xml",
+      };
+      const contentType = mimeTypes[ext];
+      if (!contentType) {
+        return sendJson(res, 403, { error: "Extensão não permitida." });
+      }
+      try {
+        const content = await readFile(filePath);
+        const headers = {
+          "Content-Type": contentType,
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "Cache-Control": "no-store",
+        };
+        if (ext === ".html") {
+          headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
+        }
+        res.writeHead(200, headers);
+        return res.end(content);
+      } catch { return sendJson(res, 404, { error: "recurso do chat-integrado não encontrado" }); }
     }
 
     // ===== NOVO V11.2: SPA fallback — rotas de seção (ex: /8.diagnostico) servem index.html =====

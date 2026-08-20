@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mestre do PC — Chat Integrado</title>
+<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png"/>
+<link rel="stylesheet" href="/chat-integrado/styles.css"/>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="brand"><div class="brand-logo">M</div><span>Mestre do PC</span></div>
+    <div class="collapse-btn" id="collapseBtn" title="Recolher menu">◧</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-item active" id="btnNewChat"><span class="nav-icon">＋</span><span>Novo chat</span></div>
+    <div class="nav-item" id="btnMemories"><span class="nav-icon">🧠</span><span>Memórias</span></div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-item"><span class="nav-icon">🔧</span><span>Diagnóstico IA</span></div>
+    <div class="nav-item"><span class="nav-icon">🛠️</span><span>Manutenção</span></div>
+    <div class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+  </div>
+  <div class="section-title"><span>Conversas</span><span id="syncBadge" class="sync-badge">Sync: --</span></div>
+  <div class="chat-list" id="chatHistory"></div>
+  <div class="user-profile">
+    <div class="user-avatar">JA</div>
+    <div class="user-info">
+      <div class="user-name">JEAN AVILA</div>
+      <div class="user-email">jeanavila997@gmail.com</div>
+    </div>
+    <span style="color:var(--text-muted)">⌄</span>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="top-bar">
+    <div class="top-btn" title="Novo chat" id="btnNewChatTop">＋</div>
+    <div class="top-btn" id="btnTheme" title="Alternar tema">◐</div>
+    <div class="credits-badge" id="statusBadge"><span>🟢</span><span>Online</span></div>
+  </div>
+
+  <div class="content-area" id="contentArea">
+    <div class="hero-heading" id="heroHeading">
+      <div class="tess-icon-big">M</div>
+      <h1 class="hero-title">Chat Integrado Mestre do PC</h1>
+    </div>
+
+    <div class="messages-container" id="messagesContainer" style="display:none"></div>
+
+    <!-- Tools panel (popup) -->
+    <div class="tools-panel" id="toolsPanel">
+      <div style="font-size:12px;color:var(--text-muted);padding:4px 8px 8px;font-weight:600">
+        🔧 Ferramentas MCP disponíveis
+      </div>
+      <div class="tools-grid"></div>
+    </div>
+
+    <!-- Memories panel (popup) -->
+    <div class="memories-panel" id="memoriesPanel">
+      <div style="font-size:12px;color:var(--text-muted);padding:4px 8px 8px;font-weight:600;display:flex;justify-content:space-between;align-items:center">
+        <span>🧠 Memórias persistentes</span>
+      </div>
+      <div class="memory-add">
+        <input type="text" id="memInput" placeholder="Nova memória..." />
+        <button id="memAddBtn">Add</button>
+      </div>
+      <div class="mem-list"></div>
+    </div>
+
+    <div class="composer-box">
+      <textarea class="composer-input" id="promptInput" placeholder="Pergunte qualquer coisa ou use 🔧 para ferramentas..."></textarea>
+      <div class="composer-toolbar">
+        <div class="toolbar-left">
+          <button class="icon-circle-btn" id="btnPlus" title="Opções">＋</button>
+          <div class="action-pill" id="btnConnectors"><span>🔧 Ferramentas (0)</span></div>
+          <div class="action-pill" id="btnModelSelect"><span>🔀 Auto</span></div>
+        </div>
+        <div class="toolbar-right">
+          <button class="icon-circle-btn" id="btnMic" title="Entrada por voz">🎤</button>
+          <button class="icon-circle-btn send-btn" id="btnSend" title="Enviar">➤</button>
+        </div>
+      </div>
+
+      <div class="popup-menu" id="plusMenu" style="bottom:60px;left:16px">
+        <div class="menu-item" id="itemTools"><span>🛠️ Ferramentas</span></div>
+        <div class="menu-item" id="itemMemories"><span>🧠 Memórias</span></div>
+        <div class="menu-item" id="itemSync"><span>📡 Status Sync</span></div>
+        <div class="menu-item" id="itemAudit"><span>📝 Auditoria</span></div>
+        <div class="menu-item" id="itemClear"><span>🗑️ Limpar Chat</span></div>
+      </div>
+
+      <div class="popup-menu" id="modelsMenu" style="bottom:60px;right:16px;width:220px">
+      </div>
+    </div>
+
+    <div class="quick-categories" id="quickCategories"></div>
+  </div>
+</main>
+
+<script type="module">
+import { initChatIntegrado } from "/chat-integrado/chat-integrado.js";
+
+// Wire up extra buttons
+document.getElementById("btnNewChatTop").addEventListener("click", () => {
+  document.getElementById("btnNewChat").click();
+});
+
+document.getElementById("itemTools").addEventListener("click", () => {
+  document.getElementById("plusMenu").classList.remove("show");
+  document.getElementById("btnConnectors").click();
+});
+
+document.getElementById("itemMemories").addEventListener("click", () => {
+  document.getElementById("plusMenu").classList.remove("show");
+  document.getElementById("btnMemories").click();
+});
+
+document.getElementById("itemSync").addEventListener("click", async () => {
+  document.getElementById("plusMenu").classList.remove("show");
+  const status = await fetch("/api/sync/status", { headers: { "X-Mestre-Client": "v10-web" } }).then(r => r.json()).catch(() => null);
+  if (status) {
+    alert(`Sync MySQL:\nConfigurado: ${status.mysqlConfigurado ? "Sim" : "Não"}\nThreshold: ${status.threshold}\nPendentes: ${status.unsynced?.total || 0}\nÚltimo sync: ${status.ultimoSync || "Nunca"}\nTotal sincronizado: ${status.totalSynced || 0}`);
+  }
+});
+
+document.getElementById("itemAudit").addEventListener("click", async () => {
+  document.getElementById("plusMenu").classList.remove("show");
+  const data = await fetch("/api/audit?limit=20", { headers: { "X-Mestre-Client": "v10-web" } }).then(r => r.json()).catch(() => null);
+  if (data?.entries?.length) {
+    const text = data.entries.map(e => `[${e.criada_em}] ${e.level}: ${e.action}`).join("\n");
+    alert(`Últimas ${data.entries.length} entradas de auditoria:\n\n${text}`);
+  } else {
+    alert("Nenhuma entrada de auditoria encontrada.");
+  }
+});
+
+document.getElementById("itemClear").addEventListener("click", () => {
+  document.getElementById("plusMenu").classList.remove("show");
+  if (confirm("Limpar todo o chat atual?")) {
+    document.getElementById("messagesContainer").innerHTML = "";
+    document.getElementById("heroHeading").style.display = "flex";
+    document.getElementById("quickCategories").style.display = "flex";
+    document.getElementById("messagesContainer").style.display = "none";
+  }
+});
+
+// Check launcher status
+async function checkStatus() {
+  try {
+    const resp = await fetch("/ping", { headers: { "X-Mestre-Client": "v10-web" } });
+    if (resp.ok) {
+      const data = await resp.json();
+      const badge = document.getElementById("statusBadge");
+      badge.classList.remove("offline");
+      badge.innerHTML = `<span>🟢</span><span>${data.admin ? "Admin" : "Online"}</span>`;
+    }
+  } catch {
+    const badge = document.getElementById("statusBadge");
+    badge.classList.add("offline");
+    badge.innerHTML = `<span>🔴</span><span>Offline</span>`;
+  }
+}
+
+checkStatus();
+setInterval(checkStatus, 30000);
+
+initChatIntegrado().catch(err => console.error("[chat-integrado] Erro na inicialização:", err));
+</script>
+</body>
+</html>
