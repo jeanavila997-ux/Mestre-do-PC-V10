@@ -179,6 +179,7 @@ async function streamOllamaReply(userText) {
     model: state.modeloAtivo || undefined,
     messages,
     stream: true,
+    options: state.profileOptions || undefined,
   };
 
   const resp = await fetch(BASE + "/ollama/chat", {
@@ -525,8 +526,10 @@ async function loadProfiles() {
     const data = await apiGet("/api/profiles");
     state.perfis = data.perfis || [];
     state.perfilAtivo = data.perfil_ativo || "balanced";
-    state.modeloAtivo = data.modelo_ativo || "";
+    state.modeloAtivo = data.modelo_local || data.modelo_ativo || "";
+    state.profileOptions = data.opcoes || {};
     renderProfilesMenu();
+    updateModelBadge();
   } catch { /* launcher pode estar reiniciando */ }
 }
 

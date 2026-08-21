@@ -26,7 +26,7 @@
  *   PUT  /api/config             — atualiza configuração
  */
 
-import { TOOL_NAMES, executarTool, listProfiles, getProfileModel, getProfileOptions } from "./tools-api.js";
+import { TOOL_NAMES, executarTool, listProfiles, getProfileModel, getProfileOptions, getBestAvailableModel, getBestLocalModel, refreshAvailableModels } from "./tools-api.js";
 import * as db from "./db.js";
 import { sincronizarAgora, getStatus as getSyncStatus, iniciarSyncAutomatico } from "./mysql-sync.js";
 import { auditLog, AuditLevel } from "../../mcp-server/audit-logger.js";
@@ -155,7 +155,17 @@ export async function handleApiRoute(req, res, url, ctx) {
 
   if (path === "/api/profiles" && method === "GET") {
     if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
-    ok(res, { perfis: listProfiles(), modelo_ativo: getProfileModel(), opcoes: getProfileOptions() }, allowedOrigin);
+    await refreshAvailableModels();
+    const modeloDisponivel = await getBestAvailableModel();
+    const modeloLocal = await getBestLocalModel();
+    ok(res, {
+      perfis: listProfiles(),
+      modelo_ativo: modeloDisponivel,
+      modelo_local: modeloLocal,
+      modelo_configurado: getProfileModel(),
+      opcoes: getProfileOptions(),
+      modelos_disponiveis: true,
+    }, allowedOrigin);
     return true;
   }
 

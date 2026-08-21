@@ -3047,7 +3047,9 @@
       "category": "Node.js",
       "destructive": false,
       "pattern": "npm install -g {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} instalado!\" -ForegroundColor Green",
-      "params": { "pacote": "^[a-zA-Z0-9_.-]{1,100}$" }
+      "params": {
+        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
+      }
     },
     {
       "id": "desinstalar_pacote_npm_global",
@@ -3055,7 +3057,9 @@
       "category": "Node.js",
       "destructive": true,
       "pattern": "npm uninstall -g {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} desinstalado!\" -ForegroundColor Green",
-      "params": { "pacote": "^[a-zA-Z0-9_.-]{1,100}$" }
+      "params": {
+        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
+      }
     },
     {
       "id": "instalar_pacote_pip",
@@ -3063,7 +3067,9 @@
       "category": "Python",
       "destructive": false,
       "pattern": "pip install {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} instalado!\" -ForegroundColor Green",
-      "params": { "pacote": "^[a-zA-Z0-9_.-]{1,100}$" }
+      "params": {
+        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
+      }
     },
     {
       "id": "desinstalar_pacote_pip",
@@ -3071,7 +3077,9 @@
       "category": "Python",
       "destructive": true,
       "pattern": "pip uninstall -y {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} desinstalado!\" -ForegroundColor Green",
-      "params": { "pacote": "^[a-zA-Z0-9_.-]{1,100}$" }
+      "params": {
+        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
+      }
     },
     {
       "id": "criar_ambiente_virtual_venv",
@@ -3079,7 +3087,9 @@
       "category": "Python",
       "destructive": false,
       "pattern": "python -m venv {{NOME}}; Write-Host \"✅ Ambiente virtual '{{NOME}}' criado!\" -ForegroundColor Green",
-      "params": { "nome": "^[a-zA-Z0-9_-]{1,64}$" }
+      "params": {
+        "nome": "^[a-zA-Z0-9_-]{1,64}$"
+      }
     }
   ]
 }

@@ -35,11 +35,84 @@ try {
 
 const activeProfile = process.env.OLLAMA_MODEL_PROFILE || modelProfiles.defaultProfile || "balanced";
 
+// ── Detecção de modelos disponíveis no Ollama ───────────────────────
+
+let availableModels = [];
+let localModels = [];
+let modelsCheckedAt = 0;
+
+async function refreshAvailableModels() {
+  // Cache de 60s
+  if (Date.now() - modelsCheckedAt < 60000 && availableModels.length) return;
+  modelsCheckedAt = Date.now();
+
+  // Modelos locais (Ollama em 127.0.0.1:11434) — usado para streaming pelo launcher
+  try {
+    const resp = await fetch(`${OLLAMA_URL}/api/tags`);
+    if (resp.ok) {
+      const data = await resp.json();
+      localModels = (data.models || []).map(m => m.name);
+    }
+  } catch { /* Ollama local offline */ }
+
+  // Modelos cloud (se API key configurada) — usado para ferramentas
+  if (OLLAMA_API_KEY) {
+    try {
+      const resp = await fetch(`${OLLAMA_BASE}/tags`, { headers: buildHeaders() });
+      if (resp.ok) {
+        const data = await resp.json();
+        availableModels = (data.models || []).map(m => m.name);
+      }
+    } catch { /* cloud offline */ }
+  }
+
+  // Sem API key: modelos locais = modelos disponíveis
+  if (!OLLAMA_API_KEY) {
+    availableModels = localModels;
+  }
+}
+
+function isModelAvailable(modelName) {
+  return availableModels.some(m => m === modelName || m.startsWith(modelName.split(":")[0] + ":"));
+}
+
+function isLocalModelAvailable(modelName) {
+  return localModels.some(m => m === modelName || m.startsWith(modelName.split(":")[0] + ":"));
+}
+
 // ── Helpers internos ────────────────────────────────────────────────
 
 function getProfileModel(profile = activeProfile) {
   const p = modelProfiles.profiles[profile];
   return process.env.OLLAMA_MODEL || p?.model || "qwen2.5-coder:3b-instruct";
+}
+
+/**
+ * Retorna o melhor modelo disponível (cloud ou local): tenta o do perfil,
+ * depois OLLAMA_MODEL, depois o primeiro modelo disponível.
+ */
+async function getBestAvailableModel(profile = activeProfile) {
+  await refreshAvailableModels();
+  const configured = getProfileModel(profile);
+  if (!availableModels.length) return configured; // tudo offline, deixa o configurado
+  if (isModelAvailable(configured)) return configured;
+  // Fallback: primeiro modelo disponível
+  console.warn(`[tools-api] Modelo "${configured}" não encontrado. Usando "${availableModels[0]}".`);
+  return availableModels[0];
+}
+
+/**
+ * Retorna o melhor modelo LOCAL disponível (para streaming via launcher).
+ * O launcher faz proxy direto para 127.0.0.1:11434, sem API key.
+ */
+async function getBestLocalModel(profile = activeProfile) {
+  await refreshAvailableModels();
+  const configured = getProfileModel(profile);
+  if (!localModels.length) return configured; // Ollama local offline, deixa o configurado
+  if (isLocalModelAvailable(configured)) return configured;
+  // Fallback: primeiro modelo local disponível
+  console.warn(`[tools-api] Modelo local "${configured}" não encontrado. Usando "${localModels[0]}".`);
+  return localModels[0];
 }
 
 function getProfileOptions(profile = activeProfile) {
@@ -85,7 +158,7 @@ function guardPromptInjection(text, toolName = "chat-integrado") {
 // ── Ollama Chat (não-streaming, para ferramentas) ───────────────────
 
 async function ollamaChat({ messages, system, timeoutMs = 60000, think }) {
-  const model = getProfileModel();
+  const model = await getBestAvailableModel();
   const options = buildOllamaOptions();
   if (think) options.think = true;
 
@@ -461,4 +534,4 @@ function listProfiles() {
   }));
 }
 
-export { guardPromptInjection, ollamaChat, executeLauncherCommand, classifyLauncherCommand, getProfileModel, getProfileOptions, buildOllamaOptions, listProfiles };
+export { guardPromptInjection, ollamaChat, executeLauncherCommand, classifyLauncherCommand, getProfileModel, getProfileOptions, buildOllamaOptions, listProfiles, getBestAvailableModel, getBestLocalModel, refreshAvailableModels };
