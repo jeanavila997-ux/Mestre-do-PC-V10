@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🎉 Novidades V11.1 - Mestre do PC</title>
+    <title>🎉 Novidades V11.2 - Mestre do PC</title>
     <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
     <style>
       :root {
@@ -208,9 +208,9 @@
       <a href="/" class="back-link">← Voltar ao Dashboard</a>
 
       <div class="header">
-        <h1>🎉 Mestre do PC V11.1</h1>
+        <h1>🎉 Mestre do PC V11.2</h1>
         <p>Atualização Completa — Agosto 2026</p>
-        <span class="version-badge">Versão 11.1.0</span>
+        <span class="version-badge">Versão 11.2.0</span>
       </div>
 
       <!-- Estatísticas reais -->
@@ -221,11 +221,11 @@
         </div>
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-number">243</div>
+            <div class="stat-number">301</div>
             <div class="stat-label">Operações MCP</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">24</div>
+            <div class="stat-number">29</div>
             <div class="stat-label">Categorias</div>
           </div>
           <div class="stat-card">
@@ -233,12 +233,62 @@
             <div class="stat-label">Modelos Ollama</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">16</div>
+            <div class="stat-number">22</div>
             <div class="stat-label">Apps Instaláveis</div>
           </div>
           <div class="stat-card">
             <div class="stat-number">+5</div>
             <div class="stat-label">Novas V11.1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Novidades V11.2 -->
+      <div class="section" style="border-color: var(--accent2);">
+        <div class="section-header">
+          <span class="section-icon">🚀</span>
+          <h2 class="section-title">Novidades V11.2 <span class="new-badge">NOVO</span></h2>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>💬</span>
+              Chat IA Modular
+            </div>
+            <div class="feature-desc">
+              Chat da IA reescrito como módulo separado (<span class="code-inline">chat-ia.html</span>) com CSP próprio,
+              proteção contra prompt injection e tratamento seguro de anexos.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>🔧</span>
+              Isolamento PS 5.1 / PS 7
+            </div>
+            <div class="feature-desc">
+              Correção do <span class="code-inline">PSModulePath</span> que impedia o Windows PowerShell 5.1 de carregar
+              módulos de segurança quando o PowerShell 7 (MSIX) estava instalado.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>⚡</span>
+              Scripts de Inicialização Robustos
+            </div>
+            <div class="feature-desc">
+              <span class="code-inline">iniciar-mestre.ps1</span> com 5 modos: segundo plano, elevado, foreground,
+              stop e status. Isola <span class="code-inline">PSModulePath</span> automaticamente.
+            </div>
+          </div>
+          <div class="feature-card" style="border-color: var(--accent2);">
+            <div class="feature-title">
+              <span>📊</span>
+              Dashboard de Rede Seguro
+            </div>
+            <div class="feature-desc">
+              <span class="code-inline">rede-dashboard.js</span> com validação de origem e sem
+              <span class="code-inline">trust_remote_code</span> no Prompt Guard.
+            </div>
           </div>
         </div>
       </div>
@@ -317,7 +367,7 @@
               Skills MCP Importáveis
             </div>
             <div class="feature-desc">
-              Todas as 243 operações MCP agora podem ser importadas como <strong>Skills</strong> no app Snippets & Skills.
+              Todas as 301 operações MCP agora podem ser importadas como <strong>Skills</strong> no app Snippets & Skills.
               Cada skill tem botão <strong>▶ Executar</strong> para rodar o comando direto do app.
             </div>
           </div>
@@ -348,33 +398,38 @@
       <div class="section">
         <div class="section-header">
           <span class="section-icon">🗂️</span>
-          <h2 class="section-title">Categorias de Operações (24)</h2>
+          <h2 class="section-title">Categorias de Operações (29)</h2>
         </div>
         <div class="category-list">
           <span class="category-pill">📦 <strong>Outros</strong>: 66</span>
           <span class="category-pill">🧹 <strong>Limpeza</strong>: 37</span>
           <span class="category-pill">🤖 <strong>Modelos Ollama</strong>: 33</span>
-          <span class="category-pill">📦 <strong>Instalações</strong>: 16</span>
-          <span class="category-pill">💾 <strong>Backup</strong>: 13</span>
+          <span class="category-pill">📦 <strong>Instalações</strong>: 22</span>
+          <span class="category-pill">🔄 <strong>Atualizações</strong>: 12</span>
+          <span class="category-pill">💻 <strong>Sistema</strong>: 12</span>
           <span class="category-pill">📚 <strong>Bibliotecas</strong>: 10</span>
+          <span class="category-pill">🐍 <strong>Python</strong>: 10</span>
+          <span class="category-pill">🖨️ <strong>Drivers</strong>: 9</span>
+          <span class="category-pill">🖥️ <strong>Terminal</strong>: 9</span>
+          <span class="category-pill">🟩 <strong>Node.js</strong>: 9</span>
           <span class="category-pill">🔒 <strong>Privacidade</strong>: 8</span>
+          <span class="category-pill">💡 <strong>PowerShell</strong>: 8</span>
           <span class="category-pill">🧠 <strong>Memória</strong>: 7</span>
           <span class="category-pill">🌿 <strong>Git</strong>: 7</span>
           <span class="category-pill">⚡ <strong>Performance</strong>: 6</span>
           <span class="category-pill">📊 <strong>Processos</strong>: 6</span>
           <span class="category-pill">💾 <strong>Disco</strong>: 5</span>
           <span class="category-pill">🔧 <strong>Reparo</strong>: 5</span>
-          <span class="category-pill">💻 <strong>Sistema</strong>: 5</span>
+          <span class="category-pill">💾 <strong>Backup</strong>: 5</span>
           <span class="category-pill">🛡️ <strong>Defender</strong>: 4</span>
-          <span class="category-pill">🔄 <strong>Atualizações</strong>: 4</span>
-          <span class="category-pill">🔍 <strong>Pesquisa</strong>: 2</span>
-          <span class="category-pill">🦙 <strong>Ollama</strong>: 2</span>
           <span class="category-pill">📋 <strong>Tarefas</strong>: 2</span>
-          <span class="category-pill">❄️ <strong>Dados</strong>: 1</span>
-          <span class="category-pill">📈 <strong>Análise</strong>: 1</span>
-          <span class="category-pill">📁 <strong>Projeto</strong>: 1</span>
-          <span class="category-pill">🖨️ <strong>Drivers</strong>: 1</span>
+          <span class="category-pill">🦙 <strong>Ollama</strong>: 2</span>
+          <span class="category-pill">🔍 <strong>Pesquisa</strong>: 2</span>
+          <span class="category-pill">🔐 <strong>Segurança</strong>: 1</span>
           <span class="category-pill">🌐 <strong>Rede</strong>: 1</span>
+          <span class="category-pill">📁 <strong>Projeto</strong>: 1</span>
+          <span class="category-pill">📈 <strong>Análise</strong>: 1</span>
+          <span class="category-pill">❄️ <strong>Dados</strong>: 1</span>
         </div>
       </div>
 
@@ -444,7 +499,7 @@
       <div class="section">
         <div class="section-header">
           <span class="section-icon">📦</span>
-          <h2 class="section-title">Instalações de Apps (16 apps)</h2>
+          <h2 class="section-title">Instalações de Apps (22 apps)</h2>
         </div>
         <div class="feature-grid">
           <div class="feature-card">
@@ -453,11 +508,11 @@
           </div>
           <div class="feature-card">
             <div class="feature-title"><span>🛠️</span> Desenvolvimento</div>
-            <div class="feature-desc">VS Code, Git, Node.js LTS, Python 3, PowerShell 7, Windows Terminal</div>
+            <div class="feature-desc">VS Code, Git, Node.js LTS, Python 3, PowerShell 7, Windows Terminal, Go</div>
           </div>
           <div class="feature-card">
             <div class="feature-title"><span>🎵</span> Produtividade e Lazer</div>
-            <div class="feature-desc">VLC, 7-Zip, WinRAR, Notepad++, Discord, Spotify, Ollama</div>
+            <div class="feature-desc">VLC, 7-Zip, WinRAR, Notepad++, Discord, Spotify, Ollama, Obsidian</div>
           </div>
         </div>
       </div>
@@ -640,16 +695,44 @@
         </div>
         <div class="changelog">
           <div class="changelog-item">
+            <span class="tag tag-fix">FIX</span>
+            <strong>V11.2</strong> — Isolamento de PSModulePath do PS 5.1 contra poluicao do PS 7 (MSIX)
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-new">NEW</span>
+            <strong>V11.2</strong> — Scripts iniciar-mestre.ps1/.bat com modos: segundo plano, elevado, foreground, stop, status
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-new">NEW</span>
+            <strong>V11.2</strong> — Chat IA modular (chat-ia.html) com CSP proprio e protecao de prompt injection
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-improve">IMPROVE</span>
+            <strong>V11.2</strong> — Pester atualizado de 3.4.0 para 6.1.0 no PowerShell 7
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-improve">IMPROVE</span>
+            <strong>V11.2</strong> — Dependencias do mcp-server atualizadas (npm ci, 0 vulnerabilidades)
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-fix">FIX</span>
+            <strong>V11.2</strong> — rede-dashboard.js com validacao de origem e sem trust_remote_code
+          </div>
+          <div class="changelog-item">
             <span class="tag tag-new">NEW</span>
             <strong>V11.1</strong> — 5 novas operações: consultar_fonte_oficial_gov, extrair_evidencia_de_pdf_local, simular_cenario_economico, congelar_tabela_final, gerar_snapshot_git
           </div>
           <div class="changelog-item">
             <span class="tag tag-new">NEW</span>
-            <strong>V11.1</strong> — Integração com Snippets & Skills: 243 skills MCP importáveis com botão Executar
+            <strong>V11.1</strong> — Integração com Snippets & Skills: 301 skills MCP importáveis com botão Executar
           </div>
           <div class="changelog-item">
             <span class="tag tag-new">NEW</span>
-            <strong>V11.1</strong> — allowed-operations.json atualizado com todas as 243 operações
+            <strong>V11.1</strong> — allowed-operations.json atualizado com todas as 301 operações
+          </div>
+          <div class="changelog-item">
+            <span class="tag tag-new">NEW</span>
+            <strong>V11.1</strong> — 4 novas categorias: Terminal, Node.js, PowerShell, Python
           </div>
           <div class="changelog-item">
             <span class="tag tag-fix">FIX</span>
@@ -676,7 +759,7 @@
 
       <!-- Botões de Ação -->
       <div style="text-align: center; margin-top: 40px; padding: 30px; background: var(--panel); border-radius: 12px; border: 1px solid var(--border);">
-        <h3 style="color: var(--accent); margin-bottom: 20px;">🚀 Comece a Usar V11.1</h3>
+        <h3 style="color: var(--accent); margin-bottom: 20px;">🚀 Comece a Usar V11.2</h3>
         <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
           <a href="/" class="btn">Abrir Dashboard</a>
           <button onclick="window.open('https://github.com/jeanavila997-ux/Mestre-do-PC-V10', '_blank')" class="btn btn-secondary">Ver no GitHub</button>
@@ -685,8 +768,8 @@
       </div>
 
       <footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: #8b949e;">
-        <p><strong>Mestre do PC V11.1</strong> — Desenvolvido por JEAN</p>
-        <p style="font-size: 0.85rem; margin-top: 8px;">Versão 11.1.0 | Agosto 2026 | 243 operações MCP</p>
+        <p><strong>Mestre do PC V11.2</strong> — Desenvolvido por JEAN</p>
+        <p style="font-size: 0.85rem; margin-top: 8px;">Versão 11.2.0 | Agosto 2026 | 301 operações MCP</p>
       </footer>
     </div>
   </body>

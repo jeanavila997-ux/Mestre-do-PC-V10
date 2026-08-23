@@ -68,6 +68,7 @@ body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--
 .action-pill:hover{background:var(--card);border-color:var(--accent);color:var(--accent)}
 .icon-circle-btn{width:32px;height:32px;border-radius:50%;background:var(--hover-bg);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all 0.2s}
 .icon-circle-btn:hover{background:var(--card);border-color:var(--accent);color:var(--accent);transform:scale(1.05)}
+.icon-circle-btn.is-listening{background:var(--danger);border-color:var(--danger);color:#fff;animation:pulse 1.2s ease-in-out infinite}
 .quick-categories{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;justify-content:center;max-width:760px;animation:fadeInUp 0.6s ease-out 0.3s backwards}
 .cat-capsule{background:var(--card);border:1px solid var(--border);color:var(--text-muted);padding:8px 14px;border-radius:20px;font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s}
 .cat-capsule:hover{color:var(--text);border-color:var(--accent);background:rgba(0,212,255,0.1);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,212,255,0.15)}
@@ -203,8 +204,9 @@ body.sidebar-collapsed .main{margin-left:64px}
 </div>
 </main>
 <script>
-const btnPlus=document.getElementById('btnPlus'),plusMenu=document.getElementById('plusMenu'),btnConnectors=document.getElementById('btnConnectors'),connectorsMenu=document.getElementById('connectorsMenu'),btnModelSelect=document.getElementById('btnModelSelect'),modelsMenu=document.getElementById('modelsMenu'),promptInput=document.getElementById('promptInput'),heroHeading=document.getElementById('heroHeading'),quickCategories=document.getElementById('quickCategories'),messagesContainer=document.getElementById('messagesContainer'),collapseBtn=document.getElementById('collapseBtn'),btnTheme=document.getElementById('btnTheme');
+const btnPlus=document.getElementById('btnPlus'),plusMenu=document.getElementById('plusMenu'),btnConnectors=document.getElementById('btnConnectors'),connectorsMenu=document.getElementById('connectorsMenu'),btnModelSelect=document.getElementById('btnModelSelect'),modelsMenu=document.getElementById('modelsMenu'),promptInput=document.getElementById('promptInput'),heroHeading=document.getElementById('heroHeading'),quickCategories=document.getElementById('quickCategories'),messagesContainer=document.getElementById('messagesContainer'),collapseBtn=document.getElementById('collapseBtn'),btnTheme=document.getElementById('btnTheme'),btnMic=document.getElementById('btnMic');
 let isWaitingForResponse=false;
+let voiceRecognition=null;
 function closeAllMenus(){plusMenu.classList.remove('show');connectorsMenu.classList.remove('show');modelsMenu.classList.remove('show')}
 btnPlus.addEventListener('click',e=>{e.stopPropagation();const isShow=plusMenu.classList.contains('show');closeAllMenus();if(!isShow)plusMenu.classList.add('show')});
 btnConnectors.addEventListener('click',e=>{e.stopPropagation();const isShow=connectorsMenu.classList.contains('show');closeAllMenus();if(!isShow)connectorsMenu.classList.add('show')});
@@ -213,6 +215,32 @@ document.addEventListener('click',()=>closeAllMenus());
 document.querySelectorAll('.toggle-sw').forEach(sw=>{sw.addEventListener('click',e=>{e.stopPropagation();sw.classList.toggle('active')})});
 collapseBtn.addEventListener('click',()=>{document.body.classList.toggle('sidebar-collapsed')});
 btnTheme.addEventListener('click',()=>{document.body.classList.toggle('light')});
+btnMic.addEventListener('click',()=>{
+  if(voiceRecognition){voiceRecognition.stop();return}
+  const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Recognition){btnMic.title='Entrada por voz indisponível neste navegador';return}
+  voiceRecognition=new Recognition();
+  voiceRecognition.lang='pt-BR';
+  voiceRecognition.continuous=false;
+  voiceRecognition.interimResults=true;
+  btnMic.classList.add('is-listening');
+  btnMic.title='Parar entrada por voz';
+  voiceRecognition.onresult=event=>{
+    promptInput.value=Array.from(event.results).map(result=>result[0]?.transcript||'').join('').trim();
+  };
+  voiceRecognition.onerror=event=>{
+    if(event.error==='not-allowed'||event.error==='service-not-allowed'){
+      btnMic.title='Permita o acesso ao microfone para usar a entrada por voz';
+    }
+  };
+  voiceRecognition.onend=()=>{
+    voiceRecognition=null;
+    btnMic.classList.remove('is-listening');
+    btnMic.title='Entrada por voz';
+    promptInput.focus();
+  };
+  try{voiceRecognition.start()}catch(error){voiceRecognition=null;btnMic.classList.remove('is-listening');btnMic.title='Não foi possível iniciar o microfone'}
+});
 function addMessage(text,role){const el=document.createElement('div');el.className='msg-row'+(role==='user'?' user':'');const avatar=document.createElement('div');avatar.className='msg-avatar'+(role==='ai'?' ai':' user');avatar.textContent=role==='ai'?'M':'JA';const body=document.createElement('div');body.className='msg-body';if(role==='ai'){let html=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/```([\s\S]*?)```/g,(m,code)=>'<pre><code>'+code.trim()+'</code></pre>').replace(/\n/g,'<br>');body.innerHTML=html}else{body.textContent=text}el.appendChild(avatar);el.appendChild(body);messagesContainer.appendChild(el);messagesContainer.scrollTop=messagesContainer.scrollHeight;return el}
 function showTyping(){const el=document.createElement('div');el.className='ia-typing';el.innerHTML='<span></span><span></span><span></span>';messagesContainer.appendChild(el);messagesContainer.scrollTop=messagesContainer.scrollHeight;return el}
 async function sendMessage(){if(isWaitingForResponse)return;const input=document.getElementById('promptInput');const msg=input.value.trim();if(!msg)return;heroHeading.style.display='none';quickCategories.style.display='none';messagesContainer.style.display='flex';addMessage(msg,'user');input.value='';isWaitingForResponse=true;const typingEl=showTyping();try{await new Promise(r=>setTimeout(r,1000+Math.random()*1000));typingEl.remove();const responses=['Entendido! Como seu assistente **Mestre do PC**, estou processando: `'+msg.substring(0,50)+(msg.length>50?'...':'')+'". Como posso ajudar?','🖥️ **Analisando sua solicitação...**\n\nPosso ajudar com:\n- `Diagnóstico do sistema`\n- `Limpeza de arquivos temporários`\n- `Otimização de desempenho`\n\nO que deseja fazer?','🤖 **Processando...**\n\nSua mensagem foi recebida: "'+msg+'"\n\nEstou aqui para auxiliar na manutenção do seu PC!'];const randomResponse=responses[Math.floor(Math.random()*responses.length)];addMessage(randomResponse,'ai')}catch(err){typingEl.remove();addMessage('❌ Erro: '+err.message,'ai')}finally{isWaitingForResponse=false;input.focus()}}

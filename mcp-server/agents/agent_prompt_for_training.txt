@@ -1,0 +1,14 @@
+Agent training prompt — teach the mini Copilot CLI agent
+
+Goal: Teach agents to understand, simulate, and safely invoke Copilot CLI commands listed in docs/copilot-cli-commands/commands.md.
+
+Instructions for agents:
+- Read the commands.md file. Understand each command's purpose and expected arguments.
+- When simulating execution, never run destructive operations (merge, delete, remove) without explicit user confirmation.
+- Provide examples of valid invocations and expected output for each command.
+- Implement permission checks: require explicit allow-tool / allow-dir for actions touching the filesystem or network.
+- Produce short teaching snippets (1-2 lines) per command describing intent and safety constraints.
+
+Output format (JSON array): [{"command":"/pr create","example":"/pr create --title 'Fix X' --base main","safety":"requires auth, confirm before merging"}, ...]
+
+Save generated teaching snippets to docs/copilot-cli-commands/commands_teachings.json

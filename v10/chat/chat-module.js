@@ -66,6 +66,7 @@ const TEMPLATE = `
         <button data-attach="terminal" title="Enviar último output do terminal">🖥️ Terminal</button>
         <button data-attach="app" title="Enviar informações do app Mestre do PC">🛡️ App</button>
         <button data-attach="image" title="Anexar imagem para análise visual">🖼️ Imagem</button>
+        <button data-action="open-memories" title="Abrir interface completa de memórias" style="border-color:rgba(88,166,255,0.6);color:var(--accent)">🧠 Memórias</button>
         <button data-action="save-context" title="Baixar todo o contexto do chat em JSON">💾 Salvar</button>
         <button data-action="export-md" title="Baixar conversa em relatório Markdown">📥 MD</button>
         <button data-action="clear-attachments" title="Limpar contextos anexados">🧹 Limpar</button>
@@ -938,6 +939,10 @@ export class MestreChat {
 
   _runAction(action) {
     switch (action) {
+      case "open-memories":
+        window.open("acessar-memorias.html", "_blank");
+        this.toast("🧠 Interface de memórias aberta em nova aba", "info");
+        break;
       case "save-context":
         this._downloadChatContext();
         break;

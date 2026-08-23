@@ -1,0 +1,997 @@
+[
+  {
+    "command": "/help",
+    "example": "/help --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/",
+    "example": "/ --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/agent",
+    "example": "/agent --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/agents",
+    "example": "/agents --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/model",
+    "example": "/model --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/skills",
+    "example": "/skills --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/mcp",
+    "example": "/mcp --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plugin",
+    "example": "/plugin --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plan",
+    "example": "/plan --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/refine",
+    "example": "/refine --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/research",
+    "example": "/research --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks",
+    "example": "/tasks --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks list",
+    "example": "/tasks list --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks start",
+    "example": "/tasks start --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks stop",
+    "example": "/tasks stop --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/autopilot",
+    "example": "/autopilot --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/fleet",
+    "example": "/fleet --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/delegate",
+    "example": "/delegate --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr",
+    "example": "/pr --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/review",
+    "example": "/review --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/security-review",
+    "example": "/security-review --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rubber-duck",
+    "example": "/rubber-duck --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/lsp",
+    "example": "/lsp --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/terminal-setup",
+    "example": "/terminal-setup --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/permissions",
+    "example": "/permissions --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/allow-all",
+    "example": "/allow-all --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/add-dir",
+    "example": "/add-dir --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/list-dirs",
+    "example": "/list-dirs --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/cwd",
+    "example": "/cwd --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/session",
+    "example": "/session --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/resume",
+    "example": "/resume --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rename",
+    "example": "/rename --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/fork",
+    "example": "/fork --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/context",
+    "example": "/context --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/usage",
+    "example": "/usage --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/compact",
+    "example": "/compact --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/share",
+    "example": "/share --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/remote",
+    "example": "/remote --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/copy",
+    "example": "/copy --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rewind",
+    "example": "/rewind --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/env",
+    "example": "/env --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/settings",
+    "example": "/settings --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/settings set",
+    "example": "/settings set --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/settings unset",
+    "example": "/settings unset --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/init",
+    "example": "/init --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/agent list",
+    "example": "/agent list --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/agent select",
+    "example": "/agent select --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/agent create",
+    "example": "/agent create --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/agent delete",
+    "example": "/agent delete --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/model set",
+    "example": "/model set --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/model list",
+    "example": "/model list --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/permissions set",
+    "example": "/permissions set --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/allow-tool",
+    "example": "/allow-tool --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/deny-tool",
+    "example": "/deny-tool --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/plugin list",
+    "example": "/plugin list --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plugin install",
+    "example": "/plugin install --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plugin remove",
+    "example": "/plugin remove --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/plugin update",
+    "example": "/plugin update --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plan create",
+    "example": "/plan create --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plan show",
+    "example": "/plan show --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plan run",
+    "example": "/plan run --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plan refine",
+    "example": "/plan refine --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/refine current",
+    "example": "/refine current --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/research web",
+    "example": "/research web --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/research repo",
+    "example": "/research repo --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/search",
+    "example": "/search --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/search timeline",
+    "example": "/search timeline --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/diff",
+    "example": "/diff --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr create",
+    "example": "/pr create --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr checkout",
+    "example": "/pr checkout --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr merge",
+    "example": "/pr merge --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/pr review",
+    "example": "/pr review --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr close",
+    "example": "/pr close --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/review run",
+    "example": "/review run --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/review summary",
+    "example": "/review summary --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/security scan",
+    "example": "/security scan --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/security fix",
+    "example": "/security fix --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rubber-duck ask",
+    "example": "/rubber-duck ask --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks status",
+    "example": "/tasks status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks cancel",
+    "example": "/tasks cancel --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks logs",
+    "example": "/tasks logs --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks tail",
+    "example": "/tasks tail --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks restart",
+    "example": "/tasks restart --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/autopilot enable",
+    "example": "/autopilot enable --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/autopilot disable",
+    "example": "/autopilot disable --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/fleet start",
+    "example": "/fleet start --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/fleet stop",
+    "example": "/fleet stop --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/mcp status",
+    "example": "/mcp status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/mcp install",
+    "example": "/mcp install --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/mcp remove",
+    "example": "/mcp remove --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/mcp restart",
+    "example": "/mcp restart --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/diagnose",
+    "example": "/diagnose --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/changelog",
+    "example": "/changelog --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/version",
+    "example": "/version --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/update",
+    "example": "/update --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/login",
+    "example": "/login --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/logout",
+    "example": "/logout --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/new",
+    "example": "/new --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/clear",
+    "example": "/clear --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/ask",
+    "example": "/ask --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/chronicle",
+    "example": "/chronicle --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/env show",
+    "example": "/env show --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/env set",
+    "example": "/env set --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/env unset",
+    "example": "/env unset --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/session list",
+    "example": "/session list --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/session switch",
+    "example": "/session switch --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/session export",
+    "example": "/session export --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/compact history",
+    "example": "/compact history --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/share gist",
+    "example": "/share gist --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/share markdown",
+    "example": "/share markdown --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/share html",
+    "example": "/share html --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/remote enable",
+    "example": "/remote enable --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/remote disable",
+    "example": "/remote disable --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/copy last",
+    "example": "/copy last --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rewind last",
+    "example": "/rewind last --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rewrite",
+    "example": "/rewrite --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr status",
+    "example": "/pr status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr reopen",
+    "example": "/pr reopen --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr revert",
+    "example": "/pr revert --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/pr squash",
+    "example": "/pr squash --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/pr rebase",
+    "example": "/pr rebase --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/pr comment",
+    "example": "/pr comment --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr assign",
+    "example": "/pr assign --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr reviewers",
+    "example": "/pr reviewers --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/issue create",
+    "example": "/issue create --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/issue list",
+    "example": "/issue list --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/issue comment",
+    "example": "/issue comment --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/issue close",
+    "example": "/issue close --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/issue reopen",
+    "example": "/issue reopen --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/review request-changes",
+    "example": "/review request-changes --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/review approve",
+    "example": "/review approve --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/review dismiss",
+    "example": "/review dismiss --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/security audit",
+    "example": "/security audit --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/security report",
+    "example": "/security report --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/lsp start",
+    "example": "/lsp start --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/lsp stop",
+    "example": "/lsp stop --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/lsp status",
+    "example": "/lsp status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/terminal enable-multiline",
+    "example": "/terminal enable-multiline --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/terminal disable-multiline",
+    "example": "/terminal disable-multiline --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/ide connect",
+    "example": "/ide connect --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/ide disconnect",
+    "example": "/ide disconnect --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/ide status",
+    "example": "/ide status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/settings list",
+    "example": "/settings list --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/settings get",
+    "example": "/settings get --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/settings reset",
+    "example": "/settings reset --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/permissions list",
+    "example": "/permissions list --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/allow-all-repo",
+    "example": "/allow-all-repo --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/add-dir-local",
+    "example": "/add-dir-local --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/list-dirs-local",
+    "example": "/list-dirs-local --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks queue",
+    "example": "/tasks queue --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks dequeue",
+    "example": "/tasks dequeue --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks prioritize",
+    "example": "/tasks prioritize --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/tasks annotate",
+    "example": "/tasks annotate --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/autopilot status",
+    "example": "/autopilot status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/autopilot config",
+    "example": "/autopilot config --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/fleet status",
+    "example": "/fleet status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/fleet config",
+    "example": "/fleet config --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/delegate status",
+    "example": "/delegate status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/delegate revert",
+    "example": "/delegate revert --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/research cite",
+    "example": "/research cite --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/research fetch",
+    "example": "/research fetch --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/research summarize",
+    "example": "/research summarize --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/research compare",
+    "example": "/research compare --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plan export",
+    "example": "/plan export --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plan import",
+    "example": "/plan import --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/plan validate",
+    "example": "/plan validate --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/refine suggest",
+    "example": "/refine suggest --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/refine apply",
+    "example": "/refine apply --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/diagnose session",
+    "example": "/diagnose session --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/diagnose env",
+    "example": "/diagnose env --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/diagnose performance",
+    "example": "/diagnose performance --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/changelog summarize",
+    "example": "/changelog summarize --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/version check-updates",
+    "example": "/version check-updates --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/update apply",
+    "example": "/update apply --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/login status",
+    "example": "/login status --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/login token-refresh",
+    "example": "/login token-refresh --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/logout revoke",
+    "example": "/logout revoke --help",
+    "safety": "Destructive or permission-altering: require explicit user confirmation and auth."
+  },
+  {
+    "command": "/new project",
+    "example": "/new project --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/new session",
+    "example": "/new session --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/clear session",
+    "example": "/clear session --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/ask quick",
+    "example": "/ask quick --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/ask deep",
+    "example": "/ask deep --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/chronicle export",
+    "example": "/chronicle export --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/env export",
+    "example": "/env export --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/env import",
+    "example": "/env import --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/share publish",
+    "example": "/share publish --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/share private",
+    "example": "/share private --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/share public",
+    "example": "/share public --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/copy to-clipboard",
+    "example": "/copy to-clipboard --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rewind to-turn",
+    "example": "/rewind to-turn --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rewind commit",
+    "example": "/rewind commit --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rewrite file",
+    "example": "/rewrite file --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/rewrite selection",
+    "example": "/rewrite selection --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr draft",
+    "example": "/pr draft --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/pr publish",
+    "example": "/pr publish --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/review checklist",
+    "example": "/review checklist --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/security whitelist-domain",
+    "example": "/security whitelist-domain --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/security blacklist-domain",
+    "example": "/security blacklist-domain --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  },
+  {
+    "command": "/help advanced",
+    "example": "/help advanced --help",
+    "safety": "Safe: informational. Dangerous ops require confirmation."
+  }
+]

@@ -1,4 +1,4 @@
-$opsPath = 'C:\Users\Jeanc\Mestre-do-PC-V10-clean\v10\allowed-operations.json'
+$opsPath = Join-Path $PSScriptRoot 'allowed-operations.json'
 $data = Get-Content $opsPath -Raw | ConvertFrom-Json
 
 # Palavras-chave que indicam comando destrutivo de verdade

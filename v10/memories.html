@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Memórias - Mestre do PC V11</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --success: #3fb950;
+            --warning: #d29922;
+            --danger: #f85149;
+            --border: #30363d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+
+        header h1 {
+            color: var(--accent);
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .actions-bar {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #2ea043;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #da3633;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        input, select, textarea {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        .memories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .memory-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .memory-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(88, 166, 255, 0.15);
+        }
+
+        .memory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .memory-type {
+            background: var(--bg-tertiary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .memory-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .memory-actions button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 1.2em;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .memory-actions button:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+        }
+
+        .memory-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .memory-content {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .memory-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+
+        .memory-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .memory-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background: var(--bg-tertiary);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: var(--text-secondary);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            padding: 15px 25px;
+            border-radius: 6px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transform: translateX(150%);
+            transition: transform 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left-color: var(--success);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 Gestão de Memórias</h1>
+            <p>Armazene, organize e exporte memórias importantes do chat</p>
+        </header>
+
+        <!-- Estatísticas -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3>Total de Memórias</h3>
+                <div class="value" id="statTotal">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Últimos 30 Dias</h3>
+                <div class="value" id="statRecent">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Tipos</h3>
+                <div class="value" id="statTypes">-</div>
+            </div>
+        </div>
+
+        <!-- Barra de Ações -->
+        <div class="actions-bar">
+            <button class="btn btn-success" onclick="openCreateModal()">+ Nova Memória</button>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar memórias..." onkeyup="searchMemories()">
+            </div>
+
+            <select id="typeFilter" onchange="filterMemories()">
+                <option value="">Todos os Tipos</option>
+                <option value="conversation">Conversas</option>
+                <option value="command">Comandos</option>
+                <option value="context">Contextos</option>
+                <option value="note">Notas</option>
+                <option value="diagnostic">Diagnósticos</option>
+                <option value="config">Configurações</option>
+            </select>
+
+            <div class="export-options">
+                <button class="btn btn-outline" onclick="exportMemories('csv')">📊 CSV</button>
+                <button class="btn btn-outline" onclick="exportMemories('xlsx')">📈 Excel</button>
+                <button class="btn btn-outline" onclick="exportMemories('json')">📄 JSON</button>
+                <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📥 Importar</button>
+                <input type="file" id="importFile" accept=".json,.csv,.xml,.xlsx" style="display:none" onchange="importMemories(this)">
+            </div>
+        </div>
+
+        <!-- Grid de Memórias -->
+        <div class="memories-grid" id="memoriesGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Carregando memórias...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Criar/Editar -->
+    <div class="modal-overlay" id="memoryModal">
+        <div class="modal">
+            <h2 id="modalTitle">Nova Memória</h2>
+            <form id="memoryForm" onsubmit="saveMemory(event)">
+                <input type="hidden" id="memoryId">
+                
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select id="memoryType" required>
+                        <option value="conversation">Conversa</option>
+                        <option value="command">Comando</option>
+                        <option value="context">Contexto</option>
+                        <option value="note">Nota</option>
+                        <option value="diagnostic">Diagnóstico</option>
+                        <option value="config">Configuração</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" id="memoryTitle" required placeholder="Ex: Configuração de rede corporativa">
+                </div>
+
+                <div class="form-group">
+                    <label>Conteúdo *</label>
+                    <textarea id="memoryContent" required placeholder="Descreva a memória em detalhes..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Tags (separadas por vírgula)</label>
+                    <input type="text" id="memoryTags" placeholder="ex: rede, config, importante">
+                </div>
+
+                <div class="form-group">
+                    <label>Importância (1-5)</label>
+                    <select id="memoryImportance">
+                        <option value="1">1 - Baixa</option>
+                        <option value="2">2 - Moderada</option>
+                        <option value="3" selected>3 - Normal</option>
+                        <option value="4">4 - Alta</option>
+                        <option value="5">5 - Crítica</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API = 'http://127.0.0.1:7777';
+        let allMemories = [];
+
+        // Carrega memórias ao iniciar
+        async function loadMemories() {
+            try {
+                const res = await fetch(`${API}/memories/list?limit=100`);
+                const data = await res.json();
+                if (data.success) {
+                    allMemories = data.memories;
+                    renderMemories(allMemories);
+                    loadStats();
+                }
+            } catch (err) {
+                showToast('Erro ao carregar memórias: ' + err.message, 'error');
+            }
+        }
+
+        // Renderiza memórias na grid
+        function renderMemories(memories) {
+            const grid = document.getElementById('memoriesGrid');
+            
+            if (memories.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <p>Nenhuma memória encontrada</p>
+                        <button class="btn btn-success" onclick="openCreateModal()" style="margin-top:15px">
+                            + Criar Primeira Memória
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = memories.map(m => `
+                <div class="memory-card">
+                    <div class="memory-header">
+                        <span class="memory-type">${m.type}</span>
+                        <div class="memory-actions">
+                            <button onclick="editMemory('${m.id}')" title="Editar">✏️</button>
+                            <button onclick="copyMemory('${m.id}')" title="Copiar">📋</button>
+                            <button onclick="deleteMemory('${m.id}')" title="Excluir" style="color:var(--danger)">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="memory-title">${escapeHtml(m.title)}</div>
+                    <div class="memory-content">${escapeHtml(m.content.substring(0, 300))}${m.content.length > 300 ? '...' : ''}</div>
+                    <div class="memory-meta">
+                        <span>📅 ${new Date(m.metadata.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <span>⭐ ${'🔥'.repeat(m.metadata.importance)}</span>
+                        ${m.metadata.source ? `<span>📍 ${escapeHtml(m.metadata.source)}</span>` : ''}
+                    </div>
+                    ${m.metadata.tags && m.metadata.tags.length > 0 ? `
+                        <div class="memory-tags">
+                            ${m.metadata.tags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Carrega estatísticas
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API}/memories/stats`);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('statTotal').textContent = data.stats.total;
+                    document.getElementById('statRecent').textContent = data.stats.recentCount;
+                    document.getElementById('statTypes').textContent = Object.keys(data.stats.byType).length;
+                }
+            } catch (err) {
+                console.error('Erro ao carregar stats:', err);
+            }
+        }
+
+        // Filtra memórias
+        function filterMemories() {
+            const type = document.getElementById('typeFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = allMemories;
+            if (type) {
+                filtered = filtered.filter(m => m.type === type);
+            }
+            if (search) {
+                filtered = filtered.filter(m => 
+                    m.title.toLowerCase().includes(search) || 
+                    m.content.toLowerCase().includes(search)
+                );
+            }
+            
+            renderMemories(filtered);
+        }
+
+        // Busca memórias
+        function searchMemories() {
+            filterMemories();
+        }
+
+        // Abre modal de criação
+        function openCreateModal() {
+            document.getElementById('memoryForm').reset();
+            document.getElementById('memoryId').value = '';
+            document.getElementById('modalTitle').textContent = 'Nova Memória';
+            document.getElementById('memoryModal').classList.add('active');
+        }
+
+        // Fecha modal
+        function closeModal() {
+            document.getElementById('memoryModal').classList.remove('active');
+        }
+
+        // Edita memória
+        function editMemory(id) {
+            const memory = allMemories.find(m => m.id === id);
+            if (!memory) return;
+
+            document.getElementById('memoryId').value = memory.id;
+            document.getElementById('memoryType').value = memory.type;
+            document.getElementById('memoryTitle').value = memory.title;
+            document.getElementById('memoryContent').value = memory.content;
+            document.getElementById('memoryTags').value = (memory.metadata.tags || []).join(', ');
+            document.getElementById('memoryImportance').value = memory.metadata.importance || 3;
+            document.getElementById('modalTitle').textContent = 'Editar Memória';
+            document.getElementById('memoryModal').classList.add('active');
+        }
+
+        // Salva memória
+        async function saveMemory(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('memoryId').value;
+            const memoryData = {
+                type: document.getElementById('memoryType').value,
+                title: document.getElementById('memoryTitle').value,
+                content: document.getElementById('memoryContent').value,
+                metadata: {
+                    tags: document.getElementById('memoryTags').value.split(',').map(t => t.trim()).filter(Boolean),
+                    importance: parseInt(document.getElementById('memoryImportance').value),
+                },
+            };
+
+            try {
+                const url = id ? `${API}/memories/update/${id}` : `${API}/memories/create`;
+                const method = id ? 'PUT' : 'POST';
+                
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(memoryData),
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    showToast(id ? 'Memória atualizada!' : 'Memória criada!', 'success');
+                    closeModal();
+                    loadMemories();
+                } else {
+                    showToast('Erro: ' + data.error, 'error');
+                }
+            } catch (err) {
+                showToast('Erro ao salvar: ' + err.message, 'error');
+            }
+        }
+
+        // Exclui memória
+        async function deleteMemory(id) {
+            if (!confirm('Tem certeza que deseja excluir esta memória?')) return;
+
+            try {
+                const res = await fetch(`${API}/memories/delete/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Memória excluída!', 'success');
+                    loadMemories();
+                } else {
+                    showToast('Erro ao excluir', 'error');
+                }
+            } catch (err) {
+                showToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        // Copia memória
+        function copyMemory(id) {
+            const memory = allMemories.find(m => m.id === id);
+            if (!memory) return;
+            
+            navigator.clipboard.writeText(memory.content);
+            showToast('Conteúdo copiado!', 'success');
+        }
+
+        // Exporta memórias
+        function exportMemories(format) {
+            const type = document.getElementById('typeFilter').value;
+            let url = `${API}/memories/export?format=${format}`;
+            if (type) url += `&type=${type}`;
+            
+            window.open(url, '_blank');
+            showToast(`Exportando em ${format.toUpperCase()}...`, 'success');
+        }
+
+        // Importa memórias
+        async function importMemories(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const format = file.name.endsWith('.csv') ? 'csv' : 
+                                  file.name.endsWith('.xml') || file.name.endsWith('.xlsx') ? 'xml' : 'json';
+                    
+                    const res = await fetch(`${API}/memories/import`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            format,
+                            content: e.target.result,
+                        }),
+                    });
+                    
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast(`${data.count} memórias importadas!`, 'success');
+                        loadMemories();
+                    } else {
+                        showToast('Erro na importação: ' + (data.errors || []).join(', '), 'error');
+                    }
+                } catch (err) {
+                    showToast('Erro: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Inicializa
+        loadMemories();
+    </script>
+</body>
+</html>

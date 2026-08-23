@@ -1,3 +1,4 @@
+$root = Split-Path -Parent $PSScriptRoot
 $conn = Get-NetTCPConnection -LocalPort 7777 -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($conn) {
   Write-Output '✅ Launcher está rodando na porta 7777'
@@ -11,5 +12,5 @@ if ($conn) {
 } else {
   Write-Output '⚠️ Launcher NÃO está rodando'
   Write-Output '📌 Execute INSTALAR.bat como Administrador na raiz do projeto Mestre-do-PC-V10-clean'
-  Write-Output '📌 Ou execute: powershell -ExecutionPolicy Bypass -File C:\Users\Jeanc\Mestre-do-PC-V10-clean\mcp-server\start-launcher-manual.ps1'
+  Write-Output ('📌 Ou execute: powershell -ExecutionPolicy Bypass -File "' + $root + '\mcp-server\start-launcher-manual.ps1"')
 }

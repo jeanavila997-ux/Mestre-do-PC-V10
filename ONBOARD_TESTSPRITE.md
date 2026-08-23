@@ -1,4 +1,4 @@
-# Onboarding TestSprite — Mestre do PC V10
+﻿# Onboarding TestSprite — Mestre do PC V10
 
 This repo currently has **no TestSprite tests**. The artefacts below are ready to be uploaded
 once the TestSprite CLI is available and the launcher is running.
@@ -106,3 +106,4 @@ rest is the user's choice.
   (happy + rejection), `/open-terminal` auth enforcement and static-asset cache headers.
 
 Total: **16 tests**.
+

@@ -22,14 +22,11 @@ npm install
 
 The desktop shortcut **only opens the app**. After opening the shortcut, activation is performed manually by the user.
 
-1. Open the shortcut:
-   ```
-   C:\Users\Jeanc\OneDrive\Área de Trabalho\Mestre do PC V10.lnk
-   ```
+1. Open the desktop shortcut for Mestre do PC V10.
 2. The shortcut launches `start-mestre-v10.ps1`, which starts Ollama (if present), starts the Node.js launcher on `127.0.0.1:7777`, and opens the browser.
 3. If you prefer a fully manual update-and-activation workflow, run:
    ```powershell
-   cd C:\Users\Jeanc\Mestre-do-PC-V10-clean
+   cd <project-root>
    .\ativar-atualizar-tudo.bat
    ```
    This script pauses for confirmation before each major step (elevation, `git pull`, dependency install, tests, launcher start).
@@ -51,6 +48,8 @@ npm test                          # node --test (all files under test/)
 # Run a single test file
 node --test test/security.test.js
 node --test test/whitelist-enforcement.test.js
+# Run a single test by name
+node --test --test-name-pattern "sanitize"
 
 # Syntax-check JS entry points
 node --check mcp-server\index.js
@@ -67,6 +66,10 @@ node --check v10\launcher.js
 
 # Project-wide smoke validation (JSON/HTML checks)
 .\validate_all.ps1
+
+# Build the browser extension bundle
+cd ..\browser-extension
+node build.js
 ```
 
 The MCP test suite lives in `mcp-server/test/` and is organized by concern:
@@ -106,7 +109,7 @@ PowerShell                    ← only whitelisted commands execute
 - The MCP server **never** runs commands directly. All administrative operations go through the launcher on `127.0.0.1:7777`.
 - The launcher validates every command against `v10/allowed-operations.json`. Free-form or AI-generated commands are rejected.
 - The primary backend in this repository is `v10/launcher.js` — a pure Node.js HTTP server on port 7777. Start it with `cd v10 && npm start` (development) or via `mcp-server\start-launcher.ps1`.
-- Older documentation references a legacy `MestreDoPC-Launcher.ps1` PowerShell backend. That file is **not present in this repo** and is treated as legacy; `start-launcher.ps1` explicitly states that the Node.js launcher is now primary.
+- PowerShell launcher and startup scripts remain for scheduled/elevated Windows activation, but the development backend is `v10/launcher.js`; `start-mestre-v10.ps1` starts the Node.js launcher.
 - The Node.js backend enforces the same security model as the legacy PowerShell backend: origin validation, required `X-Mestre-Client` header, and the operation whitelist.
 - Ollama runs at `127.0.0.1:11434`. The MCP server calls it directly for AI tools; the launcher is not involved in AI queries.
 - Parameterized templates in `allowed-operations.json` use `{{UPPERCASE_NAME}}` placeholders. The launcher compiles them into anchored regexes with named groups and validates each parameter against its declared regex before substitution.
@@ -114,6 +117,7 @@ PowerShell                    ← only whitelisted commands execute
 
 **Other components:**
 - `v10/index.html` — single-file SPA (no build step), served by the launcher. Uses CSS custom properties and vanilla JS; the `CATS` array defines command categories, and `renderCards()` renders cards (V11 cards get neon-green glow via `.cmd-card-new`).
+- `v10/chat/` — reusable chat module, synchronized template/styles, and Ollama streaming integration. Keep `chat-module.js` and `chat-template.html` aligned when changing the chat markup.
 - `browser-extension/` — Manifest V3 Chrome/Firefox extension. It talks to the launcher with `X-Mestre-Client: browser-extension` and a token from `MESTRE_EXTENSION_TOKEN`. Build with `cd browser-extension && node build.js`; prebuilt zips live in `browser-extension/dist/`.
 - `v10/notepad-plus-plus/` — Notepad++ integration for explaining code, asking the AI, suggesting commands, and generating diagnostics. See `docs/notepad-plus-plus-integration.md`.
 - `v10/rede-dashboard.js` — client-side network diagnostics panel loaded by `index.html`.
@@ -170,6 +174,8 @@ Explicit `OLLAMA_*` values override the selected profile. Always use `MESTRE_PRO
 ## Conventions
 
 - Use conventional commits (`fix:`, `feat:`, `docs:`, `chore:`, `security:`).
+- User-visible strings and documentation are normally written in Brazilian Portuguese; preserve English for protocol names, API identifiers, environment variables, and code symbols.
+- JavaScript uses ES modules and `node:` imports for built-ins. The V10 UI has no bundler or frontend build step; edit the served HTML/CSS/JS directly.
 - Keep the MCP (non-elevated) / launcher (elevated) split. The MCP server only ever calls the launcher over HTTP; it does not spawn PowerShell.
 - `mcp-server/package.json` uses an `overrides` block to pin transitive dependencies (fast-uri, hono, @hono/node-server, ip-address, path-to-regexp, qs, body-parser) to patched versions. `npm audit fix` alone cannot bump overridden packages — update the `overrides` versions manually, then run `npm install` and `npm test`.
 - The UI (`v10/index.html`) is a single-file app with no build step. All CSS is inline, uses CSS custom properties (`--accent`, `--card`, etc.), and vanilla JS. The `CATS` array defines categories; V11 cards use `.cmd-card-new` with `@keyframes neonGreenPulse`/`neonGreenTextGlow`/`neonGreenBtnGlow`.

@@ -51,9 +51,10 @@ async function startMockOllama(port) {
 test("endpoint /npp retorna 501 quando MESTRE_NPP_TOKEN nao esta configurado", async (t) => {
   const port = await reservePort();
   const base = `http://127.0.0.1:${port}`;
+  const { MESTRE_NPP_TOKEN, ...envSemNppToken } = process.env;
   const child = spawn(process.execPath, [join(root, "v10", "launcher.js")], {
     cwd: join(root, "v10"),
-    env: { ...process.env, MPC_PORT: String(port) },
+    env: { ...envSemNppToken, MPC_PORT: String(port) },
     windowsHide: true,
     stdio: "ignore",
   });

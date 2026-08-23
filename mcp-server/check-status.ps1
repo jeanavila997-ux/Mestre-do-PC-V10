@@ -1,3 +1,4 @@
+$mcpDir = $PSScriptRoot
 $conn = Get-NetTCPConnection -LocalPort 7777 -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($conn) {
   $p = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
@@ -9,4 +10,4 @@ if ($conn) {
 $mpp = $env:MESTRE_PROJETO_PATH
 if (-not $mpp) { $mpp = 'NOT_SET' }
 Write-Output ('MESTRE_PROJETO_PATH=' + $mpp)
-Write-Output ('node_modules present=' + (Test-Path 'C:\Users\Jeanc\Mestre-do-PC-V10-clean\mcp-server\node_modules'))
+Write-Output ('node_modules present=' + (Test-Path (Join-Path $mcpDir 'node_modules')))

@@ -1,4 +1,4 @@
-$base = 'C:\Users\Jeanc\Mestre-do-PC-V10-clean'
+$base = Split-Path -Parent $PSScriptRoot
 $ops = Get-Content ($base + '\v10\allowed-operations.json') | ConvertFrom-Json
 
 # Lista todas as operacoes por categoria

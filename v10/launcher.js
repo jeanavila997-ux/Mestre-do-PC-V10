@@ -11,6 +11,19 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import { checkPromptInjection } from "../mcp-server/security.js";
+import { handleApiRoute } from "./chat-integrado/api-routes.js";
+import { handleMemoryRoutes } from "./memory-routes.js";
+import { 
+  createMemory, 
+  listMemories, 
+  getMemory, 
+  updateMemory, 
+  deleteMemory, 
+  exportMemories, 
+  importMemories,
+  searchRelevantMemories,
+  MemoryType 
+} from "./memory-manager.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.MPC_PORT ? Number(process.env.MPC_PORT) : 7777;
@@ -28,6 +41,17 @@ const MAX_CONCURRENT_JOBS = 3;
 const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 const JOB_RETENTION_MS = 30 * 60 * 1000;
 const MAX_CMD_LENGTH = 32768;
+
+// Constrói environment limpo para spawn do PowerShell 5.1, removendo caminhos
+// do PS 7 (MSIX) que poluem PSModulePath e quebram módulos como Microsoft.PowerShell.Security
+function cleanPSEnv(extra = {}) {
+  const psModulePath = [
+    join(process.env.USERPROFILE || "", "OneDrive", "Documents", "WindowsPowerShell", "Modules"),
+    process.env.ProgramFiles ? join(process.env.ProgramFiles, "WindowsPowerShell", "Modules") : "",
+    process.env.SystemRoot ? join(process.env.SystemRoot, "system32", "WindowsPowerShell", "v1.0", "Modules") : "",
+  ].filter(Boolean).join(";");
+  return { ...process.env, PSModulePath: psModulePath, ...extra };
+}
 
 // O /ping reportava admin:false fixo, entao a interface mostrava "sem elevacao"
 // mesmo com o launcher rodando como Administrador. `net session` só responde 0
@@ -124,15 +148,38 @@ function isNppOrigin(origin) {
 function isAuthorized(req) {
   const origin = req.headers.origin || "";
   const client = req.headers["x-mestre-client"] || "";
-  if (origin === BASE_URL && client === "v10-web") return true;
+  
+  // v10-web tem permissão total quando vem de localhost
+  if (client === "v10-web") {
+    // Aceita origin do próprio launcher ou origin ausente (caso de algumas configurações de browser)
+    if (origin === BASE_URL || origin === "" || origin.includes("127.0.0.1") || origin.includes("localhost")) {
+      return true;
+    }
+    // Se tiver um origin válido mas diferente, verifica se é local
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.hostname === "127.0.0.1" || parsedOrigin.hostname === "localhost") {
+        return true;
+      }
+    } catch {
+      // Se não conseguir parsear, permite se o client for v10-web
+      return true;
+    }
+  }
+  
+  // MCP sem origin é permitido
   if (!origin && client === "mcp") return true;
+  
+  // Extensão requer token e origem na allowlist
   if (EXTENSION_TOKEN && client === "browser-extension" && req.headers["x-mestre-extension-token"] === EXTENSION_TOKEN) {
-    // Origem da extensão deve estar na allowlist ou requisição sem origin (ex: service worker).
     return !origin || isExtensionOrigin(origin);
   }
+  
+  // Notepad++ requer token e origem local
   if (NPP_TOKEN && client === "notepad-plus-plus" && req.headers["x-mestre-npp-token"] === NPP_TOKEN) {
     return isNppOrigin(origin);
   }
+  
   return false;
 }
 
@@ -296,7 +343,7 @@ function runPowerShell(cmd, meta = {}) {
   jobs.set(id, job);
   const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd], {
     windowsHide: true,
-    env: { ...process.env, MESTRE_PROJETO_PATH: PROJECT_DIR },
+    env: cleanPSEnv({ MESTRE_PROJETO_PATH: PROJECT_DIR }),
   });
   // Referência usada por /shutdown para interromper comandos em andamento.
   job.child = ps;
@@ -526,7 +573,7 @@ $diskUsed = [math]::Round($disk.Used/1GB, 2)
 $boot = [Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime)
 $uptime = [int]((Get-Date) - $boot).TotalSeconds
 @{cpu=[math]::Round($cpu,1);ramFree=$ramFree;ramTotal=$ramTotal;diskFree=$diskFree;diskUsed=$diskUsed;uptimeSec=$uptime} | ConvertTo-Json -Compress
-`], { windowsHide: true });
+`], { windowsHide: true, env: cleanPSEnv() });
   let out = "";
   ps.stdout.on("data", (d) => (out += d.toString()));
   ps.stderr.on("data", (d) => (out += d.toString()));
@@ -551,6 +598,18 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    // ── Chat Integrado: rotas /api/* ───────────────────────────────
+    if (path.startsWith("/api/")) {
+      const handled = await handleApiRoute(req, res, url, { isAuthorized, allowedOrigin });
+      if (handled) return;
+    }
+
+    // ── Gestão de Memórias: rotas /memories/* ───────────────────────
+    if (path.startsWith("/memories/")) {
+      const handled = await handleMemoryRoutes(req, res, url, { isAuthorized, allowedOrigin });
+      if (handled) return;
+    }
+
     if (path === "/ping") {
       return sendJson(res, 200, {
         status: "ok",
@@ -781,6 +840,47 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, headers);
         return res.end(content);
       } catch { return sendJson(res, 404, { error: "recurso do chat não encontrado" }); }
+    }
+
+    // ===== Servir recursos estáticos do chat-integrado (/chat-integrado/*) =====
+    if (req.method === "GET" && path.startsWith("/chat-integrado/")) {
+      const relative = path.slice("/chat-integrado/".length);
+      if (!relative || /\.{2,}|[\\<>|:"*?]|^\//.test(relative)) {
+        return sendJson(res, 403, { error: "Caminho não permitido." });
+      }
+      const ciRoot = resolve(__dirname, "chat-integrado");
+      const filePath = resolve(ciRoot, relative);
+      if (!filePath.startsWith(ciRoot + sep)) {
+        return sendJson(res, 403, { error: "Caminho não permitido." });
+      }
+      const ext = extname(filePath).toLowerCase();
+      const mimeTypes = {
+        ".html": "text/html; charset=utf-8",
+        ".css": "text/css; charset=utf-8",
+        ".js": "text/javascript; charset=utf-8",
+        ".json": "application/json; charset=utf-8",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".svg": "image/svg+xml",
+      };
+      const contentType = mimeTypes[ext];
+      if (!contentType) {
+        return sendJson(res, 403, { error: "Extensão não permitida." });
+      }
+      try {
+        const content = await readFile(filePath);
+        const headers = {
+          "Content-Type": contentType,
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "Cache-Control": "no-store",
+        };
+        if (ext === ".html") {
+          headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
+        }
+        res.writeHead(200, headers);
+        return res.end(content);
+      } catch { return sendJson(res, 404, { error: "recurso do chat-integrado não encontrado" }); }
     }
 
     // ===== NOVO V11.2: SPA fallback — rotas de seção (ex: /8.diagnostico) servem index.html =====

@@ -1,13 +1,13 @@
 @echo off
 
-: Configure MESTRE_PROJETO_PATH
-call C:\Users\Jeanc\Mestre-do-PC-V10-clean\mcp-server\set-mestre-path.bat
+rem Configura MESTRE_PROJETO_PATH
+call "%~dp0set-mestre-path.bat"
 
-: Start launcher
-powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\Jeanc\Mestre-do-PC-V10-clean\mcp-server\start-launcher.ps1"
+rem Inicia o launcher
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0start-launcher.ps1"
 
-: Test MCP server
-powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\Jeanc\Mestre-do-PC-V10-clean\mcp-server\test-mcp.ps1"
+rem Testa o MCP server
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0test-mcp.ps1"
 
-: Check final status
-call C:\Users\Jeanc\Mestre-do-PC-V10-clean\mcp-server\check-status.bat
+rem Status final
+call "%~dp0check-status.bat"

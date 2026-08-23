@@ -1,5 +1,5 @@
-$allowedOpsPath = 'C:\Users\Jeanc\Mestre-do-PC-V10-clean\v10\allowed-operations.json'
-$outputPath = 'C:\Users\Jeanc\Documents\mini-app-lista\mcp-skills.json'
+$allowedOpsPath = Join-Path $PSScriptRoot '..\v10\allowed-operations.json'
+$outputPath = Join-Path $PSScriptRoot 'mcp-skills.json'
 
 $data = Get-Content $allowedOpsPath | ConvertFrom-Json
 $items = @()

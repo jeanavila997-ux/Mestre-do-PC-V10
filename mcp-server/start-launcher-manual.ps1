@@ -1,4 +1,4 @@
-$launcherPath = 'C:\Users\Jeanc\Mestre-do-PC-V10-clean\v10\launcher.js'
+$launcherPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'v10\launcher.js'
 
 # Inicia o launcher em uma janela visível (para debug)
 Start-Process node -ArgumentList $launcherPath -WindowStyle Normal

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompts de Comando - Modelos para Funções</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --header-bg: #4a6fa5;
+            --header-text: #ffffff;
+            --section-header-bg: #6fa8dc;
+            --code-bg: #f8f9fa;
+            --code-text: #2b2b2b;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .description {
+            margin: 15px 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .section-header {
+            background-color: var(--section-header-bg);
+            color: var(--header-text);
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 0 0 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .prompt-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .prompt-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .prompt-title {
+            font-weight: 600;
+            margin: 0 0 5px;
+            color: var(--header-bg);
+        }
+        
+        code {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        .prompt-code {
+            background-color: var(--code-bg);
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid var(--section-header-bg);
+            margin: 8px 0;
+            overflow-x: auto;
+        }
+        
+        .advanced-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--border-color);
+        }
+        
+        .advanced-section h2 {
+            margin-top: 0;
+            color: var(--header-bg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Prompts de Comando</h1>
+            <p class="description">Modelos para chamadas de funções em automações e scripts</p>
+        </header>
+
+        <div class="card">
+            <div class="section-header">⚡ 1. Teste de Velocidade da Internet</div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Executar teste de velocidade (genérico)</div>
+                <div class="prompt-code"><code>execute_speed_test()</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Obter velocidade de download/upload</div>
+                <div class="prompt-code"><code>get_network_speed(metrics=["download","upload","ping"])</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Testar velocidade usando Fast.com</div>
+                <div class="prompt-code"><code>run_fast_com_test()</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Testar velocidade usando Speedtest (Ookla)</div>
+                <div class="prompt-code"><code>run_speedtest(server="auto")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Diagnóstico completo da rede</div>
+                <div class="prompt-code"><code>diagnose_network(full_scan=True, include_latency=True, include_packet_loss=True)</code></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-header">🔒 2. Firewall do Windows</div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Permitir aplicativo no Firewall</div>
+                <div class="prompt-code"><code>firewall_allow_app(path="C:\\caminho\\do\\app.exe", profile=["Private","Public"])</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Remover aplicativo permitido</div>
+                <div class="prompt-code"><code>firewall_remove_app(name="NomeDoAplicativo")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Abrir porta no Firewall (⚠️ mais arriscado)</div>
+                <div class="prompt-code"><code>firewall_open_port(port=8080, protocol="TCP", profile="Private")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Fechar porta no Firewall</div>
+                <div class="prompt-code"><code>firewall_close_port(port=8080, protocol="TCP")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Listar regras de entrada</div>
+                <div class="prompt-code"><code>firewall_list_inbound_rules()</code></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-header">🌐 3. Diagnóstico de Rede</div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Verificar conectividade</div>
+                <div class="prompt-code"><code>check_connectivity(target="8.8.8.8", method="ping")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Verificar DNS</div>
+                <div class="prompt-code"><code>dns_lookup(domain="google.com")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Verificar portas abertas</div>
+                <div class="prompt-code"><code>scan_open_ports(range="1-65535")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Verificar estabilidade da rede</div>
+                <div class="prompt-code"><code>network_stability_test(duration=60, interval=1)</code></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-header">🧰 4. Automação Geral de Rede</div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Reiniciar adaptador de rede</div>
+                <div class="prompt-code"><code>restart_network_adapter(adapter="Ethernet")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Obter informações do adaptador</div>
+                <div class="prompt-code"><code>get_adapter_info(adapter="Wi-Fi")</code></div>
+            </div>
+
+            <div class="prompt-item">
+                <div class="prompt-title">Limpar cache DNS</div>
+                <div class="prompt-code"><code>flush_dns_cache()</code></div>
+            </div>
+        </div>
+
+        <div class="card advanced-section">
+            <h2>📌 Quer algo ainda mais avançado?</h2>
+            <p>Posso gerar:</p>
+            <ul>
+                <li>Prompts específicos para <strong>PowerShell</strong>, <strong>CMD</strong>, <strong>Python</strong>, <strong>Bash</strong>, <strong>API REST</strong>, <strong>Home Assistant</strong>, <strong>Node-RED</strong>, etc.</li>
+                <li>Um <strong>arquivo completo de automação</strong> com todos esses comandos organizados.</li>
+                <li>Uma <strong>versão com comentários explicativos</strong> para cada função.</li>
+            </ul>
+            <p>Se quiser, me diga <strong>qual linguagem ou sistema</strong> você quer usar!</p>
+        </div>
+    </div>
+</body>
+</html>
