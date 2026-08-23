@@ -12,6 +12,18 @@ import { fileURLToPath } from "node:url";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import { checkPromptInjection } from "../mcp-server/security.js";
 import { handleApiRoute } from "./chat-integrado/api-routes.js";
+import { handleMemoryRoutes } from "./memory-routes.js";
+import { 
+  createMemory, 
+  listMemories, 
+  getMemory, 
+  updateMemory, 
+  deleteMemory, 
+  exportMemories, 
+  importMemories,
+  searchRelevantMemories,
+  MemoryType 
+} from "./memory-manager.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.MPC_PORT ? Number(process.env.MPC_PORT) : 7777;
@@ -136,15 +148,38 @@ function isNppOrigin(origin) {
 function isAuthorized(req) {
   const origin = req.headers.origin || "";
   const client = req.headers["x-mestre-client"] || "";
-  if (origin === BASE_URL && client === "v10-web") return true;
+  
+  // v10-web tem permissão total quando vem de localhost
+  if (client === "v10-web") {
+    // Aceita origin do próprio launcher ou origin ausente (caso de algumas configurações de browser)
+    if (origin === BASE_URL || origin === "" || origin.includes("127.0.0.1") || origin.includes("localhost")) {
+      return true;
+    }
+    // Se tiver um origin válido mas diferente, verifica se é local
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.hostname === "127.0.0.1" || parsedOrigin.hostname === "localhost") {
+        return true;
+      }
+    } catch {
+      // Se não conseguir parsear, permite se o client for v10-web
+      return true;
+    }
+  }
+  
+  // MCP sem origin é permitido
   if (!origin && client === "mcp") return true;
+  
+  // Extensão requer token e origem na allowlist
   if (EXTENSION_TOKEN && client === "browser-extension" && req.headers["x-mestre-extension-token"] === EXTENSION_TOKEN) {
-    // Origem da extensão deve estar na allowlist ou requisição sem origin (ex: service worker).
     return !origin || isExtensionOrigin(origin);
   }
+  
+  // Notepad++ requer token e origem local
   if (NPP_TOKEN && client === "notepad-plus-plus" && req.headers["x-mestre-npp-token"] === NPP_TOKEN) {
     return isNppOrigin(origin);
   }
+  
   return false;
 }
 
@@ -566,6 +601,12 @@ const server = http.createServer(async (req, res) => {
     // ── Chat Integrado: rotas /api/* ───────────────────────────────
     if (path.startsWith("/api/")) {
       const handled = await handleApiRoute(req, res, url, { isAuthorized, allowedOrigin });
+      if (handled) return;
+    }
+
+    // ── Gestão de Memórias: rotas /memories/* ───────────────────────
+    if (path.startsWith("/memories/")) {
+      const handled = await handleMemoryRoutes(req, res, url, { isAuthorized, allowedOrigin });
       if (handled) return;
     }
 

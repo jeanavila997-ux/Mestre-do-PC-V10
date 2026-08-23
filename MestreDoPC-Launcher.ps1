@@ -211,8 +211,21 @@ function Test-PrivilegedClient {
     $origin = [string]$Request.Headers["Origin"]
     $client = [string]$Request.Headers["X-Mestre-Client"]
 
-    if ($origin -eq $BASE_URL -and $client -eq "v10-web") { return $true }
+    # v10-web tem permissão total quando vem de localhost
+    if ($client -eq "v10-web") {
+        # Aceita origin do próprio launcher ou origin ausente/localhost
+        if ($origin -eq $BASE_URL -or [string]::IsNullOrWhiteSpace($origin)) {
+            return $true
+        }
+        # Verifica se é origin local
+        if ($origin -like "*127.0.0.1*" -or $origin -like "*localhost*") {
+            return $true
+        }
+    }
+    
+    # MCP sem origin é permitido
     if ([string]::IsNullOrWhiteSpace($origin) -and $client -eq "mcp") { return $true }
+    
     return $false
 }
 
