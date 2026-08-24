@@ -224,9 +224,9 @@ test("gerar_snapshot_git: formata mensagem sem fase", () => {
   assert.equal(msg, "snapshot: Correção de bug na tabela");
 });
 
-// ===== Teste: allowed-operations.json contém os 5 novos IDs =====
+// ===== Teste: allowed-operations.json NÃO duplica os 5 tools (eles vivem no index.js) =====
 
-test("allowed-operations.json: contém os 5 novos IDs de operação", async () => {
+test("allowed-operations.json: NÃO contém os 5 tools gerenciados pelo MCP server (evita duplicação)", async () => {
   const { readFile } = await import("node:fs/promises");
   const { join, dirname } = await import("node:path");
   const { fileURLToPath } = await import("node:url");
@@ -234,15 +234,26 @@ test("allowed-operations.json: contém os 5 novos IDs de operação", async () =
   const opsPath = join(__dir, "..", "..", "v10", "allowed-operations.json");
   const raw = await readFile(opsPath, "utf8");
   const data = JSON.parse(raw);
-  const ids = data.operations.map((op) => op.id);
-  assert.ok(ids.includes("consultar_fonte_oficial_gov"), "Falta consultar_fonte_oficial_gov");
-  assert.ok(ids.includes("extrair_evidencia_de_pdf_local"), "Falta extrair_evidencia_de_pdf_local");
-  assert.ok(ids.includes("simular_cenario_economico"), "Falta simular_cenario_economico");
-  assert.ok(ids.includes("congelar_tabela_final"), "Falta congelar_tabela_final");
-  assert.ok(ids.includes("gerar_snapshot_git"), "Falta gerar_snapshot_git");
+  const allIds = [...data.operations.map((op) => op.id), ...data.templates.map((t) => t.id)];
+  const mcpManaged = ["consultar_fonte_oficial_gov", "extrair_evidencia_de_pdf_local", "simular_cenario_economico", "congelar_tabela_final", "gerar_snapshot_git"];
+  for (const id of mcpManaged) {
+    assert.ok(!allIds.includes(id), `${id} não deveria estar no catálogo (é tool do MCP server)`);
+  }
 });
 
-// ===== Teste: TOOLS array no index.js contém os 5 novos tools =====
+test("allowed-operations.json: contém listar_locais_comuns_pc (usado pelo relatorio_completo_pc)", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { join, dirname } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const __dir = dirname(fileURLToPath(import.meta.url));
+  const opsPath = join(__dir, "..", "..", "v10", "allowed-operations.json");
+  const raw = await readFile(opsPath, "utf8");
+  const data = JSON.parse(raw);
+  const allIds = [...data.operations.map((op) => op.id), ...data.templates.map((t) => t.id)];
+  assert.ok(allIds.includes("listar_locais_comuns_pc"), "Falta listar_locais_comuns_pc no catálogo");
+});
+
+// ===== Teste: TOOLS array no index.js contém os 5 novos tools (e os novos V11.2) =====
 
 test("index.js TOOLS: contém os 5 novos nomes de tools", async () => {
   // Lê o código-fonte e verifica se os nomes estão presentes
@@ -256,6 +267,17 @@ test("index.js TOOLS: contém os 5 novos nomes de tools", async () => {
   assert.ok(src.includes('name: "simular_cenario_economico"'));
   assert.ok(src.includes('name: "congelar_tabela_final"'));
   assert.ok(src.includes('name: "gerar_snapshot_git"'));
+});
+
+test("index.js TOOLS: contém os novos tools V11.2", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { join, dirname } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const __dir = dirname(fileURLToPath(import.meta.url));
+  const src = await readFile(join(__dir, "..", "index.js"), "utf8");
+  for (const name of ["listar_operacoes_disponiveis", "classificar_comando", "consultar_status_launcher", "resumir_texto_ia", "relatorio_completo_pc"]) {
+    assert.ok(src.includes(`name: "${name}"`), `Falta o tool ${name} em index.js`);
+  }
 });
 
 console.log("✅ Testes dos 5 novos tools V11.1 concluídos");

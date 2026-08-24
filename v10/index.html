@@ -612,6 +612,9 @@
         animation: neonGreenPulse 2s ease-in-out infinite;
         z-index: 2;
       }
+      .cmd-card-web { background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(162,0,255,0.06)); border-color: rgba(0,212,255,0.25); }
+      .cmd-card-web:hover { border-color: rgba(0,212,255,0.5); box-shadow: 0 0 14px rgba(0,212,255,0.15); }
+      .web-card-desc { font-size: 0.82rem; color: #8b949e; margin: 8px 0 12px; line-height: 1.35; }
       .cmd-card-new h4 { transition: 0.3s; }
       .cmd-card-new:hover {
         border-color: rgba(0,255,136,0.7) !important;
@@ -689,25 +692,38 @@
       .param-actions { display: flex; gap: 10px; justify-content: flex-end; }
       .btn-param-cancel { padding: 8px 18px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 0.88rem; }
       .btn-param-confirm { padding: 8px 20px; background: var(--danger); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 0.88rem; }
-      /* ===== Painel de Output (padrão V7) ===== */
-      .output-panel { display: none; margin-bottom: 20px; background: #010409; border: 1px solid rgba(0,212,255,0.3); border-radius: 12px; overflow: hidden; }
-      .output-header { padding: 10px 16px; background: rgba(0,212,255,0.08); border-bottom: 1px solid rgba(0,212,255,0.2); display: flex; justify-content: space-between; align-items: center; }
-      .output-title { color: var(--accent); font-weight: bold; font-size: 0.9rem; }
-      .output-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 1.1rem; }
-      .output-content { padding: 16px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: #e6edf3; white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow-y: auto; margin: 0; }
-      /* ===== NOVO V11.1: Output History + toolbar ===== */
-      .output-header-actions { display: flex; gap: 6px; align-items: center; }
-      .output-action-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+      /* ===== Painel de Output (redesign V11.2) ===== */
+      .output-panel { display: none; margin-bottom: 20px; background: #010409; border: 1px solid rgba(0,212,255,0.3); border-radius: 14px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+      .output-header { padding: 12px 18px; background: linear-gradient(135deg, rgba(0,212,255,0.14), rgba(0,255,136,0.06)); border-bottom: 1px solid rgba(0,212,255,0.2); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .output-title { color: var(--accent); font-weight: bold; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; }
+      .output-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 1.15rem; border-radius: 6px; padding: 2px 6px; transition: 0.15s; }
+      .output-close:hover { color: var(--danger); background: rgba(248,81,73,0.1); }
+      .output-content { padding: 16px 18px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: #e6edf3; white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow-y: auto; margin: 0; }
+      /* Barra de estatísticas */
+      .output-stats { display: flex; gap: 8px; padding: 10px 18px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
+      .output-stat-pill { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 600; background: var(--card); border: 1px solid var(--border); color: var(--text); }
+      .output-stat-pill.total { border-color: rgba(0,212,255,0.35); color: var(--accent); }
+      .output-stat-pill.ok { border-color: rgba(63,185,80,0.4); color: var(--success); }
+      .output-stat-pill.err { border-color: rgba(248,81,73,0.4); color: var(--danger); }
+      /* ===== Toolbar + exportação em múltiplos formatos ===== */
+      .output-header-actions { display: flex; gap: 6px; align-items: center; position: relative; }
+      .output-action-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 5px 12px; cursor: pointer; font-size: 0.8rem; transition: 0.15s; }
       .output-action-btn:hover { border-color: var(--accent); background: rgba(0,212,255,0.1); }
+      .output-export-wrap { position: relative; }
+      .output-export-menu { display: none; position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; min-width: 190px; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 14px 34px rgba(0,0,0,0.45); overflow: hidden; padding: 6px; }
+      .output-export-menu.open { display: block; }
+      .output-export-menu button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; background: none; border: none; border-radius: 7px; color: var(--text); font-size: 0.82rem; cursor: pointer; transition: 0.12s; }
+      .output-export-menu button:hover { background: rgba(0,212,255,0.12); color: var(--accent); }
       .output-history { max-height: 320px; overflow-y: auto; border-top: 1px solid rgba(0,212,255,0.2); }
-      .output-empty { padding: 12px 16px; font-size: 0.8rem; color: #8b949e; }
-      .output-entry { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 10px 16px; border-left: 3px solid transparent; }
+      .output-empty { padding: 24px 18px; font-size: 0.85rem; color: #8b949e; text-align: center; }
+      .output-entry { margin: 10px 12px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-left: 3px solid transparent; transition: 0.15s; }
+      .output-entry:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
       .output-entry.ok { border-left-color: var(--success); }
       .output-entry.err { border-left-color: var(--danger); }
-      .output-entry-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; align-items: baseline; }
-      .output-entry-title { font-size: 0.8rem; font-weight: 600; color: var(--text); word-break: break-all; }
+      .output-entry-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; align-items: baseline; }
+      .output-entry-title { font-size: 0.82rem; font-weight: 600; color: var(--text); word-break: break-all; }
       .output-entry-date { font-size: 0.7rem; color: #8b949e; white-space: nowrap; }
-      .output-entry-body { font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.78rem; color: #79c0ff; white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; margin: 0 0 6px; }
+      .output-entry-body { font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.78rem; color: #79c0ff; white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 8px; margin: 0 0 8px; }
       body.light .output-entry-body { background: rgba(0,0,0,0.05); color: #0550ae; }
       .output-entry-actions { display: flex; gap: 6px; flex-wrap: wrap; }
       .output-entry-actions button { padding: 4px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.72rem; cursor: pointer; transition: 0.2s; }
@@ -789,16 +805,42 @@
           </div>
         </div>
       </div>
+      <!-- Modal Web Search / Web Fetch -->
+      <div id="webOverlay" class="param-overlay" style="display:none">
+        <div class="param-modal">
+          <h3 id="webModalTitle" class="param-title">Buscar na Web</h3>
+          <div id="webModalFields">
+            <p id="webModalDesc" class="param-desc">Informe o termo de busca:</p>
+            <input type="text" id="webModalInput" class="param-input" placeholder="ex: atualização de segurança Windows" onkeydown="if(event.key==='Enter')confirmWebModal()">
+            <input type="text" id="webModalExtra" class="param-input" style="margin-top:10px; display:none" placeholder="Pergunta ou URL complementar">
+          </div>
+          <div class="param-actions">
+            <button class="btn-param-cancel" onclick="closeWebModal()">Cancelar</button>
+            <button class="btn-param-confirm" id="webModalOk" onclick="confirmWebModal()">🔍 Buscar</button>
+          </div>
+        </div>
+      </div>
       <!-- Painel de Output -->
       <div id="outputPanel" class="output-panel">
         <div class="output-header">
           <span class="output-title">⚡ Output do Comando</span>
           <div class="output-header-actions">
-            <button class="output-action-btn" onclick="downloadOutputReport()" title="Baixar relatório completo em Markdown">📥 Relatório</button>
+            <div class="output-export-wrap">
+              <button class="output-action-btn" onclick="toggleExportMenu(event)" title="Baixar relatório em diferentes formatos">📥 Exportar ▾</button>
+              <div class="output-export-menu" id="outputExportMenu">
+                <button onclick="exportOutputReport('md')">📝 Markdown (.md)</button>
+                <button onclick="exportOutputReport('txt')">📄 Texto (.txt)</button>
+                <button onclick="exportOutputReport('csv')">📊 CSV (.csv)</button>
+                <button onclick="exportOutputReport('excel')">📗 Excel (.xls)</button>
+                <button onclick="exportOutputReport('word')">📘 Word (.doc)</button>
+                <button onclick="exportOutputReport('pdf')">🧾 PDF (imprimir)</button>
+              </div>
+            </div>
             <button class="output-action-btn" onclick="clearOutputHistory()" title="Limpar histórico de outputs">🗑️ Limpar</button>
             <button class="output-close" onclick="document.getElementById('outputPanel').style.display='none'">✕</button>
           </div>
         </div>
+        <div class="output-stats" id="outputStats"></div>
         <pre id="outputContent" class="output-content"></pre>
         <div class="output-history" id="outputHistory"></div>
       </div>
@@ -1434,6 +1476,16 @@
           ["Criar Ambiente Virtual (venv)", "$nome = Read-Host \"Nome do ambiente virtual\"; if ($nome -match \"^[a-zA-Z0-9_-]{1,64}$\") { python -m venv $nome; Write-Host \"✅ Ambiente virtual '$nome' criado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome inválido.\" -ForegroundColor Red }"],
         ],
       },
+      {
+        id: "cat_web",
+        label: "🌐 Web / IA",
+        isNew: true,
+        cmds: [
+          ["Buscar na Web", "__WEB_SEARCH__"],
+          ["Buscar e Resumir Página", "__WEB_FETCH__"],
+          ["Consultar Fonte Oficial .gov.br", "__WEB_GOV__"],
+        ],
+      },
 
       ];
       // Render navigation
@@ -1549,6 +1601,45 @@
           const danger = isDangerous(cmd[1]);
           const dangerBadge = danger ? `<span class="danger-badge" title="Comando destrutivo — use com cuidado">⚠️ destrutivo</span>` : "";
           const newClass = isNew ? "cmd-card-new" : "";
+
+          // Cards especiais de Web / IA não executam PowerShell
+          if (cmd[1] === "__WEB_SEARCH__") {
+            cards += `<div class="cmd-card ${newClass} cmd-card-web">
+      <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
+      <h4>${cmd[0]}</h4>
+      <code id="${uid}" style="display:none">${esc}</code>
+      <p class="web-card-desc">Busca na web usando Ollama Cloud (se OLLAMA_API_KEY configurada) ou DuckDuckGo.</p>
+      <div class="btn-row">
+        <button class="btn btn-run" onclick="runWebSearch('${uid}')">🔍 Buscar</button>
+      </div>
+    </div>`;
+            return;
+          }
+          if (cmd[1] === "__WEB_FETCH__") {
+            cards += `<div class="cmd-card ${newClass} cmd-card-web">
+      <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
+      <h4>${cmd[0]}</h4>
+      <code id="${uid}" style="display:none">${esc}</code>
+      <p class="web-card-desc">Busca na web e extrai/resume o conteúdo da primeira página encontrada.</p>
+      <div class="btn-row">
+        <button class="btn btn-run" onclick="runWebFetch('${uid}')">📖 Buscar e Ler</button>
+      </div>
+    </div>`;
+            return;
+          }
+          if (cmd[1] === "__WEB_GOV__") {
+            cards += `<div class="cmd-card ${newClass} cmd-card-web">
+      <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
+      <h4>${cmd[0]}</h4>
+      <code id="${uid}" style="display:none">${esc}</code>
+      <p class="web-card-desc">Consulta apenas domínios oficiais brasileiros (.gov.br, ibge.gov.br, embrapa.br, usp.br, etc.).</p>
+      <div class="btn-row">
+        <button class="btn btn-run" onclick="runWebGov('${uid}')">🏛️ Consultar</button>
+      </div>
+    </div>`;
+            return;
+          }
+
           cards += `<div class="cmd-card ${danger ? "danger" : ""} ${newClass}">
       <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
       ${dangerBadge}
@@ -1564,7 +1655,7 @@
         });
         return cards;
       }
-      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python"];
+      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web"];
       CATS.forEach((c) => {
         const div = document.createElement("div");
         div.className = "category";
@@ -2005,6 +2096,97 @@
           serverOnline = false; checkServer();
         }
       }
+      // ===== Web / IA cards na UI principal =====
+      let _webModalMode = null;
+      function closeWebModal() { document.getElementById("webOverlay").style.display = "none"; _webModalMode = null; }
+      function openWebModal(mode) {
+        _webModalMode = mode;
+        const title = document.getElementById("webModalTitle");
+        const desc = document.getElementById("webModalDesc");
+        const extra = document.getElementById("webModalExtra");
+        const ok = document.getElementById("webModalOk");
+        document.getElementById("webModalInput").value = "";
+        extra.value = "";
+        if (mode === "search") {
+          title.textContent = "Buscar na Web";
+          desc.textContent = "Informe o termo de busca:";
+          extra.style.display = "none";
+          ok.textContent = "🔍 Buscar";
+        } else if (mode === "fetch") {
+          title.textContent = "Buscar e Resumir Página";
+          desc.textContent = "Informe o termo de busca (a primeira página será resumida):";
+          extra.style.display = "block";
+          extra.placeholder = "Pergunta sobre o conteúdo da página (opcional)";
+          ok.textContent = "📖 Buscar e Ler";
+        } else if (mode === "gov") {
+          title.textContent = "Consultar Fonte Oficial .gov.br";
+          desc.textContent = "Informe a URL completa de uma fonte oficial brasileira:";
+          extra.style.display = "block";
+          extra.placeholder = "Termo de busca dentro da página (opcional)";
+          ok.textContent = "🏛️ Consultar";
+        }
+        document.getElementById("webOverlay").style.display = "flex";
+        setTimeout(() => document.getElementById("webModalInput").focus(), 80);
+      }
+      function runWebSearch() { openWebModal("search"); }
+      function runWebFetch() { openWebModal("fetch"); }
+      function runWebGov() { openWebModal("gov"); }
+      async function confirmWebModal() {
+        const input = document.getElementById("webModalInput").value.trim();
+        const extra = document.getElementById("webModalExtra").value.trim();
+        if (!input) { showToast("⚠️ Informe um valor", "#f0a800"); return; }
+        document.getElementById("webOverlay").style.display = "none";
+        const panel = document.getElementById("outputPanel");
+        const content = document.getElementById("outputContent");
+        panel.style.display = "block";
+        content.textContent = "⏳ Consultando...";
+        content.style.color = "#e6edf3";
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        try {
+          let out = "";
+          if (_webModalMode === "search") {
+            const res = await fetch(`${API}/api/web-search?q=${encodeURIComponent(input)}&max_results=5`, { headers: PRIVILEGED_HEADERS, signal: AbortSignal.timeout(25000) });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Falha na busca");
+            out = data.results.map((r, i) => `${i + 1}. ${r.title}\n   ${r.url}\n   ${r.snippet}`).join("\n\n");
+            if (!out) out = "Nenhum resultado encontrado.";
+          } else if (_webModalMode === "fetch") {
+            const res = await fetch(`${API}/api/tools/buscar_e_resumir_pagina`, {
+              method: "POST",
+              headers: PRIVILEGED_HEADERS,
+              body: JSON.stringify({ query: input, pergunta: extra, max_results: 3 }),
+              signal: AbortSignal.timeout(120000),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.error || "Falha ao buscar/resumir");
+            const r = data.result;
+            out = `Busca: ${input}\n\nPágina: ${r.pagina?.titulo || ""}\n${r.pagina?.url || ""}\n\nResumo:\n${r.pagina?.resumo || ""}`;
+            if (r.resposta) out += `\n\nResposta da IA:\n${r.resposta}`;
+          } else if (_webModalMode === "gov") {
+            const res = await fetch(`${API}/api/tools/consultar_fonte_oficial_gov`, {
+              method: "POST",
+              headers: PRIVILEGED_HEADERS,
+              body: JSON.stringify({ url: input, termo: extra }),
+              signal: AbortSignal.timeout(30000),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.error || "Falha ao consultar");
+            out = `URL: ${input}\n\nConteúdo:\n${data.result?.conteudo || ""}`;
+          }
+          content.textContent = out;
+          content.style.color = "#e6edf3";
+          addOutputEntry(`[WEB] ${_webModalMode}: ${input}`, out, true);
+          showToast("✅ Concluído", "var(--accent2)");
+        } catch (err) {
+          content.textContent = "Erro: " + err.message;
+          content.style.color = "#f85149";
+          addOutputEntry(`[WEB] ${_webModalMode}: ${input}`, "Erro: " + err.message, false);
+          showToast("❌ Falha na consulta web", "#f85149");
+        } finally {
+          _webModalMode = null;
+        }
+      }
+
       async function openPS() {
         if (serverOnline === false) { showToast("ℹ️ Execute o Launcher como Administrador primeiro.", "#00d4ff"); checkServer(); return; }
         showToast("⚡ Abrindo PowerShell admin...", "#00d4ff");
@@ -2142,10 +2324,23 @@
         renderOutputHistory();
         return entry;
       }
+      function renderOutputStats() {
+        const bar = document.getElementById("outputStats");
+        if (!bar) return;
+        if (!outputHistory.length) { bar.innerHTML = ""; return; }
+        const okCount = outputHistory.filter(e => e.success).length;
+        const errCount = outputHistory.length - okCount;
+        bar.innerHTML = `
+          <span class="output-stat-pill total">📋 ${outputHistory.length} comando${outputHistory.length === 1 ? "" : "s"}</span>
+          <span class="output-stat-pill ok">✅ ${okCount} sucesso${okCount === 1 ? "" : "s"}</span>
+          <span class="output-stat-pill err">❌ ${errCount} falha${errCount === 1 ? "" : "s"}</span>
+        `;
+      }
       function renderOutputHistory() {
         const container = document.getElementById("outputHistory");
         if (!container) return;
-        if (!outputHistory.length) { container.innerHTML = ""; return; }
+        renderOutputStats();
+        if (!outputHistory.length) { container.innerHTML = `<div class="output-empty">Nenhum comando executado ainda.</div>`; return; }
         container.innerHTML = outputHistory.slice().reverse().map(e => {
           const icon = e.success ? "✅" : "❌";
           const dateStr = new Date(e.date).toLocaleString("pt-BR");
@@ -2196,29 +2391,112 @@
         showToast("🧠 Output salvo como memória da IA", "#a200ff");
       }
       // ===== NOVO V11.1: Download de relatório do Output =====
-      function downloadOutputReport() {
+      // ===== Exportação de relatório em múltiplos formatos =====
+      function toggleExportMenu(ev) {
+        ev?.stopPropagation();
+        const menu = document.getElementById("outputExportMenu");
+        if (!menu) return;
         if (!outputHistory.length) { showToast("⚠️ Nenhum output para exportar", "#f0a800"); return; }
+        menu.classList.toggle("open");
+      }
+      document.addEventListener("click", (ev) => {
+        const menu = document.getElementById("outputExportMenu");
+        if (menu && menu.classList.contains("open") && !ev.target.closest(".output-export-wrap")) {
+          menu.classList.remove("open");
+        }
+      });
+      function _reportTimestamp() {
         const d = new Date();
         const pad = (n) => String(n).padStart(2, "0");
-        const okCount = outputHistory.filter(e => e.success).length;
-        let md = `# 📋 Relatório de Comandos — Mestre do PC V11\n\n`;
-        md += `**Data:** ${d.toLocaleString("pt-BR")}\n`;
-        md += `**Computador:** ${location.hostname || "local"}\n`;
-        md += `**Total de comandos:** ${outputHistory.length}\n`;
-        md += `**Sucessos:** ${okCount} | **Falhas:** ${outputHistory.length - okCount}\n\n---\n\n`;
-        outputHistory.forEach((e, i) => {
-          md += `## ${i + 1}. ${e.success ? "✅" : "❌"} Comando\n\n`;
-          md += `**Data:** ${new Date(e.date).toLocaleString("pt-BR")}\n\n`;
-          md += `\`\`\`powershell\n${e.cmd}\n\`\`\`\n\n`;
-          md += `**Output:**\n\n\`\`\`\n${e.output || "(sem output)"}\n\`\`\`\n\n---\n\n`;
-        });
-        const blob = new Blob([md], { type: "text/markdown" });
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}`;
+      }
+      function _downloadBlob(content, mimeType, filename) {
+        const blob = new Blob([content], { type: mimeType });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `mestre-output-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}.md`;
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(a.href);
-        showToast("📥 Relatório de outputs baixado", "var(--accent2)");
+      }
+      function exportOutputReport(format) {
+        document.getElementById("outputExportMenu")?.classList.remove("open");
+        if (!outputHistory.length) { showToast("⚠️ Nenhum output para exportar", "#f0a800"); return; }
+        const stamp = _reportTimestamp();
+        const okCount = outputHistory.filter(e => e.success).length;
+        const meta = {
+          data: new Date().toLocaleString("pt-BR"),
+          computador: location.hostname || "local",
+          total: outputHistory.length,
+          sucessos: okCount,
+          falhas: outputHistory.length - okCount,
+        };
+        if (format === "md") {
+          let md = `# 📋 Relatório de Comandos — Mestre do PC V11\n\n`;
+          md += `**Data:** ${meta.data}\n**Computador:** ${meta.computador}\n`;
+          md += `**Total de comandos:** ${meta.total}\n**Sucessos:** ${meta.sucessos} | **Falhas:** ${meta.falhas}\n\n---\n\n`;
+          outputHistory.forEach((e, i) => {
+            md += `## ${i + 1}. ${e.success ? "✅" : "❌"} Comando\n\n**Data:** ${new Date(e.date).toLocaleString("pt-BR")}\n\n`;
+            md += `\`\`\`powershell\n${e.cmd}\n\`\`\`\n\n**Output:**\n\n\`\`\`\n${e.output || "(sem output)"}\n\`\`\`\n\n---\n\n`;
+          });
+          _downloadBlob(md, "text/markdown", `mestre-output-${stamp}.md`);
+        } else if (format === "txt") {
+          let txt = `RELATÓRIO DE COMANDOS — MESTRE DO PC V11\n${"=".repeat(48)}\n`;
+          txt += `Data: ${meta.data}\nComputador: ${meta.computador}\n`;
+          txt += `Total: ${meta.total} | Sucessos: ${meta.sucessos} | Falhas: ${meta.falhas}\n${"=".repeat(48)}\n\n`;
+          outputHistory.forEach((e, i) => {
+            txt += `[${i + 1}] ${e.success ? "OK" : "FALHA"} — ${new Date(e.date).toLocaleString("pt-BR")}\n`;
+            txt += `Comando: ${e.cmd}\n\nOutput:\n${e.output || "(sem output)"}\n\n${"-".repeat(48)}\n\n`;
+          });
+          _downloadBlob(txt, "text/plain;charset=utf-8", `mestre-output-${stamp}.txt`);
+        } else if (format === "csv") {
+          const escCsv = (v) => `"${String(v ?? "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
+          let csv = "Numero;Status;Data;Comando;Output\n";
+          outputHistory.forEach((e, i) => {
+            csv += [i + 1, e.success ? "Sucesso" : "Falha", new Date(e.date).toLocaleString("pt-BR"), escCsv(e.cmd), escCsv(e.output)].join(";") + "\n";
+          });
+          _downloadBlob("﻿" + csv, "text/csv;charset=utf-8", `mestre-output-${stamp}.csv`);
+        } else if (format === "excel") {
+          // Excel abre XML SpreadsheetML normalmente com extensão .xls, sem precisar de biblioteca.
+          const escXml = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          let rows = `<Row ss:StyleID="header"><Cell><Data ss:Type="String">#</Data></Cell><Cell><Data ss:Type="String">Status</Data></Cell><Cell><Data ss:Type="String">Data</Data></Cell><Cell><Data ss:Type="String">Comando</Data></Cell><Cell><Data ss:Type="String">Output</Data></Cell></Row>`;
+          outputHistory.forEach((e, i) => {
+            rows += `<Row><Cell><Data ss:Type="Number">${i + 1}</Data></Cell><Cell><Data ss:Type="String">${e.success ? "Sucesso" : "Falha"}</Data></Cell><Cell><Data ss:Type="String">${escXml(new Date(e.date).toLocaleString("pt-BR"))}</Data></Cell><Cell><Data ss:Type="String">${escXml(e.cmd)}</Data></Cell><Cell><Data ss:Type="String">${escXml(e.output).slice(0, 32000)}</Data></Cell></Row>`;
+          });
+          const xml = `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#4472C4" ss:Pattern="Solid"/></Style></Styles><Worksheet ss:Name="Output Mestre do PC"><Table><Column ss:Width="30"/><Column ss:Width="70"/><Column ss:Width="120"/><Column ss:Width="260"/><Column ss:Width="400"/>${rows}</Table></Worksheet></Workbook>`;
+          _downloadBlob(xml, "application/vnd.ms-excel", `mestre-output-${stamp}.xls`);
+        } else if (format === "word") {
+          // Truque compatível: Word abre HTML normalmente quando salvo com extensão .doc.
+          const escHtml = (v) => escapeHtml(v ?? "");
+          let body = `<h1 style="color:#00758f">Relatório de Comandos — Mestre do PC V11</h1>`;
+          body += `<p><b>Data:</b> ${meta.data}<br/><b>Computador:</b> ${meta.computador}<br/><b>Total:</b> ${meta.total} | <b>Sucessos:</b> ${meta.sucessos} | <b>Falhas:</b> ${meta.falhas}</p><hr/>`;
+          outputHistory.forEach((e, i) => {
+            body += `<h3>${i + 1}. ${e.success ? "✅" : "❌"} Comando — ${new Date(e.date).toLocaleString("pt-BR")}</h3>`;
+            body += `<pre style="background:#f4f4f4;padding:8px;border-radius:4px;font-family:Consolas,monospace">${escHtml(e.cmd)}</pre>`;
+            body += `<p><b>Output:</b></p><pre style="background:#f9f9f9;padding:8px;border-radius:4px;font-family:Consolas,monospace;white-space:pre-wrap">${escHtml(e.output) || "(sem output)"}</pre><hr/>`;
+          });
+          const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Relatório Mestre do PC</title></head><body style="font-family:Calibri,Arial,sans-serif">${body}</body></html>`;
+          _downloadBlob(html, "application/msword", `mestre-output-${stamp}.doc`);
+        } else if (format === "pdf") {
+          // Sem biblioteca de geração de PDF no bundle: abre uma janela de impressão
+          // já formatada — o usuário escolhe "Salvar como PDF" no diálogo do navegador.
+          const escHtml = (v) => escapeHtml(v ?? "");
+          let body = `<h1>📋 Relatório de Comandos — Mestre do PC V11</h1>`;
+          body += `<p><b>Data:</b> ${meta.data} &nbsp; <b>Computador:</b> ${meta.computador}</p>`;
+          body += `<p><b>Total:</b> ${meta.total} &nbsp; <b>Sucessos:</b> ${meta.sucessos} &nbsp; <b>Falhas:</b> ${meta.falhas}</p><hr/>`;
+          outputHistory.forEach((e, i) => {
+            body += `<div style="page-break-inside:avoid;margin-bottom:14px">`;
+            body += `<h3>${i + 1}. ${e.success ? "✅" : "❌"} — ${new Date(e.date).toLocaleString("pt-BR")}</h3>`;
+            body += `<pre style="background:#f4f4f4;padding:8px;border-radius:4px;font-family:Consolas,monospace;white-space:pre-wrap">${escHtml(e.cmd)}</pre>`;
+            body += `<pre style="background:#f9f9f9;padding:8px;border-radius:4px;font-family:Consolas,monospace;white-space:pre-wrap">${escHtml(e.output) || "(sem output)"}</pre></div>`;
+          });
+          const win = window.open("", "_blank", "width=900,height=700");
+          if (!win) { showToast("⚠️ O navegador bloqueou a janela de impressão. Permita pop-ups.", "#f0a800"); return; }
+          win.document.write(`<html><head><meta charset="utf-8"><title>Relatório Mestre do PC</title><style>body{font-family:Arial,sans-serif;color:#111;padding:20px}h1{color:#0077aa}</style></head><body>${body}</body></html>`);
+          win.document.close();
+          win.focus();
+          setTimeout(() => win.print(), 300);
+        }
+        showToast("📥 Relatório exportado", "var(--accent2)");
       }
       function escapeHtml(str) {
         if (str == null) return "";
@@ -2248,7 +2526,7 @@
       document.addEventListener("keydown", (e) => {
         if (e.ctrlKey && e.key === "k") { e.preventDefault(); document.getElementById("searchInput").focus(); }
         if (e.ctrlKey && e.key === "/") { e.preventDefault(); mestreChat.open(); }
-        if (e.key === "Escape") { mestreChat.close(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; }
+        if (e.key === "Escape") { mestreChat.close(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; document.getElementById("webOverlay").style.display = "none"; }
       });
       // ===== BOOT com polling otimizado =====
       renderFavorites();

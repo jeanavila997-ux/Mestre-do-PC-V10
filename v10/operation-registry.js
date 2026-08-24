@@ -6,6 +6,11 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
+function normalizePath(input) {
+  if (input.startsWith("file:")) return fileURLToPath(input);
+  return input;
+}
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OPERATIONS_FILE = join(__dirname, "allowed-operations.json");
 
@@ -189,7 +194,7 @@ let cachedRegistry = null;
 
 export async function loadOperationRegistry(path = OPERATIONS_FILE) {
   if (cachedRegistry) return cachedRegistry;
-  const raw = JSON.parse(await readFile(path, "utf8"));
+  const raw = JSON.parse(await readFile(normalizePath(path), "utf8"));
   cachedRegistry = new OperationRegistry(raw);
   return cachedRegistry;
 }
