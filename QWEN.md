@@ -152,6 +152,7 @@ This is a **security-critical** application. It executes PowerShell as admin. Ke
 - Use `MESTRE_PROJETO_PATH` env var — **never** hardcode personal paths
 - Preserve the MCP (non-elevated) / launcher (elevated) split
 - Add/update tests in `mcp-server/test/` for any new functionality
+- **Never** run `git add .` or `git add -A` — only stage files explicitly by path
 
 ### AI Safety
 - `security.js` runs prompt injection detection (10 pattern categories, weighted scoring)
