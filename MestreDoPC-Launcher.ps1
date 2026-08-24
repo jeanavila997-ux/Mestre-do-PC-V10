@@ -37,6 +37,84 @@ $MaxConcurrentJobs = 3
 $MaxCmdLength = 8192
 
 # ---------------------------------------------------------------
+# Modo Livre — execucao de comandos fora da whitelist (paridade com v10/launcher.js)
+# Opt-in e reversivel: desligado por padrao. Quando ligado, /run-free aceita
+# qualquer comando PowerShell (sem checar allowed-operations.json) e cada
+# execucao e registrada no log de auditoria.
+# ---------------------------------------------------------------
+$MODO_LIVRE_CONFIG_FILE = Join-Path $PROJECT_DIR "logs\config\modo-livre.json"
+$script:ModoLivreEnabled = $false
+if (Test-Path -LiteralPath $MODO_LIVRE_CONFIG_FILE) {
+    try {
+        $savedState = Get-Content -LiteralPath $MODO_LIVRE_CONFIG_FILE -Raw -Encoding UTF8 | ConvertFrom-Json
+        $script:ModoLivreEnabled = [bool]$savedState.enabled
+    } catch { $script:ModoLivreEnabled = $false }
+}
+
+function Set-ModoLivre {
+    param([bool] $Enabled)
+    $script:ModoLivreEnabled = $Enabled
+    try {
+        $dir = Split-Path -Parent $MODO_LIVRE_CONFIG_FILE
+        if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+        $payload = @{ enabled = $Enabled; updatedAt = (Get-Date).ToString("o") } | ConvertTo-Json
+        Set-Content -LiteralPath $MODO_LIVRE_CONFIG_FILE -Value $payload -Encoding UTF8
+    } catch {
+        Write-Host "[MODO-LIVRE] Falha ao persistir estado: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+    return $script:ModoLivreEnabled
+}
+
+# ---------------------------------------------------------------
+# Memorias do chat (paridade com v10/memory-manager.js + memory-routes.js)
+# Arquivo JSON no servidor: sobrevive a "limpar dados do navegador".
+# ---------------------------------------------------------------
+$MEMORIES_FILE = Join-Path $PROJECT_DIR "v10\data\memories\chat-memories.json"
+
+function Get-MestreMemories {
+    if (-not (Test-Path -LiteralPath $MEMORIES_FILE)) { return @() }
+    try {
+        $data = Get-Content -LiteralPath $MEMORIES_FILE -Raw -Encoding UTF8 | ConvertFrom-Json
+        return @($data.memories)
+    } catch {
+        return @()
+    }
+}
+
+function Save-MestreMemories {
+    param([array] $Memories)
+    $dir = Split-Path -Parent $MEMORIES_FILE
+    if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    $payload = @{ memories = $Memories; version = "1.0" } | ConvertTo-Json -Depth 10
+    Set-Content -LiteralPath $MEMORIES_FILE -Value $payload -Encoding UTF8
+}
+
+function New-MestreMemoryId {
+    return "mem_$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())_$(Get-Random -Minimum 1000 -Maximum 9999)"
+}
+
+function Write-AuditLog {
+    param([string] $Level, [string] $Action, [hashtable] $Details = @{})
+    try {
+        $auditDir = Join-Path $PROJECT_DIR "logs\audit"
+        if (-not (Test-Path -LiteralPath $auditDir)) { New-Item -ItemType Directory -Path $auditDir -Force | Out-Null }
+        $logFile = Join-Path $auditDir ("audit-{0}.log" -f (Get-Date -Format "yyyy-MM-dd"))
+        $entry = [ordered]@{
+            timestamp = (Get-Date).ToString("o")
+            level = $Level
+            action = $Action
+            userId = "system"
+            computerName = $env:COMPUTERNAME
+            pid = $PID
+            details = $Details
+        } | ConvertTo-Json -Compress
+        Add-Content -LiteralPath $logFile -Value $entry -Encoding UTF8
+    } catch {
+        Write-Host "[AUDIT] Falha ao escrever log: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+# ---------------------------------------------------------------
 # Whitelist de operacoes (paridade com v10/launcher.js resolveCommand)
 # Somente comandos cadastrados em v10/allowed-operations.json executam.
 # ---------------------------------------------------------------
@@ -717,6 +795,104 @@ try {
             continue
         }
 
+        # GET /memories/list — lista memorias do chat (mais recentes primeiro)
+        if ($req.HttpMethod -eq "GET" -and $req.Url.AbsolutePath -eq "/memories/list") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Nao autorizado." } -StatusCode 403
+                continue
+            }
+            $limitRaw = $req.QueryString["limit"]
+            $limit = 100
+            if ($limitRaw -and [int]::TryParse($limitRaw, [ref]$limit)) { } else { $limit = 100 }
+            $memories = @(Get-MestreMemories | Sort-Object { $_.metadata.createdAt } -Descending)
+            if ($memories.Count -gt $limit) { $memories = $memories[0..($limit - 1)] }
+            Write-JsonResponse -Response $res -Payload @{ success = $true; memories = $memories }
+            continue
+        }
+
+        # POST /memories/create — cria uma memoria
+        if ($req.HttpMethod -eq "POST" -and $req.Url.AbsolutePath -eq "/memories/create") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Nao autorizado." } -StatusCode 403
+                continue
+            }
+            try {
+                $rawBody = Read-LimitedRequestBody -Request $req
+                $data = $rawBody | ConvertFrom-Json
+                if ([string]::IsNullOrWhiteSpace([string]$data.content)) {
+                    Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Conteudo e obrigatorio." } -StatusCode 400
+                    continue
+                }
+                $now = (Get-Date).ToString("o")
+                $memory = [ordered]@{
+                    id = New-MestreMemoryId
+                    type = if ($data.type) { [string]$data.type } else { "note" }
+                    title = if ($data.title) { [string]$data.title } else { "Sem titulo" }
+                    content = [string]$data.content
+                    metadata = [ordered]@{
+                        createdAt = $now
+                        updatedAt = $now
+                        source = if ($data.metadata.source) { [string]$data.metadata.source } else { "chat" }
+                        tags = @()
+                        importance = 1
+                    }
+                }
+                $memories = @(Get-MestreMemories) + [pscustomobject]$memory
+                Save-MestreMemories -Memories $memories
+                Write-JsonResponse -Response $res -Payload @{ success = $true; memory = $memory } -StatusCode 201
+            } catch {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Erro interno: $($_.Exception.Message)" } -StatusCode 500
+            }
+            continue
+        }
+
+        # PUT /memories/update/:id — atualiza titulo/conteudo de uma memoria
+        if ($req.HttpMethod -eq "PUT" -and $req.Url.AbsolutePath -like "/memories/update/*") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Nao autorizado." } -StatusCode 403
+                continue
+            }
+            try {
+                $memId = $req.Url.AbsolutePath.Substring("/memories/update/".Length)
+                $rawBody = Read-LimitedRequestBody -Request $req
+                $data = $rawBody | ConvertFrom-Json
+                $memories = @(Get-MestreMemories)
+                $idx = -1
+                for ($i = 0; $i -lt $memories.Count; $i++) { if ([string]$memories[$i].id -eq $memId) { $idx = $i; break } }
+                if ($idx -lt 0) {
+                    Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Memoria nao encontrada." } -StatusCode 404
+                    continue
+                }
+                $mem = $memories[$idx]
+                if ($data.title) { $mem.title = [string]$data.title }
+                if ($data.content) { $mem.content = [string]$data.content }
+                $mem.metadata.updatedAt = (Get-Date).ToString("o")
+                $memories[$idx] = $mem
+                Save-MestreMemories -Memories $memories
+                Write-JsonResponse -Response $res -Payload @{ success = $true; memory = $mem }
+            } catch {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Erro interno: $($_.Exception.Message)" } -StatusCode 500
+            }
+            continue
+        }
+
+        # DELETE /memories/delete/:id — exclui uma memoria
+        if ($req.HttpMethod -eq "DELETE" -and $req.Url.AbsolutePath -like "/memories/delete/*") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Nao autorizado." } -StatusCode 403
+                continue
+            }
+            try {
+                $memId = $req.Url.AbsolutePath.Substring("/memories/delete/".Length)
+                $memories = @(Get-MestreMemories | Where-Object { [string]$_.id -ne $memId })
+                Save-MestreMemories -Memories $memories
+                Write-JsonResponse -Response $res -Payload @{ success = $true; id = $memId }
+            } catch {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; error = "Erro interno: $($_.Exception.Message)" } -StatusCode 500
+            }
+            continue
+        }
+
         # POST /classify — resolve o comando contra a whitelist SEM executar.
         # A UI usa isto para decidir entre auto-exec (low-risk) e confirmacao.
         if ($req.HttpMethod -eq "POST" -and $req.Url.AbsolutePath -eq "/classify") {
@@ -755,6 +931,79 @@ try {
             }
             catch {
                 Write-JsonResponse -Response $res -Payload @{ allowed = $false; reason = "Erro interno: $($_.Exception.Message)" } -StatusCode 500
+            }
+            continue
+        }
+
+        # GET/POST /modo-livre — consulta ou alterna o Modo Livre (execucao fora da whitelist)
+        if ($req.Url.AbsolutePath -eq "/modo-livre" -and $req.HttpMethod -eq "GET") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ enabled = $false; reason = "Cliente nao autorizado." } -StatusCode 403
+                continue
+            }
+            Write-JsonResponse -Response $res -Payload @{ enabled = $script:ModoLivreEnabled }
+            continue
+        }
+        if ($req.Url.AbsolutePath -eq "/modo-livre" -and $req.HttpMethod -eq "POST") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; reason = "Cliente nao autorizado." } -StatusCode 403
+                continue
+            }
+            try {
+                $rawBody = Read-LimitedRequestBody -Request $req -MaxChars 1024
+                $data = $rawBody | ConvertFrom-Json
+                $enabled = Set-ModoLivre -Enabled ([bool]$data.enabled)
+                Write-AuditLog -Level "SECURITY" -Action "modo_livre_toggle" -Details @{ enabled = $enabled }
+                Write-JsonResponse -Response $res -Payload @{ success = $true; enabled = $enabled }
+            } catch {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; reason = "Erro interno: $($_.Exception.Message)" } -StatusCode 500
+            }
+            continue
+        }
+
+        # POST /run-free — executa QUALQUER comando PowerShell, sem checar a whitelist
+        # de allowed-operations.json. So responde se o Modo Livre estiver ligado.
+        # Toda chamada e auditada em nivel SECURITY com o comando literal, ja que a
+        # whitelist deixa de ser a rede de seguranca aqui.
+        if ($req.HttpMethod -eq "POST" -and $req.Url.AbsolutePath -eq "/run-free") {
+            if (-not (Test-PrivilegedClient -Request $req)) {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; output = "Cliente nao autorizado."; state = "forbidden" } -StatusCode 403
+                continue
+            }
+            if (-not $script:ModoLivreEnabled) {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; output = "Modo Livre esta desligado. Ative em /modo-livre antes de executar comandos fora da whitelist."; state = "forbidden" } -StatusCode 403
+                continue
+            }
+            try {
+                if ((Get-ActiveJobCount) -ge $MaxConcurrentJobs) {
+                    Write-JsonResponse -Response $res -Payload @{ success = $false; output = "Limite de comandos simultaneos atingido."; state = "busy" } -StatusCode 429
+                    continue
+                }
+                $rawBody = Read-LimitedRequestBody -Request $req
+                $data = $rawBody | ConvertFrom-Json
+                $cmd = [string]$data.cmd
+                if ([string]::IsNullOrWhiteSpace($cmd) -or $cmd.Length -gt $MaxCmdLength) {
+                    Write-JsonResponse -Response $res -Payload @{ success = $false; output = "Comando ausente ou excede o limite de tamanho." } -StatusCode 400
+                    continue
+                }
+
+                Write-Host "  [MODO-LIVRE] " -NoNewline -ForegroundColor Red
+                Write-Host $cmd.Split("`n")[0] -ForegroundColor White
+                Write-AuditLog -Level "SECURITY" -Action "run_free_command" -Details @{ cmd = $cmd }
+
+                $entry = New-CommandJob -CommandText $cmd -ProjectPath $PROJECT_DIR
+                $CommandJobs[$entry.Id] = $entry
+                Write-JsonResponse -Response $res -Payload ([ordered]@{
+                    success = $true
+                    accepted = $true
+                    jobId = $entry.Id
+                    state = $entry.State
+                    activeJobs = Get-ActiveJobCount
+                    output = "Comando (Modo Livre) aceito para execucao."
+                })
+            }
+            catch {
+                Write-JsonResponse -Response $res -Payload @{ success = $false; output = "Erro interno: $($_.Exception.Message)"; state = "error" } -StatusCode 500
             }
             continue
         }

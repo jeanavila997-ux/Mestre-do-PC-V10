@@ -7,11 +7,14 @@
 import http from "node:http";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import { checkPromptInjection } from "../mcp-server/security.js";
+import { auditLog, AuditLevel } from "../mcp-server/audit-logger.js";
 import { handleApiRoute } from "./chat-integrado/api-routes.js";
+import { loadOperationRegistry } from "./operation-registry.js";
 import { handleMemoryRoutes } from "./memory-routes.js";
 import { 
   createMemory, 
@@ -42,6 +45,30 @@ const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 const JOB_RETENTION_MS = 30 * 60 * 1000;
 const MAX_CMD_LENGTH = 32768;
 
+// ===== Modo Livre — execução de comandos fora da whitelist =====
+// Opt-in e reversível: por padrão desligado. Quando ligado, /run-free aceita
+// qualquer comando PowerShell (sem checar allowed-operations.json) e o chat
+// pula o modal de confirmação. Cada execução é logada em nível SECURITY.
+const MODO_LIVRE_CONFIG_FILE = join(__dirname, "..", "logs", "config", "modo-livre.json");
+let modoLivreEnabled = process.env.MESTRE_MODO_LIVRE === "1";
+try {
+  if (existsSync(MODO_LIVRE_CONFIG_FILE)) {
+    const saved = JSON.parse(readFileSync(MODO_LIVRE_CONFIG_FILE, "utf8"));
+    if (typeof saved.enabled === "boolean") modoLivreEnabled = saved.enabled;
+  }
+} catch { /* usa o valor da env var / padrão (desligado) */ }
+
+async function setModoLivre(enabled) {
+  modoLivreEnabled = !!enabled;
+  try {
+    await mkdir(dirname(MODO_LIVRE_CONFIG_FILE), { recursive: true });
+    await writeFile(MODO_LIVRE_CONFIG_FILE, JSON.stringify({ enabled: modoLivreEnabled, updatedAt: new Date().toISOString() }, null, 2), "utf8");
+  } catch (e) {
+    console.error(`[MODO-LIVRE] Falha ao persistir estado: ${e.message}`);
+  }
+  return modoLivreEnabled;
+}
+
 // Constrói environment limpo para spawn do PowerShell 5.1, removendo caminhos
 // do PS 7 (MSIX) que poluem PSModulePath e quebram módulos como Microsoft.PowerShell.Security
 function cleanPSEnv(extra = {}) {
@@ -68,57 +95,13 @@ function detectarElevacao() {
   });
 }
 
-const operationsFile = join(__dirname, "allowed-operations.json");
-const rawCatalog = JSON.parse(await readFile(operationsFile, "utf8"));
-
-const allowedOperations = Array.isArray(rawCatalog) ? rawCatalog : rawCatalog.operations || [];
-const allowedTemplates = (!Array.isArray(rawCatalog) && rawCatalog.templates) ? rawCatalog.templates : [];
-
-// Parte das entradas de `templates` não é parametrizada: traz `command` fixo em vez
-// de `pattern`. Elas contam como operações exatas, senão ficariam inalcançáveis.
-const fixedTemplates = allowedTemplates.filter((tpl) => typeof tpl.command === "string");
-const fixedCommandEntries = [...allowedOperations, ...fixedTemplates];
-
-const operationsById = new Map(fixedCommandEntries.map((op) => [op.id, op]));
-const exactCommands = new Set(fixedCommandEntries.map((op) => op.command));
-
-// Compila templates parametrizados em regex seguras.
-// Cada placeholder {{NOME}} é substituído por um grupo nomeado com a regex permitida.
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-const compiledTemplates = allowedTemplates.filter((tpl) => typeof tpl.pattern === "string").map((tpl) => {
-  const placeholderRe = /\{\{([A-Z_][A-Z0-9_]*)\}\}/g;
-  const paramNames = [...tpl.pattern.matchAll(placeholderRe)].map((m) => m[1].toLowerCase());
-  let regexSource = escapeRegex(tpl.pattern);
-  for (const name of [...new Set(paramNames)]) {
-    // As regex de params vêm ancoradas (^...$) para uso isolado; embutidas no meio
-    // do template essas âncoras nunca casariam, então são removidas aqui.
-    const paramRegex = (tpl.params?.[name] || "[a-zA-Z0-9_. -]{1,128}")
-      .replace(/^\^/, "")
-      .replace(/\$$/, "");
-    // O placeholder já foi escapado junto com o resto do pattern, então a busca é
-    // feita sobre a forma escapada, como texto literal.
-    const escapedPlaceholder = escapeRegex(`{{${name.toUpperCase()}}}`);
-    const parts = regexSource.split(escapedPlaceholder);
-    // Primeira ocorrência define o grupo nomeado; as demais são backreferences,
-    // garantindo que o mesmo valor apareça em todas as posições do template.
-    regexSource = parts.reduce((acc, part, i) => {
-      if (i === 0) return part;
-      const slot = i === 1 ? `(?<${name}>${paramRegex})` : `\\k<${name}>`;
-      return acc + slot + part;
-    }, "");
-  }
-  return {
-    id: tpl.id,
-    title: tpl.title,
-    pattern: tpl.pattern,
-    params: tpl.params || {},
-    destructive: !!tpl.destructive,
-    regex: new RegExp(`^${regexSource}$`, "s"),
-  };
-});
+const registry = await loadOperationRegistry(join(__dirname, "allowed-operations.json"));
+const { operations: allowedOperations, templates: allowedTemplates } = registry;
+const fixedTemplates = registry.fixedTemplates;
+const fixedCommandEntries = registry.exactEntries;
+const operationsById = registry.operationsById;
+const exactCommands = registry.exactCommands;
+const compiledTemplates = registry.compiledTemplates;
 
 const jobs = new Map();
 
@@ -228,64 +211,10 @@ function readBody(req, maxBytes = 2 * 1024 * 1024) {
   });
 }
 
-// Valida um valor de parâmetro contra a regex permitida.
-function validateParam(name, value, regexSource) {
-  if (typeof value !== "string") return null;
-  if (value.length === 0 || value.length > 1024) return null;
-  const re = new RegExp(`^(?:${regexSource})$`);
-  return re.test(value) ? value : null;
-}
-
 // Resolve uma requisição de execução para um comando final seguro.
-// Aceita {id, params?} ou {cmd}.
+// Delega ao OperationRegistry, que é a fonte única de verdade.
 function resolveCommand(body) {
-  if (!body || typeof body !== "object") return { error: "Corpo inválido." };
-
-  // Modo novo: id + params
-  if (body.id && typeof body.id === "string") {
-    const op = operationsById.get(body.id);
-    const tpl = allowedTemplates.find((t) => t.id === body.id);
-    if (!op && !tpl) return { error: `Operação '${body.id}' não encontrada.` };
-
-    if (op) {
-      return { cmd: op.command, destructive: !!op.destructive, id: op.id };
-    }
-
-    if (typeof tpl.pattern !== "string") {
-      return { error: `Operação '${body.id}' não é executável.` };
-    }
-
-    let finalCmd = tpl.pattern;
-    const params = body.params || {};
-    for (const [key, regexSource] of Object.entries(tpl.params || {})) {
-      const val = params[key];
-      const sanitized = validateParam(key, val, regexSource);
-      if (sanitized == null) {
-        return { error: `Parâmetro inválido para '${key}'.` };
-      }
-      finalCmd = finalCmd.replace(new RegExp(`\\{\\{${key.toUpperCase()}\\}\\}`, "g"), sanitized);
-    }
-    return { cmd: finalCmd, destructive: !!tpl.destructive, id: tpl.id };
-  }
-
-  // Modo legado: cmd exato ou template compilado
-  if (body.cmd && typeof body.cmd === "string") {
-    const cmd = body.cmd;
-    if (cmd.length > MAX_CMD_LENGTH) return { error: "Comando excede o limite de tamanho." };
-    if (exactCommands.has(cmd)) {
-      const op = allowedOperations.find((o) => o.command === cmd);
-      return { cmd, destructive: !!op?.destructive, id: op?.id };
-    }
-    for (const compiled of compiledTemplates) {
-      const match = compiled.regex.test(cmd);
-      if (match) {
-        return { cmd, destructive: compiled.destructive, id: compiled.id };
-      }
-    }
-    return { error: "Operação bloqueada: somente comandos cadastrados na V10 podem ser executados." };
-  }
-
-  return { error: "Comando ausente ou inválido." };
+  return registry.resolve(body, { maxCmdLength: MAX_CMD_LENGTH });
 }
 
 // Guard do chat: roda a heurística de prompt injection sobre a última mensagem
@@ -316,7 +245,7 @@ function classifyCommand(body) {
   if (resolved.error) {
     return { allowed: false, destructive: false, reason: resolved.error };
   }
-  const meta = operationsById.get(resolved.id) || allowedTemplates.find((t) => t.id === resolved.id) || {};
+  const meta = registry.getById(resolved.id) || {};
   return {
     allowed: true,
     destructive: !!resolved.destructive,
@@ -459,7 +388,7 @@ async function callOllamaChat(messages, allowOrigin = BASE_URL) {
 }
 
 async function runAllowedOperation(operationId, params = {}) {
-  const op = operationsById.get(operationId);
+  const op = registry.getById(operationId);
   if (!op) throw new Error("Operação não encontrada: " + operationId);
   const resolved = resolveCommand({ id: operationId, params });
   if (resolved.error) throw new Error(resolved.error);
@@ -661,6 +590,49 @@ const server = http.createServer(async (req, res) => {
       if (!isAuthorized(req)) return sendJson(res, 403, { allowed: false, reason: "Cliente não autorizado." }, allowedOrigin);
       const body = await readBody(req, 64 * 1024);
       return sendJson(res, 200, classifyCommand(body), allowedOrigin);
+    }
+
+    // Estado do Modo Livre (ligado/desligado). GET consulta, POST alterna.
+    if (path === "/modo-livre" && req.method === "GET") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { enabled: false, reason: "Cliente não autorizado." }, allowedOrigin);
+      return sendJson(res, 200, { enabled: modoLivreEnabled }, allowedOrigin);
+    }
+    if (path === "/modo-livre" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, reason: "Cliente não autorizado." }, allowedOrigin);
+      const body = await readBody(req, 1024);
+      const enabled = await setModoLivre(body.enabled);
+      await auditLog(AuditLevel.SECURITY, "modo_livre_toggle", { enabled }, req.headers["x-mestre-client"] || "unknown");
+      return sendJson(res, 200, { success: true, enabled }, allowedOrigin);
+    }
+
+    // Modo Livre: executa QUALQUER comando PowerShell, sem checar a whitelist
+    // de allowed-operations.json. Só responde se o Modo Livre estiver ligado
+    // (ver /modo-livre) — desligado por padrão. Toda chamada é auditada em
+    // nível SECURITY com o comando literal, já que a whitelist deixa de ser
+    // a rede de segurança aqui.
+    if (path === "/run-free" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado.", state: "forbidden" }, allowedOrigin);
+      if (!modoLivreEnabled) {
+        return sendJson(res, 403, { success: false, output: "Modo Livre está desligado. Ative em /modo-livre antes de executar comandos fora da whitelist.", state: "forbidden" }, allowedOrigin);
+      }
+      if (getRunningJobCount() >= MAX_CONCURRENT_JOBS) {
+        return sendJson(res, 429, { success: false, output: "Limite de comandos simultâneos atingido.", state: "busy" }, allowedOrigin);
+      }
+      const body = await readBody(req);
+      const cmd = typeof body.cmd === "string" ? body.cmd : "";
+      if (!cmd || cmd.length > MAX_CMD_LENGTH) {
+        return sendJson(res, 400, { success: false, output: "Comando ausente ou excede o limite de tamanho." }, allowedOrigin);
+      }
+      await auditLog(AuditLevel.SECURITY, "run_free_command", { cmd }, req.headers["x-mestre-client"] || "unknown");
+      const id = runPowerShell(cmd, { id: "livre", destructive: true });
+      return sendJson(res, 202, {
+        success: true,
+        accepted: true,
+        jobId: id,
+        state: "running",
+        activeJobs: getRunningJobCount(),
+        operationId: "livre",
+      }, allowedOrigin);
     }
 
     if (path === "/run-status") {

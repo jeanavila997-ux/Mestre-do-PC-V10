@@ -10,6 +10,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { sanitizeToolArgument, checkPromptInjection } from "./security.js";
 import { auditLog, AuditLevel, queryAuditLog } from "./audit-logger.js";
+import { loadOperationRegistry } from "../v10/operation-registry.js";
 import { readFile, readdir, access, constants } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,8 +21,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MESTRE_BASE_URL = (process.env.MESTRE_BASE_URL || "http://127.0.0.1:7777").replace(/\/+$/, "");
 const MESTRE_RUN_URL = MESTRE_BASE_URL + "/run";
+const MESTRE_RUN_FREE_URL = MESTRE_BASE_URL + "/run-free";
 const MESTRE_STATUS_URL = MESTRE_BASE_URL + "/run-status";
 const MESTRE_CLASSIFY_URL = MESTRE_BASE_URL + "/classify";
+const MESTRE_MODO_LIVRE_URL = MESTRE_BASE_URL + "/modo-livre";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -38,6 +41,8 @@ function stripHtml(html) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
 }
+
+const operationRegistry = await loadOperationRegistry(join(__dirname, "../v10/allowed-operations.json"));
 
 // ===== NOVOS TOOLS V11.1 — Helpers =====
 
@@ -302,6 +307,57 @@ async function executeLauncherCommand(commandOrPayload, options = {}) {
   throw new Error("Timeout aguardando conclusão do comando no Launcher.");
 }
 
+// Executa um comando PowerShell arbitrário via /run-free, fora da whitelist de
+// allowed-operations.json. Só funciona se o Modo Livre estiver ligado no
+// launcher (ver /modo-livre) — se estiver desligado, o launcher responde 403.
+// Toda chamada é auditada em nível SECURITY, já que aqui não há whitelist
+// como rede de segurança.
+async function executeFreeCommand(cmd, options = {}) {
+  await auditLog(AuditLevel.SECURITY, "execute_free_command", { cmd });
+
+  const submitRes = await fetch(MESTRE_RUN_FREE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    body: JSON.stringify({ cmd }),
+    signal: AbortSignal.timeout(options.submitTimeoutMs || 10000),
+  });
+
+  const submitData = await submitRes.json();
+  if (submitRes.ok === false || submitData.success !== true || submitData.accepted !== true || submitData.jobId == null) {
+    await auditLog(AuditLevel.ERROR, "execute_free_command_failed", { cmd, error: submitData.output });
+    throw new Error(submitData.output || "Falha ao enviar comando livre para o Launcher.");
+  }
+
+  const timeoutMs = options.timeoutMs || 900000;
+  const pollIntervalMs = options.pollIntervalMs || 1200;
+  const statusTimeoutMs = options.statusTimeoutMs || 5000;
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const statusRes = await fetch(
+      MESTRE_STATUS_URL + "?id=" + encodeURIComponent(submitData.jobId),
+      { signal: AbortSignal.timeout(statusTimeoutMs) },
+    );
+    const statusData = await statusRes.json();
+    if (statusRes.ok === false) {
+      throw new Error(statusData.output || "Falha ao consultar status do Launcher.");
+    }
+    if (statusData.state === "running") {
+      await sleep(pollIntervalMs);
+      continue;
+    }
+    await auditLog(AuditLevel.SECURITY, "execute_free_command_completed", {
+      cmd,
+      jobId: submitData.jobId,
+      success: statusData.success,
+      exitCode: statusData.exitCode,
+    });
+    return statusData;
+  }
+
+  throw new Error("Timeout aguardando conclusão do comando livre no Launcher.");
+}
+
 const server = new Server(
   {
     name: "mestre-do-pc-mcp",
@@ -315,343 +371,9 @@ const server = new Server(
 );
 
 // Mapeamento das ferramentas MCP para comandos/IDs do Mestre do PC V10.
-// Comandos sem parâmetros podem usar apenas {id} (o launcher resolve em allowed-operations.json).
-// Comandos com {{TOKEN}} enviam {id, params} e o launcher valida+substitui de forma segura.
-const mestreTools = {
-  limpeza_rapida_completa: {
-    id: "limpeza_rapida_completa",
-    description: "Executa uma limpeza rápida completa no sistema: esvazia a lixeira e limpa pastas temporárias.",
-    command: 'Remove-Item "$env:TEMP\\*" -Recurse -Force -EA 0; Remove-Item "C:\\Windows\\Temp\\*" -Recurse -Force -EA 0; Clear-RecycleBin -Force -EA 0; Write-Host "✅ Limpeza concluida!" -ForegroundColor Green',
-  },
-  esvaziar_lixeira: {
-    id: "esvaziar_lixeira",
-    description: "Esvazia silenciosamente a lixeira do Windows.",
-    command: 'Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Host "✅ Lixeira esvaziada!" -ForegroundColor Green',
-  },
-  limpar_cache_windows_update: {
-    id: "limpar_cache_do_windows_update",
-    description: "Limpa o cache do Windows Update paralisando e reiniciando o serviço.",
-    command: 'Stop-Service wuauserv -Force; Remove-Item "C:\\Windows\\SoftwareDistribution\\Download\\*" -Recurse -Force -EA 0; Start-Service wuauserv; Write-Host "✅ Cache WU limpo!" -ForegroundColor Green',
-  },
-  limpar_logs_event_viewer: {
-    id: "limpar_eventviewer_logs",
-    description: "Limpa todos os logs do Event Viewer do Windows.",
-    command: 'Get-EventLog -List | ForEach-Object { Clear-EventLog -LogName $_.Log -EA 0 }; Write-Host "✅ Logs de eventos limpos!" -ForegroundColor Green',
-  },
-  limpar_cache_thumbnail: {
-    id: "limpar_thumbnail_cache",
-    description: "Limpa o cache de miniaturas (thumbnails) do Windows.",
-    command: 'ie4uinit.exe -show; Remove-Item "$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*" -Force -EA 0; Write-Host "✅ Thumbnail cache limpo!" -ForegroundColor Green',
-  },
-  liberar_memoria_ram: {
-    id: "liberar_memoria_ram_imediatamente",
-    description: "Tenta liberar a memória RAM imediatamente usando o Garbage Collector do .NET.",
-    command: '[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers(); Write-Host "✅ RAM liberada!" -ForegroundColor Green',
-  },
-  ver_uso_ram: {
-    id: "ver_uso_ram",
-    description: "Retorna o status atual mostrando a quantidade de memória RAM livre e o total instalado.",
-    command: '$ram = Get-WmiObject Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host "RAM Livre: $livre GB de $total GB"',
-  },
-  listar_processos_alto_consumo_ram: {
-    id: "listar_processos_por_uso_de_ram",
-    description: "Lista os 15 processos que mais estão consumindo memória RAM no momento.",
-    command: 'Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize',
-  },
-  reiniciar_explorer: {
-    id: "reiniciar_explorer",
-    description: "Reinicia o Windows Explorer (explorer.exe).",
-    command: 'Stop-Process -Name explorer -Force; Start-Process explorer; Write-Host "✅ Explorer reiniciado!" -ForegroundColor Green',
-  },
-  encerrar_processo: {
-    id: "encerrar_processo",
-    description: "Encerra um processo pelo nome. Informe o parâmetro 'nome' com o nome do processo (ex: chrome, notepad).",
-    command: 'Stop-Process -Name "{{NOME}}" -Force -EA 0; if ($?) { Write-Host "✅ Processo {{NOME}} encerrado com sucesso!" -ForegroundColor Green } else { Write-Host "⚠️ Processo {{NOME}} não encontrado ou já encerrado." -ForegroundColor Yellow }',
-  },
-  desativar_servico: {
-    id: "desativar_servico",
-    description: "Desativa e para um serviço do Windows pelo nome. Informe 'nome_servico' (ex: wuauserv, SysMain, Spooler).",
-    command: 'Set-Service -Name "{{NOME_SERVICO}}" -StartupType Disabled -EA 0; Stop-Service -Name "{{NOME_SERVICO}}" -Force -EA 0; if ($?) { Write-Host "✅ Serviço {{NOME_SERVICO}} desativado!" -ForegroundColor Green } else { Write-Host "⚠️ Serviço {{NOME_SERVICO}} não encontrado." -ForegroundColor Yellow }',
-  },
-  verificar_espaco_disco: {
-    id: "verificar_espaco_em_disco",
-    description: "Verifica e retorna o espaço usado, livre e total de todos os discos.",
-    command: 'Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{N="Usado(GB)";E={[math]::Round(($_.Used/1GB),2)}},@{N="Livre(GB)";E={[math]::Round(($_.Free/1GB),2)}},@{N="Total(GB)";E={[math]::Round((($_.Used+$_.Free)/1GB),2)}} | Format-Table -AutoSize',
-  },
-  verificar_saude_disco: {
-    id: "verificar_saude_do_disco_smart",
-    description: "Verifica a saúde do disco (S.M.A.R.T.).",
-    command: "Get-WmiObject -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize",
-  },
-  diagnostico_rede: {
-    id: "diagnostico_de_rede_completo",
-    description: "Faz um diagnóstico mostrando informações completas da rede (ipconfig /all).",
-    command: "ipconfig /all",
-  },
-  renovar_ip: {
-    id: "flush_e_renovar_ip",
-    description: "Faz o flush do DNS e renova o endereço IP da máquina.",
-    command: 'ipconfig /flushdns; ipconfig /release; ipconfig /renew; Write-Host "✅ IP renovado!" -ForegroundColor Green',
-  },
-  reparar_arquivos_sfc: {
-    id: "sfc_scan_reparo_de_arquivos",
-    description: "Executa o sfc /scannow para reparar arquivos corrompidos do sistema.",
-    command: "sfc /scannow",
-  },
-  reparar_imagem_dism: {
-    id: "dism_restaurar_saude",
-    description: "Executa a restauração da imagem do Windows (DISM /RestoreHealth).",
-    command: "DISM /Online /Cleanup-Image /RestoreHealth",
-  },
-  verificar_informacoes_sistema: {
-    id: "informacoes_do_sistema",
-    description: "Lista o nome do produto Windows, arquitetura, nome do PC, Processador e Memória total.",
-    command: "Get-ComputerInfo | Select-Object WindowsProductName,WindowsVersion,OsArchitecture,CsName,CsProcessors,CsTotalPhysicalMemory | Format-List",
-  },
-  verificar_temperatura_cpu: {
-    id: "temperatura_do_cpu_wmi",
-    description: "Tenta obter a temperatura da CPU via WMI.",
-    command: 'Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace "root/wmi" | ForEach-Object { Write-Host "Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C" }',
-  },
-  diagnostico_completo: {
-    id: "diagnostico_completo",
-    description: "Executa um diagnóstico completo do PC: RAM, disco, rede, processos pesados e informações do sistema.",
-    command: 'Write-Host "===== DIAGNÓSTICO COMPLETO =====" -ForegroundColor Cyan; Write-Host ""; Write-Host "--- RAM ---" -ForegroundColor Yellow; $ram = Get-WmiObject Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host "RAM Livre: $livre GB de $total GB"; Write-Host ""; Write-Host "--- DISCO ---" -ForegroundColor Yellow; Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{N="Usado(GB)";E={[math]::Round(($_.Used/1GB),2)}},@{N="Livre(GB)";E={[math]::Round(($_.Free/1GB),2)}} | Format-Table -AutoSize; Write-Host "--- TOP 10 PROCESSOS (RAM) ---" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host "--- REDE ---" -ForegroundColor Yellow; Test-Connection 8.8.8.8 -Count 1 -Quiet | ForEach-Object { if($_){Write-Host "Internet: OK" -ForegroundColor Green}else{Write-Host "Internet: SEM CONEXÃO" -ForegroundColor Red} }',
-  },
-  relatorio_rapido_pc: {
-    id: "relatorio_rapido_do_pc",
-    description: "Gera um relatório rápido do PC com Windows, uptime, RAM, disco C, top 10 processos e internet.",
-    command: `Write-Host "===== RELATORIO RAPIDO DO PC =====" -ForegroundColor Cyan; $os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host "Computador: $env:COMPUTERNAME"; Write-Host "Windows: $($os.Caption) Build $($os.BuildNumber)"; Write-Host "CPU: $($cpu.Name)"; Write-Host "RAM: $ramLivre GB livre de $ramTotal GB"; Write-Host "Disco C: $diskLivre GB livre de $diskTotal GB"; Write-Host "Uptime: $($uptime.Days)d $($uptime.Hours)h"; Write-Host ""; Write-Host "Top 10 processos por RAM:" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host ""; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host "Internet: OK" -ForegroundColor Green}else{Write-Host "Internet: SEM CONEXAO" -ForegroundColor Red}`,
-  },
-  exportar_diagnostico: {
-    id: "exportar_diagnostico_para_logs",
-    description: "Exporta um diagnóstico rápido para a pasta logs com nome diagnostico-YYYYMMDD-HHMMSS.txt.",
-    command: `$project=$env:MESTRE_PROJETO_PATH; $logDir=Join-Path $project "logs"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir ("diagnostico-"+(Get-Date -Format "yyyyMMdd-HHmmss")+".txt"); $os=Get-WmiObject Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @("===== DIAGNOSTICO MESTRE DO PC =====","Data: $(Get-Date)","Computador: $env:COMPUTERNAME","Windows: $($os.Caption) Build $($os.BuildNumber)","RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))","Disco C livre GB: $([math]::Round($disk.Free/1GB,2))","",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host "Diagnostico salvo em: $file" -ForegroundColor Green`,
-  },
-  listar_modelos_ollama: {
-    id: "listar_modelos_ollama",
-    description: "Lista modelos disponíveis no Ollama local e destaca modelos cloud no texto.",
-    command: `try { $data=(Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -TimeoutSec 5); Write-Host "Modelos Ollama instalados:" -ForegroundColor Cyan; if(-not $data.models){ Write-Host "Nenhum modelo retornado pelo Ollama." -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match "cloud"){ " [cloud]" } else { "" }; Write-Host ("- " + $_.name + $cloud) } } } catch { Write-Host "Ollama offline ou inacessivel em localhost:11434" -ForegroundColor Yellow; Write-Host $_.Exception.Message }`,
-  },
-  abrir_pasta_logs: {
-    id: "abrir_pasta_logs",
-    description: "Abre a pasta logs do MestreDoPC no Windows Explorer.",
-    command: `$project=$env:MESTRE_PROJETO_PATH; $logDir=Join-Path $project "logs"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; Start-Process $logDir; Write-Host "Pasta de logs aberta: $logDir" -ForegroundColor Green`,
-  },
-  ver_tarefas_mestre: {
-    id: "ver_tarefas_mestredopc",
-    description: "Lista as tarefas agendadas MestreDoPC_Admin_Launcher e MestreDoPC_Startup, quando existirem.",
-    command: `$names=@("MestreDoPC_Admin_Launcher","MestreDoPC_Startup"); $rows=foreach($name in $names){ $task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue; if($task){ $info=Get-ScheduledTaskInfo -TaskName $name -ErrorAction SilentlyContinue; [pscustomobject]@{Task=$name;State=$task.State;LastRun=$info.LastRunTime;LastResult=$info.LastTaskResult;NextRun=$info.NextRunTime} } else { [pscustomobject]@{Task=$name;State="Nao encontrada";LastRun="";LastResult="";NextRun=""} } }; $rows | Format-Table -AutoSize`,
-  },
-  git_status: {
-    id: "git_status_do_projeto",
-    description: "Executa 'git status' na pasta do projeto.",
-    command: `Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git status`,
-  },
-  git_pull: {
-    id: "git_pull_atualizar_local",
-    description: "Executa 'git pull' na pasta do projeto.",
-    command: `Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git pull; Write-Host "\u2705 Repositório atualizado!" -ForegroundColor Green`,
-  },
-  verificar_defender: {
-    id: "verificar_status_do_windows_defender",
-    description: "Verifica o status do Windows Defender.",
-    command: "Get-MpComputerStatus | Select-Object AMRunningMode,AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureLastUpdated | Format-List",
-  },
-  scan_defender_rapido: {
-    id: "scan_rapido_com_defender",
-    description: "Executa um scan rápido no Defender.",
-    command: 'Start-MpScan -ScanType QuickScan; Write-Host "✅ Scan rápido iniciado!" -ForegroundColor Green',
-  },
-
-  // ===== Terminal =====
-  abrir_windows_terminal: {
-    id: "abrir_windows_terminal",
-    description: "Abre uma nova janela do Windows Terminal.",
-    command: 'Start-Process wt.exe; Write-Host "✅ Windows Terminal aberto!" -ForegroundColor Green',
-  },
-  abrir_windows_terminal_no_projeto: {
-    id: "abrir_windows_terminal_no_projeto",
-    description: "Abre o Windows Terminal já na pasta do projeto Mestre do PC.",
-    command: 'Start-Process wt.exe -ArgumentList "-d","$env:MESTRE_PROJETO_PATH"; Write-Host "✅ Windows Terminal aberto no projeto!" -ForegroundColor Green',
-  },
-  abrir_cmd_no_projeto: {
-    id: "abrir_cmd_no_projeto",
-    description: "Abre o Prompt de Comando (CMD) já na pasta do projeto Mestre do PC.",
-    command: 'Start-Process cmd.exe -ArgumentList "/K","cd /d ""$env:MESTRE_PROJETO_PATH"""; Write-Host "✅ CMD aberto no projeto!" -ForegroundColor Green',
-  },
-  verificar_terminal_padrao: {
-    id: "verificar_terminal_padrao",
-    description: "Verifica qual aplicativo de terminal está configurado como padrão no Windows.",
-    command: 'try { $t = Get-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationConsole -EA Stop; Write-Host "Terminal padrão configurado: $($t.DelegationConsole)" } catch { Write-Host "Nenhuma preferência de terminal padrão definida (usando padrão do sistema)." -ForegroundColor Yellow }',
-  },
-  definir_windows_terminal_como_padrao: {
-    id: "definir_windows_terminal_como_padrao",
-    description: "Define o Windows Terminal como o terminal padrão do sistema.",
-    command: 'New-Item -Path "HKCU:\\Console\\%%Startup" -Force | Out-Null; Set-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationConsole -Value "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"; Set-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationTerminal -Value "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"; Write-Host "✅ Windows Terminal definido como padrão!" -ForegroundColor Green',
-  },
-  listar_variaveis_de_ambiente_path: {
-    id: "listar_variaveis_de_ambiente_path",
-    description: "Lista todas as entradas da variável de ambiente PATH.",
-    command: '($env:Path -split \';\') | Where-Object { $_ -ne "" } | ForEach-Object { Write-Host $_ }',
-  },
-  verificar_edicoes_do_windows_terminal_instaladas: {
-    id: "verificar_edicoes_do_windows_terminal_instaladas",
-    description: "Verifica se o Windows Terminal está instalado via winget.",
-    command: "winget list --id Microsoft.WindowsTerminal",
-  },
-  listar_processos_de_terminais_abertos: {
-    id: "listar_processos_de_terminais_abertos",
-    description: "Lista processos de terminais abertos (Windows Terminal, PowerShell, pwsh, CMD).",
-    command: 'Get-Process -Name wt,powershell,pwsh,cmd -ErrorAction SilentlyContinue | Select-Object Name,Id,StartTime | Format-Table -AutoSize',
-  },
-  reiniciar_windows_terminal: {
-    id: "reiniciar_windows_terminal",
-    description: "Encerra o processo do Windows Terminal (fecha todas as janelas abertas).",
-    command: 'Stop-Process -Name WindowsTerminal -Force -EA 0; Write-Host "✅ Windows Terminal reiniciado (feche e abra novamente)!" -ForegroundColor Green',
-  },
-
-  // ===== Node.js =====
-  verificar_versao_node: {
-    id: "verificar_versao_node",
-    description: "Mostra a versão instalada do Node.js e do NPM.",
-    command: "node -v; npm -v",
-  },
-  listar_pacotes_globais_npm: {
-    id: "listar_pacotes_globais_npm",
-    description: "Lista os pacotes NPM instalados globalmente.",
-    command: "npm list -g --depth=0",
-  },
-  atualizar_npm: {
-    id: "atualizar_npm",
-    description: "Atualiza o NPM para a versão mais recente.",
-    command: 'npm install -g npm@latest; Write-Host "✅ NPM atualizado!" -ForegroundColor Green',
-  },
-  limpar_cache_npm: {
-    id: "limpar_cache_npm",
-    description: "Limpa o cache do NPM.",
-    command: 'npm cache clean --force; Write-Host "✅ Cache do NPM limpo!" -ForegroundColor Green',
-  },
-  verificar_processos_node_ativos: {
-    id: "verificar_processos_node_ativos",
-    description: "Lista processos Node.js ativos e o uso de RAM de cada um.",
-    command: 'Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize',
-  },
-  verificar_dependencias_desatualizadas_npm: {
-    id: "verificar_dependencias_desatualizadas_npm",
-    description: "Roda 'npm outdated' na pasta do projeto Mestre do PC.",
-    command: "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm outdated",
-  },
-  auditar_seguranca_npm: {
-    id: "auditar_seguranca_npm",
-    description: "Roda 'npm audit' na pasta do projeto Mestre do PC.",
-    command: "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm audit",
-  },
-  instalar_pacote_npm_global: {
-    id: "instalar_pacote_npm_global",
-    description: "Instala um pacote NPM globalmente. Informe o parâmetro 'pacote' com o nome do pacote (ex: typescript, nodemon).",
-    command: 'npm install -g {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} instalado!" -ForegroundColor Green',
-  },
-  desinstalar_pacote_npm_global: {
-    id: "desinstalar_pacote_npm_global",
-    description: "Desinstala um pacote NPM global. Informe o parâmetro 'pacote' com o nome do pacote.",
-    command: 'npm uninstall -g {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} desinstalado!" -ForegroundColor Green',
-  },
-
-  // ===== PowerShell =====
-  verificar_versao_do_powershell: {
-    id: "verificar_versao_do_powershell",
-    description: "Mostra a versão do PowerShell em uso e detalhes da edição.",
-    command: "$PSVersionTable | Format-List",
-  },
-  listar_modulos_powershell_instalados: {
-    id: "listar_modulos_powershell_instalados",
-    description: "Lista os módulos PowerShell instalados.",
-    command: "Get-Module -ListAvailable | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize",
-  },
-  verificar_execution_policy: {
-    id: "verificar_execution_policy",
-    description: "Mostra a Execution Policy configurada em cada escopo.",
-    command: "Get-ExecutionPolicy -List | Format-Table -AutoSize",
-  },
-  definir_execution_policy_remotesigned: {
-    id: "definir_execution_policy_remotesigned",
-    description: "Define a Execution Policy como RemoteSigned no escopo do usuário atual.",
-    command: 'Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host "✅ Execution Policy definida como RemoteSigned!" -ForegroundColor Green',
-  },
-  atualizar_ajuda_do_powershell: {
-    id: "atualizar_ajuda_do_powershell",
-    description: "Atualiza os arquivos de ajuda (Update-Help) do PowerShell.",
-    command: 'Update-Help -Force -ErrorAction SilentlyContinue; Write-Host "✅ Ajuda do PowerShell atualizada!" -ForegroundColor Green',
-  },
-  verificar_perfil_do_powershell: {
-    id: "verificar_perfil_do_powershell",
-    description: "Verifica se existe um perfil do PowerShell ($PROFILE) configurado e mostra seu conteúdo.",
-    command: 'if (Test-Path $PROFILE) { Write-Host "Perfil encontrado: $PROFILE"; Get-Content $PROFILE } else { Write-Host "Nenhum perfil do PowerShell configurado." -ForegroundColor Yellow }',
-  },
-  limpar_historico_do_powershell: {
-    id: "limpar_historico_do_powershell",
-    description: "Limpa o histórico de comandos do PowerShell (PSReadLine).",
-    command: '$h = (Get-PSReadLineOption).HistorySavePath; Remove-Item -Path $h -Force -EA 0; Write-Host "✅ Histórico do PowerShell limpo!" -ForegroundColor Green',
-  },
-  listar_variaveis_de_ambiente: {
-    id: "listar_variaveis_de_ambiente",
-    description: "Lista todas as variáveis de ambiente do sistema.",
-    command: "Get-ChildItem Env: | Sort-Object Name | Format-Table -AutoSize",
-  },
-
-  // ===== Python =====
-  verificar_versao_python: {
-    id: "verificar_versao_python",
-    description: "Mostra a versão instalada do Python.",
-    command: "python --version",
-  },
-  verificar_versao_pip: {
-    id: "verificar_versao_pip",
-    description: "Mostra a versão instalada do Pip.",
-    command: "pip --version",
-  },
-  listar_pacotes_pip_instalados: {
-    id: "listar_pacotes_pip_instalados",
-    description: "Lista os pacotes Python instalados via Pip.",
-    command: "pip list",
-  },
-  atualizar_pip: {
-    id: "atualizar_pip",
-    description: "Atualiza o Pip para a versão mais recente.",
-    command: 'python -m pip install --upgrade pip; Write-Host "✅ Pip atualizado!" -ForegroundColor Green',
-  },
-  verificar_pacotes_desatualizados_pip: {
-    id: "verificar_pacotes_desatualizados_pip",
-    description: "Lista os pacotes Pip que possuem versão mais nova disponível.",
-    command: "pip list --outdated",
-  },
-  verificar_processos_python_ativos: {
-    id: "verificar_processos_python_ativos",
-    description: "Lista processos Python ativos e o uso de RAM de cada um.",
-    command: 'Get-Process -Name python,python3,pythonw -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize',
-  },
-  limpar_cache_pip: {
-    id: "limpar_cache_pip",
-    description: "Limpa o cache de download do Pip.",
-    command: 'pip cache purge; Write-Host "✅ Cache do Pip limpo!" -ForegroundColor Green',
-  },
-  instalar_pacote_pip: {
-    id: "instalar_pacote_pip",
-    description: "Instala um pacote Python via Pip. Informe o parâmetro 'pacote' com o nome do pacote (ex: requests, numpy).",
-    command: 'pip install {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} instalado!" -ForegroundColor Green',
-  },
-  desinstalar_pacote_pip: {
-    id: "desinstalar_pacote_pip",
-    description: "Desinstala um pacote Python via Pip. Informe o parâmetro 'pacote' com o nome do pacote.",
-    command: 'pip uninstall -y {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} desinstalado!" -ForegroundColor Green',
-  },
-  criar_ambiente_virtual_venv: {
-    id: "criar_ambiente_virtual_venv",
-    description: "Cria um ambiente virtual Python (venv). Informe o parâmetro 'nome' com o nome da pasta do ambiente.",
-    command: 'python -m venv {{NOME}}; Write-Host "✅ Ambiente virtual \'{{NOME}}\' criado!" -ForegroundColor Green',
-  },
-};
+// Gerado dinamicamente a partir de v10/allowed-operations.json para garantir que launcher e MCP server
+// compartilhem exatamente a mesma fonte de verdade.
+const mestreTools = operationRegistry.buildMcpToolRegistry();
 
 // --- Model profiles (local automation desktop models) ---
 let modelProfiles = { defaultProfile: "balanced", profiles: {} };
@@ -1103,26 +825,8 @@ async function monitorAndAlert(webhookUrl, cpuLimite = 80, ramLimite = 80, disco
   }
 }
 
-const TOOLS = [
-  ...Object.entries(mestreTools).map(([name, config]) => {
-    const cmdStr = typeof config.command === "string" ? config.command : "";
-    const matches = [...cmdStr.matchAll(/\{\{([A-Z_]+)\}\}/g)];
-    const uniqueTokens = [...new Set(matches.map((m) => m[1]))];
-    const properties = {};
-    for (const token of uniqueTokens) {
-      const key = token.toLowerCase();
-      properties[key] = { type: "string", description: `Valor para ${token}` };
-    }
-    return {
-      name,
-      description: config.description,
-      inputSchema: {
-        type: "object",
-        properties,
-        required: uniqueTokens.map((t) => t.toLowerCase()),
-      },
-    };
-  }),
+// Tools extras que não são operações da whitelist (IA, webhook, análise, etc.)
+const EXTRA_TOOLS = [
   {
     name: "perguntar_ia",
     description: "Envia uma pergunta ao modelo de IA (Ollama local ou cloud) para obter sugestões de manutenção. Use para análise inteligente.",
@@ -1400,7 +1104,31 @@ const TOOLS = [
       required: ["mensagem_commit"],
     },
   },
+  {
+    name: "definir_modo_livre",
+    description: "Liga ou desliga o Modo Livre no Launcher. Com o Modo Livre ligado, 'executar_comando_livre' passa a rodar qualquer comando PowerShell, fora da whitelist de allowed-operations.json. Desligado por padrão.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ativar: { type: "boolean", description: "true para ligar o Modo Livre, false para desligar." },
+      },
+      required: ["ativar"],
+    },
+  },
+  {
+    name: "executar_comando_livre",
+    description: "Executa um comando PowerShell arbitrário, sem checar a whitelist de allowed-operations.json. Só funciona com o Modo Livre ligado ('definir_modo_livre'). Use com cautela: não há barreira de segurança além da auditoria — comandos destrutivos ou digitados incorretamente rodam do mesmo jeito.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        comando: { type: "string", description: "Comando PowerShell completo a ser executado." },
+      },
+      required: ["comando"],
+    },
+  },
 ];
+
+const TOOLS = operationRegistry.buildMcpToolSchemas(EXTRA_TOOLS);
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return { tools: TOOLS };
@@ -2015,6 +1743,44 @@ Responda apenas com o comando PowerShell, nada mais.`,
       return { content: [{ type: "text", text: cleanMsg }] };
     } catch (e) {
       return { isError: true, content: [{ type: "text", text: `Falha ao gerar snapshot: ${e.message}` }] };
+    }
+  }
+
+  if (name === "definir_modo_livre") {
+    try {
+      const ativar = !!args?.ativar;
+      const res = await fetch(MESTRE_MODO_LIVRE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+        body: JSON.stringify({ enabled: ativar }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success !== true) {
+        return { isError: true, content: [{ type: "text", text: `Falha ao alterar o Modo Livre: ${data.reason || "erro desconhecido"}` }] };
+      }
+      return { content: [{ type: "text", text: data.enabled ? "🔓 Modo Livre ativado. Comandos fora da whitelist podem ser executados via 'executar_comando_livre'." : "🔒 Modo Livre desativado." }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao falar com o Launcher: ${e.message}` }] };
+    }
+  }
+
+  if (name === "executar_comando_livre") {
+    const cmd = typeof args?.comando === "string" ? args.comando : "";
+    if (!cmd.trim()) {
+      return { isError: true, content: [{ type: "text", text: "Parâmetro 'comando' ausente ou vazio." }] };
+    }
+    try {
+      const data = await executeFreeCommand(cmd, { timeoutMs: 900000 });
+      return {
+        isError: !data.success,
+        content: [{ type: "text", text: data.output || (data.success ? "✅ Ok." : "❌ Erro.") }],
+      };
+    } catch (error) {
+      if (error.name === "AbortError" || error.name === "TimeoutError") {
+        return { isError: true, content: [{ type: "text", text: "⏱️ Timeout ao executar o comando livre." }] };
+      }
+      return { isError: true, content: [{ type: "text", text: `Falha ao executar comando livre: ${error.message}` }] };
     }
   }
 
