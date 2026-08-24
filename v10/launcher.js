@@ -7,10 +7,12 @@
 import http from "node:http";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import { checkPromptInjection } from "../mcp-server/security.js";
+import { auditLog, AuditLevel } from "../mcp-server/audit-logger.js";
 import { handleApiRoute } from "./chat-integrado/api-routes.js";
 import { handleMemoryRoutes } from "./memory-routes.js";
 import { 
@@ -41,6 +43,30 @@ const MAX_CONCURRENT_JOBS = 3;
 const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 const JOB_RETENTION_MS = 30 * 60 * 1000;
 const MAX_CMD_LENGTH = 32768;
+
+// ===== Modo Livre — execução de comandos fora da whitelist =====
+// Opt-in e reversível: por padrão desligado. Quando ligado, /run-free aceita
+// qualquer comando PowerShell (sem checar allowed-operations.json) e o chat
+// pula o modal de confirmação. Cada execução é logada em nível SECURITY.
+const MODO_LIVRE_CONFIG_FILE = join(__dirname, "..", "logs", "config", "modo-livre.json");
+let modoLivreEnabled = process.env.MESTRE_MODO_LIVRE === "1";
+try {
+  if (existsSync(MODO_LIVRE_CONFIG_FILE)) {
+    const saved = JSON.parse(readFileSync(MODO_LIVRE_CONFIG_FILE, "utf8"));
+    if (typeof saved.enabled === "boolean") modoLivreEnabled = saved.enabled;
+  }
+} catch { /* usa o valor da env var / padrão (desligado) */ }
+
+async function setModoLivre(enabled) {
+  modoLivreEnabled = !!enabled;
+  try {
+    await mkdir(dirname(MODO_LIVRE_CONFIG_FILE), { recursive: true });
+    await writeFile(MODO_LIVRE_CONFIG_FILE, JSON.stringify({ enabled: modoLivreEnabled, updatedAt: new Date().toISOString() }, null, 2), "utf8");
+  } catch (e) {
+    console.error(`[MODO-LIVRE] Falha ao persistir estado: ${e.message}`);
+  }
+  return modoLivreEnabled;
+}
 
 // Constrói environment limpo para spawn do PowerShell 5.1, removendo caminhos
 // do PS 7 (MSIX) que poluem PSModulePath e quebram módulos como Microsoft.PowerShell.Security
@@ -661,6 +687,49 @@ const server = http.createServer(async (req, res) => {
       if (!isAuthorized(req)) return sendJson(res, 403, { allowed: false, reason: "Cliente não autorizado." }, allowedOrigin);
       const body = await readBody(req, 64 * 1024);
       return sendJson(res, 200, classifyCommand(body), allowedOrigin);
+    }
+
+    // Estado do Modo Livre (ligado/desligado). GET consulta, POST alterna.
+    if (path === "/modo-livre" && req.method === "GET") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { enabled: false, reason: "Cliente não autorizado." }, allowedOrigin);
+      return sendJson(res, 200, { enabled: modoLivreEnabled }, allowedOrigin);
+    }
+    if (path === "/modo-livre" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, reason: "Cliente não autorizado." }, allowedOrigin);
+      const body = await readBody(req, 1024);
+      const enabled = await setModoLivre(body.enabled);
+      await auditLog(AuditLevel.SECURITY, "modo_livre_toggle", { enabled }, req.headers["x-mestre-client"] || "unknown");
+      return sendJson(res, 200, { success: true, enabled }, allowedOrigin);
+    }
+
+    // Modo Livre: executa QUALQUER comando PowerShell, sem checar a whitelist
+    // de allowed-operations.json. Só responde se o Modo Livre estiver ligado
+    // (ver /modo-livre) — desligado por padrão. Toda chamada é auditada em
+    // nível SECURITY com o comando literal, já que a whitelist deixa de ser
+    // a rede de segurança aqui.
+    if (path === "/run-free" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado.", state: "forbidden" }, allowedOrigin);
+      if (!modoLivreEnabled) {
+        return sendJson(res, 403, { success: false, output: "Modo Livre está desligado. Ative em /modo-livre antes de executar comandos fora da whitelist.", state: "forbidden" }, allowedOrigin);
+      }
+      if (getRunningJobCount() >= MAX_CONCURRENT_JOBS) {
+        return sendJson(res, 429, { success: false, output: "Limite de comandos simultâneos atingido.", state: "busy" }, allowedOrigin);
+      }
+      const body = await readBody(req);
+      const cmd = typeof body.cmd === "string" ? body.cmd : "";
+      if (!cmd || cmd.length > MAX_CMD_LENGTH) {
+        return sendJson(res, 400, { success: false, output: "Comando ausente ou excede o limite de tamanho." }, allowedOrigin);
+      }
+      await auditLog(AuditLevel.SECURITY, "run_free_command", { cmd }, req.headers["x-mestre-client"] || "unknown");
+      const id = runPowerShell(cmd, { id: "livre", destructive: true });
+      return sendJson(res, 202, {
+        success: true,
+        accepted: true,
+        jobId: id,
+        state: "running",
+        activeJobs: getRunningJobCount(),
+        operationId: "livre",
+      }, allowedOrigin);
     }
 
     if (path === "/run-status") {

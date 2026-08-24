@@ -71,6 +71,7 @@ const TEMPLATE = `
         <button data-action="export-md" title="Baixar conversa em relatório Markdown">📥 MD</button>
         <button data-action="clear-attachments" title="Limpar contextos anexados">🧹 Limpar</button>
         <button data-action="clear-chat" title="Limpar todo o histórico de chat da IA" style="border-color:rgba(248,81,73,0.4);color:var(--danger)">🗑️ Limpar Chat</button>
+        <button id="mestreChatModoLivreBtn" data-action="toggle-modo-livre" title="Quando ligado, comandos sugeridos pela IA rodam direto, sem checar a whitelist e sem pedir confirmação. Use com cautela.">🔒 Modo Livre</button>
       </div>
       <div class="mestre-chat-attach-panel" id="mestreChatAttachPanel">
         <h4 id="mestreChatAttachTitle">Anexos ao contexto</h4>

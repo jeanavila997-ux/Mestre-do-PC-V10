@@ -20,8 +20,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MESTRE_BASE_URL = (process.env.MESTRE_BASE_URL || "http://127.0.0.1:7777").replace(/\/+$/, "");
 const MESTRE_RUN_URL = MESTRE_BASE_URL + "/run";
+const MESTRE_RUN_FREE_URL = MESTRE_BASE_URL + "/run-free";
 const MESTRE_STATUS_URL = MESTRE_BASE_URL + "/run-status";
 const MESTRE_CLASSIFY_URL = MESTRE_BASE_URL + "/classify";
+const MESTRE_MODO_LIVRE_URL = MESTRE_BASE_URL + "/modo-livre";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -300,6 +302,57 @@ async function executeLauncherCommand(commandOrPayload, options = {}) {
     jobId: submitData.jobId,
   });
   throw new Error("Timeout aguardando conclusão do comando no Launcher.");
+}
+
+// Executa um comando PowerShell arbitrário via /run-free, fora da whitelist de
+// allowed-operations.json. Só funciona se o Modo Livre estiver ligado no
+// launcher (ver /modo-livre) — se estiver desligado, o launcher responde 403.
+// Toda chamada é auditada em nível SECURITY, já que aqui não há whitelist
+// como rede de segurança.
+async function executeFreeCommand(cmd, options = {}) {
+  await auditLog(AuditLevel.SECURITY, "execute_free_command", { cmd });
+
+  const submitRes = await fetch(MESTRE_RUN_FREE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    body: JSON.stringify({ cmd }),
+    signal: AbortSignal.timeout(options.submitTimeoutMs || 10000),
+  });
+
+  const submitData = await submitRes.json();
+  if (submitRes.ok === false || submitData.success !== true || submitData.accepted !== true || submitData.jobId == null) {
+    await auditLog(AuditLevel.ERROR, "execute_free_command_failed", { cmd, error: submitData.output });
+    throw new Error(submitData.output || "Falha ao enviar comando livre para o Launcher.");
+  }
+
+  const timeoutMs = options.timeoutMs || 900000;
+  const pollIntervalMs = options.pollIntervalMs || 1200;
+  const statusTimeoutMs = options.statusTimeoutMs || 5000;
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const statusRes = await fetch(
+      MESTRE_STATUS_URL + "?id=" + encodeURIComponent(submitData.jobId),
+      { signal: AbortSignal.timeout(statusTimeoutMs) },
+    );
+    const statusData = await statusRes.json();
+    if (statusRes.ok === false) {
+      throw new Error(statusData.output || "Falha ao consultar status do Launcher.");
+    }
+    if (statusData.state === "running") {
+      await sleep(pollIntervalMs);
+      continue;
+    }
+    await auditLog(AuditLevel.SECURITY, "execute_free_command_completed", {
+      cmd,
+      jobId: submitData.jobId,
+      success: statusData.success,
+      exitCode: statusData.exitCode,
+    });
+    return statusData;
+  }
+
+  throw new Error("Timeout aguardando conclusão do comando livre no Launcher.");
 }
 
 const server = new Server(
@@ -1400,6 +1453,28 @@ const TOOLS = [
       required: ["mensagem_commit"],
     },
   },
+  {
+    name: "definir_modo_livre",
+    description: "Liga ou desliga o Modo Livre no Launcher. Com o Modo Livre ligado, 'executar_comando_livre' passa a rodar qualquer comando PowerShell, fora da whitelist de allowed-operations.json. Desligado por padrão.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ativar: { type: "boolean", description: "true para ligar o Modo Livre, false para desligar." },
+      },
+      required: ["ativar"],
+    },
+  },
+  {
+    name: "executar_comando_livre",
+    description: "Executa um comando PowerShell arbitrário, sem checar a whitelist de allowed-operations.json. Só funciona com o Modo Livre ligado ('definir_modo_livre'). Use com cautela: não há barreira de segurança além da auditoria — comandos destrutivos ou digitados incorretamente rodam do mesmo jeito.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        comando: { type: "string", description: "Comando PowerShell completo a ser executado." },
+      },
+      required: ["comando"],
+    },
+  },
 ];
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -2015,6 +2090,44 @@ Responda apenas com o comando PowerShell, nada mais.`,
       return { content: [{ type: "text", text: cleanMsg }] };
     } catch (e) {
       return { isError: true, content: [{ type: "text", text: `Falha ao gerar snapshot: ${e.message}` }] };
+    }
+  }
+
+  if (name === "definir_modo_livre") {
+    try {
+      const ativar = !!args?.ativar;
+      const res = await fetch(MESTRE_MODO_LIVRE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+        body: JSON.stringify({ enabled: ativar }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success !== true) {
+        return { isError: true, content: [{ type: "text", text: `Falha ao alterar o Modo Livre: ${data.reason || "erro desconhecido"}` }] };
+      }
+      return { content: [{ type: "text", text: data.enabled ? "🔓 Modo Livre ativado. Comandos fora da whitelist podem ser executados via 'executar_comando_livre'." : "🔒 Modo Livre desativado." }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha ao falar com o Launcher: ${e.message}` }] };
+    }
+  }
+
+  if (name === "executar_comando_livre") {
+    const cmd = typeof args?.comando === "string" ? args.comando : "";
+    if (!cmd.trim()) {
+      return { isError: true, content: [{ type: "text", text: "Parâmetro 'comando' ausente ou vazio." }] };
+    }
+    try {
+      const data = await executeFreeCommand(cmd, { timeoutMs: 900000 });
+      return {
+        isError: !data.success,
+        content: [{ type: "text", text: data.output || (data.success ? "✅ Ok." : "❌ Erro.") }],
+      };
+    } catch (error) {
+      if (error.name === "AbortError" || error.name === "TimeoutError") {
+        return { isError: true, content: [{ type: "text", text: "⏱️ Timeout ao executar o comando livre." }] };
+      }
+      return { isError: true, content: [{ type: "text", text: `Falha ao executar comando livre: ${error.message}` }] };
     }
   }
 
