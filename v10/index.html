@@ -778,12 +778,11 @@
         </div>
         <div id="queueList"></div>
       </div>
-      <!-- Modal de parâmetro -->
+      <!-- Modal de parâmetro (suporta 1+ campos) -->
       <div id="paramOverlay" class="param-overlay">
         <div class="param-modal">
           <h3 id="paramTitle" class="param-title">Parâmetro necessário</h3>
-          <p id="paramDesc" class="param-desc"></p>
-          <input id="paramInput" type="text" class="param-input" onkeydown="if(event.key==='Enter') confirmParam()" />
+          <div id="paramFields"></div>
           <div class="param-actions">
             <button class="btn-param-cancel" onclick="cancelParam()">Cancelar</button>
             <button class="btn-param-confirm" onclick="confirmParam()">▶ Executar</button>
@@ -998,7 +997,7 @@
         label: "3. Memória / RAM",
         cmds: [
           ["Liberar Memória RAM Imediatamente", "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers(); Write-Host \"✅ RAM liberada!\" -ForegroundColor Green"],
-          ["Ver Uso Atual de RAM", "$ram = Get-WmiObject Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host \"RAM Livre: $livre GB de $total GB\" -ForegroundColor Cyan"],
+          ["Ver Uso Atual de RAM","$ram = Get-CimInstance Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host \"RAM Livre: $livre GB de $total GB\" -ForegroundColor Cyan"],
           ["Listar Processos por Uso de RAM", "Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
           ["Desativar SuperFetch (SysMain)", "Set-Service -Name \"SysMain\" -StartupType Disabled; Stop-Service -Name \"SysMain\" -Force; Write-Host \"✅ SysMain desativado!\" -ForegroundColor Green"],
           ["Reativar SuperFetch (SysMain)", "Set-Service -Name \"SysMain\" -StartupType Automatic; Start-Service -Name \"SysMain\"; Write-Host \"✅ SysMain reativado!\" -ForegroundColor Green"],
@@ -1011,12 +1010,12 @@
         label: "4. Processos",
         cmds: [
           ["Listar Processos Ativos", "Get-Process | Sort-Object CPU -Descending | Select-Object -First 20 Name,Id,CPU,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,1)}} | Format-Table -AutoSize"],
-          ["Encerrar Processo por Nome", "Stop-Process -Name \"NOME_DO_PROCESSO\" -Force -EA 0; Write-Host \"✅ Processo encerrado!\" -ForegroundColor Green"],
+          ["Encerrar Processo por Nome","Stop-Process -Name \"§NOME_PROCESSO§\" -Force -EA 0; if ($?) { Write-Host \"✅ Processo §NOME_PROCESSO§ encerrado com sucesso!\" -ForegroundColor Green } else { Write-Host \"⚠️ Processo §NOME_PROCESSO§ não encontrado ou já encerrado.\" -ForegroundColor Yellow }"],
           ["Encerrar Todos Chrome", "Stop-Process -Name \"chrome\" -Force -EA 0; Write-Host \"✅ Chrome encerrado!\" -ForegroundColor Green"],
           ["Encerrar Todos Edge", "Stop-Process -Name \"msedge\" -Force -EA 0; Write-Host \"✅ Edge encerrado!\" -ForegroundColor Green"],
           ["Listar Serviços em Execução", "Get-Service | Where-Object Status -eq \"Running\" | Sort-Object DisplayName | Format-Table -AutoSize"],
           ["Listar Startups do Sistema", "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,User | Format-Table -AutoSize"],
-          ["Desativar Serviço por Nome", "Set-Service -Name \"NOME_SERVICO\" -StartupType Disabled; Stop-Service \"NOME_SERVICO\" -Force"],
+          ["Desativar Serviço por Nome","Set-Service -Name \"§NOME_SERVICO§\" -StartupType Disabled -EA 0; Stop-Service -Name \"§NOME_SERVICO§\" -Force -EA 0; if ($?) { Write-Host \"✅ Serviço §NOME_SERVICO§ desativado!\" -ForegroundColor Green } else { Write-Host \"⚠️ Serviço §NOME_SERVICO§ não encontrado.\" -ForegroundColor Yellow }"],
           ["Reiniciar Explorer", "Stop-Process -Name explorer -Force; Start-Process explorer; Write-Host \"✅ Explorer reiniciado!\" -ForegroundColor Green"],
           ["Ver tarefas agendadas", "Get-ScheduledTask | Where-Object State -eq \"Ready\" | Select-Object TaskName,TaskPath | Format-Table -AutoSize"],
         ],
@@ -1029,9 +1028,9 @@
           ["CHKDSK Verificação Rápida", "chkdsk C: /f /r; Write-Host \"✅ CHKDSK agendado para o próximo boot!\" -ForegroundColor Green"],
           ["Otimizar / Desfragmentar Disco", "Optimize-Volume -DriveLetter C -Defrag -Verbose"],
           ["Trim SSD", "Optimize-Volume -DriveLetter C -ReTrim -Verbose; Write-Host \"✅ TRIM executado!\" -ForegroundColor Green"],
-          ["Verificar Saúde do Disco (SMART)", "Get-WmiObject -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize"],
+          ["Verificar Saúde do Disco (SMART)","Get-CimInstance -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize"],
           ["Encontrar Pastas Gigantes (C:)", "Get-ChildItem C: -Directory | ForEach-Object { $s=(Get-ChildItem $_.FullName -Recurse -EA 0 | Measure-Object -Property Length -Sum).Sum; [PSCustomObject]@{Pasta=$_.Name;GB=[math]::Round($s/1GB,2)} } | Sort-Object GB -Desc | Select-Object -First 15 | Format-Table"],
-          ["Relatório de Disco (WinSAT)", "winsat disk -drive C"],
+          ["Relatório de Disco (WinSAT)","winsat disk -drive C"],
           ["Desativar Hibernação (libera espaço)", "powercfg -h off; Write-Host \"✅ Hibernação desativada, hiberfil.sys removido!\" -ForegroundColor Green"],
           ["Ativar Hibernação", "powercfg -h on; Write-Host \"✅ Hibernação ativada!\" -ForegroundColor Green"],
         ],
@@ -1045,7 +1044,7 @@
           ["Velocidade de Download (Teste rápido)", "Invoke-WebRequest -Uri \"http://speedtest.tele2.net/1MB.zip\" -OutFile \"$env:TEMP\\test.zip\" -UseBasicParsing; Write-Host \"✅ Download concluído!\" -ForegroundColor Green"],
           ["Flush e Renovar IP", "ipconfig /flushdns; ipconfig /release; ipconfig /renew; Write-Host \"✅ IP renovado!\" -ForegroundColor Green"],
           ["Resetar Pilha TCP/IP", "netsh int ip reset; netsh winsock reset; Write-Host \"✅ TCP/IP resetado! Reinicie o PC.\" -ForegroundColor Green"],
-          ["Ver Conexões Ativas", "netstat -ano | Select-String \"ESTABLISHED\""],
+          ["Ver Conexões Ativas","netstat -ano | Select-String \"ESTABLISHED\""],
           ["Ver Adaptadores de Rede", "Get-NetAdapter | Select-Object Name,Status,LinkSpeed,MacAddress | Format-Table -AutoSize"],
           ["Testar DNS", "Resolve-DnsName google.com; Resolve-DnsName cloudflare.com"],
           ["Ping para múltiplos servidores", "\"8.8.8.8\",\"1.1.1.1\",\"208.67.222.222\" | ForEach-Object { $r=Test-Connection $_ -Count 1 -EA 0; Write-Host \"$_ -> $($r.ResponseTime)ms\" }"],
@@ -1060,7 +1059,7 @@
           ["DISM Verificar Saúde", "DISM /Online /Cleanup-Image /CheckHealth"],
           ["DISM Scan Saúde", "DISM /Online /Cleanup-Image /ScanHealth"],
           ["Reparar Windows Update", "net stop wuauserv; net stop cryptSvc; net stop bits; net stop msiserver; Remove-Item \"C:\\Windows\\SoftwareDistribution\" -Recurse -Force -EA 0; net start wuauserv; net start cryptSvc; net start bits; net start msiserver; Write-Host \"✅ WU reparado!\" -ForegroundColor Green"],
-          ["Resetar Políticas de Grupo", "secedit /configure /cfg %windir%\\inf\\defltbase.inf /db defltbase.sdb /verbose"],
+          ["Resetar Políticas de Grupo","secedit /configure /cfg %windir%\\inf\\defltbase.inf /db defltbase.sdb /verbose"],
           ["Reparar .NET Framework", "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"],
           ["Verificar Erros de Boot", "bootrec /scanos; bootrec /fixmbr; bootrec /fixboot; bootrec /rebuildbcd"],
           ["Reparar Registro do Windows", "$ErrorActionPreference=\"SilentlyContinue\"; $reg=\"HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\"; Write-Host \"Versão: $((Get-ItemProperty $reg).ProductName)\" -ForegroundColor Cyan"],
@@ -1072,8 +1071,8 @@
         id: "cat_health",
         label: "🩺 Saúde do PC",
         cmds: [
-          ["Relatório rápido do PC", "$os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host \"===== RELATORIO RAPIDO DO PC =====\" -ForegroundColor Cyan; Write-Host \"Computador: $env:COMPUTERNAME\"; Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\"; Write-Host \"CPU: $($cpu.Name)\"; Write-Host \"RAM: $ramLivre GB livre de $ramTotal GB\"; Write-Host \"Disco C: $diskLivre GB livre de $diskTotal GB\"; Write-Host \"Uptime: $($uptime.Days)d $($uptime.Hours)h\"; Write-Host \"\"; Write-Host \"Top 10 processos por RAM:\" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host \"\"; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host \"Internet: OK\" -ForegroundColor Green}else{Write-Host \"Internet: SEM CONEXAO\" -ForegroundColor Red}"],
-          ["Exportar diagnóstico para logs", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir (\"diagnostico-\"+(Get-Date -Format \"yyyyMMdd-HHmmss\")+\".txt\"); $os=Get-WmiObject Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @(\"===== DIAGNOSTICO MESTRE DO PC =====\",\"Data: $(Get-Date)\",\"Computador: $env:COMPUTERNAME\",\"Windows: $($os.Caption) Build $($os.BuildNumber)\",\"RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))\",\"Disco C livre GB: $([math]::Round($disk.Free/1GB,2))\",\"\",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host \"Diagnostico salvo em: $file\" -ForegroundColor Green"],
+          ["Relatório rápido do PC","$os=Get-CimInstance Win32_OperatingSystem; $cpu=Get-CimInstance Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host \"===== RELATORIO RAPIDO DO PC =====\" -ForegroundColor Cyan; Write-Host \"Computador: $env:COMPUTERNAME\"; Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\"; Write-Host \"CPU: $($cpu.Name)\"; Write-Host \"RAM: $ramLivre GB livre de $ramTotal GB\"; Write-Host \"Disco C: $diskLivre GB livre de $diskTotal GB\"; Write-Host \"Uptime: $($uptime.Days)d $($uptime.Hours)h\"; Write-Host \"\"; Write-Host \"Top 10 processos por RAM:\" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host \"\"; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host \"Internet: OK\" -ForegroundColor Green}else{Write-Host \"Internet: SEM CONEXAO\" -ForegroundColor Red}"],
+          ["Exportar diagnóstico para logs","$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir (\"diagnostico-\"+(Get-Date -Format \"yyyyMMdd-HHmmss\")+\".txt\"); $os=Get-CimInstance Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @(\"===== DIAGNOSTICO MESTRE DO PC =====\",\"Data: $(Get-Date)\",\"Computador: $env:COMPUTERNAME\",\"Windows: $($os.Caption) Build $($os.BuildNumber)\",\"RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))\",\"Disco C livre GB: $([math]::Round($disk.Free/1GB,2))\",\"\",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host \"Diagnostico salvo em: $file\" -ForegroundColor Green"],
           ["Listar modelos Ollama", "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
           ["Testar Ollama (qwen3-coder-next:cloud)", "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://localhost:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
           ["Abrir pasta do projeto", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; Start-Process $project; Write-Host \"Pasta do projeto aberta: $project\" -ForegroundColor Green"],
@@ -1081,14 +1080,14 @@
           ["Abrir TEMP do usuário", "Start-Process $env:TEMP; Write-Host \"TEMP aberto: $env:TEMP\" -ForegroundColor Green"],
           ["Abrir Startup do usuário", "$startup=[Environment]::GetFolderPath(\"Startup\"); Start-Process $startup; Write-Host \"Startup aberto: $startup\" -ForegroundColor Green"],
           ["Ver tarefas MestreDoPC", "$names=@(\"MestreDoPC_Admin_Launcher\",\"MestreDoPC_Startup\"); $rows=foreach($name in $names){ $task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue; if($task){ $info=Get-ScheduledTaskInfo -TaskName $name -ErrorAction SilentlyContinue; [pscustomobject]@{Task=$name;State=$task.State;LastRun=$info.LastRunTime;LastResult=$info.LastTaskResult;NextRun=$info.NextRunTime} } else { [pscustomobject]@{Task=$name;State=\"Nao encontrada\";LastRun=\"\";LastResult=\"\";NextRun=\"\"} } }; $rows | Format-Table -AutoSize"],
-          ["Checkup Geral (Resumo Completo)", "$os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor; $disk=Get-PSDrive C; $ram=[math]::Round($os.FreePhysicalMemory/1MB,1); $totalRam=[math]::Round($os.TotalVisibleMemorySize/1MB,1); $diskFree=[math]::Round($disk.Free/1GB,1); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,1); $up=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $days=([datetime]::Now-$up).Days; Write-Host \"=== CHECKUP DO PC ===\" -ForegroundColor Cyan; Write-Host \"CPU: $($cpu.Name)\" -ForegroundColor White; Write-Host \"RAM: $ram GB livre de $totalRam GB\" -ForegroundColor $(if($ram -lt 2){\"Red\"}else{\"Green\"}); Write-Host \"Disco C: $diskFree GB livre de $diskTotal GB\" -ForegroundColor $(if($diskFree -lt 20){\"Red\"}else{\"Green\"}); Write-Host \"Uptime: $days dias\" -ForegroundColor $(if($days -gt 7){\"Yellow\"}else{\"Green\"}); Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\" -ForegroundColor White"],
+          ["Checkup Geral (Resumo Completo)","$os=Get-CimInstance Win32_OperatingSystem; $cpu=Get-CimInstance Win32_Processor; $disk=Get-PSDrive C; $ram=[math]::Round($os.FreePhysicalMemory/1MB,1); $totalRam=[math]::Round($os.TotalVisibleMemorySize/1MB,1); $diskFree=[math]::Round($disk.Free/1GB,1); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,1); $up=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $days=([datetime]::Now-$up).Days; Write-Host \"=== CHECKUP DO PC ===\" -ForegroundColor Cyan; Write-Host \"CPU: $($cpu.Name)\" -ForegroundColor White; Write-Host \"RAM: $ram GB livre de $totalRam GB\" -ForegroundColor $(if($ram -lt 2){\"Red\"}else{\"Green\"}); Write-Host \"Disco C: $diskFree GB livre de $diskTotal GB\" -ForegroundColor $(if($diskFree -lt 20){\"Red\"}else{\"Green\"}); Write-Host \"Uptime: $days dias\" -ForegroundColor $(if($days -gt 7){\"Yellow\"}else{\"Green\"}); Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\" -ForegroundColor White"],
           ["Verificar Saúde da Bateria", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'battery-report.html\'; powercfg /batteryreport /output \"$report\"; Write-Host \"✅ Relatório da bateria salvo em: $report\" -ForegroundColor Green"],
           ["Relatório de Energia Completo", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output \"$report\"; Write-Host \"✅ Relatório de energia salvo em: $report (aguarde 60s para completar)!\" -ForegroundColor Green"],
           ["Verificar Integridade do Sistema (SFC + DISM)", "Write-Host \"Etapa 1/2: DISM...\" -ForegroundColor Yellow; DISM /Online /Cleanup-Image /ScanHealth; Write-Host \"Etapa 2/2: SFC...\" -ForegroundColor Yellow; sfc /scannow; Write-Host \"✅ Verificação completa!\" -ForegroundColor Green"],
           ["Verificar Atualizações Pendentes", "$updates = (New-Object -ComObject Microsoft.Update.Session).CreateUpdateSearcher().Search(\"IsInstalled=0\"); if($updates.Updates.Count -gt 0) { Write-Host \"$($updates.Updates.Count) atualizações pendentes:\" -ForegroundColor Yellow; $updates.Updates | ForEach-Object { Write-Host \"  - $($_.Title)\" } } else { Write-Host \"✅ Sistema atualizado!\" -ForegroundColor Green }"],
-          ["Verificar Versão da BIOS/UEFI", "Get-WmiObject Win32_BIOS | Select-Object Manufacturer,Name,SMBIOSBIOSVersion,ReleaseDate | Format-List"],
+          ["Verificar Versão da BIOS/UEFI","Get-CimInstance Win32_BIOS | Select-Object Manufacturer,Name,SMBIOSBIOSVersion,ReleaseDate | Format-List"],
           ["Verificar Saúde do Disco (SMART)", "Get-PhysicalDisk | Select-Object FriendlyName,MediaType,HealthStatus,OperationalStatus,@{N=\"Tamanho(GB)\";E={[math]::Round($_.Size/1GB,1)}} | Format-Table -AutoSize"],
-          ["Listar Drivers Desatualizados", "Get-WmiObject Win32_PnPSignedDriver | Where-Object {$_.DriverDate} | Select-Object DeviceName,DriverVersion,@{N=\"Data\";E={[Management.ManagementDateTimeConverter]::ToDateTime($_.DriverDate).ToString(\"dd/MM/yyyy\")}} | Sort-Object Data | Select-Object -First 15 | Format-Table -AutoSize"],
+          ["Listar Drivers Desatualizados","Get-CimInstance Win32_PnPSignedDriver | Where-Object {$_.DriverDate} | Select-Object DeviceName,DriverVersion,@{N=\"Data\";E={[Management.ManagementDateTimeConverter]::ToDateTime($_.DriverDate).ToString(\"dd/MM/yyyy\")}} | Sort-Object Data | Select-Object -First 15 | Format-Table -AutoSize"],
           ["Verificar Erros Recentes do Sistema", "Get-WinEvent -FilterHashtable @{LogName=\"System\";Level=2;StartTime=(Get-Date).AddDays(-7)} -MaxEvents 15 -EA 0 | Select-Object TimeCreated,Id,Message | Format-Table -Wrap -AutoSize"],
           ["Tempo de Boot do Windows", "$boot = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6005} -MaxEvents 1).TimeCreated; $ready = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6013} -MaxEvents 1 -EA 0); Write-Host \"Último boot: $boot\" -ForegroundColor Cyan"],
         ],
@@ -1098,13 +1097,13 @@
         label: "8. Diagnóstico",
         cmds: [
           ["Informações do Sistema", "Get-ComputerInfo | Select-Object WindowsProductName,WindowsVersion,OsArchitecture,CsName,CsProcessors,CsTotalPhysicalMemory | Format-List"],
-          ["Temperatura do CPU (WMI)", "Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace \"root/wmi\" | ForEach-Object { Write-Host \"Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C\" }"],
+          ["Temperatura do CPU (WMI)","Get-CimInstance MSAcpi_ThermalZoneTemperature -Namespace \"root/wmi\" | ForEach-Object { Write-Host \"Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C\" }"],
           ["Histórico de Erros do Sistema", "Get-EventLog -LogName System -EntryType Error -Newest 20 | Select-Object TimeGenerated,Source,Message | Format-Table -AutoSize"],
-          ["Uptime do Sistema", "$boot=(Get-WmiObject Win32_OperatingSystem).LastBootUpTime; $up=[Management.ManagementDateTimeConverter]::ToDateTime($boot); Write-Host \"Ligado desde: $up ($(([datetime]::Now - $up).Days)d $(([datetime]::Now - $up).Hours)h)\" -ForegroundColor Cyan"],
-          ["Placa de Vídeo (GPU)", "Get-WmiObject Win32_VideoController | Select-Object Name,DriverVersion,@{N=\"VRAM(GB)\";E={[math]::Round($_.AdapterRAM/1GB,2)}} | Format-Table -AutoSize"],
-          ["Inventário de Software Instalado", "Get-WmiObject Win32_Product | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
-          ["Verificar Drivers Problemáticos", "Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,ConfigManagerErrorCode | Format-Table -AutoSize"],
-          ["Teste de Memória RAM (Agendar)", "MdSched.exe"],
+          ["Uptime do Sistema","$boot=(Get-CimInstance Win32_OperatingSystem).LastBootUpTime; $up=[Management.ManagementDateTimeConverter]::ToDateTime($boot); Write-Host \"Ligado desde: $up ($(([datetime]::Now - $up).Days)d $(([datetime]::Now - $up).Hours)h)\" -ForegroundColor Cyan"],
+          ["Placa de Vídeo (GPU)","Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,@{N=\"VRAM(GB)\";E={[math]::Round($_.AdapterRAM/1GB,2)}} | Format-Table -AutoSize"],
+          ["Inventário de Software Instalado","Get-CimInstance Win32_Product | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
+          ["Verificar Drivers Problemáticos","Get-CimInstance Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,ConfigManagerErrorCode | Format-Table -AutoSize"],
+          ["Teste de Memória RAM (Agendar)","MdSched.exe"],
           ["Relatório de Energia do Sistema", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output \"$report\"; Write-Host \"✅ Relatório salvo em: $report\" -ForegroundColor Green"],
         ],
       },
@@ -1118,7 +1117,7 @@
           ["Cancelar Desligamento Agendado", "shutdown /a; Write-Host \"✅ Desligamento cancelado!\" -ForegroundColor Green"],
           ["Suspender o PC", "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState(\"Suspend\",$false,$false)"],
           ["Hibernar o PC", "shutdown /h"],
-          ["Sair da Conta do Usuário", "logoff"],
+          ["Sair da Conta do Usuário","logoff"],
           ["Desligar em 30 minutos", "shutdown /s /t 1800; Write-Host \"⏱️ PC desligará em 30 minutos.\" -ForegroundColor Yellow"],
           ["Reiniciar para BIOS/UEFI", "shutdown /r /fw /t 5; Write-Host \"🔄 Reiniciando para UEFI em 5s...\" -ForegroundColor Cyan"],
         ],
@@ -1164,7 +1163,7 @@
           ["Verificar Firewall do Windows", "Get-NetFirewallProfile | Select-Object Name,Enabled | Format-Table"],
           ["Ativar Firewall em todos os perfis", "Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True; Write-Host \"✅ Firewall ativado!\" -ForegroundColor Green"],
           ["Ver Regras de Firewall Ativas", "Get-NetFirewallRule | Where-Object Enabled -eq True | Select-Object DisplayName,Direction,Action | Format-Table -AutoSize"],
-          ["Checar Portas Abertas", "netstat -ano | Where-Object { $_ -match \"LISTENING\" } | Select-Object -First 20"],
+          ["Checar Portas Abertas","netstat -ano | Where-Object { $_ -match \"LISTENING\" } | Select-Object -First 20"],
           ["Listar Processos Suspeitos (sem assinatura)", "Get-Process | Where-Object { -not (Get-AuthenticodeSignature $_.Path -EA 0).IsOSBinary } | Select-Object Name,Path,Id | Format-Table -AutoSize"],
         ],
       },
@@ -1220,7 +1219,7 @@
           ["Pausar Windows Update (35 dias)", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -Value (Get-Date).ToString('yyyy-MM-dd'); Write-Host '✅ Windows Update pausado!' -ForegroundColor Green"],
           ["Retomar Windows Update", "Remove-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -EA 0; Write-Host '✅ Windows Update retomado!' -ForegroundColor Green"],
           ["Histórico de Atualizações", "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn | Format-Table -AutoSize"],
-          ["Desinstalar Atualização Específica", "wusa /uninstall /kb:NUMERO_KB /quiet /norestart; Write-Host 'Substitua NUMERO_KB pelo KB desejado.' -ForegroundColor Yellow"],
+          ["Desinstalar Atualização Específica","wusa /uninstall /kb:§NUMERO_KB§ /quiet /norestart; Write-Host \"Substitua NUMERO_KB pelo KB desejado.\" -ForegroundColor Yellow"],
           ["Forçar Busca de Atualizações", "UsoClient StartScan; Write-Host '✅ Busca de atualizações iniciada!' -ForegroundColor Green"],
           ["Instalar Atualizações Pendentes", "Install-Module PSWindowsUpdate -Force -AllowClobber -EA 0; Import-Module PSWindowsUpdate -EA 0; Install-WindowsUpdate -AcceptAll -AutoReboot; Write-Host '✅ Atualizações instaladas!' -ForegroundColor Green"],
           ["Listar Atualizações Recusadas", "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Updates' -EA 0 | Format-List"],
@@ -1231,14 +1230,14 @@
         id: "cat17",
         label: "17. Drivers (NOVO)",
         cmds: [
-          ["Listar Todos os Drivers", "Get-WmiObject Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Sort-Object DeviceName | Format-Table -AutoSize"],
-          ["Drivers com Problema", "Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,DeviceID,ConfigManagerErrorCode | Format-Table -AutoSize"],
-          ["Exportar Lista de Drivers", "Get-WmiObject Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Export-Csv '$env:USERPROFILE\\Desktop\\drivers.csv' -NoTypeInformation; Write-Host '✅ Lista exportada!' -ForegroundColor Green"],
-          ["Atualizar Driver por Hardware ID", "pnputil /add-driver CAMINHO.inf /install; Write-Host 'Substitua CAMINHO.inf pelo caminho do driver.' -ForegroundColor Yellow"],
-          ["Listar Drivers de Terceiros", "Get-WmiObject Win32_PnPSignedDriver | Where-Object { -not $_.IsOSBinary } | Select-Object DeviceName,DriverVersion,Manufacturer | Format-Table -AutoSize"],
+          ["Listar Todos os Drivers","Get-CimInstance Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Sort-Object DeviceName | Format-Table -AutoSize"],
+          ["Drivers com Problema","Get-CimInstance Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,DeviceID,ConfigManagerErrorCode | Format-Table -AutoSize"],
+          ["Exportar Lista de Drivers","Get-CimInstance Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Export-Csv '$env:USERPROFILE\\Desktop\\drivers.csv' -NoTypeInformation; Write-Host '✅ Lista exportada!' -ForegroundColor Green"],
+          ["Atualizar Driver por Hardware ID","pnputil /add-driver \"§CAMINHO_INF§\" /install; Write-Host \"Substitua CAMINHO.inf pelo caminho do driver.\" -ForegroundColor Yellow"],
+          ["Listar Drivers de Terceiros","Get-CimInstance Win32_PnPSignedDriver | Where-Object { -not $_.IsOSBinary } | Select-Object DeviceName,DriverVersion,Manufacturer | Format-Table -AutoSize"],
           ["Remover Driver Antigo (pnputil)", "pnputil /enum-drivers; Write-Host 'Liste os drivers com o comando acima e use pnputil /delete-driver oemXX.inf' -ForegroundColor Yellow"],
-          ["Verificar Versão do Driver de Vídeo", "Get-WmiObject Win32_VideoController | Select-Object Name,DriverVersion,DriverDate | Format-List"],
-          ["Backup de Drivers de Rede", "$dir='$env:USERPROFILE\\Desktop\\backup-net-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Get-WmiObject Win32_PnPSignedDriver | Where-Object { $_.DeviceClass -eq 'NET' } | Export-Csv (Join-Path $dir 'net-drivers.csv') -NoTypeInformation; Write-Host '✅ Backup de drivers de rede criado!' -ForegroundColor Green"],
+          ["Verificar Versão do Driver de Vídeo","Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,DriverDate | Format-List"],
+          ["Backup de Drivers de Rede","$dir='$env:USERPROFILE\\Desktop\\backup-net-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceClass -eq 'NET' } | Export-Csv (Join-Path $dir 'net-drivers.csv') -NoTypeInformation; Write-Host '✅ Backup de drivers de rede criado!' -ForegroundColor Green"],
         ],
       },
       {
@@ -1263,21 +1262,21 @@
           {
             label: "🔍 Reconhecimento de Rede",
             cmds: [
-              ["Scan de Portas (Port Query)", "portqry -n 127.0.0.1 -p tcp -e 1-1024 2>&1; if ($LASTEXITCODE -ne 0) { Write-Host 'PortQry não encontrado. Use: winget install Microsoft.Portqry' -ForegroundColor Yellow }"],
+              ["Scan de Portas (Port Query)","portqry -n 127.0.0.1 -p tcp -e 1-1024 2>&1; if ($LASTEXITCODE -ne 0) { Write-Host 'PortQry não encontrado. Use: winget install Microsoft.Portqry' -ForegroundColor Yellow }"],
               ["Scan de Portas com Test-NetConnection", "1..1024 | ForEach-Object { $r = Test-NetConnection -ComputerName 127.0.0.1 -Port $_ -WarningAction SilentlyContinue; if ($r.TcpTestSucceeded) { Write-Host \"Porta $_ ABERTA\" -ForegroundColor Green } }"],
               ["Listar Todas as Conexões TCP/UDP", "Get-NetTCPConnection | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess | Sort-Object State | Format-Table -AutoSize"],
               ["Listar Conexões LISTENING", "Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -EA 0; [PSCustomObject]@{Porta=$_.LocalPort;Processo=$p.Name;PID=$_.OwningProcess} } | Format-Table -AutoSize"],
               ["Descobrir Hosts Ativos (ARP Scan)", "Get-NetNeighbor | Where-Object { $_.State -ne 'Unreachable' } | Select-Object IPAddress,LinkLayerAddress,State,InterfaceAlias | Format-Table -AutoSize"],
-              ["Mapear Rede Local (NetBIOS)", "nbtstat -n; Write-Host '---'; nbtstat -c"],
+              ["Mapear Rede Local (NetBIOS)","nbtstat -n; Write-Host '---'; nbtstat -c"],
               ["Tabela de Roteamento (route print)", "route print"],
-              ["Resolver DNS Reverso (IP → Nome)", "$ip = Read-Host 'Digite o IP'; Resolve-DnsName -Name $ip -ErrorAction SilentlyContinue | Select-Object Name,Type,NameHost | Format-Table -AutoSize"],
+              ["Resolver DNS Reverso (IP → Nome)","Resolve-DnsName -Name §IP_ALVO§ -ErrorAction SilentlyContinue | Select-Object Name,Type,NameHost | Format-Table -AutoSize"],
             ],
           },
           {
             label: "🔐 Análise de Vulnerabilidades",
             cmds: [
               ["Verificar Hotfixes Instalados", "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn,InstalledBy | Format-Table -AutoSize"],
-              ["Buscar CVEs por Hotfix (NVD)", "$kb = Read-Host 'Digite o KB (ex: KB5034441)'; Start-Process \"https://nvd.nist.gov/vuln/search/results?query=$kb\"; Write-Host 'Abrindo NVD para pesquisa...' -ForegroundColor Cyan"],
+              ["Buscar CVEs por Hotfix (NVD)","Start-Process \"https://nvd.nist.gov/vuln/search/results?query=§CODIGO_KB§\"; Write-Host 'Abrindo NVD para pesquisa...' -ForegroundColor Cyan"],
               ["Verificar Serviços Vulneráveis (SMB v1)", "Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol | Select-Object FeatureName,State; if ((Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol).State -eq 'Enabled') { Write-Host '⚠️ SMBv1 ATIVO - Vulnerável a EternalBlue!' -ForegroundColor Red } else { Write-Host '✅ SMBv1 desativado' -ForegroundColor Green }"],
               ["Desativar SMBv1 (EternalBlue)", "Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart; Write-Host '✅ SMBv1 desativado! Reinicie o PC.' -ForegroundColor Green"],
               ["Verificar RDP Ativo", "Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections | Select-Object fDenyTSConnections; if ((Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections).fDenyTSConnections -eq 0) { Write-Host '⚠️ RDP ATIVO - Verifique segurança!' -ForegroundColor Yellow } else { Write-Host '✅ RDP desativado' -ForegroundColor Green }"],
@@ -1294,7 +1293,7 @@
               ["Listar Usuários Locais", "Get-LocalUser | Select-Object Name,Enabled,LastLogon,PasswordLastSet,PasswordRequired | Format-Table -AutoSize"],
               ["Verificar Senhas Nunca Expiram", "Get-LocalUser | Where-Object { $_.PasswordNeverExpires -eq $true } | Select-Object Name,PasswordNeverExpires | Format-Table -AutoSize"],
               ["Forçar Senha Forte (Política)", "net accounts /minpwlen:12 /maxpwage:30 /minpwage:1; Write-Host '✅ Política de senha configurada: mín 12 chars, expira em 30 dias' -ForegroundColor Green"],
-              ["Verificar Hashes de Arquivos (MD5/SHA256)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Write-Host 'MD5:' (Get-FileHash $file -Algorithm MD5).Hash; Write-Host 'SHA256:' (Get-FileHash $file -Algorithm SHA256).Hash } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Hashes de Arquivos (MD5/SHA256)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { Write-Host 'MD5:' (Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm MD5).Hash; Write-Host 'SHA256:' (Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm SHA256).Hash } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
               ["Verificar Credenciais Armazenadas (Vault)", "vaultcmd /list"],
               ["Desativar Cache de Credenciais", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name 'CachedLogonsCount' -Value 0 -EA 0; Write-Host '✅ Cache de credenciais desativado!' -ForegroundColor Green"],
             ],
@@ -1302,24 +1301,24 @@
           {
             label: "🌐 Segurança Web & Rede",
             cmds: [
-              ["Verificar Proxy do Sistema", "netsh winhttp show proxy"],
+              ["Verificar Proxy do Sistema","netsh winhttp show proxy"],
               ["Verificar Certificados Raiz", "Get-ChildItem Cert:\\LocalMachine\\Root | Select-Object Subject,NotAfter,Thumbprint | Sort-Object NotAfter | Format-Table -AutoSize"],
               ["Verificar Certificados Expirados", "Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) } | Select-Object Subject,NotAfter | Format-Table -AutoSize; if (-not (Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) })) { Write-Host '✅ Nenhum certificado raiz expirado' -ForegroundColor Green }"],
-              ["Testar HTTPS de um Site", "$url = Read-Host 'URL (ex: https://google.com)'; try { $r = Invoke-WebRequest -Uri $url -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }"],
-              ["Verificar Conexões HTTPS Ativas", "Get-NetTCPConnection -State Established | Where-Object { $_.RemotePort -eq 443 } | Select-Object LocalAddress,RemoteAddress,RemotePort,OwningProcess | Format-Table -AutoSize"],
+              ["Testar HTTPS de um Site","try { $r = Invoke-WebRequest -Uri \"§URL_TESTE§\" -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }"],
+              ["Verificar Conexões HTTPS Ativas","Get-NetTCPConnection -State Established | Where-Object { $_.RemotePort -eq 443 } | Select-Object LocalAddress,RemoteAddress,RemotePort,OwningProcess | Format-Table -AutoSize"],
               ["Listar Regras de Firewall de Entrada", "Get-NetFirewallRule -Direction Inbound -Enabled True | Select-Object DisplayName,Action,Profile | Sort-Object DisplayName | Format-Table -AutoSize"],
-              ["Bloquear IP Específico no Firewall", "$ip = Read-Host 'IP para bloquear'; New-NetFirewallRule -DisplayName \"Block $ip\" -Direction Inbound -Action Block -RemoteAddress $ip; Write-Host \"✅ IP $ip bloqueado!\" -ForegroundColor Green"],
-              ["Remover Regra de Bloqueio de IP", "$ip = Read-Host 'IP para desbloquear'; Remove-NetFirewallRule -DisplayName \"Block $ip\" -EA 0; Write-Host \"✅ IP $ip desbloqueado!\" -ForegroundColor Green"],
+              ["Bloquear IP Específico no Firewall","New-NetFirewallRule -DisplayName \"Block §IP_BLOQUEIO§\" -Direction Inbound -Action Block -RemoteAddress §IP_BLOQUEIO§; Write-Host \"✅ IP §IP_BLOQUEIO§ bloqueado!\" -ForegroundColor Green"],
+              ["Remover Regra de Bloqueio de IP","Remove-NetFirewallRule -DisplayName \"Block §IP_DESBLOQUEIO§\" -EA 0; Write-Host \"✅ IP §IP_DESBLOQUEIO§ desbloqueado!\" -ForegroundColor Green"],
             ],
           },
           {
             label: "🕵️ Forense & Análise",
             cmds: [
-              ["Análise de Arquivo (file type)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { $bytes = [System.IO.File]::ReadAllBytes($file)[0..3]; $hex = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '; Write-Host \"Assinatura (hex): $hex\" -ForegroundColor Cyan; Write-Host \"Tamanho: $((Get-Item $file).Length) bytes\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Análise de Arquivo (file type)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { $bytes = [System.IO.File]::ReadAllBytes(\"§CAMINHO_ARQUIVO§\")[0..3]; $hex = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '; Write-Host \"Assinatura (hex): $hex\" -ForegroundColor Cyan; Write-Host \"Tamanho: $((Get-Item \"§CAMINHO_ARQUIVO§\").Length) bytes\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
               ["Extrair Strings de Arquivo", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Select-String -Path $file -Pattern '[\x20-\x7E]{6,}' -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 50 } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Metadados de Arquivo", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Get-Item $file | Select-Object Name,Length,CreationTime,LastAccessTime,LastWriteTime,Attributes | Format-List } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Extrair Hash de Arquivo (Todos os Algoritmos)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { foreach ($algo in @('MD5','SHA1','SHA256','SHA384','SHA512')) { Write-Host \"$algo`: $((Get-FileHash $file -Algorithm $algo).Hash)\" -ForegroundColor Cyan } } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Listar Arquivos Modificados Recentemente (24h)", "$dir = Read-Host 'Diretório (ex: C:\\Users)'; Get-ChildItem $dir -Recurse -File -EA 0 | Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-24) } | Select-Object FullName,LastWriteTime,Length | Sort-Object LastWriteTime -Descending | Select-Object -First 30 | Format-Table -AutoSize"],
+              ["Verificar Metadados de Arquivo","if (Test-Path \"§CAMINHO_ARQUIVO§\") { Get-Item \"§CAMINHO_ARQUIVO§\" | Select-Object Name,Length,CreationTime,LastAccessTime,LastWriteTime,Attributes | Format-List } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Extrair Hash de Arquivo (Todos os Algoritmos)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { foreach ($algo in @('MD5','SHA1','SHA256','SHA384','SHA512')) { Write-Host \"$algo`: $((Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm $algo).Hash)\" -ForegroundColor Cyan } } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Listar Arquivos Modificados Recentemente (24h)","Get-ChildItem \"§DIRETORIO_ALVO§\" -Recurse -File -EA 0 | Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-24) } | Select-Object FullName,LastWriteTime,Length | Sort-Object LastWriteTime -Descending | Select-Object -First 30 | Format-Table -AutoSize"],
               ["Verificar Logs de Segurança (Login Falhou)", "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='IP';E={$_.Properties[11].Value}},@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"],
               ["Verificar Logins Bem-sucedidos", "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4624} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"],
               ["Exportar Logs de Segurança para CSV", "$out = '$env:USERPROFILE\\Desktop\\security-logs.csv'; Get-WinEvent -FilterHashtable @{LogName='Security';Id=@(4624,4625)} -MaxEvents 100 -EA 0 | Select-Object TimeCreated,Id,@{N='Details';E={$_.Message.Substring(0,200)}} | Export-Csv $out -NoTypeInformation; Write-Host \"✅ Logs exportados: $out\" -ForegroundColor Green"],
@@ -1328,40 +1327,40 @@
           {
             label: "📁 Permissões de Arquivos (chmod/chown)",
             cmds: [
-              ["chmod 644 (Dono: RW, Outros: R)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(M)\"; icacls $f /grant \"Todos:(R)\"; Write-Host '✅ chmod 644 aplicado: dono tem RW, outros apenas leitura' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 755 (Dono: RWX, Outros: RX)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado: dono tem RWX, outros leitura+execução' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 600 (Apenas Dono: RW)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(M)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado: apenas o dono tem RW' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 700 (Apenas Dono: RWX)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado: apenas o dono tem RWX' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 777 (Todos: RWX - PERIGOSO)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total - use com cautela!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 444 (Todos: Somente Leitura)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(R)\"; icacls $f /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado: todos têm apenas leitura' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chown user:group (Alterar Dono e Grupo)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Novo dono (ex: Jeanc)'; $g = Read-Host 'Novo grupo (ex: Administradores)'; if (Test-Path $f) { takeown /f $f /a; icacls $f /setowner $u; icacls $f /grant \"$u:(F)\"; icacls $f /grant \"$g:(F)\"; Write-Host \"✅ chown aplicado: dono=$u, grupo=$g\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chown user (Alterar Apenas Dono)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Novo dono (ex: Jeanc)'; if (Test-Path $f) { icacls $f /setowner $u; icacls $f /grant \"$u:(F)\"; Write-Host \"✅ chown aplicado: dono alterado para $u\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Permissões de Arquivo (icacls)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Permissões (ACL detalhada)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { (Get-Acl $f).Access | Select-Object IdentityReference,FileSystemRights,AccessControlType,IsInherited | Format-Table -AutoSize } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Conceder Permissão Total (Full Control)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(F)\"; Write-Host \"✅ Permissão total concedida a $u\" -ForegroundColor Green"],
-              ["Conceder Permissão de Leitura (Read)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(R)\"; Write-Host \"✅ Permissão de leitura concedida a $u\" -ForegroundColor Green"],
-              ["Conceder Permissão de Escrita (Write/Modify)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(M)\"; Write-Host \"✅ Permissão de escrita concedida a $u\" -ForegroundColor Green"],
-              ["Conceder Permissão de Execução (Execute)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(X)\"; Write-Host \"✅ Permissão de execução concedida a $u\" -ForegroundColor Green"],
-              ["Conceder Leitura + Execução (RX)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(RX)\"; Write-Host \"✅ Permissão de leitura + execução concedida a $u\" -ForegroundColor Green"],
-              ["Negar Acesso a Usuário (Deny)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário para negar'; icacls $f /deny \"$u:(F)\"; Write-Host \"✅ Acesso negado a $u\" -ForegroundColor Green"],
-              ["Remover Permissões de Usuário", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário para remover'; icacls $f /remove $u; Write-Host \"✅ Permissões de $u removidas\" -ForegroundColor Green"],
-              ["Resetar Permissões (Herdar do diretório pai)", "$f = Read-Host 'Caminho do arquivo'; icacls $f /reset; Write-Host '✅ Permissões resetadas (herdando do diretório pai)' -ForegroundColor Green"],
-              ["Desativar Herança de Permissões", "$f = Read-Host 'Caminho do arquivo'; icacls $f /inheritance:d; Write-Host '✅ Herança desativada - permissões copiadas' -ForegroundColor Green"],
-              ["Ativar Herança de Permissões", "$f = Read-Host 'Caminho do arquivo'; icacls $f /inheritance:e; Write-Host '✅ Herança ativada' -ForegroundColor Green"],
-              ["Verificar Proprietário do Arquivo (chown)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { (Get-Acl $f).Owner; Write-Host \"Proprietário: $((Get-Acl $f).Owner)\" -ForegroundColor Cyan } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Alterar Proprietário do Arquivo (takeown)", "$f = Read-Host 'Caminho do arquivo'; takeown /f $f; Write-Host '✅ Proprietário alterado para o usuário atual' -ForegroundColor Green"],
-              ["Alterar Proprietário para Administradores", "$f = Read-Host 'Caminho do arquivo'; takeown /f $f /a; icacls $f /grant Administradores:(F); Write-Host '✅ Proprietário alterado para Administradores' -ForegroundColor Green"],
-              ["Aplicar Permissões Recursivamente (pasta)", "$f = Read-Host 'Caminho da pasta'; $u = Read-Host 'Usuário (ex: Jeanc)'; $p = Read-Host 'Permissão (F=Total, R=Leitura, W=Escrita, X=Execução)'; icacls $f /grant \"$u:($p)\" /t /c; Write-Host \"✅ Permissão $p aplicada recursivamente a $u\" -ForegroundColor Green"],
-              ["Backup de Permissões (ACL)", "$f = Read-Host 'Caminho do arquivo'; $bak = $f + '.acl.bak'; icacls $f /save $bak; Write-Host \"✅ Permissões salvas em: $bak\" -ForegroundColor Green"],
-              ["Restaurar Permissões (ACL)", "$f = Read-Host 'Caminho do arquivo (.acl.bak)'; $dir = Read-Host 'Diretório do backup'; icacls $dir /restore $f; Write-Host '✅ Permissões restauradas' -ForegroundColor Green"],
-              ["Listar Arquivos Sem Dono (Orphaned ACLs)", "$dir = Read-Host 'Diretório para escanear'; Get-ChildItem $dir -Recurse -File -EA 0 | ForEach-Object { try { $acl = Get-Acl $_.FullName -EA 0; if ($acl.Owner -match 'S-1-5') { [PSCustomObject]@{Arquivo=$_.FullName; Owner=$acl.Owner} } } catch {} } | Format-Table -AutoSize"],
+              ["chmod 644 (Dono: RW, Outros: R)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(M)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(R)\"; Write-Host '✅ chmod 644 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 755 (Dono: RWX, Outros: RX)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 600 (Apenas Dono: RW)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(M)\"; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Todos\" 2>$null; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 700 (Apenas Dono: RWX)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Todos\" 2>$null; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 777 (Todos: RWX - PERIGOSO)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 444 (Todos: Somente Leitura)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(R)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chown user:group (Alterar Dono e Grupo)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { takeown /f \"§CAMINHO_ARQUIVO§\" /a; icacls \"§CAMINHO_ARQUIVO§\" /setowner §NOME_DONO§; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_DONO§:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_GRUPO§:(F)\"; Write-Host \"✅ chown aplicado: dono=§NOME_DONO§, grupo=§NOME_GRUPO§\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chown user (Alterar Apenas Dono)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /setowner §NOME_DONO§; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_DONO§:(F)\"; Write-Host \"✅ chown aplicado: dono alterado para §NOME_DONO§\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Permissões de Arquivo (icacls)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Permissões (ACL detalhada)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { (Get-Acl \"§CAMINHO_ARQUIVO§\").Access | Select-Object IdentityReference,FileSystemRights,AccessControlType,IsInherited | Format-Table -AutoSize } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Conceder Permissão Total (Full Control)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(F)\"; Write-Host \"✅ Permissão total concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Conceder Permissão de Leitura (Read)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(R)\"; Write-Host \"✅ Permissão de leitura concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Conceder Permissão de Escrita (Write/Modify)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(M)\"; Write-Host \"✅ Permissão de escrita concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Conceder Permissão de Execução (Execute)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(X)\"; Write-Host \"✅ Permissão de execução concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Conceder Leitura + Execução (RX)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(RX)\"; Write-Host \"✅ Permissão de leitura + execução concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Negar Acesso a Usuário (Deny)","icacls \"§CAMINHO_ARQUIVO§\" /deny \"§NOME_USUARIO§:(F)\"; Write-Host \"✅ Acesso negado a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Remover Permissões de Usuário","icacls \"§CAMINHO_ARQUIVO§\" /remove §NOME_USUARIO§; Write-Host \"✅ Permissões de §NOME_USUARIO§ removidas\" -ForegroundColor Green"],
+              ["Resetar Permissões (Herdar do diretório pai)","icacls \"§CAMINHO_ARQUIVO§\" /reset; Write-Host '✅ Permissões resetadas (herdando do diretório pai)' -ForegroundColor Green"],
+              ["Desativar Herança de Permissões","icacls \"§CAMINHO_ARQUIVO§\" /inheritance:d; Write-Host '✅ Herança desativada - permissões copiadas' -ForegroundColor Green"],
+              ["Ativar Herança de Permissões","icacls \"§CAMINHO_ARQUIVO§\" /inheritance:e; Write-Host '✅ Herança ativada' -ForegroundColor Green"],
+              ["Verificar Proprietário do Arquivo (chown)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { (Get-Acl \"§CAMINHO_ARQUIVO§\").Owner; Write-Host \"Proprietário: $((Get-Acl \"§CAMINHO_ARQUIVO§\").Owner)\" -ForegroundColor Cyan } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Alterar Proprietário do Arquivo (takeown)","takeown /f \"§CAMINHO_ARQUIVO§\"; Write-Host '✅ Proprietário alterado para o usuário atual' -ForegroundColor Green"],
+              ["Alterar Proprietário para Administradores","takeown /f \"§CAMINHO_ARQUIVO§\" /a; icacls \"§CAMINHO_ARQUIVO§\" /grant Administradores:(F); Write-Host '✅ Proprietário alterado para Administradores' -ForegroundColor Green"],
+              ["Aplicar Permissões Recursivamente (pasta)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(§NIVEL_PERMISSAO§)\" /t /c; Write-Host \"✅ Permissão §NIVEL_PERMISSAO§ aplicada recursivamente a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Backup de Permissões (ACL)","$bak = \"§CAMINHO_ARQUIVO§\" + '.acl.bak'; icacls \"§CAMINHO_ARQUIVO§\" /save $bak; Write-Host \"✅ Permissões salvas em: $bak\" -ForegroundColor Green"],
+              ["Restaurar Permissões (ACL)","icacls \"§DIRETORIO_ALVO§\" /restore \"§CAMINHO_ARQUIVO§\"; Write-Host '✅ Permissões restauradas' -ForegroundColor Green"],
+              ["Listar Arquivos Sem Dono (Orphaned ACLs)","Get-ChildItem \"§DIRETORIO_ALVO§\" -Recurse -File -EA 0 | ForEach-Object { try { $acl = Get-Acl $_.FullName -EA 0; if ($acl.Owner -match 'S-1-5') { [PSCustomObject]@{Arquivo=$_.FullName; Owner=$acl.Owner} } } catch {} } | Format-Table -AutoSize"],
             ],
           },
           {
             label: "⚡ Endurecimento do Sistema (Hardening)",
             cmds: [
               ["Desativar AutoRun/AutoPlay", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\AutoplayHandlers' -Name 'DisableAutoplay' -Value 1 -EA 0; Write-Host '✅ AutoPlay desativado!' -ForegroundColor Green"],
-              ["Ativar Bloqueio de Script Powershell (Constrained)", "Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green"],
+              ["Ativar Bloqueio de Script Powershell (Constrained)","Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green"],
               ["Verificar Configuração de Execução de Scripts", "Get-ExecutionPolicy -List | Format-Table -AutoSize"],
               ["Desativar PowerShell v2 (Reduz Superfície de Ataque)", "Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root -NoRestart -EA 0; Write-Host '✅ PowerShell v2 desativado!' -ForegroundColor Green"],
               ["Ativar Auditoria de Logon", "auditpol /set /subcategory:'Logon' /success:enable /failure:enable; Write-Host '✅ Auditoria de logon ativada!' -ForegroundColor Green"],
@@ -1813,39 +1812,81 @@
         return m + "m";
       }
       // ===== Padrões que precisam de parâmetro (padrão V7) =====
-      const PARAM_PATTERNS = [
-        { regex: /NOME_DO_PROCESSO/, title: "⚡ Encerrar Processo", desc: "Informe o nome exato do processo (sem .exe):", placeholder: "ex: notepad, chrome, msedge", token: "NOME_DO_PROCESSO" },
-        { regex: /NOME_SERVICO/, title: "🔧 Desativar Serviço", desc: "Informe o nome do serviço:", placeholder: "ex: wuauserv, SysMain, Spooler", token: "NOME_SERVICO" },
-        { regex: /NUMERO_KB/, title: "📦 Desinstalar Atualização", desc: "Informe o número do KB (sem o prefixo KB):", placeholder: "ex: 5005565", token: "NUMERO_KB" },
-        { regex: /CAMINHO\.inf/, title: "🔌 Driver INF", desc: "Informe o caminho completo do arquivo .inf:", placeholder: "ex: C:\\Drivers\\driver.inf", token: "CAMINHO.inf" },
-      ];
+      // Registro de tokens §TOKEN§ usados nos botões que pedem parâmetro.
+      // Cada botão pode conter 1+ tokens; um campo de input é criado por token encontrado.
+      const TOKEN_DEFS = {
+        NOME_PROCESSO: { title: "⚡ Nome do Processo", desc: "Informe o nome exato do processo (sem .exe):", placeholder: "ex: notepad, chrome, msedge", validate: /^[a-zA-Z0-9_. -]{1,128}$/ },
+        NOME_SERVICO: { title: "🔧 Nome do Serviço", desc: "Informe o nome do serviço:", placeholder: "ex: wuauserv, SysMain, Spooler", validate: /^[a-zA-Z0-9_. -]{1,128}$/ },
+        NUMERO_KB: { title: "📦 Número do KB", desc: "Informe o número do KB (sem o prefixo KB):", placeholder: "ex: 5005565", validate: /^\d{4,10}$/ },
+        CODIGO_KB: { title: "🛡️ Código do KB", desc: "Informe o KB com o prefixo (para busca de CVEs):", placeholder: "ex: KB5034441", validate: /^KB[0-9]{6,8}$/i },
+        CAMINHO_INF: { title: "🔌 Driver INF", desc: "Informe o caminho completo do arquivo .inf:", placeholder: "ex: C:\\Drivers\\driver.inf", validate: /^[a-zA-Z]:[a-zA-Z0-9\\._\- ]{1,255}\.inf$/i },
+        IP_BLOQUEIO: { title: "🚫 IP para Bloquear", desc: "Informe o IP a bloquear no firewall:", placeholder: "ex: 203.0.113.5", validate: /^(\d{1,3}\.){3}\d{1,3}$/ },
+        IP_DESBLOQUEIO: { title: "✅ IP para Desbloquear", desc: "Informe o IP a desbloquear:", placeholder: "ex: 203.0.113.5", validate: /^(\d{1,3}\.){3}\d{1,3}$/ },
+        IP_ALVO: { title: "🌐 Endereço IP", desc: "Informe o endereço IP:", placeholder: "ex: 8.8.8.8", validate: /^(\d{1,3}\.){3}\d{1,3}$/ },
+        CAMINHO_ARQUIVO: { title: "📁 Caminho do Arquivo", desc: "Informe o caminho completo do arquivo:", placeholder: "ex: C:\\Users\\voce\\arquivo.txt", validate: /^[a-zA-Z0-9\\._:\- /]{1,260}$/ },
+        DIRETORIO_ALVO: { title: "📂 Diretório", desc: "Informe o caminho da pasta:", placeholder: "ex: C:\\Users\\voce\\Documentos", validate: /^[a-zA-Z0-9\\._:\- /]{1,260}$/ },
+        NOME_DONO: { title: "👤 Novo Dono", desc: "Informe o novo dono do arquivo:", placeholder: "ex: Jeanc", validate: /^[a-zA-Z0-9._-]{1,64}$/ },
+        NOME_GRUPO: { title: "👥 Grupo", desc: "Informe o grupo:", placeholder: "ex: Administradores", validate: /^[a-zA-Z0-9._-]{1,64}$/ },
+        NOME_USUARIO: { title: "👤 Usuário", desc: "Informe o nome do usuário:", placeholder: "ex: Jeanc", validate: /^[a-zA-Z0-9._-]{1,64}$/ },
+        NIVEL_PERMISSAO: { title: "🔑 Permissão", desc: "F=Total, R=Leitura, W=Escrita, X=Execução:", placeholder: "ex: F", validate: /^[FRWMX]$/i },
+        URL_TESTE: { title: "🔗 URL", desc: "Informe a URL completa (com https://):", placeholder: "ex: https://google.com", validate: /^https:\/\/[a-zA-Z0-9.-]{1,253}(?:\/[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]{0,500})?$/ },
+      };
+      // Encontra, em ordem de aparição, todos os tokens §TOKEN§ presentes no comando.
+      function findTokens(code) {
+        const found = [];
+        const re = /§([A-Z_]+)§/g;
+        let m;
+        while ((m = re.exec(code)) !== null) {
+          if (TOKEN_DEFS[m[1]] && !found.includes(m[1])) found.push(m[1]);
+        }
+        return found;
+      }
       let _pendingCmd = null;
-      let _pendingToken = null;
-      function cancelParam() { document.getElementById("paramOverlay").style.display = "none"; _pendingCmd = null; _pendingToken = null; }
+      function cancelParam() { document.getElementById("paramOverlay").style.display = "none"; _pendingCmd = null; }
+      function renderParamFields(tokens) {
+        document.getElementById("paramTitle").textContent = tokens.length === 1 ? TOKEN_DEFS[tokens[0]].title : "Parâmetros necessários";
+        const container = document.getElementById("paramFields");
+        container.innerHTML = "";
+        tokens.forEach((token, i) => {
+          const def = TOKEN_DEFS[token];
+          const wrap = document.createElement("div");
+          wrap.className = "param-field";
+          wrap.style.marginBottom = "14px";
+          const desc = document.createElement("p");
+          desc.className = "param-desc";
+          desc.textContent = def.desc;
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "param-input";
+          input.placeholder = def.placeholder;
+          input.dataset.token = token;
+          input.id = "paramField_" + i;
+          if (i === 0) input.onkeydown = (e) => { if (e.key === "Enter") confirmParam(); };
+          wrap.appendChild(desc);
+          wrap.appendChild(input);
+          container.appendChild(wrap);
+        });
+      }
       async function confirmParam() {
-        const val = document.getElementById("paramInput").value.trim();
-        if (!val) { document.getElementById("paramInput").focus(); return; }
-        let replacement = val;
-        if (_pendingToken === "NOME_DO_PROCESSO" || _pendingToken === "NOME_SERVICO") {
-          if (!/^[a-zA-Z0-9_. -]{1,128}$/.test(val)) {
-            alert("Use apenas letras, números, espaço, ponto, hífen e sublinhado.");
+        const inputs = [...document.querySelectorAll("#paramFields input")];
+        const replacements = [];
+        for (const input of inputs) {
+          const token = input.dataset.token;
+          const def = TOKEN_DEFS[token];
+          const val = input.value.trim();
+          if (!val || !def.validate.test(val)) {
+            alert(`Valor inválido — ${def.desc}`);
+            input.focus();
             return;
           }
-        } else if (_pendingToken === "NUMERO_KB") {
-          if (!/^\d{4,10}$/.test(val)) {
-            alert("Informe somente o número do KB.");
-            return;
-          }
-        } else if (_pendingToken === "CAMINHO.inf") {
-          if (!/^[a-zA-Z]:\\[^"'\r\n;&|`$<>]+\.inf$/i.test(val)) {
-            alert("Informe um caminho local seguro terminado em .inf.");
-            return;
-          }
-          replacement = `"${val}"`;
+          replacements.push([token, val]);
         }
         document.getElementById("paramOverlay").style.display = "none";
-        const finalCmd = _pendingCmd.replace(new RegExp(_pendingToken.replace(".", "\\."), "g"), replacement);
-        _pendingCmd = null; _pendingToken = null;
+        let finalCmd = _pendingCmd;
+        for (const [token, val] of replacements) {
+          finalCmd = finalCmd.split(`§${token}§`).join(val);
+        }
+        _pendingCmd = null;
         await executeCmd(finalCmd);
       }
       function showToast(msg, color) {
@@ -1923,15 +1964,12 @@
       // ===== runCmd() (padrão V7) =====
       async function runCmd(uid) {
         const code = document.getElementById(uid).innerText.trim();
-        const pattern = PARAM_PATTERNS.find(p => p.regex.test(code));
-        if (pattern) {
-          _pendingCmd = code; _pendingToken = pattern.token;
-          document.getElementById("paramTitle").textContent = pattern.title;
-          document.getElementById("paramDesc").textContent = pattern.desc;
-          document.getElementById("paramInput").placeholder = pattern.placeholder;
-          document.getElementById("paramInput").value = "";
+        const tokens = findTokens(code);
+        if (tokens.length > 0) {
+          _pendingCmd = code;
+          renderParamFields(tokens);
           document.getElementById("paramOverlay").style.display = "flex";
-          setTimeout(() => document.getElementById("paramInput").focus(), 80);
+          setTimeout(() => document.getElementById("paramField_0")?.focus(), 80);
           return;
         }
         try { await navigator.clipboard.writeText(code); } catch {}
