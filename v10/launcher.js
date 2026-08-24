@@ -672,6 +672,124 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // ===== MCP Endpoints =====
+    // GET /mcp/list - Lista servidores MCP configurados
+    if (path === "/mcp/list" && req.method === "GET") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
+      // Retorna servidores MCP mockados (integração real requereria cliente MCP)
+      return sendJson(res, 200, {
+        servers: [
+          {
+            name: "mestre-do-pc",
+            transport: "stdio",
+            status: "connected",
+            toolsCount: 68,
+            command: "node " + join(PROJECT_DIR, "mcp-server", "index.js")
+          }
+        ]
+      }, allowedOrigin);
+    }
+
+    // GET /mcp/status - Status geral do MCP
+    if (path === "/mcp/status" && req.method === "GET") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
+      return sendJson(res, 200, {
+        status: "online",
+        servers: 1,
+        totalTools: 68
+      }, allowedOrigin);
+    }
+
+    // GET /mcp/tools/:name - Lista ferramentas de um servidor
+    if (path.startsWith("/mcp/tools/") && req.method === "GET") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
+      const serverName = path.slice(11); // Remove "/mcp/tools/"
+      // Mock de ferramentas do mestre-do-pc
+      const tools = [
+        { name: "diagnostico_completo", description: "Diagnóstico completo do PC" },
+        { name: "verificar_espaco_disco", description: "Verifica espaço em disco" },
+        { name: "ver_uso_ram", description: "Mostra uso de RAM" },
+        { name: "listar_processos_alto_consumo_ram", description: "Lista processos por consumo de RAM" },
+        { name: "limpeza_rapida_completa", description: "Limpeza rápida do sistema" },
+        { name: "liberar_memoria_ram", description: "Libera memória RAM" },
+        { name: "perguntar_ia", description: "Pergunta à IA local" },
+        { name: "enviar_webhook_discord", description: "Envia mensagem para Discord" },
+        { name: "git_status", description: "Status do repositório Git" },
+        { name: "verificar_defender", description: "Verifica Windows Defender" }
+      ];
+      return sendJson(res, 200, { server: serverName, tools }, allowedOrigin);
+    }
+
+    // POST /mcp/call - Chama uma ferramenta MCP
+    if (path === "/mcp/call" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
+      const body = await readBody(req, 64 * 1024);
+      const { server, tool, args = {} } = body;
+      
+      if (!server || !tool) {
+        return sendJson(res, 400, { success: false, error: "Parâmetros 'server' e 'tool' são obrigatórios." }, allowedOrigin);
+      }
+      
+      // Mock de execução de ferramentas MCP
+      // Em produção, isto chamaria o cliente MCP real
+      try {
+        const result = await mockMcpToolCall(server, tool, args);
+        return sendJson(res, 200, { success: true, server, tool, result }, allowedOrigin);
+      } catch (e) {
+        return sendJson(res, 500, { success: false, error: e.message }, allowedOrigin);
+      }
+    }
+
+    // POST /mcp/configure - Adiciona/remove servidor MCP
+    if (path === "/mcp/configure" && req.method === "POST") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
+      const body = await readBody(req, 64 * 1024);
+      const { action, name, transport, command } = body;
+      
+      if (!action || !name) {
+        return sendJson(res, 400, { success: false, error: "Ação e nome são obrigatórios." }, allowedOrigin);
+      }
+      
+      if (action === "add") {
+        // Em produção, adicionaria ao arquivo de configuração MCP
+        console.log(`[MCP] Adicionando servidor: ${name} (${transport}) - ${command}`);
+        return sendJson(res, 200, { success: true, message: `Servidor ${name} adicionado (mock)` }, allowedOrigin);
+      } else if (action === "remove") {
+        console.log(`[MCP] Removendo servidor: ${name}`);
+        return sendJson(res, 200, { success: true, message: `Servidor ${name} removido (mock)` }, allowedOrigin);
+      } else {
+        return sendJson(res, 400, { success: false, error: `Ação '${action}' não suportada.` }, allowedOrigin);
+      }
+    }
+
+    // Função mock para simular chamada de ferramenta MCP
+    async function mockMcpToolCall(server, tool, args) {
+      // Em produção, isto chamaria o MCP server real via stdio/HTTP
+      // Aqui simulamos a execução via operações permitidas
+      if (server === "mestre-do-pc") {
+        // Mapeia ferramenta MCP para operação permitida
+        const operationMap = {
+          "diagnostico_completo": "diagnostico_completo",
+          "verificar_espaco_disco": "verificar_espaco_disco",
+          "ver_uso_ram": "ver_uso_ram",
+          "limpeza_rapida_completa": "limpeza_rapida_completa",
+          "liberar_memoria_ram": "liberar_memoria_ram",
+          "git_status": "git_status",
+          "verificar_defender": "verificar_defender"
+        };
+        
+        const operationId = operationMap[tool];
+        if (operationId) {
+          return await runAllowedOperation(operationId, args);
+        }
+        
+        // Para ferramentas sem mapeamento direto, retorna mock
+        return `Ferramenta ${tool} executada no servidor ${server} (mock - integração MCP completa requer cliente MCP real)`;
+      }
+      
+      throw new Error(`Servidor MCP '${server}' não suportado`);
+    }
+
     // Proxy Ollama
     if (path === "/ollama/tags") return proxyOllamaJson("/api/tags", res, allowedOrigin);
     if (path === "/ollama/chat" && req.method === "POST") {
