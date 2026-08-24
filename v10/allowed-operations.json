@@ -2106,6 +2106,83 @@
       "category": "Python",
       "destructive": false,
       "command": "$nome = Read-Host \"Nome do ambiente virtual\"; if ($nome -match \"^[a-zA-Z0-9_-]{1,64}$\") { python -m venv $nome; Write-Host \"✅ Ambiente virtual '$nome' criado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome inválido.\" -ForegroundColor Red }"
+    },
+    {
+      "id": "relatorio_disco_winsat",
+      "title": "Relatório de Disco (WinSAT)",
+      "category": "Sistema",
+      "destructive": false,
+      "command": "winsat disk -drive C"
+    },
+    {
+      "id": "ver_conexoes_ativas",
+      "title": "Ver Conexões Ativas",
+      "category": "Rede",
+      "destructive": false,
+      "command": "netstat -ano | Select-String \"ESTABLISHED\""
+    },
+    {
+      "id": "resetar_politicas_de_grupo",
+      "title": "Resetar Políticas de Grupo",
+      "category": "Sistema",
+      "destructive": true,
+      "command": "secedit /configure /cfg %windir%\\inf\\defltbase.inf /db defltbase.sdb /verbose"
+    },
+    {
+      "id": "teste_memoria_ram_agendar",
+      "title": "Teste de Memória RAM (Agendar)",
+      "category": "Sistema",
+      "destructive": false,
+      "command": "MdSched.exe"
+    },
+    {
+      "id": "sair_da_conta_do_usuario",
+      "title": "Sair da Conta do Usuário",
+      "category": "Sistema",
+      "destructive": true,
+      "command": "logoff"
+    },
+    {
+      "id": "checar_portas_abertas",
+      "title": "Checar Portas Abertas",
+      "category": "Rede",
+      "destructive": false,
+      "command": "netstat -ano | Where-Object { $_ -match \"LISTENING\" } | Select-Object -First 20"
+    },
+    {
+      "id": "scan_de_portas_port_query",
+      "title": "Scan de Portas (Port Query)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "portqry -n 127.0.0.1 -p tcp -e 1-1024 2>&1; if ($LASTEXITCODE -ne 0) { Write-Host 'PortQry não encontrado. Use: winget install Microsoft.Portqry' -ForegroundColor Yellow }"
+    },
+    {
+      "id": "mapear_rede_local_netbios",
+      "title": "Mapear Rede Local (NetBIOS)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "nbtstat -n; Write-Host '---'; nbtstat -c"
+    },
+    {
+      "id": "verificar_proxy_do_sistema",
+      "title": "Verificar Proxy do Sistema",
+      "category": "Rede",
+      "destructive": false,
+      "command": "netsh winhttp show proxy"
+    },
+    {
+      "id": "verificar_conexoes_https_ativas",
+      "title": "Verificar Conexões HTTPS Ativas",
+      "category": "Rede",
+      "destructive": false,
+      "command": "Get-NetTCPConnection -State Established | Where-Object { $_.RemotePort -eq 443 } | Select-Object LocalAddress,RemoteAddress,RemotePort,OwningProcess | Format-Table -AutoSize"
+    },
+    {
+      "id": "ativar_bloqueio_script_powershell_constrained",
+      "title": "Ativar Bloqueio de Script Powershell (Constrained)",
+      "category": "Segurança",
+      "destructive": true,
+      "command": "Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green"
     }
   ],
   "templates": [
@@ -2144,9 +2221,9 @@
       "title": "Atualizar Driver por Hardware ID",
       "category": "Drivers",
       "destructive": true,
-      "pattern": "pnputil /add-driver {{CAMINHO_INF}} /install; Write-Host \"Substitua CAMINHO.inf pelo caminho do driver.\" -ForegroundColor Yellow",
+      "pattern": "pnputil /add-driver \"{{CAMINHO_INF}}\" /install; Write-Host \"Substitua CAMINHO.inf pelo caminho do driver.\" -ForegroundColor Yellow",
       "params": {
-        "caminho_inf": "^[a-zA-Z]:\\\\\\\\[- _\\.A-Za-z0-9]+\\\\.inf$"
+        "caminho_inf": "^[a-zA-Z]:[a-zA-Z0-9\\\\._\\- ]{1,255}\\.inf$"
       }
     },
     {
@@ -2474,7 +2551,7 @@
       "title": "chmod 755 (Dono: RWX, Outros: RX)",
       "category": "Segurança",
       "destructive": true,
-      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls \"{{CAMINHO}}\" /grant \"$env:USERNAME:(F)\"; icacls \"{{CAMINHO}}\" /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
       "params": {
         "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
       }
@@ -2484,7 +2561,7 @@
       "title": "chmod 600 (Apenas Dono: RW)",
       "category": "Segurança",
       "destructive": true,
-      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"$env:USERNAME:(M)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls \"{{CAMINHO}}\" /grant \"$env:USERNAME:(M)\"; icacls \"{{CAMINHO}}\" /remove \"Todos\" 2>$null; icacls \"{{CAMINHO}}\" /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
       "params": {
         "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
       }
@@ -2494,7 +2571,7 @@
       "title": "chmod 700 (Apenas Dono: RWX)",
       "category": "Segurança",
       "destructive": true,
-      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls \"{{CAMINHO}}\" /grant \"$env:USERNAME:(F)\"; icacls \"{{CAMINHO}}\" /remove \"Todos\" 2>$null; icacls \"{{CAMINHO}}\" /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
       "params": {
         "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
       }
@@ -2504,7 +2581,7 @@
       "title": "chmod 777 (Todos: RWX - PERIGOSO)",
       "category": "Segurança",
       "destructive": true,
-      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls \"{{CAMINHO}}\" /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
       "params": {
         "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
       }
@@ -2514,7 +2591,7 @@
       "title": "chmod 444 (Todos: Somente Leitura)",
       "category": "Segurança",
       "destructive": true,
-      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls $f /grant \"$env:USERNAME:(R)\"; icacls $f /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "pattern": "if (Test-Path \"{{CAMINHO}}\") { icacls \"{{CAMINHO}}\" /inheritance:r; icacls \"{{CAMINHO}}\" /grant \"$env:USERNAME:(R)\"; icacls \"{{CAMINHO}}\" /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
       "params": {
         "caminho": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
       }
@@ -3089,6 +3166,127 @@
       "pattern": "python -m venv {{NOME}}; Write-Host \"✅ Ambiente virtual '{{NOME}}' criado!\" -ForegroundColor Green",
       "params": {
         "nome": "^[a-zA-Z0-9_-]{1,64}$"
+      }
+    },
+    {
+      "id": "resolver_dns_reverso",
+      "title": "Resolver DNS Reverso (IP → Nome)",
+      "category": "Rede",
+      "destructive": false,
+      "pattern": "Resolve-DnsName -Name {{IP_ALVO}} -ErrorAction SilentlyContinue | Select-Object Name,Type,NameHost | Format-Table -AutoSize",
+      "params": {
+        "ip_alvo": "^(\\d{1,3}\\.){3}\\d{1,3}$"
+      }
+    },
+    {
+      "id": "verificar_hashes_md5_sha256",
+      "title": "Verificar Hashes de Arquivos (MD5/SHA256)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "if (Test-Path \"{{CAMINHO_ARQUIVO}}\") { Write-Host 'MD5:' (Get-FileHash \"{{CAMINHO_ARQUIVO}}\" -Algorithm MD5).Hash; Write-Host 'SHA256:' (Get-FileHash \"{{CAMINHO_ARQUIVO}}\" -Algorithm SHA256).Hash } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho_arquivo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "testar_https_de_site",
+      "title": "Testar HTTPS de um Site",
+      "category": "Rede",
+      "destructive": false,
+      "pattern": "try { $r = Invoke-WebRequest -Uri \"{{URL_TESTE}}\" -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }",
+      "params": {
+        "url_teste": "^https://[a-zA-Z0-9.\\-]{1,253}(?:/[a-zA-Z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]{0,500})?$"
+      }
+    },
+    {
+      "id": "analise_de_arquivo_file_type",
+      "title": "Análise de Arquivo (file type)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "if (Test-Path \"{{CAMINHO_ARQUIVO}}\") { $bytes = [System.IO.File]::ReadAllBytes(\"{{CAMINHO_ARQUIVO}}\")[0..3]; $hex = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '; Write-Host \"Assinatura (hex): $hex\" -ForegroundColor Cyan; Write-Host \"Tamanho: $((Get-Item \"{{CAMINHO_ARQUIVO}}\").Length) bytes\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho_arquivo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "verificar_metadados_de_arquivo",
+      "title": "Verificar Metadados de Arquivo",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "if (Test-Path \"{{CAMINHO_ARQUIVO}}\") { Get-Item \"{{CAMINHO_ARQUIVO}}\" | Select-Object Name,Length,CreationTime,LastAccessTime,LastWriteTime,Attributes | Format-List } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho_arquivo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "extrair_hash_todos_algoritmos",
+      "title": "Extrair Hash de Arquivo (Todos os Algoritmos)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "if (Test-Path \"{{CAMINHO_ARQUIVO}}\") { foreach ($algo in @('MD5','SHA1','SHA256','SHA384','SHA512')) { Write-Host \"$algo`: $((Get-FileHash \"{{CAMINHO_ARQUIVO}}\" -Algorithm $algo).Hash)\" -ForegroundColor Cyan } } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }",
+      "params": {
+        "caminho_arquivo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "listar_arquivos_modificados_24h",
+      "title": "Listar Arquivos Modificados Recentemente (24h)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "Get-ChildItem \"{{DIRETORIO_ALVO}}\" -Recurse -File -EA 0 | Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-24) } | Select-Object FullName,LastWriteTime,Length | Sort-Object LastWriteTime -Descending | Select-Object -First 30 | Format-Table -AutoSize",
+      "params": {
+        "diretorio_alvo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "conceder_permissao_leitura_execucao",
+      "title": "Conceder Leitura + Execução (RX)",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO_ARQUIVO}}\" /grant \"{{NOME_USUARIO}}:(RX)\"; Write-Host \"✅ Permissão de leitura + execução concedida a {{NOME_USUARIO}}\" -ForegroundColor Green",
+      "params": {
+        "caminho_arquivo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$",
+        "nome_usuario": "^[a-zA-Z0-9._\\-]{1,64}$"
+      }
+    },
+    {
+      "id": "desativar_heranca_permissoes",
+      "title": "Desativar Herança de Permissões",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO_ARQUIVO}}\" /inheritance:d; Write-Host '✅ Herança desativada - permissões copiadas' -ForegroundColor Green",
+      "params": {
+        "caminho_arquivo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "ativar_heranca_permissoes",
+      "title": "Ativar Herança de Permissões",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "icacls \"{{CAMINHO_ARQUIVO}}\" /inheritance:e; Write-Host '✅ Herança ativada' -ForegroundColor Green",
+      "params": {
+        "caminho_arquivo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "alterar_proprietario_administradores",
+      "title": "Alterar Proprietário para Administradores",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "takeown /f \"{{CAMINHO_ARQUIVO}}\" /a; icacls \"{{CAMINHO_ARQUIVO}}\" /grant Administradores:(F); Write-Host '✅ Proprietário alterado para Administradores' -ForegroundColor Green",
+      "params": {
+        "caminho_arquivo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
+      }
+    },
+    {
+      "id": "listar_arquivos_sem_dono",
+      "title": "Listar Arquivos Sem Dono (Orphaned ACLs)",
+      "category": "Segurança",
+      "destructive": false,
+      "pattern": "Get-ChildItem \"{{DIRETORIO_ALVO}}\" -Recurse -File -EA 0 | ForEach-Object { try { $acl = Get-Acl $_.FullName -EA 0; if ($acl.Owner -match 'S-1-5') { [PSCustomObject]@{Arquivo=$_.FullName; Owner=$acl.Owner} } } catch {} } | Format-Table -AutoSize",
+      "params": {
+        "diretorio_alvo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
       }
     }
   ]
