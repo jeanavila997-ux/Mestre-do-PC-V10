@@ -4,7 +4,8 @@
     "fast": {
       "label": "Rápido",
       "description": "Latência baixa para tarefas simples e respostas curtas. Ideal para consultas rápidas no desktop.",
-      "model": "qwen2.5-coder:1.5b",
+      "model": "qwen2.5-coder:3b-instruct",
+      "fallbackModel": "deepseek-v4-flash:cloud",
       "recommended": {
         "minRamGB": 4,
         "gpuRecommended": false
@@ -19,8 +20,9 @@
     },
     "balanced": {
       "label": "Equilibrado",
-      "description": "Bom equilíbrio entre velocidade e qualidade para automação e manutenção do Windows.",
+      "description": "Bom equilíbrio entre velocidade e qualidade para automação e manutenção do Windows. Modelo padrão para chat diário.",
       "model": "qwen2.5-coder:3b-instruct",
+      "fallbackModel": "qwen3.5:cloud",
       "recommended": {
         "minRamGB": 8,
         "gpuRecommended": false
@@ -35,7 +37,7 @@
     },
     "agent": {
       "label": "Agente de Automação",
-      "description": "Modelo especializado em automação de tarefas e execução de ferramentas no desktop.",
+      "description": "Modelo especializado em automação de tarefas e execução de ferramentas no desktop. Customizado para o Mestre do PC.",
       "model": "fazendaavila2026/agente:latest",
       "fallbackModel": "qwen2.5-coder:7b",
       "recommended": {
@@ -52,11 +54,12 @@
     },
     "coding": {
       "label": "Código",
-      "description": "Melhor qualidade para geração de scripts PowerShell, correções e automações complexas.",
-      "model": "qwen2.5-coder:7b",
+      "description": "Melhor qualidade para geração de scripts PowerShell, correções e automações complexas. Especializado em debugging e refatoração.",
+      "model": "kimi-k2.7-code:cloud",
+      "fallbackModel": "qwen2.5-coder:7b",
       "recommended": {
-        "minRamGB": 12,
-        "gpuRecommended": true
+        "minRamGB": 8,
+        "gpuRecommended": false
       },
       "options": {
         "num_ctx": 16384,
@@ -68,21 +71,147 @@
     },
     "reasoning": {
       "label": "Raciocínio",
-      "description": "Modelo de raciocínio para diagnósticos complexos e análise de logs críticos.",
-      "model": "deepseek-r1:7b",
-      "fallbackModel": "phi4:14b",
+      "description": "Modelo de raciocínio para diagnósticos complexos e análise de logs críticos. 675B parâmetros para análise profunda.",
+      "model": "mistral-large-3:675b-cloud",
+      "fallbackModel": "qwen3.5:397b-cloud",
       "recommended": {
         "minRamGB": 16,
-        "gpuRecommended": true
+        "gpuRecommended": false
       },
       "options": {
         "num_ctx": 16384,
         "temperature": 0.6,
         "top_p": 0.9,
         "top_k": 40,
-        "num_predict": 2048,
-        "think": true
+        "num_predict": 2048
+      }
+    },
+    "dialogue": {
+      "label": "Diálogo",
+      "description": "Modelo com tom mais humano e natural para conversação e suporte ao usuário. Didático e amigável.",
+      "model": "minimax-m3:cloud",
+      "fallbackModel": "qwen3.5:cloud",
+      "recommended": {
+        "minRamGB": 8,
+        "gpuRecommended": false
+      },
+      "options": {
+        "num_ctx": 8192,
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "top_k": 40,
+        "num_predict": 1024
+      }
+    },
+    "transcription": {
+      "label": "Transcrição",
+      "description": "Especializado em transcrição de áudio speech-to-text. Use para converter notas de voz em texto.",
+      "model": "dimavz/whisper-tiny:latest",
+      "recommended": {
+        "minRamGB": 2,
+        "gpuRecommended": false
+      },
+      "options": {
+        "num_ctx": 4096,
+        "temperature": 0.1,
+        "top_p": 0.8,
+        "top_k": 20,
+        "num_predict": 512
       }
     }
+  },
+  "modelCatalog": {
+    "description": "Catálogo de todos os modelos disponíveis. Veja docs/MODELOS-ANALISE-COMPLETA.md para análise detalhada.",
+    "local": [
+      {
+        "name": "dimavz/whisper-tiny:latest",
+        "type": "transcription",
+        "size": "~40 MB",
+        "minRamGB": 2,
+        "gpuRecommended": false,
+        "bestFor": ["Transcrição de áudio", "Comandos de voz", "Legendas automáticas"]
+      },
+      {
+        "name": "fazendaavila2026/agente:latest",
+        "type": "agent",
+        "size": "~7 GB",
+        "minRamGB": 8,
+        "gpuRecommended": true,
+        "bestFor": ["Automação MCP", "Diagnóstico de sistema", "Contexto do projeto"]
+      },
+      {
+        "name": "qwen2.5-coder:3b-instruct",
+        "type": "balanced",
+        "size": "~3.5 GB",
+        "minRamGB": 4,
+        "gpuRecommended": false,
+        "bestFor": ["Chat diário", "Código PowerShell", "Uso contínuo"]
+      }
+    ],
+    "cloud": [
+      {
+        "name": "deepseek-v4-flash:cloud",
+        "type": "fast",
+        "cost": "Baixo",
+        "bestFor": ["Respostas rápidas", "Tarefas do dia-a-dia", "Validação"]
+      },
+      {
+        "name": "qwen3.5:cloud",
+        "type": "balanced",
+        "cost": "Moderado",
+        "bestFor": ["Uso geral", "Português brasileiro", "Contexto moderado"]
+      },
+      {
+        "name": "glm-5.2:cloud",
+        "type": "reasoning",
+        "cost": "Moderado",
+        "bestFor": ["Raciocínio lógico", "Análise de documentos", "Perguntas complexas"]
+      },
+      {
+        "name": "mistral-large-3:675b-cloud",
+        "type": "reasoning",
+        "cost": "Alto",
+        "params": "675B",
+        "bestFor": ["Raciocínio complexo", "Diagnósticos críticos", "Análise de arquitetura"]
+      },
+      {
+        "name": "minimax-m3:cloud",
+        "type": "dialogue",
+        "cost": "Moderado",
+        "bestFor": ["Diálogo natural", "Explicações didáticas", "Suporte ao usuário"]
+      },
+      {
+        "name": "qwen3.5:397b-cloud",
+        "type": "reasoning",
+        "cost": "Alto",
+        "params": "397B",
+        "bestFor": ["Contexto longo", "Código complexo", "Múltiplos arquivos"]
+      },
+      {
+        "name": "kimi-k2.7-code:cloud",
+        "type": "coding",
+        "cost": "Moderado-Alto",
+        "bestFor": ["Geração de código", "Debugging", "Refatoração", "PowerShell"]
+      },
+      {
+        "name": "kimi-k2.6:cloud",
+        "type": "balanced",
+        "cost": "Moderado",
+        "bestFor": ["Backup", "Uso geral", "Quando k2.7 indisponível"]
+      },
+      {
+        "name": "deepseek-v4-pro:cloud",
+        "type": "reasoning",
+        "cost": "Alto",
+        "bestFor": ["Documentação técnica", "Análise de arquitetura", "Troubleshooting avançado"]
+      },
+      {
+        "name": "gpt-oss:120b-cloud",
+        "type": "coding",
+        "cost": "Moderado-Alto",
+        "params": "120B",
+        "bestFor": ["Código open-source", "Ferramentas GNU", "Git"]
+      }
+    ]
   }
 }
