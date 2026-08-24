@@ -97,3 +97,8 @@ obj/
 # Pasta de backups locais
 backups/*.zip
 backups/*.tar.gz
+
+# Binário de browser empacotado (Playwright/Puppeteer) usado pelo chat-agent
+# do Notepad++. Baixado localmente por ferramenta, não é código-fonte e
+# excede o limite de tamanho de arquivo do GitHub.
+v10/notepad-plus-plus/chat-agent/profiles/chrome-win/
