@@ -170,6 +170,7 @@ export class MestreChat {
     this.outputHistory = [];
     this.voiceRecognition = null;
     this.isListening = false;
+    this.modoLivre = false;
 
     this.headers = {
       "Content-Type": "application/json",
@@ -182,6 +183,7 @@ export class MestreChat {
     this._restoreConversation();
     this._initMemoriesDb().then(() => this._loadMemories()).catch(() => this._loadMemories());
     this._loadOutputHistory();
+    this._refreshModoLivre();
   }
 
   _ensureRoot() {
@@ -237,6 +239,7 @@ export class MestreChat {
       confirmMeta: $("mestreChatConfirmMeta"),
       confirmCancel: $("mestreChatConfirmCancel"),
       confirmOk: $("mestreChatConfirmOk"),
+      modoLivreBtn: $("mestreChatModoLivreBtn"),
     };
   }
 
@@ -956,13 +959,74 @@ export class MestreChat {
       case "clear-chat":
         this._clearConversation();
         break;
+      case "toggle-modo-livre":
+        this._toggleModoLivre();
+        break;
     }
+  }
+
+  // ===== Modo Livre =====
+  // Quando ligado, comandos sugeridos pela IA vão direto para /run-free no
+  // launcher — sem checar allowed-operations.json e sem o modal de
+  // confirmação. É um modo opt-in: some com a barreira de segurança da
+  // whitelist, então só existe enquanto o usuário mantém ligado explicitamente.
+
+  async _refreshModoLivre() {
+    try {
+      const res = await this._request("/modo-livre", { signal: AbortSignal.timeout(4000) });
+      const data = await res.json();
+      this.modoLivre = !!data.enabled;
+    } catch {
+      this.modoLivre = false;
+    }
+    this._renderModoLivre();
+  }
+
+  async _toggleModoLivre() {
+    const next = !this.modoLivre;
+    if (next) {
+      const ok = confirm(
+        "Ligar o Modo Livre?\n\nComandos sugeridos pela IA vão rodar direto, sem checar a lista de comandos permitidos e sem pedir confirmação. Isso inclui comandos potencialmente destrutivos.\n\nTudo continua sendo registrado no log de auditoria."
+      );
+      if (!ok) return;
+    }
+    try {
+      const res = await this._request("/modo-livre", {
+        method: "POST",
+        body: JSON.stringify({ enabled: next }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success !== true) throw new Error(data.reason || "Falha ao alterar o Modo Livre.");
+      this.modoLivre = !!data.enabled;
+      this.toast(this.modoLivre ? "🔓 Modo Livre ativado" : "🔒 Modo Livre desativado", this.modoLivre ? "warning" : "info");
+    } catch (e) {
+      this.toast("❌ Erro: " + e.message, "error");
+    }
+    this._renderModoLivre();
+  }
+
+  _renderModoLivre() {
+    if (!this.el.modoLivreBtn) return;
+    this.el.modoLivreBtn.textContent = this.modoLivre ? "🔓 Modo Livre" : "🔒 Modo Livre";
+    this.el.modoLivreBtn.classList.toggle("active", this.modoLivre);
+    this.el.modoLivreBtn.style.borderColor = this.modoLivre ? "rgba(248,81,73,0.6)" : "";
+    this.el.modoLivreBtn.style.color = this.modoLivre ? "var(--danger)" : "";
   }
 
   async _runAiCommand(cmd) {
     if (!cmd) return;
     this.el.sendBtn.disabled = true;
     try {
+      if (this.modoLivre) {
+        const data = await this._dispatchCommand(cmd, { free: true });
+        const success = data.success === true && data.state === "completed";
+        this._addOutputEntry(cmd, data.output || "", success);
+        if (this.onOutput) this.onOutput(cmd, data.output || "", success);
+        this.toast(success ? "✅ Comando concluído (Modo Livre)" : "❌ Comando falhou", success ? "info" : "error");
+        return;
+      }
+
       const verdict = await this._classifyCommand(cmd);
       if (!verdict.allowed) {
         const copy = await this._askCommandConfirmation({
@@ -1017,7 +1081,7 @@ export class MestreChat {
   }
 
   async _dispatchCommand(cmd, options = {}) {
-    const submitRes = await this._request("/run", {
+    const submitRes = await this._request(options.free ? "/run-free" : "/run", {
       method: "POST",
       body: JSON.stringify({ cmd }),
       signal: AbortSignal.timeout(options.submitTimeoutMs || 10000),
@@ -1083,46 +1147,85 @@ export class MestreChat {
     });
   }
 
+  // Memória persistida no servidor (v10/memory-routes.js + memory-manager.js),
+  // sobrevive a "limpar dados do navegador". IndexedDB/localStorage viram
+  // apenas cache/fallback para quando o launcher está offline.
+  _fromServerMemory(m) {
+    return {
+      id: m.id,
+      title: m.title || "",
+      content: m.content || "",
+      createdAt: m.metadata?.createdAt ? Date.parse(m.metadata.createdAt) || Date.now() : Date.now(),
+      updatedAt: m.metadata?.updatedAt ? Date.parse(m.metadata.updatedAt) || Date.now() : Date.now(),
+    };
+  }
+
   async _getAllMemories() {
     try {
-      const db = await this._initMemoriesDb();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction("memories", "readonly");
-        const store = tx.objectStore("memories");
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => reject(req.error);
-      });
+      const res = await this._request("/memories/list?limit=500", { signal: AbortSignal.timeout(5000) });
+      const data = await res.json();
+      if (!res.ok || data.success !== true) throw new Error(data.error || "Falha ao listar memórias.");
+      const list = data.memories.map((m) => this._fromServerMemory(m));
+      try { localStorage.setItem(this.memoryStorageKey, JSON.stringify(list)); } catch {}
+      return list;
     } catch {
+      // Launcher offline: cai para o cache local (IndexedDB, com fallback localStorage).
       try {
-        const raw = localStorage.getItem(this.memoryStorageKey);
-        return raw ? JSON.parse(raw) : [];
+        const db = await this._initMemoriesDb();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction("memories", "readonly");
+          const store = tx.objectStore("memories");
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
       } catch {
-        return [];
+        try {
+          const raw = localStorage.getItem(this.memoryStorageKey);
+          return raw ? JSON.parse(raw) : [];
+        } catch {
+          return [];
+        }
       }
     }
   }
 
   async _saveMemoryToDb(memory) {
     try {
-      const db = await this._initMemoriesDb();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction("memories", "readwrite");
-        const store = tx.objectStore("memories");
-        const req = store.put(memory);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-    } catch {
-      const list = await this._getAllMemories();
       if (memory.id) {
-        const idx = list.findIndex((m) => m.id === memory.id);
-        if (idx >= 0) list[idx] = memory;
-        else list.push(memory);
-      } else {
-        memory.id = Date.now();
-        list.push(memory);
+        const res = await this._request(`/memories/update/${encodeURIComponent(memory.id)}`, {
+          method: "PUT",
+          body: JSON.stringify({ title: memory.title, content: memory.content }),
+          signal: AbortSignal.timeout(5000),
+        });
+        const data = await res.json();
+        if (!res.ok || data.success !== true) throw new Error(data.error || "Falha ao atualizar memória.");
+        return data.memory.id;
       }
+      const res = await this._request("/memories/create", {
+        method: "POST",
+        body: JSON.stringify({ type: "note", title: memory.title, content: memory.content, metadata: { source: "chat" } }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success !== true) throw new Error(data.error || "Falha ao criar memória.");
+      return data.memory.id;
+    } catch (e) {
+      this.toast("⚠️ Memória salva só localmente (launcher indisponível).", "warning");
+      const db = await this._initMemoriesDb().catch(() => null);
+      if (db) {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction("memories", "readwrite");
+          const store = tx.objectStore("memories");
+          const req = store.put(memory);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+      const list = JSON.parse(localStorage.getItem(this.memoryStorageKey) || "[]");
+      memory.id = memory.id || `local_${Date.now()}`;
+      const idx = list.findIndex((m) => m.id === memory.id);
+      if (idx >= 0) list[idx] = memory; else list.push(memory);
       localStorage.setItem(this.memoryStorageKey, JSON.stringify(list));
       return memory.id;
     }
@@ -1130,17 +1233,26 @@ export class MestreChat {
 
   async _deleteMemoryFromDb(id) {
     try {
-      const db = await this._initMemoriesDb();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction("memories", "readwrite");
-        const store = tx.objectStore("memories");
-        const req = store.delete(id);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      const res = await this._request(`/memories/delete/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        signal: AbortSignal.timeout(5000),
       });
+      const data = await res.json();
+      if (!res.ok || data.success !== true) throw new Error("Falha ao excluir memória.");
     } catch {
-      const list = (await this._getAllMemories()).filter((m) => m.id !== id);
-      localStorage.setItem(this.memoryStorageKey, JSON.stringify(list));
+      try {
+        const db = await this._initMemoriesDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction("memories", "readwrite");
+          const store = tx.objectStore("memories");
+          const req = store.delete(id);
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      } catch {
+        const list = JSON.parse(localStorage.getItem(this.memoryStorageKey) || "[]").filter((m) => m.id !== id);
+        localStorage.setItem(this.memoryStorageKey, JSON.stringify(list));
+      }
     }
   }
 
@@ -1173,7 +1285,7 @@ export class MestreChat {
       .join("");
     this.el.memoriesList.querySelectorAll("button[data-action]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const id = Number(btn.dataset.id);
+        const id = btn.dataset.id;
         const action = btn.dataset.action;
         if (action === "toggle") this._toggleActiveMemory(id);
         else if (action === "edit") this._openMemoryEditor(id);
@@ -1192,7 +1304,7 @@ export class MestreChat {
       .map((m) => `<span class="mestre-chat-memory-chip">🧠 ${escapeHtml(m.title)} <button data-id="${m.id}">✕</button></span>`)
       .join("");
     this.el.activeMemoryChips.querySelectorAll("button").forEach((btn) => {
-      btn.addEventListener("click", () => this._toggleActiveMemory(Number(btn.dataset.id)));
+      btn.addEventListener("click", () => this._toggleActiveMemory(btn.dataset.id));
     });
   }
 
@@ -1219,7 +1331,7 @@ export class MestreChat {
     }
     const now = Date.now();
     const memory = { title, content, updatedAt: now };
-    if (idRaw) memory.id = Number(idRaw);
+    if (idRaw) memory.id = idRaw;
     else memory.createdAt = now;
     await this._saveMemoryToDb(memory);
     this._closeMemoryEditor();
