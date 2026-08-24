@@ -27,6 +27,26 @@ Normalmente o Claude Desktop ou Codex inicia `index.js`; não é necessário man
 - `verificar_prompt` — detecta prompt injection/jailbreak.
 - `verificar_modelo_ollama` — checa se o modelo padrão está disponível (local ou cloud).
 
+### Ferramentas de descoberta e relatório (V11.2)
+
+- `listar_operacoes_disponiveis` — lista as operações da whitelist (id, título,
+  categoria, se é destrutiva). Filtra por `categoria` e/ou `destrutivas`.
+- `classificar_comando` — consulta o launcher (`/classify`) para saber se um
+  comando é permitido e destrutivo, **sem executá-lo**.
+- `consultar_status_launcher` — mostra CPU/RAM/disco e o estado do launcher.
+- `resumir_texto_ia` — resume textos/logs longos com a IA local (Ollama).
+- `relatorio_completo_pc` — gera relatório agregado do PC (recursos, info do
+  sistema, RAM, disco, locais comuns e projetos relevantes), com sugestões de
+  melhoria opcionais via IA. Usa `MESTRE_BASE_URL`, então funciona remotamente
+  se o launcher estiver acessível.
+
+> **Nota:** os tools `consultar_fonte_oficial_gov`, `extrair_evidencia_de_pdf_local`,
+> `simular_cenario_economico`, `congelar_tabela_final` e `gerar_snapshot_git` são
+> processados **exclusivamente pelo MCP server** (não fazem parte de
+> `allowed-operations.json`) para evitar nomes duplicados na lista de tools.
+> A operação `listar_locais_comuns_pc` (usada pelo relatório) vive no catálogo e
+> é executada via launcher.
+
 ## Variáveis de ambiente
 
 | Variável | Padrão | Uso |

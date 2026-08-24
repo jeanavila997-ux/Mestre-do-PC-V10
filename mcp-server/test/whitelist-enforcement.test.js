@@ -5,6 +5,7 @@ import { createServer } from "node:net";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -53,24 +54,26 @@ function classify(base, body) {
   });
 }
 
-test("launcher PowerShell só executa comandos resolvidos pela whitelist", async () => {
-  const ps1 = await readFile(join(root, "MestreDoPC-Launcher.ps1"), "utf8");
+test("launcher Node.js só executa comandos resolvidos pela whitelist", async () => {
+  const launcher = await readFile(join(root, "v10", "launcher.js"), "utf8");
+  const registry = await readFile(join(root, "v10", "operation-registry.js"), "utf8");
 
-  // O catálogo precisa ser carregado antes de o listener aceitar requisições.
-  assert.match(ps1, /Initialize-OperationCatalog/);
-  assert.match(ps1, /allowed-operations\.json/);
+  // O catálogo é carregado via OperationRegistry antes de o listener aceitar requisições.
+  assert.match(launcher, /loadOperationRegistry/);
+  assert.match(launcher, /allowed-operations\.json/);
+  assert.match(registry, /class OperationRegistry/);
 
   // O /run resolve antes de agendar; o job nunca recebe o texto cru do cliente.
-  assert.match(ps1, /\$resolved = Resolve-MestreCommand -Data \$data/);
-  assert.match(ps1, /\$cmd = \[string\]\$resolved\.cmd/);
-  assert.doesNotMatch(ps1, /\$cmd = \[string\]\$data\.cmd/);
+  assert.match(launcher, /const resolved = resolveCommand\(body\)/);
+  assert.match(launcher, /runPowerShell\(resolved\.cmd/);
+  assert.doesNotMatch(launcher, /runPowerShell\(body\.cmd\)/);
 
-  // Mensagem de bloqueio em paridade com o launcher Node.
-  assert.match(ps1, /Operacao bloqueada: somente comandos cadastrados na V10/);
+  // Mensagem de bloqueio em paridade com o backend legado.
+  assert.match(registry, /Operação bloqueada: somente comandos cadastrados na V10/);
 
-  // /classify e a heurística de injection existem no backend elevado também.
-  assert.match(ps1, /AbsolutePath -eq "\/classify"/);
-  assert.match(ps1, /Test-PromptInjection/);
+  // /classify e a heurística de injection existem no backend Node também.
+  assert.match(launcher, /\/classify/);
+  assert.match(launcher, /checkPromptInjection/);
 });
 
 test("catálogo: templates com command fixo são alcançáveis", async () => {
@@ -139,8 +142,8 @@ test("todo id do registry MCP existe em allowed-operations.json", async () => {
     ...catalog.templates.map((tpl) => tpl.id),
   ]);
 
-  const { loadOperationRegistry } = await import(join(root, "v10", "operation-registry.js"));
-  const registry = await loadOperationRegistry(join(root, "v10", "allowed-operations.json"));
+  const { loadOperationRegistry } = await import(pathToFileURL(join(root, "v10", "operation-registry.js")).href);
+  const registry = await loadOperationRegistry(pathToFileURL(join(root, "v10", "allowed-operations.json")).href);
   const mcpRegistry = registry.buildMcpToolRegistry();
   const mcpIds = Object.keys(mcpRegistry);
 

@@ -27,6 +27,7 @@
  */
 
 import { TOOL_NAMES, executarTool, listProfiles, getProfileModel, getProfileOptions, getBestAvailableModel, getBestLocalModel, refreshAvailableModels } from "./tools-api.js";
+import { searchWeb, fetchWebPage } from "./web-search.js";
 import * as db from "./db.js";
 import { sincronizarAgora, getStatus as getSyncStatus, iniciarSyncAutomatico } from "./mysql-sync.js";
 import { auditLog, AuditLevel } from "../../mcp-server/audit-logger.js";
@@ -325,6 +326,35 @@ export async function handleApiRoute(req, res, url, ctx) {
       db.setConfig(chave, valor);
     }
     ok(res, { success: true }, allowedOrigin);
+    return true;
+  }
+
+  // ── Web search / web fetch ────────────────────────────────────────
+
+  if (path === "/api/web-search" && method === "GET") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    const query = url.searchParams.get("q");
+    const maxResults = Number(url.searchParams.get("max_results")) || 5;
+    try {
+      const results = await searchWeb(query, maxResults);
+      ok(res, { results }, allowedOrigin);
+    } catch (err) {
+      auditLog(AuditLevel.ERROR, "web_search_error", { query, error: err.message });
+      fail(res, 502, { error: err.message }, allowedOrigin);
+    }
+    return true;
+  }
+
+  if (path === "/api/web-fetch" && method === "GET") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    const targetUrl = url.searchParams.get("url");
+    try {
+      const page = await fetchWebPage(targetUrl);
+      ok(res, page, allowedOrigin);
+    } catch (err) {
+      auditLog(AuditLevel.ERROR, "web_fetch_error", { url: targetUrl, error: err.message });
+      fail(res, 502, { error: err.message }, allowedOrigin);
+    }
     return true;
   }
 

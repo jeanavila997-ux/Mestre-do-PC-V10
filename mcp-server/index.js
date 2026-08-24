@@ -780,7 +780,7 @@ async function sendSlackWebhook(webhookUrl, message, channel, emoji = ":robot_fa
  * Monitorar recursos e enviar alerta se ultrapassar limites
  */
 async function monitorAndAlert(webhookUrl, cpuLimite = 80, ramLimite = 80, discoLimite = 90, plataforma = "discord") {
-  const os = await fetch("http://127.0.0.1:7777/status", {
+  const os = await fetch(MESTRE_BASE_URL + "/status", {
     signal: AbortSignal.timeout(5000),
   }).then(r => r.json()).catch(() => null);
 
@@ -1124,6 +1124,62 @@ const EXTRA_TOOLS = [
         comando: { type: "string", description: "Comando PowerShell completo a ser executado." },
       },
       required: ["comando"],
+    },
+  },
+  {
+    name: "listar_operacoes_disponiveis",
+    description: "Lista as operações disponíveis na whitelist do Mestre do PC (id, título, categoria e se é destrutiva). Use para descobrir que ferramentas existem antes de executar. Permite filtrar por categoria ou apenas destrutivas.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        categoria: { type: "string", description: "Filtra por categoria (ex: Memória, Disco, Rede, Segurança, Reparo)." },
+        destrutivas: { type: "boolean", description: "Se true, mostra apenas operações destrutivas (que exigem confirmação)." },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "classificar_comando",
+    description: "Verifica junto ao launcher se um comando PowerShell está na whitelist e se é destrutivo, SEM executá-lo. Use antes de sugerir ou executar um comando.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        comando: { type: "string", description: "Comando PowerShell a ser classificado." },
+      },
+      required: ["comando"],
+    },
+  },
+  {
+    name: "consultar_status_launcher",
+    description: "Consulta a saúde do launcher Mestre do PC (CPU, RAM, disco, estado dos jobs). Use para verificar se o backend está no ar antes de operações.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "resumir_texto_ia",
+    description: "Resume um texto, log ou documento usando a IA local (Ollama). Útil para condensar logs, relatórios ou páginas longas.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        texto: { type: "string", description: "O texto a ser resumido." },
+        instrucoes: { type: "string", description: "Instrução opcional de resumo (ex: 'foco nos erros críticos')." },
+        max_caracteres: { type: "number", description: "Máximo de caracteres do texto enviado à IA (padrão 4000, máx 20000)." },
+      },
+      required: ["texto"],
+    },
+  },
+  {
+    name: "relatorio_completo_pc",
+    description: "Gera um relatório completo do PC: recursos (CPU/RAM/disco), informações do sistema, uso de RAM, espaço em disco, locais comuns do PC e projetos/pastas relevantes. Opcionalmente envia o resumo à IA para sugestões de melhoria. Funciona também remotamente, se o launcher estiver acessível.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        incluir_sugestoes_ia: { type: "boolean", description: "Se true (padrão), envia o resumo à IA local para sugerir melhorias." },
+      },
+      required: [],
     },
   },
 ];
@@ -1783,6 +1839,185 @@ Responda apenas com o comando PowerShell, nada mais.`,
       return { isError: true, content: [{ type: "text", text: `Falha ao executar comando livre: ${error.message}` }] };
     }
   }
+
+  // ===== NOVOS TOOLS V11.2 =====
+
+  if (name === "listar_operacoes_disponiveis") {
+    const categoria = args?.categoria ? String(args.categoria) : "";
+    const apenasDestrutivas = args?.destrutivas === true;
+    const entries = [];
+    const seen = new Set();
+    for (const op of operationRegistry.exactEntries) {
+      if (!op || !op.id || seen.has(op.id)) continue;
+      seen.add(op.id);
+      if (categoria && !(op.category || "").toLowerCase().includes(categoria.toLowerCase())) continue;
+      if (apenasDestrutivas && !op.destructive) continue;
+      entries.push({ id: op.id, titulo: op.title || op.id, categoria: op.category || "", destrutiva: !!op.destructive, params: [] });
+    }
+    for (const tpl of operationRegistry.parametrizedTemplates) {
+      if (!tpl || !tpl.id || seen.has(tpl.id)) continue;
+      seen.add(tpl.id);
+      if (categoria && !(tpl.category || "").toLowerCase().includes(categoria.toLowerCase())) continue;
+      if (apenasDestrutivas && !tpl.destructive) continue;
+      entries.push({ id: tpl.id, titulo: tpl.title || tpl.id, categoria: tpl.category || "", destrutiva: !!tpl.destructive, params: Object.keys(tpl.params || {}) });
+    }
+    entries.sort((a, b) => a.id.localeCompare(b.id));
+    if (entries.length === 0) {
+      return { content: [{ type: "text", text: "Nenhuma operação encontrada para o filtro informado." }] };
+    }
+    const filtros = [categoria ? `categoria '${categoria}'` : "", apenasDestrutivas ? "apenas destrutivas" : ""].filter(Boolean).join(" + ");
+    const lines = [`🗂️ Operações disponíveis (${entries.length})${filtros ? ` — filtro: ${filtros}` : ""}`, ""];
+    for (const e of entries) {
+      const p = e.params.length ? ` params: ${e.params.join(", ")}` : "";
+      lines.push(`${e.destrutiva ? "⚠️" : "🔹"} \`${e.id}\` — ${e.titulo} (${e.categoria})${p}`);
+    }
+    return { content: [{ type: "text", text: lines.join("\n") }] };
+  }
+
+  if (name === "classificar_comando") {
+    const cmd = args?.comando;
+    if (!cmd || typeof cmd !== "string") throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'comando' obrigatório.");
+    const verdict = await classifyLauncherCommand(cmd);
+    const lines = [
+      "📊 Classificação do comando:",
+      `   • Permite execução: ${verdict.allowed ? "✅ Sim" : "🚫 Não"}`,
+      `   • Destrutivo: ${verdict.destructive ? "⚠️ Sim" : "✅ Não"}`,
+    ];
+    if (verdict.id) lines.push(`   • ID da operação: ${verdict.id}`);
+    if (verdict.title) lines.push(`   • Título: ${verdict.title}`);
+    if (verdict.category) lines.push(`   • Categoria: ${verdict.category}`);
+    if (verdict.reason) lines.push(`   • Motivo: ${verdict.reason}`);
+    if (verdict.allowed && verdict.destructive) lines.push("", "⚠️ Exige confirmação explícita do usuário antes de executar.");
+    return { content: [{ type: "text", text: lines.join("\n") }] };
+  }
+
+  if (name === "consultar_status_launcher") {
+    try {
+      const res = await fetch(MESTRE_BASE_URL + "/status", { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) {
+        return { isError: true, content: [{ type: "text", text: `Launcher respondeu HTTP ${res.status} em ${MESTRE_BASE_URL}.` }] };
+      }
+      const data = await res.json();
+      const lines = [`🟢 Status do Launcher Mestre do PC (${MESTRE_BASE_URL})`, ""];
+      for (const [k, v] of Object.entries(data)) {
+        lines.push(`   • ${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`);
+      }
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Launcher indisponível em ${MESTRE_BASE_URL}: ${e.message}` }] };
+    }
+  }
+
+  if (name === "resumir_texto_ia") {
+    const texto = args?.texto;
+    if (!texto || typeof texto !== "string") throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'texto' obrigatório.");
+    const maxLen = Math.min(Math.max(1, Math.floor(Number(args?.max_caracteres) || 4000)), 20000);
+    const instrucoes = typeof args?.instrucoes === "string" && args.instrucoes.trim() ? args.instrucoes.trim() : "Resuma o texto abaixo de forma objetiva, destacando os pontos principais.";
+    const truncated = texto.length > maxLen ? texto.slice(0, maxLen) + "\n[... texto truncado ...]" : texto;
+    const blocked = await guardPromptInjection(truncated, "resumir_texto_ia");
+    if (blocked) return blocked;
+    try {
+      const result = await ollamaChat({
+        messages: [{ role: "user", content: `${instrucoes}\n\n${truncated}` }],
+        system: "Você é um assistente de resumo. Responda em português brasileiro.",
+        timeoutMs: 60000,
+      });
+      let text = result.content;
+      if (result.thinking) text = `💭 Raciocínio:\n${result.thinking}\n\n---\n\n${text}`;
+      return { content: [{ type: "text", text: text + result.meta }] };
+    } catch (error) {
+      if (error.name === "AbortError" || error.name === "TimeoutError") {
+        return { isError: true, content: [{ type: "text", text: "⏱️ Timeout ao resumir (60s). Ollama pode estar sobrecarregado." }] };
+      }
+      return { isError: true, content: [{ type: "text", text: `Falha ao resumir: ${error.message}` }] };
+    }
+  }
+
+  if (name === "relatorio_completo_pc") {
+    const sections = [];
+    const errors = [];
+    const incluirSugestoes = args?.incluir_sugestoes_ia !== false;
+
+    // 1. Recursos do sistema (CPU/RAM/disco) via /status
+    try {
+      const res = await fetch(MESTRE_BASE_URL + "/status", { signal: AbortSignal.timeout(5000) });
+      if (res.ok) {
+        const data = await res.json();
+        sections.push(`## 📊 Recursos do sistema\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``);
+      }
+    } catch (e) { errors.push(`status do launcher: ${e.message}`); }
+
+    // 2. Informações do sistema (whitelist)
+    try {
+      const d = await executeLauncherCommand({ id: "informacoes_do_sistema" }, { timeoutMs: 60000 });
+      if (d.success) sections.push(`## 🖥️ Informações do sistema\n\`\`\`\n${(d.output || "").slice(0, 2500)}\n\`\`\``);
+    } catch (e) { errors.push(`informacoes_do_sistema: ${e.message}`); }
+
+    // 3. Uso de RAM (whitelist)
+    try {
+      const d = await executeLauncherCommand({ id: "ver_uso_atual_de_ram" }, { timeoutMs: 60000 });
+      if (d.success) sections.push(`## 💾 Uso de RAM\n\`\`\`\n${(d.output || "").slice(0, 1500)}\n\`\`\``);
+    } catch (e) { errors.push(`ver_uso_atual_de_ram: ${e.message}`); }
+
+    // 4. Espaço em disco (whitelist)
+    try {
+      const d = await executeLauncherCommand({ id: "verificar_espaco_em_disco" }, { timeoutMs: 60000 });
+      if (d.success) sections.push(`## 💽 Espaço em disco\n\`\`\`\n${(d.output || "").slice(0, 1500)}\n\`\`\``);
+    } catch (e) { errors.push(`verificar_espaco_em_disco: ${e.message}`); }
+
+    // 5. Locais comuns do PC (whitelist)
+    try {
+      const d = await executeLauncherCommand({ id: "listar_locais_comuns_pc" }, { timeoutMs: 60000 });
+      if (d.success) sections.push(`## 📁 Locais comuns do PC\n\`\`\`\n${(d.output || "").slice(0, 2500)}\n\`\`\``);
+    } catch (e) { errors.push(`listar_locais_comuns_pc: ${e.message}`); }
+
+    // 6. Projetos/pastas relevantes (top-level de MESTRE_PROJETO_PATH)
+    if (MESTRE_PROJETO_PATH) {
+      try {
+        const entries = await readdir(MESTRE_PROJETO_PATH, { withFileTypes: true });
+        const projs = entries
+          .filter((en) => en.isDirectory() && !en.name.startsWith(".") && en.name !== "node_modules")
+          .map((en) => en.name)
+          .sort();
+        if (projs.length) {
+          sections.push(`## 📂 Projetos / pastas relevantes em \`${MESTRE_PROJETO_PATH}\`\n${projs.map((p) => `- ${p}`).join("\n")}`);
+        }
+      } catch (e) { errors.push(`projetos: ${e.message}`); }
+    } else {
+      errors.push("projetos: MESTRE_PROJETO_PATH não definido");
+    }
+
+    // 7. Sugestões de melhoria via IA local (opcional)
+    if (incluirSugestoes) {
+      try {
+        const resumo = sections.map((s) => s.replace(/```/g, "")).join("\n\n");
+        const sugs = await ollamaChat({
+          messages: [{
+            role: "user",
+            content: `Com base no relatório do PC abaixo, liste de 3 a 6 sugestões objetivas de manutenção/melhoria, priorizadas por impacto. Responda em português brasileiro, em tópicos numerados.\n\n${resumo.slice(0, 6000)}`,
+          }],
+          system: OLLAMA_SYSTEM_PROMPT,
+          timeoutMs: 60000,
+        });
+        sections.push(`## 🛠️ Sugestões de melhoria\n${sugs.content}`);
+      } catch (e) { errors.push(`sugestoes_ia: ${e.message}`); }
+    }
+
+    const report = [
+      "# 🧾 Relatório Completo do PC",
+      `Gerado em: ${new Date().toLocaleString("pt-BR")}`,
+      `Computador: ${process.env.COMPUTERNAME || "desconhecido"}`,
+      `Launcher: ${MESTRE_BASE_URL}`,
+      "",
+      sections.join("\n\n"),
+      errors.length ? `\n## ⚠️ Itens não coletados\n${errors.map((e) => `- ${e}`).join("\n")}` : "",
+    ].filter(Boolean).join("\n");
+
+    await auditLog(AuditLevel.INFO, "relatorio_completo_pc", { secoes: sections.length, erros: errors.length });
+    return { content: [{ type: "text", text: report }] };
+  }
+
+  // ===== FIM NOVOS TOOLS V11.2 =====
 
   // ===== FIM NOVOS TOOLS V11.1 =====
 

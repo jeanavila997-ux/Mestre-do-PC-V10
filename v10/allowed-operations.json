@@ -745,14 +745,6 @@
       "description": "Verifica Versão da BIOS/UEFI."
     },
     {
-      "id": "verificar_saude_do_disco_smart",
-      "title": "Verificar Saúde do Disco (SMART)",
-      "category": "Disco",
-      "destructive": false,
-      "command": "Get-PhysicalDisk | Select-Object FriendlyName,MediaType,HealthStatus,OperationalStatus,@{N=\"Tamanho(GB)\";E={[math]::Round($_.Size/1GB,1)}} | Format-Table -AutoSize",
-      "description": "Verifica a saúde do disco (S.M.A.R.T.)."
-    },
-    {
       "id": "listar_drivers_desatualizados",
       "title": "Listar Drivers Desatualizados",
       "category": "Drivers",
@@ -2079,46 +2071,6 @@
       "destructive": false,
       "command": "ollama pull qwen2.5:1.5b",
       "description": "Pull qwen2.5:1.5b."
-    },
-    {
-      "title": "Consultar Fonte Oficial Gov",
-      "category": "Pesquisa",
-      "command": "Write-Host \"Consulta a fontes oficiais gov.br\"",
-      "id": "consultar_fonte_oficial_gov",
-      "destructive": false,
-      "description": "Consultar Fonte Oficial Gov."
-    },
-    {
-      "title": "Extrair Evidência de PDF Local",
-      "category": "Pesquisa",
-      "command": "Write-Host \"Extração de evidência de PDF local\"",
-      "id": "extrair_evidencia_de_pdf_local",
-      "destructive": false,
-      "description": "Extrai Evidência de PDF Local."
-    },
-    {
-      "title": "Simular Cenário Econômico",
-      "category": "Análise",
-      "command": "Write-Host \"Simulação de cenário econômico\"",
-      "id": "simular_cenario_economico",
-      "destructive": false,
-      "description": "Simular Cenário Econômico."
-    },
-    {
-      "title": "Congelar Tabela Final",
-      "category": "Dados",
-      "command": "Write-Host \"Congelamento de tabela final\"",
-      "id": "congelar_tabela_final",
-      "destructive": false,
-      "description": "Congela Tabela Final."
-    },
-    {
-      "title": "Gerar Snapshot Git",
-      "category": "Git",
-      "command": "Write-Host \"Geração de snapshot git\"",
-      "id": "gerar_snapshot_git",
-      "destructive": false,
-      "description": "Gera Snapshot Git."
     },
     {
       "id": "abrir_windows_terminal",
@@ -3508,44 +3460,12 @@
       "description": "Envia Notificação para Teams."
     },
     {
-      "id": "consultar_fonte_oficial_gov",
-      "title": "Consultar Fonte Oficial (Gov)",
-      "category": "Pesquisa",
-      "destructive": false,
-      "command": "Write-Host \"Operação processada pelo MCP server (não via launcher).\" -ForegroundColor Cyan",
-      "description": "Consultar Fonte Oficial."
-    },
-    {
-      "id": "extrair_evidencia_de_pdf_local",
-      "title": "Extrair Evidência de PDF Local",
-      "category": "Pesquisa",
-      "destructive": false,
-      "command": "Write-Host \"Operação processada pelo MCP server (não via launcher).\" -ForegroundColor Cyan",
-      "description": "Extrai Evidência de PDF Local."
-    },
-    {
-      "id": "simular_cenario_economico",
-      "title": "Simular Cenário Econômico",
-      "category": "Análise",
-      "destructive": false,
-      "command": "Write-Host \"Operação processada pelo MCP server (não via launcher).\" -ForegroundColor Cyan",
-      "description": "Simular Cenário Econômico."
-    },
-    {
-      "id": "congelar_tabela_final",
-      "title": "Congelar Tabela Final (Somente Leitura)",
+      "id": "listar_locais_comuns_pc",
+      "title": "Listar Locais Comuns do PC",
       "category": "Sistema",
-      "destructive": true,
-      "command": "Write-Host \"Operação processada pelo MCP server (validação de approval_id necessária).\" -ForegroundColor Cyan",
-      "description": "Congela Tabela Final."
-    },
-    {
-      "id": "gerar_snapshot_git",
-      "title": "Gerar Snapshot Git",
-      "category": "Versionamento",
       "destructive": false,
-      "command": "Write-Host \"Operação processada pelo MCP server (não via launcher).\" -ForegroundColor Cyan",
-      "description": "Gera Snapshot Git."
+      "command": "$locais = @(@{Nome='Desktop'; Caminho=[Environment]::GetFolderPath('Desktop')}, @{Nome='Downloads'; Caminho=(Join-Path $env:USERPROFILE 'Downloads')}, @{Nome='Documentos'; Caminho=[Environment]::GetFolderPath('MyDocuments')}, @{Nome='Imagens'; Caminho=[Environment]::GetFolderPath('MyPictures')}, @{Nome='Musica'; Caminho=[Environment]::GetFolderPath('MyMusic')}, @{Nome='Videos'; Caminho=[Environment]::GetFolderPath('MyVideos')}, @{Nome='TEMP do Usuario'; Caminho=$env:TEMP}, @{Nome='TEMP do Windows'; Caminho=(Join-Path $env:windir 'Temp')}, @{Nome='Program Files'; Caminho=$env:ProgramFiles}, @{Nome='Program Files (x86)'; Caminho=${env:ProgramFiles(x86)}}, @{Nome='AppData Local'; Caminho=[Environment]::GetFolderPath('LocalApplicationData')}, @{Nome='AppData Roaming'; Caminho=[Environment]::GetFolderPath('ApplicationData')}); $locais | ForEach-Object { $p = $_.Caminho; if (Test-Path -LiteralPath $p) { $itens = (Get-ChildItem -LiteralPath $p -Force -EA 0 | Measure-Object).Count; [PSCustomObject]@{ Local = $_.Nome; Caminho = $p; Itens = $itens; Existe = 'Sim' } } else { [PSCustomObject]@{ Local = $_.Nome; Caminho = $p; Itens = 0; Existe = 'Nao' } } } | Sort-Object Local | Format-Table -AutoSize",
+      "description": "Lista os locais comuns do PC (Desktop, Downloads, Documentos, TEMP, Program Files, AppData etc.) com contagem de itens e se existem."
     },
     {
       "id": "instalar_pacote_npm_global",
