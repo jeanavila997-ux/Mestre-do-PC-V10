@@ -2095,7 +2095,14 @@
         if (!confirm(aviso)) return;
         showToast("⏻ Encerrando launcher...", "#f85149");
         try {
-          const res = await fetch(API + "/shutdown", { method: "POST", headers: { "X-Mestre-Client": "v10-web" }, signal: AbortSignal.timeout(10000) });
+          const res = await fetch(API + "/shutdown", { 
+            method: "POST", 
+            headers: { 
+              "X-Mestre-Client": "v10-web",
+              "Origin": API
+            }, 
+            signal: AbortSignal.timeout(10000) 
+          });
           const data = await res.json();
           if (res.ok === false || data.success !== true) throw new Error(data.output || "Falha ao encerrar.");
           serverOnline = false;
