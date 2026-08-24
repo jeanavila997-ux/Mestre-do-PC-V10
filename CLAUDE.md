@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Estrutura de Pastas
 ```
 .
-├── mcp-server/              ← Servidor MCP (non-elevated, ~40 tools)
+├── mcp-server/              ← Servidor MCP (non-elevated, ~68 tools)
 │   ├── index.js            ← Definições de ferramentas
 │   ├── security.js         ← Sanitização e injection detection
 │   ├── audit-logger.js     ← Logs rotativos com 7 níveis
@@ -27,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 │   └── prompt-guard-server.py ← Microserviço Python detection (opcional)
 │
 ├── v10/                     ← Interface + Launcher elevado
-│   ├── index.html          ← SPA principal (servida por launcher)
+│   ├── index.html          ← SPA principal (servida por launcher) - 2375 linhas
 │   ├── launcher.js         ← HTTP server port 7777 (elevado)
 │   ├── rede-dashboard.js   ← Painel diagnóstico de rede
 │   ├── allowed-operations.json ← Whitelist (~301 comandos)
@@ -42,10 +42,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ├── docs/                    ← Documentação
 │   ├── MESTRE-ROADMAP-MULTI-LLM.md  ← Phase 0-4 roadmap
 │   ├── MESTRE-IMPLEMENTATION-CHECKLIST.md ← Checklist Phase 0
+│   ├── notepad-plus-plus-integration.md ← Integração NPP
 │   └── analise-mestre-do-pc-multi-llm.html ← Análise estratégica
 │
 ├── startup/                 ← Scripts de inicialização
-└── scripts/                 ← Auxiliares (relatórios, setup)
+├── scripts/                 ← Auxiliares (relatórios, setup)
+└── sugestoes/               ← Sugestões e melhorias (não rastreado)
 ```
 
 ---
@@ -53,11 +55,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 🏗️ Arquitetura de 3 Camadas
 
 ```
-┌─ MCP Client (Claude Desktop / Copilot / Codex)
+┌─ MCP Client (Claude Desktop / Copilot / Codex / Qwen Code)
 │  (comunicação via stdio — MCP protocol)
 │
 ├─ mcp-server/index.js [NON-ELEVATED]
-│  └─ 40+ ferramentas MCP: perguntar_ia, diagnostico_completo, etc.
+│  └─ 68+ ferramentas MCP: perguntar_ia, diagnostico_completo, etc.
 │     │  HTTP POST http://127.0.0.1:7777/run
 │     │  Header: X-Mestre-Client: mcp
 │     │
@@ -69,6 +71,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 │     │  Executa comandos em PowerShell jobs (max 3 simultâneos)
 │     │  Timeout: 15 minutos
 │     │  Suporta templates com {{PLACEHOLDER}} + regex validation
+│     │  Endpoints: /run, /run-status, /ping, /shutdown, /ollama/*, /npp, /mcp/*
 │     │
 │     └─ [EXECUTE ONLY WHITELISTED OPERATIONS]
 │
@@ -77,6 +80,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 
 **Princípio fundamental:** Separação clara entre non-elevated e elevated. O MCP NUNCA executa comandos diretamente.
+
+---
+
+## 🌐 Interface Web (v10/index.html)
+
+A UI SPA possui abas de navegação:
+
+| Aba | Conteúdo |
+|-----|----------|
+| 🏠 Início | Dashboard com categorias de comandos |
+| 💬 Chat IA | Chat com Ollama (local/cloud) |
+| 📊 Logs | Logs de auditoria em tempo real |
+| 📋 Git | Status, commit, push, pull |
+| ⚙️ Config | Variáveis de ambiente, perfis de modelo |
+| 🔌 MCP (NOVO) | Integração Multi-LLM com servidores, ferramentas e histórico |
+
+**Nova aba MCP (V11.1):**
+- Grid de servidores MCP conectados
+- Accordion de ferramentas por categoria
+- Histórico de execuções com status
+- Modais para adicionar servidores e executar ferramentas
+- CSS dedicado (`.mcp-tab-content`, `.mcp-servers-grid`, `.mcp-tools-accordion`)
 
 ---
 
@@ -152,7 +177,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## 🎯 Ferramentas MCP Principais (~40)
+## 🎯 Ferramentas MCP Principais (~68)
 
 ### Diagnóstico
 - `diagnostico_completo` — Full system audit
@@ -175,6 +200,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `resolver_problema_passo_a_passo` — CoT reasoning
 - `comparar_modelos_ia` — Multi-model comparison
 - `analisar_codigo_powershell` — Code analysis + security
+- `ia_comando_sugerir` — IA sugere comando PowerShell
+- `transcrever_audio` — Whisper (Ollama) para texto
 
 ### Auditoria
 - `consultar_logs_auditoria` — Query audit logs
@@ -190,6 +217,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `git_status` — Status
 - `git_pull` — Pull changes
 - `gerar_snapshot_git` — Snapshot
+
+### Gerenciamento de Pacotes
+- `instalar_pacote_npm_global` — npm install -g
+- `desinstalar_pacote_npm_global` — npm uninstall -g
+- `instalar_pacote_pip` — pip install
+- `desinstalar_pacote_pip` — pip uninstall
+- `auditar_seguranca_npm` — npm audit
+- `verificar_dependencias_desatualizadas_npm` — npm outdated
+
+### Fontes Gov (Phase 1+)
+- `consultar_fonte_oficial_gov` — Extrai tabelas de URLs gov.br
+- `extrair_evidencia_de_pdf_local` — Busca termos em PDFs validados
+- `congelar_tabela_final` — Define CSV como somente-leitura
+- `simular_cenario_economico` — Injeta premissas no modelo matemático
 
 Veja `mcp-server/index.js` para lista completa.
 
@@ -400,12 +441,13 @@ refactor: Reorganização código (CUIDADO: pode quebrar!)
 
 **Objetivo:** Suportar Claude, OpenAI, Gemini, Ollama com abstração simples + fallback automático.
 
-### Phase 0 (2-3 sem) — ✅ EM PROGRESSO
+### Phase 0 (2-3 sem) — ✅ CONCLUÍDA
 - `providers/base-provider.js` — Interface uniforme
 - `providers/ollama-provider.js` — Migração código existente
 - `providers/provider-factory.js` — Factory pattern
 - Testes: 100% compatibilidade Ollama
-- Branch: `feat/phase-0-provider-abstraction`
+- Branch: `feat/phase-0-provider-abstraction` (merged)
+- **Integração UI MCP:** Aba "🔌 Integração MCP" em `v10/index.html` com grid de servidores, accordion de ferramentas, histórico e modais
 
 ### Phase 1 (2-3 sem) — ⏳ Próximo
 - `providers/claude-provider.js` — Claude API support
