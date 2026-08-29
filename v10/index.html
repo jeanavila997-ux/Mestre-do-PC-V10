@@ -798,6 +798,97 @@
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+      
+      /* ===== MCP Tab Styles ===== */
+      .mcp-tab-content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+      .mcp-section { margin-bottom: 32px; }
+      .mcp-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+      .mcp-section-header h3 { color: var(--accent); margin: 0; }
+      .btn-mcp-add { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+      .btn-mcp-add:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,212,255,0.4); }
+      .btn-mcp-clear { background: rgba(248,81,73,0.2); color: var(--danger); border: 1px solid var(--danger); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; margin-top: 12px; }
+      .btn-mcp-clear:hover { background: rgba(248,81,73,0.3); }
+      
+      /* MCP Servers Grid */
+      .mcp-servers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+      .mcp-server-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: 0.2s; position: relative; }
+      .mcp-server-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+      .mcp-server-card.connected { border-color: var(--accent2); }
+      .mcp-server-card.disconnected { border-color: var(--danger); opacity: 0.7; }
+      .mcp-server-card .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+      .mcp-server-card .status-icon { font-size: 1.2rem; }
+      .mcp-server-card .card-header h4 { margin: 0; color: var(--text); flex: 1; }
+      .mcp-server-card .card-actions { display: flex; gap: 6px; }
+      .mcp-server-card .card-actions button { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+      .mcp-server-card .card-actions button:hover { border-color: var(--accent); }
+      .mcp-server-card .card-body { font-size: 0.85rem; color: var(--text-light); }
+      .mcp-server-card .card-body p { margin: 6px 0; }
+      .mcp-server-card .btn-view-tools { width: 100%; margin-top: 12px; padding: 8px; background: rgba(0,212,255,0.1); border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+      .mcp-server-card .btn-view-tools:hover { background: rgba(0,212,255,0.2); }
+      
+      /* MCP Tools Accordion */
+      .mcp-tools-accordion { display: flex; flex-direction: column; gap: 8px; }
+      .mcp-tool-category { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+      .mcp-tool-category-header { padding: 12px 16px; background: rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--accent); transition: 0.2s; }
+      .mcp-tool-category-header:hover { background: rgba(0,0,0,0.3); }
+      .mcp-tool-category-content { display: none; padding: 12px 16px; }
+      .mcp-tool-category-content.active { display: block; }
+      .mcp-tool-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); transition: 0.2s; }
+      .mcp-tool-item:last-child { border-bottom: none; }
+      .mcp-tool-item:hover { background: rgba(0,212,255,0.05); }
+      .mcp-tool-item .tool-name { color: var(--text); font-family: monospace; font-size: 0.9rem; }
+      .mcp-tool-item .tool-desc { color: var(--text-light); font-size: 0.8rem; flex: 1; margin-left: 12px; }
+      .mcp-tool-item .btn-run-tool { background: var(--accent); color: #000; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s; }
+      .mcp-tool-item .btn-run-tool:hover { background: var(--accent2); }
+      
+      /* MCP History */
+      .mcp-history-list { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; }
+      .mcp-history-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.85rem; }
+      .mcp-history-item.success { border-left: 3px solid var(--accent2); }
+      .mcp-history-item.error { border-left: 3px solid var(--danger); }
+      .mcp-history-item .history-meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.75rem; color: var(--text-light); }
+      .mcp-history-item .history-tool { font-family: monospace; color: var(--accent); }
+      .mcp-history-item .history-output { white-space: pre-wrap; word-break: break-all; color: var(--text); font-family: monospace; font-size: 0.8rem; max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; }
+      
+      /* MCP Modals */
+      .mcp-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 10000; display: flex; justify-content: center; align-items: center; }
+      .mcp-modal-overlay.open { display: flex; }
+      .mcp-modal { background: var(--panel); border: 1px solid var(--accent); border-radius: 14px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 40px rgba(0,212,255,0.3); }
+      .mcp-modal-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+      .mcp-modal-head h3 { color: var(--accent); margin: 0; }
+      .mcp-modal-close { background: none; border: none; color: var(--text-light); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
+      .mcp-modal-close:hover { color: var(--danger); }
+      .mcp-modal-body { padding: 20px; }
+      .mcp-modal-foot { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+      .btn-mcp-cancel { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+      .btn-mcp-cancel:hover { border-color: var(--accent); }
+      .btn-mcp-save, .btn-mcp-run { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+      .btn-mcp-save:hover, .btn-mcp-run:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,212,255,0.4); }
+      
+      /* MCP Form */
+      .mcp-form-group { margin-bottom: 16px; }
+      .mcp-form-group label { display: block; margin-bottom: 6px; color: var(--text-light); font-size: 0.9rem; font-weight: 600; }
+      .mcp-form-group input, .mcp-form-group select { width: 100%; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.9rem; transition: 0.2s; }
+      .mcp-form-group input:focus, .mcp-form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,212,255,0.2); }
+      .btn-mcp-add-env { background: rgba(0,255,136,0.1); color: var(--accent2); border: 1px solid var(--accent2); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; margin-top: 8px; }
+      .btn-mcp-add-env:hover { background: rgba(0,255,136,0.2); }
+      .mcp-env-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+      .mcp-env-row input { flex: 1; }
+      .mcp-env-remove { background: rgba(248,81,73,0.2); color: var(--danger); border: 1px solid var(--danger); padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+      .mcp-env-remove:hover { background: rgba(248,81,73,0.3); }
+      
+      /* MCP Tool Desc & Params */
+      .mcp-tool-desc { color: var(--text); margin-bottom: 16px; line-height: 1.6; }
+      .mcp-tool-params { margin-bottom: 16px; }
+      .mcp-tool-result { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; color: var(--accent2); white-space: pre-wrap; word-break: break-all; }
+      .mcp-tool-result.error { color: var(--danger); border-color: var(--danger); }
+      
+      /* Light theme adjustments */
+      body.light .mcp-server-card { background: #fff; }
+      body.light .mcp-tool-category { background: #f8f9fa; }
+      body.light .mcp-history-item { background: #fff; }
+      body.light .mcp-modal { background: #fff; }
+      body.light .mcp-form-group input, body.light .mcp-form-group select { background: #f8f9fa; }
     </style>
   </head>
   <body>
@@ -885,6 +976,101 @@
           <div class="term-body" id="termBody">[aguardando output...]</div>
         </div>
       </div>
+      <!-- NOVO: Aba MCP - Integração Multi-LLM -->
+      <div id="mcpTab" class="mcp-tab-content" style="display: none;">
+        <h2 class="section-title">🔌 Integração MCP - Multi-LLM</h2>
+        
+        <!-- Seção 1: Servidores Conectados -->
+        <div class="mcp-section">
+          <div class="mcp-section-header">
+            <h3>Servidores MCP Conectados</h3>
+            <button class="btn-mcp-add" onclick="showAddServerModal()">+ Adicionar Servidor</button>
+          </div>
+          <div id="mcp-servers-grid" class="mcp-servers-grid">
+            <!-- Cards inseridos via JS -->
+          </div>
+        </div>
+        
+        <!-- Seção 2: Ferramentas Disponíveis -->
+        <div class="mcp-section">
+          <h3>Ferramentas Disponíveis</h3>
+          <div id="mcp-tools-accordion" class="mcp-tools-accordion">
+            <!-- Accordion inserido via JS -->
+          </div>
+        </div>
+        
+        <!-- Seção 3: Histórico de Execuções -->
+        <div class="mcp-section">
+          <h3>Histórico de Execuções MCP</h3>
+          <div id="mcp-history-list" class="mcp-history-list">
+            <!-- Lista inserida via JS -->
+          </div>
+          <button class="btn-mcp-clear" onclick="clearMcpHistory()">🗑️ Limpar Histórico</button>
+        </div>
+      </div>
+      
+      <!-- Modal Adicionar Servidor MCP -->
+      <div id="mcpAddServerModal" class="mcp-modal-overlay" style="display: none;">
+        <div class="mcp-modal">
+          <div class="mcp-modal-head">
+            <h3>Adicionar Servidor MCP</h3>
+            <button class="mcp-modal-close" onclick="hideAddServerModal()">✕</button>
+          </div>
+          <div class="mcp-modal-body">
+            <div class="mcp-form-group">
+              <label>Nome do servidor:</label>
+              <input type="text" id="mcpServerName" placeholder="ex: claude-mcp" />
+            </div>
+            <div class="mcp-form-group">
+              <label>Transporte:</label>
+              <select id="mcpServerTransport">
+                <option value="stdio">Stdio (processo local)</option>
+                <option value="http">HTTP (serviço remoto)</option>
+                <option value="sse">SSE (legado)</option>
+              </select>
+            </div>
+            <div class="mcp-form-group">
+              <label>Comando/URL:</label>
+              <input type="text" id="mcpServerCommand" placeholder="node /path/to/server.js ou http://localhost:8080/mcp" />
+            </div>
+            <div class="mcp-form-group">
+              <label>Variáveis de ambiente (opcional):</label>
+              <div id="mcpEnvVars">
+                <div class="mcp-env-row">
+                  <input type="text" class="mcp-env-key" placeholder="CHAVE" />
+                  <input type="text" class="mcp-env-value" placeholder="VALOR" />
+                  <button class="mcp-env-remove" onclick="removeEnvRow(this)">✕</button>
+                </div>
+              </div>
+              <button class="btn-mcp-add-env" onclick="addEnvRow()">+ Adicionar Variável</button>
+            </div>
+          </div>
+          <div class="mcp-modal-foot">
+            <button class="btn-mcp-cancel" onclick="hideAddServerModal()">Cancelar</button>
+            <button class="btn-mcp-save" onclick="saveMcpServer()">💾 Salvar</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Modal Executar Ferramenta MCP -->
+      <div id="mcpExecuteModal" class="mcp-modal-overlay" style="display: none;">
+        <div class="mcp-modal">
+          <div class="mcp-modal-head">
+            <h3 id="mcpExecuteTitle">Executar Ferramenta</h3>
+            <button class="mcp-modal-close" onclick="hideExecuteModal()">✕</button>
+          </div>
+          <div class="mcp-modal-body">
+            <p id="mcpExecuteDesc" class="mcp-tool-desc"></p>
+            <div id="mcpExecuteParams" class="mcp-tool-params"></div>
+            <div id="mcpExecuteResult" class="mcp-tool-result"></div>
+          </div>
+          <div class="mcp-modal-foot">
+            <button class="btn-mcp-cancel" onclick="hideExecuteModal()">Cancelar</button>
+            <button class="btn-mcp-run" onclick="runMcpTool()">▶ Executar</button>
+          </div>
+        </div>
+      </div>
+      
       <div id="categories"></div>
     </div>
     <!-- Confirmação de comando (destrutivo ou fora da whitelist) -->
@@ -1509,6 +1695,82 @@
           },
         ],
       },
+      {
+        id: "cat_terminal",
+        label: "💻 Terminal",
+        cmds: [
+          ["Abrir Windows Terminal", "Start-Process wt.exe; Write-Host \"✅ Windows Terminal aberto!\" -ForegroundColor Green"],
+          ["Abrir Windows Terminal no Projeto", "Start-Process wt.exe -ArgumentList \"-d\",\"$env:MESTRE_PROJETO_PATH\"; Write-Host \"✅ Windows Terminal aberto no projeto!\" -ForegroundColor Green"],
+          ["Abrir CMD no Projeto", "Start-Process cmd.exe -ArgumentList \"/K\",\"cd /d \"\"$env:MESTRE_PROJETO_PATH\"\"\"; Write-Host \"✅ CMD aberto no projeto!\" -ForegroundColor Green"],
+          ["Verificar Terminal Padrão do Windows", "try { $t = Get-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationConsole -EA Stop; Write-Host \"Terminal padrão configurado: $($t.DelegationConsole)\" } catch { Write-Host \"Nenhuma preferência de terminal padrão definida (usando padrão do sistema).\" -ForegroundColor Yellow }"],
+          ["Definir Windows Terminal como Padrão", "New-Item -Path \"HKCU:\\Console\\%%Startup\" -Force | Out-Null; Set-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationConsole -Value \"{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}\"; Set-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationTerminal -Value \"{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}\"; Write-Host \"✅ Windows Terminal definido como padrão!\" -ForegroundColor Green"],
+          ["Listar Variáveis de Ambiente (PATH)", "($env:Path -split ';') | Where-Object { $_ -ne \"\" } | ForEach-Object { Write-Host $_ }"],
+          ["Verificar Windows Terminal Instalado", "winget list --id Microsoft.WindowsTerminal"],
+          ["Listar Processos de Terminais Abertos", "Get-Process -Name wt,powershell,pwsh,cmd -ErrorAction SilentlyContinue | Select-Object Name,Id,StartTime | Format-Table -AutoSize"],
+          ["Reiniciar Windows Terminal", "Stop-Process -Name WindowsTerminal -Force -EA 0; Write-Host \"✅ Windows Terminal reiniciado (feche e abra novamente)!\" -ForegroundColor Green"],
+        ],
+      },
+      {
+        id: "cat_nodejs",
+        label: "🟢 Node.js",
+        cmds: [
+          ["Verificar Versão do Node.js", "node -v; npm -v"],
+          ["Listar Pacotes Globais NPM", "npm list -g --depth=0"],
+          ["Atualizar NPM", "npm install -g npm@latest; Write-Host \"✅ NPM atualizado!\" -ForegroundColor Green"],
+          ["Limpar Cache do NPM", "npm cache clean --force; Write-Host \"✅ Cache do NPM limpo!\" -ForegroundColor Green"],
+          ["Verificar Processos Node.js Ativos", "Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
+          ["Verificar Dependências Desatualizadas (npm outdated)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm outdated"],
+          ["Auditar Segurança do Projeto (npm audit)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm audit"],
+          ["Instalar Pacote NPM (Global)", "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm install -g $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
+          ["Desinstalar Pacote NPM (Global)", "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm uninstall -g $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
+        ],
+      },
+      {
+        id: "cat_powershell",
+        label: "🔷 PowerShell",
+        cmds: [
+          ["Verificar Versão do PowerShell", "$PSVersionTable | Format-List"],
+          ["Listar Módulos PowerShell Instalados", "Get-Module -ListAvailable | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
+          ["Verificar Execution Policy", "Get-ExecutionPolicy -List | Format-Table -AutoSize"],
+          ["Definir Execution Policy (RemoteSigned)", "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host \"✅ Execution Policy definida como RemoteSigned!\" -ForegroundColor Green"],
+          ["Atualizar Ajuda do PowerShell", "Update-Help -Force -ErrorAction SilentlyContinue; Write-Host \"✅ Ajuda do PowerShell atualizada!\" -ForegroundColor Green"],
+          ["Verificar Perfil do PowerShell ($PROFILE)", "if (Test-Path $PROFILE) { Write-Host \"Perfil encontrado: $PROFILE\"; Get-Content $PROFILE } else { Write-Host \"Nenhum perfil do PowerShell configurado.\" -ForegroundColor Yellow }"],
+          ["Limpar Histórico do PowerShell", "$h = (Get-PSReadLineOption).HistorySavePath; Remove-Item -Path $h -Force -EA 0; Write-Host \"✅ Histórico do PowerShell limpo!\" -ForegroundColor Green"],
+          ["Listar Todas as Variáveis de Ambiente", "Get-ChildItem Env: | Sort-Object Name | Format-Table -AutoSize"],
+        ],
+      },
+      {
+        id: "cat_python",
+        label: "🐍 Python",
+        cmds: [
+          ["Verificar Versão do Python", "python --version"],
+          ["Verificar Versão do Pip", "pip --version"],
+          ["Listar Pacotes Pip Instalados", "pip list"],
+          ["Atualizar Pip", "python -m pip install --upgrade pip; Write-Host \"✅ Pip atualizado!\" -ForegroundColor Green"],
+          ["Verificar Pacotes Pip Desatualizados", "pip list --outdated"],
+          ["Verificar Processos Python Ativos", "Get-Process -Name python,python3,pythonw -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
+          ["Limpar Cache do Pip", "pip cache purge; Write-Host \"✅ Cache do Pip limpo!\" -ForegroundColor Green"],
+          ["Instalar Pacote Pip", "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip install $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
+          ["Desinstalar Pacote Pip", "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip uninstall -y $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
+          ["Criar Ambiente Virtual (venv)", "$nome = Read-Host \"Nome do ambiente virtual\"; if ($nome -match \"^[a-zA-Z0-9_-]{1,64}$\") { python -m venv $nome; Write-Host \"✅ Ambiente virtual '$nome' criado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome inválido.\" -ForegroundColor Red }"],
+        ],
+      },
+      {
+        id: "cat_mcp",
+        label: "🔌 MCP",
+        cmds: [
+          ["Listar Servidores MCP", "mcp list"],
+          ["Verificar Status MCP", "mcp status"],
+          ["Listar Ferramentas mestre-do-pc", "mcp tools mestre-do-pc"],
+          ["Diagnóstico Completo (via MCP)", "mcp call mestre-do-pc diagnostico_completo"],
+          ["Verificar Espaço em Disco (MCP)", "mcp call mestre-do-pc verificar_espaco_disco"],
+          ["Verificar RAM (MCP)", "mcp call mestre-do-pc ver_uso_ram"],
+          ["Limpeza Rápida (MCP)", "mcp call mestre-do-pc limpeza_rapida_completa"],
+          ["Listar Processos (MCP)", "mcp call mestre-do-pc listar_processos_alto_consumo_ram"],
+          ["Perguntar à IA (MCP)", "mcp call mestre-do-pc perguntar_ia 'Como otimizar o Windows?'"],
+          ["Enviar Webhook Discord (MCP)", "mcp call mestre-do-pc enviar_webhook_discord 'Mensagem de teste'"],
+        ],
+      },
 
       ];
       // Render navigation
@@ -1526,7 +1788,12 @@
         a.dataset.index = String(index + 1);
         a.title = c.label;
         a.onclick = () => {
-          activateCategory(c.id, { scroll: true, collapseSidebar: true });
+          if (c.id === "cat_mcp") {
+            showMcpTab();
+            a.classList.add("active");
+          } else {
+            activateCategory(c.id, { scroll: true, collapseSidebar: true });
+          }
         };
         nav.appendChild(a);
       });
@@ -1639,7 +1906,7 @@
         });
         return cards;
       }
-      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec"];
+      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python"];
       CATS.forEach((c) => {
         const div = document.createElement("div");
         div.className = "category";
@@ -3129,6 +3396,282 @@ COMANDOS QUE VOCÊ CONHECE:
       });
 
       console.log('🎬 Mestre do PC V10 - Animações carregadas!');
+      
+      // ===== MCP TAB: Mostrar/Esconder =====
+      function showMcpTab() {
+        document.querySelectorAll('.category').forEach(c => c.style.display = 'none');
+        document.getElementById('mcpTab').style.display = 'block';
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        loadMcpServers();
+        loadMcpHistory();
+      }
+      
+      // ===== MCP: Servidores =====
+      let mcpServers = [];
+      let mcpHistory = JSON.parse(localStorage.getItem('mestre_mcp_history') || '[]');
+      let currentMcpTool = null;
+      
+      async function loadMcpServers() {
+        try {
+          const res = await fetch(API + '/mcp/list');
+          const data = await res.json();
+          mcpServers = data.servers || [];
+          renderMcpServers();
+          renderMcpTools();
+        } catch (err) {
+          console.error('Erro ao carregar servidores MCP:', err);
+          document.getElementById('mcp-servers-grid').innerHTML = '<p style="color: var(--danger)">Erro ao carregar servidores MCP. Verifique se o launcher está rodando.</p>';
+        }
+      }
+      
+      function renderMcpServers() {
+        const grid = document.getElementById('mcp-servers-grid');
+        if (!mcpServers.length) {
+          grid.innerHTML = '<p style="color: var(--text-light)">Nenhum servidor MCP configurado. Clique em "+ Adicionar Servidor" para começar.</p>';
+          return;
+        }
+        grid.innerHTML = mcpServers.map(s => `
+          <div class="mcp-server-card ${s.status === 'connected' ? 'connected' : 'disconnected'}">
+            <div class="card-header">
+              <span class="status-icon">${s.status === 'connected' ? '🟢' : '⚪'}</span>
+              <h4>${s.name}</h4>
+              <div class="card-actions">
+                <button onclick="configureMcpServer('${s.name}')">⚙️</button>
+                <button onclick="removeMcpServer('${s.name}')">🗑️</button>
+                <button onclick="refreshMcpServer('${s.name}')">🔄</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <p><strong>Transporte:</strong> ${s.transport || 'stdio'}</p>
+              <p><strong>Ferramentas:</strong> ${s.toolsCount || 0}</p>
+              <p><strong>Status:</strong> ${s.status || 'desconhecido'}</p>
+            </div>
+            <button class="btn-view-tools" onclick="viewMcpServerTools('${s.name}')">Ver Ferramentas</button>
+          </div>
+        `).join('');
+      }
+      
+      function renderMcpTools() {
+        const accordion = document.getElementById('mcp-tools-accordion');
+        if (!mcpServers.length) {
+          accordion.innerHTML = '<p style="color: var(--text-light)">Configure um servidor MCP para ver as ferramentas disponíveis.</p>';
+          return;
+        }
+        const server = mcpServers.find(s => s.status === 'connected') || mcpServers[0];
+        const toolsByCategory = groupToolsByCategory(server.tools || []);
+        accordion.innerHTML = Object.entries(toolsByCategory).map(([cat, tools]) => `
+          <div class="mcp-tool-category">
+            <div class="mcp-tool-category-header" onclick="toggleMcpToolCategory(this)">
+              <span>${cat}</span>
+              <span class="chevron">▼</span>
+            </div>
+            <div class="mcp-tool-category-content">
+              ${tools.map(t => `
+                <div class="mcp-tool-item">
+                  <span class="tool-name">${t.name}</span>
+                  <span class="tool-desc">${t.description || ''}</span>
+                  <button class="btn-run-tool" onclick="showMcpToolExecute('${server.name}', '${t.name}')">▶ Executar</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      function groupToolsByCategory(tools) {
+        const categories = {
+          'Diagnóstico e Monitoramento': [],
+          'Limpeza e Manutenção': [],
+          'Reparos do Sistema': [],
+          'Gerenciamento de Pacotes': [],
+          'IA e Modelos': [],
+          'Segurança': [],
+          'Automação e Webhooks': [],
+          'Git e Projetos': [],
+          'Sistema e Ambiente': [],
+          'Outros': []
+        };
+        tools.forEach(t => {
+          const name = t.name || t;
+          if (name.includes('diagnostico') || name.includes('verificar') || name.includes('listar_processos')) categories['Diagnóstico e Monitoramento'].push(t);
+          else if (name.includes('limpar') || name.includes('limpeza') || name.includes('liberar') || name.includes('esvaziar')) categories['Limpeza e Manutenção'].push(t);
+          else if (name.includes('reparar') || name.includes('renovar') || name.includes('reiniciar')) categories['Reparos do Sistema'].push(t);
+          else if (name.includes('npm') || name.includes('pip') || name.includes('pacote')) categories['Gerenciamento de Pacotes'].push(t);
+          else if (name.includes('ia') || name.includes('ollama') || name.includes('modelo') || name.includes('perguntar')) categories['IA e Modelos'].push(t);
+          else if (name.includes('defender') || name.includes('seguranca') || name.includes('scan')) categories['Segurança'].push(t);
+          else if (name.includes('webhook') || name.includes('discord') || name.includes('slack') || name.includes('buscar')) categories['Automação e Webhooks'].push(t);
+          else if (name.includes('git')) categories['Git e Projetos'].push(t);
+          else if (name.includes('ambiente') || name.includes('versao') || name.includes('sistema')) categories['Sistema e Ambiente'].push(t);
+          else categories['Outros'].push(t);
+        });
+        return Object.fromEntries(Object.entries(categories).filter(([_, tools]) => tools.length > 0));
+      }
+      
+      function toggleMcpToolCategory(header) {
+        const content = header.nextElementSibling;
+        content.classList.toggle('active');
+        header.querySelector('.chevron').style.transform = content.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+      }
+      
+      function showAddServerModal() {
+        document.getElementById('mcpAddServerModal').classList.add('open');
+      }
+      
+      function hideAddServerModal() {
+        document.getElementById('mcpAddServerModal').classList.remove('open');
+      }
+      
+      function addEnvRow() {
+        const container = document.getElementById('mcpEnvVars');
+        const row = document.createElement('div');
+        row.className = 'mcp-env-row';
+        row.innerHTML = `
+          <input type="text" class="mcp-env-key" placeholder="CHAVE" />
+          <input type="text" class="mcp-env-value" placeholder="VALOR" />
+          <button class="mcp-env-remove" onclick="removeEnvRow(this)">✕</button>
+        `;
+        container.appendChild(row);
+      }
+      
+      function removeEnvRow(btn) {
+        btn.parentElement.remove();
+      }
+      
+      async function saveMcpServer() {
+        const name = document.getElementById('mcpServerName').value.trim();
+        const transport = document.getElementById('mcpServerTransport').value;
+        const command = document.getElementById('mcpServerCommand').value.trim();
+        if (!name || !command) {
+          alert('Preencha nome e comando/URL');
+          return;
+        }
+        try {
+          const res = await fetch(API + '/mcp/configure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'add', name, transport, command })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Servidor MCP adicionado!', 'var(--accent2)');
+            hideAddServerModal();
+            loadMcpServers();
+          } else {
+            showToast('Erro: ' + (data.error || 'Falha ao adicionar'), '#f85149');
+          }
+        } catch (err) {
+          showToast('Erro de conexão: ' + err.message, '#f85149');
+        }
+      }
+      
+      async function removeMcpServer(name) {
+        if (!confirm(`Remover servidor MCP "${name}"?`)) return;
+        try {
+          const res = await fetch(API + '/mcp/configure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'remove', name })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Servidor removido!', 'var(--accent2)');
+            loadMcpServers();
+          } else {
+            showToast('Erro: ' + (data.error || 'Falha ao remover'), '#f85149');
+          }
+        } catch (err) {
+          showToast('Erro de conexão: ' + err.message, '#f85149');
+        }
+      }
+      
+      function viewMcpServerTools(serverName) {
+        const server = mcpServers.find(s => s.name === serverName);
+        if (server) {
+          currentMcpTool = { server: serverName };
+          renderMcpTools();
+          document.getElementById('mcp-tools-accordion').scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+      
+      function showMcpToolExecute(server, tool) {
+        currentMcpTool = { server, tool };
+        document.getElementById('mcpExecuteTitle').textContent = `Executar: ${tool}`;
+        document.getElementById('mcpExecuteDesc').textContent = 'Ferramenta MCP do servidor ' + server;
+        document.getElementById('mcpExecuteParams').innerHTML = '';
+        document.getElementById('mcpExecuteResult').textContent = '';
+        document.getElementById('mcpExecuteModal').classList.add('open');
+      }
+      
+      function hideExecuteModal() {
+        document.getElementById('mcpExecuteModal').classList.remove('open');
+      }
+      
+      async function runMcpTool() {
+        if (!currentMcpTool) return;
+        const { server, tool } = currentMcpTool;
+        const resultEl = document.getElementById('mcpExecuteResult');
+        resultEl.textContent = 'Executando...';
+        resultEl.classList.remove('error');
+        try {
+          const res = await fetch(API + '/mcp/call', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ server, tool, args: {} })
+          });
+          const data = await res.json();
+          if (data.success) {
+            resultEl.textContent = JSON.stringify(data.output || data.result, null, 2);
+            addToMcpHistory(server, tool, true, JSON.stringify(data.output || data.result, null, 2));
+            showToast('Ferramenta executada com sucesso!', 'var(--accent2)');
+          } else {
+            resultEl.textContent = 'Erro: ' + (data.error || 'Falha na execução');
+            resultEl.classList.add('error');
+            addToMcpHistory(server, tool, false, data.error || 'Falha na execução');
+            showToast('Erro na execução', '#f85149');
+          }
+        } catch (err) {
+          resultEl.textContent = 'Erro de conexão: ' + err.message;
+          resultEl.classList.add('error');
+          addToMcpHistory(server, tool, false, err.message);
+          showToast('Erro de conexão', '#f85149');
+        }
+      }
+      
+      function addToMcpHistory(server, tool, success, output) {
+        mcpHistory.unshift({
+          server, tool, success, output,
+          timestamp: new Date().toISOString()
+        });
+        mcpHistory = mcpHistory.slice(-50);
+        localStorage.setItem('mestre_mcp_history', JSON.stringify(mcpHistory));
+        loadMcpHistory();
+      }
+      
+      function loadMcpHistory() {
+        const list = document.getElementById('mcp-history-list');
+        if (!mcpHistory.length) {
+          list.innerHTML = '<p style="color: var(--text-light)">Nenhuma execução recente.</p>';
+          return;
+        }
+        list.innerHTML = mcpHistory.map(h => `
+          <div class="mcp-history-item ${h.success ? 'success' : 'error'}">
+            <div class="history-meta">
+              <span>${new Date(h.timestamp).toLocaleString()}</span>
+              <span class="history-tool">${h.server}:${h.tool}</span>
+            </div>
+            <div class="history-output">${h.output}</div>
+          </div>
+        `).join('');
+      }
+      
+      function clearMcpHistory() {
+        if (!confirm('Limpar histórico de execuções MCP?')) return;
+        mcpHistory = [];
+        localStorage.removeItem('mestre_mcp_history');
+        loadMcpHistory();
+      }
+      
+      console.log('🔌 MCP Tab - Integração Multi-LLM carregada!');
     </script>
     <!-- Módulo de Diagnóstico de Rede (Casa5G Dashboard integrado) -->
     <script src="rede-dashboard.js" defer></script>

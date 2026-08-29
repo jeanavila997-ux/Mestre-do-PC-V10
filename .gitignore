@@ -97,3 +97,10 @@ obj/
 # Pasta de backups locais
 backups/*.zip
 backups/*.tar.gz
+
+# Perfil binário de navegador (Chrome) usado pelo chat-agent do Notepad++ — ~800MB, não é código-fonte
+v10/notepad-plus-plus/chat-agent/profiles/
+
+# Scripts locais com credenciais em texto puro — nunca versionar
+push-with-token.ps1
+push-to-github.ps1

@@ -10,11 +10,12 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { sanitizeToolArgument, checkPromptInjection } from "./security.js";
 import { auditLog, AuditLevel, queryAuditLog } from "./audit-logger.js";
-import { readFile, readdir, access, constants } from "node:fs/promises";
+import { readFile, readdir, access, constants, writeFile as writeFileAsync, unlink as unlinkAsync } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve, extname } from "node:path";
 import { spawn } from "node:child_process";
+import * as audioTranscriber from "./audio-transcriber.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -320,12 +321,12 @@ const server = new Server(
 const mestreTools = {
   limpeza_rapida_completa: {
     id: "limpeza_rapida_completa",
-    description: "Executa uma limpeza rápida completa no sistema: esvazia a lixeira e limpa pastas temporárias.",
+    description: "Limpa arquivos temporários e esvazia lixeira. Use quando o PC está lento ou espaço em disco está baixo.",
     command: 'Remove-Item "$env:TEMP\\*" -Recurse -Force -EA 0; Remove-Item "C:\\Windows\\Temp\\*" -Recurse -Force -EA 0; Clear-RecycleBin -Force -EA 0; Write-Host "✅ Limpeza concluida!" -ForegroundColor Green',
   },
   esvaziar_lixeira: {
     id: "esvaziar_lixeira",
-    description: "Esvazia silenciosamente a lixeira do Windows.",
+    description: "Esvazia a lixeira permanentemente. Use quando espaço em disco está crítico.",
     command: 'Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Host "✅ Lixeira esvaziada!" -ForegroundColor Green',
   },
   limpar_cache_windows_update: {
@@ -350,12 +351,12 @@ const mestreTools = {
   },
   ver_uso_ram: {
     id: "ver_uso_ram",
-    description: "Retorna o status atual mostrando a quantidade de memória RAM livre e o total instalado.",
+    description: "Mostra memória RAM livre e total. Use quando o PC está lento ou travando.",
     command: '$ram = Get-WmiObject Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host "RAM Livre: $livre GB de $total GB"',
   },
   listar_processos_alto_consumo_ram: {
     id: "listar_processos_por_uso_de_ram",
-    description: "Lista os 15 processos que mais estão consumindo memória RAM no momento.",
+    description: "Lista os 15 processos que mais consomem RAM. Use para identificar aplicações causando lentidão.",
     command: 'Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize',
   },
   reiniciar_explorer: {
@@ -365,42 +366,42 @@ const mestreTools = {
   },
   encerrar_processo: {
     id: "encerrar_processo",
-    description: "Encerra um processo pelo nome. Informe o parâmetro 'nome' com o nome do processo (ex: chrome, notepad).",
+    description: "Encerra uma aplicação ativa. Use quando programa trava e não responde. ⚠️ AVISO: pode perder dados não salvos.",
     command: 'Stop-Process -Name "{{NOME}}" -Force -EA 0; if ($?) { Write-Host "✅ Processo {{NOME}} encerrado com sucesso!" -ForegroundColor Green } else { Write-Host "⚠️ Processo {{NOME}} não encontrado ou já encerrado." -ForegroundColor Yellow }',
   },
   desativar_servico: {
     id: "desativar_servico",
-    description: "Desativa e para um serviço do Windows pelo nome. Informe 'nome_servico' (ex: wuauserv, SysMain, Spooler).",
+    description: "Desativa serviço Windows. ⚠️ PERIGO: pode quebrar sistema. Só use se realmente sabe o que faz.",
     command: 'Set-Service -Name "{{NOME_SERVICO}}" -StartupType Disabled -EA 0; Stop-Service -Name "{{NOME_SERVICO}}" -Force -EA 0; if ($?) { Write-Host "✅ Serviço {{NOME_SERVICO}} desativado!" -ForegroundColor Green } else { Write-Host "⚠️ Serviço {{NOME_SERVICO}} não encontrado." -ForegroundColor Yellow }',
   },
   verificar_espaco_disco: {
     id: "verificar_espaco_em_disco",
-    description: "Verifica e retorna o espaço usado, livre e total de todos os discos.",
+    description: "Mostra espaço livre/usado em todos os discos. Use para confirmar se HD está cheio ou planejar limpeza.",
     command: 'Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{N="Usado(GB)";E={[math]::Round(($_.Used/1GB),2)}},@{N="Livre(GB)";E={[math]::Round(($_.Free/1GB),2)}},@{N="Total(GB)";E={[math]::Round((($_.Used+$_.Free)/1GB),2)}} | Format-Table -AutoSize',
   },
   verificar_saude_disco: {
     id: "verificar_saude_do_disco_smart",
-    description: "Verifica a saúde do disco (S.M.A.R.T.).",
+    description: "Verifica saúde do disco via S.M.A.R.T. Use para detectar falhas no HD antes que quebre.",
     command: "Get-WmiObject -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize",
   },
   diagnostico_rede: {
     id: "diagnostico_de_rede_completo",
-    description: "Faz um diagnóstico mostrando informações completas da rede (ipconfig /all).",
+    description: "Mostra configuração completa de rede (IP, DNS, gateways, etc.). Use para diagnosticar problemas de conexão.",
     command: "ipconfig /all",
   },
   renovar_ip: {
     id: "flush_e_renovar_ip",
-    description: "Faz o flush do DNS e renova o endereço IP da máquina.",
+    description: "Renova conexão de rede (flush DNS, release/renew IP). Use quando internet não conecta ou anda lenta.",
     command: 'ipconfig /flushdns; ipconfig /release; ipconfig /renew; Write-Host "✅ IP renovado!" -ForegroundColor Green',
   },
   reparar_arquivos_sfc: {
     id: "sfc_scan_reparo_de_arquivos",
-    description: "Executa o sfc /scannow para reparar arquivos corrompidos do sistema.",
+    description: "Verifica e repara arquivos corrompidos do Windows. Use quando há erros de sistema ou travamentos frequentes.",
     command: "sfc /scannow",
   },
   reparar_imagem_dism: {
     id: "dism_restaurar_saude",
-    description: "Executa a restauração da imagem do Windows (DISM /RestoreHealth).",
+    description: "Restaura integridade da imagem Windows. Use após SFC falhar ou para problemas graves de sistema.",
     command: "DISM /Online /Cleanup-Image /RestoreHealth",
   },
   verificar_informacoes_sistema: {
@@ -410,27 +411,27 @@ const mestreTools = {
   },
   verificar_temperatura_cpu: {
     id: "temperatura_do_cpu_wmi",
-    description: "Tenta obter a temperatura da CPU via WMI.",
+    description: "Mostra temperatura atual do processador. Use quando PC está esquentando ou travando.",
     command: 'Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace "root/wmi" | ForEach-Object { Write-Host "Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C" }',
   },
   diagnostico_completo: {
     id: "diagnostico_completo",
-    description: "Executa um diagnóstico completo do PC: RAM, disco, rede, processos pesados e informações do sistema.",
+    description: "Diagnóstico completo do PC: RAM, disco, processos pesados, rede e sistema. Use para triagem rápida de problemas.",
     command: 'Write-Host "===== DIAGNÓSTICO COMPLETO =====" -ForegroundColor Cyan; Write-Host ""; Write-Host "--- RAM ---" -ForegroundColor Yellow; $ram = Get-WmiObject Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host "RAM Livre: $livre GB de $total GB"; Write-Host ""; Write-Host "--- DISCO ---" -ForegroundColor Yellow; Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{N="Usado(GB)";E={[math]::Round(($_.Used/1GB),2)}},@{N="Livre(GB)";E={[math]::Round(($_.Free/1GB),2)}} | Format-Table -AutoSize; Write-Host "--- TOP 10 PROCESSOS (RAM) ---" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host "--- REDE ---" -ForegroundColor Yellow; Test-Connection 8.8.8.8 -Count 1 -Quiet | ForEach-Object { if($_){Write-Host "Internet: OK" -ForegroundColor Green}else{Write-Host "Internet: SEM CONEXÃO" -ForegroundColor Red} }',
   },
   relatorio_rapido_pc: {
     id: "relatorio_rapido_do_pc",
-    description: "Gera um relatório rápido do PC com Windows, uptime, RAM, disco C, top 10 processos e internet.",
+    description: "Relatório resumido: Windows, CPU, RAM, disco C, uptime, top 10 processos e internet. Use para situação geral rápida.",
     command: `Write-Host "===== RELATORIO RAPIDO DO PC =====" -ForegroundColor Cyan; $os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host "Computador: $env:COMPUTERNAME"; Write-Host "Windows: $($os.Caption) Build $($os.BuildNumber)"; Write-Host "CPU: $($cpu.Name)"; Write-Host "RAM: $ramLivre GB livre de $ramTotal GB"; Write-Host "Disco C: $diskLivre GB livre de $diskTotal GB"; Write-Host "Uptime: $($uptime.Days)d $($uptime.Hours)h"; Write-Host ""; Write-Host "Top 10 processos por RAM:" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host ""; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host "Internet: OK" -ForegroundColor Green}else{Write-Host "Internet: SEM CONEXAO" -ForegroundColor Red}`,
   },
   exportar_diagnostico: {
     id: "exportar_diagnostico_para_logs",
-    description: "Exporta um diagnóstico rápido para a pasta logs com nome diagnostico-YYYYMMDD-HHMMSS.txt.",
+    description: "Salva relatório de diagnóstico em arquivo. Use para documentar estado do PC em determinado momento.",
     command: `$project=$env:MESTRE_PROJETO_PATH; $logDir=Join-Path $project "logs"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir ("diagnostico-"+(Get-Date -Format "yyyyMMdd-HHmmss")+".txt"); $os=Get-WmiObject Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @("===== DIAGNOSTICO MESTRE DO PC =====","Data: $(Get-Date)","Computador: $env:COMPUTERNAME","Windows: $($os.Caption) Build $($os.BuildNumber)","RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))","Disco C livre GB: $([math]::Round($disk.Free/1GB,2))","",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host "Diagnostico salvo em: $file" -ForegroundColor Green`,
   },
   listar_modelos_ollama: {
     id: "listar_modelos_ollama",
-    description: "Lista modelos disponíveis no Ollama local e destaca modelos cloud no texto.",
+    description: "Mostra modelos de IA disponíveis no Ollama. Use para confirmar qual modelo está ativo.",
     command: `try { $data=(Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -TimeoutSec 5); Write-Host "Modelos Ollama instalados:" -ForegroundColor Cyan; if(-not $data.models){ Write-Host "Nenhum modelo retornado pelo Ollama." -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match "cloud"){ " [cloud]" } else { "" }; Write-Host ("- " + $_.name + $cloud) } } } catch { Write-Host "Ollama offline ou inacessivel em localhost:11434" -ForegroundColor Yellow; Write-Host $_.Exception.Message }`,
   },
   abrir_pasta_logs: {
@@ -445,23 +446,211 @@ const mestreTools = {
   },
   git_status: {
     id: "git_status_do_projeto",
-    description: "Executa 'git status' na pasta do projeto.",
+    description: "Mostra status do repositório (arquivos modificados, commits, branches). Use antes de commitar.",
     command: `Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git status`,
   },
   git_pull: {
     id: "git_pull_atualizar_local",
-    description: "Executa 'git pull' na pasta do projeto.",
+    description: "Atualiza repositório local com mudanças remotas. Use para sincronizar com equipe.",
     command: `Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git pull; Write-Host "\u2705 Repositório atualizado!" -ForegroundColor Green`,
   },
   verificar_defender: {
     id: "verificar_status_do_windows_defender",
-    description: "Verifica o status do Windows Defender.",
+    description: "Mostra status do Windows Defender (antivírus). Use para confirmar proteção em tempo real.",
     command: "Get-MpComputerStatus | Select-Object AMRunningMode,AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureLastUpdated | Format-List",
   },
   scan_defender_rapido: {
     id: "scan_rapido_com_defender",
-    description: "Executa um scan rápido no Defender.",
+    description: "Inicia scan rápido do antivírus. Use se suspeita de malware ou rotina mensal de segurança.",
     command: 'Start-MpScan -ScanType QuickScan; Write-Host "✅ Scan rápido iniciado!" -ForegroundColor Green',
+  },
+
+  // ===== Terminal =====
+  abrir_windows_terminal: {
+    id: "abrir_windows_terminal",
+    description: "Abre uma nova janela do Windows Terminal.",
+    command: 'Start-Process wt.exe; Write-Host "✅ Windows Terminal aberto!" -ForegroundColor Green',
+  },
+  abrir_windows_terminal_no_projeto: {
+    id: "abrir_windows_terminal_no_projeto",
+    description: "Abre o Windows Terminal já na pasta do projeto Mestre do PC.",
+    command: 'Start-Process wt.exe -ArgumentList "-d","$env:MESTRE_PROJETO_PATH"; Write-Host "✅ Windows Terminal aberto no projeto!" -ForegroundColor Green',
+  },
+  abrir_cmd_no_projeto: {
+    id: "abrir_cmd_no_projeto",
+    description: "Abre o Prompt de Comando (CMD) já na pasta do projeto Mestre do PC.",
+    command: 'Start-Process cmd.exe -ArgumentList "/K","cd /d ""$env:MESTRE_PROJETO_PATH"""; Write-Host "✅ CMD aberto no projeto!" -ForegroundColor Green',
+  },
+  verificar_terminal_padrao: {
+    id: "verificar_terminal_padrao",
+    description: "Verifica qual aplicativo de terminal está configurado como padrão no Windows.",
+    command: 'try { $t = Get-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationConsole -EA Stop; Write-Host "Terminal padrão configurado: $($t.DelegationConsole)" } catch { Write-Host "Nenhuma preferência de terminal padrão definida (usando padrão do sistema)." -ForegroundColor Yellow }',
+  },
+  definir_windows_terminal_como_padrao: {
+    id: "definir_windows_terminal_como_padrao",
+    description: "Define o Windows Terminal como o terminal padrão do sistema.",
+    command: 'New-Item -Path "HKCU:\\Console\\%%Startup" -Force | Out-Null; Set-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationConsole -Value "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"; Set-ItemProperty -Path "HKCU:\\Console\\%%Startup" -Name DelegationTerminal -Value "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}"; Write-Host "✅ Windows Terminal definido como padrão!" -ForegroundColor Green',
+  },
+  listar_variaveis_de_ambiente_path: {
+    id: "listar_variaveis_de_ambiente_path",
+    description: "Lista todas as entradas da variável de ambiente PATH.",
+    command: '($env:Path -split \';\') | Where-Object { $_ -ne "" } | ForEach-Object { Write-Host $_ }',
+  },
+  verificar_edicoes_do_windows_terminal_instaladas: {
+    id: "verificar_edicoes_do_windows_terminal_instaladas",
+    description: "Verifica se o Windows Terminal está instalado via winget.",
+    command: "winget list --id Microsoft.WindowsTerminal",
+  },
+  listar_processos_de_terminais_abertos: {
+    id: "listar_processos_de_terminais_abertos",
+    description: "Lista processos de terminais abertos (Windows Terminal, PowerShell, pwsh, CMD).",
+    command: 'Get-Process -Name wt,powershell,pwsh,cmd -ErrorAction SilentlyContinue | Select-Object Name,Id,StartTime | Format-Table -AutoSize',
+  },
+  reiniciar_windows_terminal: {
+    id: "reiniciar_windows_terminal",
+    description: "Encerra o processo do Windows Terminal (fecha todas as janelas abertas).",
+    command: 'Stop-Process -Name WindowsTerminal -Force -EA 0; Write-Host "✅ Windows Terminal reiniciado (feche e abra novamente)!" -ForegroundColor Green',
+  },
+
+  // ===== Node.js =====
+  verificar_versao_node: {
+    id: "verificar_versao_node",
+    description: "Mostra a versão instalada do Node.js e do NPM.",
+    command: "node -v; npm -v",
+  },
+  listar_pacotes_globais_npm: {
+    id: "listar_pacotes_globais_npm",
+    description: "Lista os pacotes NPM instalados globalmente.",
+    command: "npm list -g --depth=0",
+  },
+  atualizar_npm: {
+    id: "atualizar_npm",
+    description: "Atualiza o NPM para a versão mais recente.",
+    command: 'npm install -g npm@latest; Write-Host "✅ NPM atualizado!" -ForegroundColor Green',
+  },
+  limpar_cache_npm: {
+    id: "limpar_cache_npm",
+    description: "Limpa o cache do NPM.",
+    command: 'npm cache clean --force; Write-Host "✅ Cache do NPM limpo!" -ForegroundColor Green',
+  },
+  verificar_processos_node_ativos: {
+    id: "verificar_processos_node_ativos",
+    description: "Lista processos Node.js ativos e o uso de RAM de cada um.",
+    command: 'Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize',
+  },
+  verificar_dependencias_desatualizadas_npm: {
+    id: "verificar_dependencias_desatualizadas_npm",
+    description: "Roda 'npm outdated' na pasta do projeto Mestre do PC.",
+    command: "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm outdated",
+  },
+  auditar_seguranca_npm: {
+    id: "auditar_seguranca_npm",
+    description: "Roda 'npm audit' na pasta do projeto Mestre do PC.",
+    command: "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm audit",
+  },
+  instalar_pacote_npm_global: {
+    id: "instalar_pacote_npm_global",
+    description: "Instala um pacote NPM globalmente. Informe o parâmetro 'pacote' com o nome do pacote (ex: typescript, nodemon).",
+    command: 'npm install -g {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} instalado!" -ForegroundColor Green',
+  },
+  desinstalar_pacote_npm_global: {
+    id: "desinstalar_pacote_npm_global",
+    description: "Desinstala um pacote NPM global. Informe o parâmetro 'pacote' com o nome do pacote.",
+    command: 'npm uninstall -g {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} desinstalado!" -ForegroundColor Green',
+  },
+
+  // ===== PowerShell =====
+  verificar_versao_do_powershell: {
+    id: "verificar_versao_do_powershell",
+    description: "Mostra a versão do PowerShell em uso e detalhes da edição.",
+    command: "$PSVersionTable | Format-List",
+  },
+  listar_modulos_powershell_instalados: {
+    id: "listar_modulos_powershell_instalados",
+    description: "Lista os módulos PowerShell instalados.",
+    command: "Get-Module -ListAvailable | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize",
+  },
+  verificar_execution_policy: {
+    id: "verificar_execution_policy",
+    description: "Mostra a Execution Policy configurada em cada escopo.",
+    command: "Get-ExecutionPolicy -List | Format-Table -AutoSize",
+  },
+  definir_execution_policy_remotesigned: {
+    id: "definir_execution_policy_remotesigned",
+    description: "Define a Execution Policy como RemoteSigned no escopo do usuário atual.",
+    command: 'Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host "✅ Execution Policy definida como RemoteSigned!" -ForegroundColor Green',
+  },
+  atualizar_ajuda_do_powershell: {
+    id: "atualizar_ajuda_do_powershell",
+    description: "Atualiza os arquivos de ajuda (Update-Help) do PowerShell.",
+    command: 'Update-Help -Force -ErrorAction SilentlyContinue; Write-Host "✅ Ajuda do PowerShell atualizada!" -ForegroundColor Green',
+  },
+  verificar_perfil_do_powershell: {
+    id: "verificar_perfil_do_powershell",
+    description: "Verifica se existe um perfil do PowerShell ($PROFILE) configurado e mostra seu conteúdo.",
+    command: 'if (Test-Path $PROFILE) { Write-Host "Perfil encontrado: $PROFILE"; Get-Content $PROFILE } else { Write-Host "Nenhum perfil do PowerShell configurado." -ForegroundColor Yellow }',
+  },
+  limpar_historico_do_powershell: {
+    id: "limpar_historico_do_powershell",
+    description: "Limpa o histórico de comandos do PowerShell (PSReadLine).",
+    command: '$h = (Get-PSReadLineOption).HistorySavePath; Remove-Item -Path $h -Force -EA 0; Write-Host "✅ Histórico do PowerShell limpo!" -ForegroundColor Green',
+  },
+  listar_variaveis_de_ambiente: {
+    id: "listar_variaveis_de_ambiente",
+    description: "Lista todas as variáveis de ambiente do sistema.",
+    command: "Get-ChildItem Env: | Sort-Object Name | Format-Table -AutoSize",
+  },
+
+  // ===== Python =====
+  verificar_versao_python: {
+    id: "verificar_versao_python",
+    description: "Mostra a versão instalada do Python.",
+    command: "python --version",
+  },
+  verificar_versao_pip: {
+    id: "verificar_versao_pip",
+    description: "Mostra a versão instalada do Pip.",
+    command: "pip --version",
+  },
+  listar_pacotes_pip_instalados: {
+    id: "listar_pacotes_pip_instalados",
+    description: "Lista os pacotes Python instalados via Pip.",
+    command: "pip list",
+  },
+  atualizar_pip: {
+    id: "atualizar_pip",
+    description: "Atualiza o Pip para a versão mais recente.",
+    command: 'python -m pip install --upgrade pip; Write-Host "✅ Pip atualizado!" -ForegroundColor Green',
+  },
+  verificar_pacotes_desatualizados_pip: {
+    id: "verificar_pacotes_desatualizados_pip",
+    description: "Lista os pacotes Pip que possuem versão mais nova disponível.",
+    command: "pip list --outdated",
+  },
+  verificar_processos_python_ativos: {
+    id: "verificar_processos_python_ativos",
+    description: "Lista processos Python ativos e o uso de RAM de cada um.",
+    command: 'Get-Process -Name python,python3,pythonw -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N="RAM(MB)";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize',
+  },
+  limpar_cache_pip: {
+    id: "limpar_cache_pip",
+    description: "Limpa o cache de download do Pip.",
+    command: 'pip cache purge; Write-Host "✅ Cache do Pip limpo!" -ForegroundColor Green',
+  },
+  instalar_pacote_pip: {
+    id: "instalar_pacote_pip",
+    description: "Instala um pacote Python via Pip. Informe o parâmetro 'pacote' com o nome do pacote (ex: requests, numpy).",
+    command: 'pip install {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} instalado!" -ForegroundColor Green',
+  },
+  desinstalar_pacote_pip: {
+    id: "desinstalar_pacote_pip",
+    description: "Desinstala um pacote Python via Pip. Informe o parâmetro 'pacote' com o nome do pacote.",
+    command: 'pip uninstall -y {{PACOTE}}; Write-Host "✅ Pacote {{PACOTE}} desinstalado!" -ForegroundColor Green',
+  },
+  criar_ambiente_virtual_venv: {
+    id: "criar_ambiente_virtual_venv",
+    description: "Cria um ambiente virtual Python (venv). Informe o parâmetro 'nome' com o nome da pasta do ambiente.",
+    command: 'python -m venv {{NOME}}; Write-Host "✅ Ambiente virtual \'{{NOME}}\' criado!" -ForegroundColor Green',
   },
 };
 
@@ -1212,6 +1401,19 @@ const TOOLS = [
       required: ["mensagem_commit"],
     },
   },
+  {
+    name: "transcrever_audio",
+    description: "Grava áudio do microfone e transcreve para texto usando Whisper (Ollama local). Útil para ditado, notas de voz e comandos por voz.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        duracao_segundos: { type: "number", description: "Duração da gravação em segundos (padrão: 30, máx: 120)." },
+        idioma: { type: "string", description: "Código do idioma para transcrição (pt, en, es, etc). Padrão: pt." },
+        limpar_arquivo: { type: "boolean", description: "Se true, remove o arquivo de áudio após transcrever (padrão: true)." },
+      },
+      required: [],
+    },
+  },
 ];
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -1657,6 +1859,75 @@ Responda apenas com o comando PowerShell, nada mais.`,
   }
 
   // ===== FIM NOVAS FERRAMENTAS AUDITORIA V11 =====
+
+  // ===== FERRAMENTA DE TRANSCRIÇÃO DE ÁUDIO (WHISPER) =====
+
+  if (name === "transcrever_audio") {
+    const duracaoSegundos = Math.min(Math.max(5, args?.duracao_segundos || 30), 120);
+    const idioma = args?.idioma || "pt";
+    const limparArquivo = args?.limpar_arquivo !== false;
+
+    try {
+      await auditLog(AuditLevel.INFO, "transcrever_audio_start", {
+        duracao: duracaoSegundos,
+        idioma,
+        limpar: limparArquivo,
+      });
+
+      // Passo 1: Gravar áudio
+      const { audioPath, duration } = await audioTranscriber.recordAudio(duracaoSegundos);
+      
+      // Passo 2: Transcrever com Whisper
+      const result = await audioTranscriber.transcribeAudio(audioPath, idioma);
+      
+      // Passo 3: Limpar se solicitado
+      if (limparArquivo) {
+        await unlinkAsync(audioPath).catch(() => {});
+      }
+
+      await auditLog(AuditLevel.INFO, "transcrever_audio_success", {
+        audioPath: limparArquivo ? "(limpo)" : audioPath,
+        textoLength: result.text.length,
+        duracaoTranscricao: result.duration,
+      });
+
+      const lines = [
+        "🎤 **Transcrição de Áudio**",
+        "",
+        `⏱️ Duração gravada: ${duration}s`,
+        `🌐 Idioma: ${idioma}`,
+        `⏱️ Tempo de transcrição: ${result.duration}ms`,
+        "",
+        "---",
+        "",
+        result.text || "_(Nenhum áudio detectado)_",
+        "",
+        "---",
+        "",
+        limparArquivo ? "✅ Arquivo de áudio removido após transcrição." : `📁 Arquivo salvo em: ${audioPath}`,
+      ];
+
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (error) {
+      await auditLog(AuditLevel.ERROR, "transcrever_audio_failed", {
+        error: error.message,
+      });
+      
+      // Mensagens de erro mais amigáveis
+      let errorMsg = error.message;
+      if (errorMsg.includes("ffmpeg")) {
+        errorMsg = "ffmpeg não encontrado. Para gravar áudio, instale o ffmpeg (https://ffmpeg.org/download.html) ou use o PowerShell para gravação manual.";
+      } else if (errorMsg.includes("Whisper")) {
+        errorMsg = "Falha ao transcrever com Whisper. Verifique se o modelo 'dimavz/whisper-tiny' está instalado no Ollama (ollama list).";
+      } else if (errorMsg.includes("microfone") || errorMsg.includes("audio")) {
+        errorMsg = "Não foi possível acessar o microfone. Verifique se há um microfone conectado e permissões de áudio.";
+      }
+      
+      return { isError: true, content: [{ type: "text", text: `❌ Erro na transcrição: ${errorMsg}` }] };
+    }
+  }
+
+  // ===== FIM FERRAMENTA TRANSCRIÇÃO DE ÁUDIO =====
 
   // ===== NOVOS TOOLS V11.1 =====
 

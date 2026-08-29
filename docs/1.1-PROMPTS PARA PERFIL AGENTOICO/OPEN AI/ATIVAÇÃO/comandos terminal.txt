@@ -1,0 +1,5 @@
+comandos terminal 
+
+ativando chat gpt
+
+ollama launch chatgpt --restore
