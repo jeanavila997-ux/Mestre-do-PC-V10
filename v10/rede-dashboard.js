@@ -458,12 +458,20 @@ O que pode estar causando problemas?`;
 
       if (!res.ok) throw new Error('Ollama offline');
       const d = await res.json();
-      body.innerHTML = `<div style="background:rgba(139,92,246,.1);padding:12px;border-radius:8px;border-left:3px solid #8b5cf6">${d.message.content.replace(/\n/g, '<br>')}</div>`;
+      const safe = this.escapeHtml(d.message.content).replace(/\n/g, '<br>');
+      body.innerHTML = `<div style="background:rgba(139,92,246,.1);padding:12px;border-radius:8px;border-left:3px solid #8b5cf6">${safe}</div>`;
       this.log('Análise IA concluída');
     } catch (e) {
-      body.innerHTML = `<p style="color:#ff5252">❌ Erro: ${e.message}</p>`;
+      body.innerHTML = `<p style="color:#ff5252">❌ Erro: ${this.escapeHtml(e.message)}</p>`;
     }
     body.classList.remove('loading');
+  },
+
+  // Escapa HTML para evitar XSS ao renderizar texto vindo da IA ou de erros
+  escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str ?? '');
+    return div.innerHTML;
   },
 
   // Log simples

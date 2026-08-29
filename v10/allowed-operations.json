@@ -3551,7 +3551,7 @@
       "destructive": false,
       "pattern": "try { $r = Invoke-WebRequest -Uri \"{{URL_TESTE}}\" -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }",
       "params": {
-        "url_teste": "^https://[a-zA-Z0-9.\\-]{1,253}(?:/[a-zA-Z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]{0,500})?$"
+        "url_teste": "^https://[a-zA-Z0-9.\\-]{1,253}(?:/[a-zA-Z0-9\\-._~:/?#\\[\\]@!*+,;=%]{0,500})?$"
       },
       "description": "Testar HTTPS de um Site."
     },
