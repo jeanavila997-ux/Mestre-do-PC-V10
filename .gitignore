@@ -61,7 +61,12 @@ env/
 .nuxt/
 .output/
 out/
-dist/
+dist/*
+!dist/site/
+dist/site/*.png
+dist/site/*.ico
+!dist/site/*.html
+dist/site/index-antigo-backup.html
 build/
 release/
 src-dist/

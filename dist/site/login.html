@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - Mestre do PC V10</title>
+    <meta name="description" content="Acesse o painel do Mestre do PC V10. Autenticação local e direcionamento ao app.">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00d4ff;
+            --accent2: #00ff88;
+            --bg-deep: #0a0f14;
+            --bg-surface: #111820;
+            --bg-card: #151c28;
+            --border: #2a3548;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: #e8edf2; 
+            overflow-x: hidden;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass {
+            background: rgba(17, 24, 32, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(42, 53, 72, 0.5);
+        }
+
+        /* Grid decorativo de fundo */
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(42, 53, 72, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(42, 53, 72, 0.3) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 100%);
+        }
+
+        /* Partículas subindo */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: floatParticle linear infinite;
+            pointer-events: none;
+        }
+        @keyframes floatParticle {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-800px); opacity: 0; }
+        }
+
+        /* Status pulsante */
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+        @keyframes statusPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(0, 212, 255, 0); }
+        }
+
+        /* Inputs */
+        .input-field {
+            width: 100%;
+            background: rgba(10, 15, 20, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 44px 14px 16px;
+            color: #e8edf2;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+        .input-field::placeholder { color: #6b7a90; }
+
+        /* Shake animation para erro */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake { animation: shake 0.4s ease; }
+
+        /* Spinner */
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-top-color: black;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Mensagens de estado */
+        .state-msg {
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            border: 1px solid;
+            display: none;
+        }
+        .state-msg.show { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .state-error { background: rgba(255, 71, 87, 0.1); border-color: rgba(255, 71, 87, 0.3); color: #ff8a95; }
+        .state-success { background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3); color: #6ee7a0; }
+        .state-info { background: rgba(0, 212, 255, 0.1); border-color: rgba(0, 212, 255, 0.3); color: #7dd3fc; }
+
+        /* Botão principal */
+        .btn-login {
+            width: 100%;
+            background: var(--accent);
+            color: black;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-login:hover:not(:disabled) { 
+            background: #00b8dd; 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3); 
+        }
+        .btn-login:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="min-h-screen flex flex-col lg:flex-row relative overflow-hidden">
+        <!-- Fundo decorativo -->
+        <div class="grid-bg absolute inset-0 pointer-events-none"></div>
+        <div class="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#00d4ff] opacity-5 blur-[150px] rounded-full pointer-events-none"></div>
+        <div id="particles" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
+
+        <!-- ===== LADO ESQUERDO: BRANDING ===== -->
+        <div class="hidden lg:flex flex-col justify-between flex-1 p-16 relative z-10">
+            <a href="index.html" class="text-[#00d4ff] font-bold text-xl flex items-center gap-2 hover:scale-105 transition-transform w-fit">
+                <span class="text-2xl">🚀</span> Mestre do PC
+            </a>
+
+            <div>
+                <h1 class="text-5xl font-extrabold mb-6 leading-tight">
+                    Bem-vindo ao <span class="gradient-text">painel local</span>
+                </h1>
+                <p class="text-slate-400 text-lg leading-relaxed max-w-md mb-10">
+                    Entre com suas credenciais locais para acessar o painel de diagnóstico, 
+                    automação e IA do Mestre do PC em <code class="text-[#00d4ff] font-mono text-sm">127.0.0.1:7777</code>.
+                </p>
+                <div class="space-y-3 max-w-md">
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-[#151c28]/60 border border-[#2a3548]">
+                        <span class="text-[#00ff88] text-xl">✔</span>
+                        <span class="text-slate-300 text-sm">Sessão salva apenas nesta máquina</span>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-[#151c28]/60 border border-[#2a3548]">
+                        <span class="text-[#00ff88] text-xl">✔</span>
+                        <span class="text-slate-300 text-sm">Nenhum dado é enviado para a nuvem</span>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-[#151c28]/60 border border-[#2a3548]">
+                        <span class="text-[#00ff88] text-xl">✔</span>
+                        <span class="text-slate-300 text-sm">O app valida comandos antes de executar</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-slate-500 text-xs">
+                <div class="status-dot bg-[#00ff88]"></div>
+                <span class="uppercase tracking-widest">Local-First · Privado · Open Source (MIT)</span>
+            </div>
+        </div>
+
+        <!-- ===== LADO DIREITO: FORMULÁRIO ===== -->
+        <div class="flex-1 flex items-center justify-center p-6 lg:p-16 relative z-10">
+            <div class="w-full max-w-md">
+                <!-- Logo mobile -->
+                <a href="index.html" class="lg:hidden text-[#00d4ff] font-bold text-xl flex items-center gap-2 justify-center mb-8">
+                    <span class="text-2xl">🚀</span> Mestre do PC
+                </a>
+
+                <div class="glass rounded-3xl p-8 md:p-10 shadow-2xl">
+                    <!-- Cabeçalho do card -->
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-extrabold text-white mb-2">Entrar no Painel</h2>
+                        <p class="text-slate-500 text-sm" id="form-subtitle">Use suas credenciais locais para continuar</p>
+                    </div>
+
+                    <!-- Mensagens de estado -->
+                    <div id="msg-error" class="state-msg state-error mb-4"></div>
+                    <div id="msg-info" class="state-msg state-info mb-4"></div>
+                    <div id="msg-success" class="state-msg state-success mb-4"></div>
+
+                    <!-- ===== MODO: CADASTRO (primeiro acesso) ===== -->
+                    <form id="form-register" class="space-y-5" autocomplete="off">
+                        <div id="field-reg-user">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Usuário</label>
+                            <input type="text" id="reg-user" class="input-field" placeholder="ex: admin" maxlength="32" autocomplete="username">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Senha</label>
+                            <div class="relative">
+                                <input type="password" id="reg-pass" class="input-field pr-12" placeholder="Mínimo 4 caracteres" autocomplete="new-password">
+                                <button type="button" class="toggle-pass absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#00d4ff] transition-colors" data-target="reg-pass" title="Mostrar senha">👁</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Confirmar senha</label>
+                            <div class="relative">
+                                <input type="password" id="reg-pass2" class="input-field pr-12" placeholder="Repita a senha" autocomplete="new-password">
+                                <span id="caps-indicator" class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-yellow-500 font-bold hidden" title="Caps Lock ativado">⇪</span>
+                            </div>
+                        </div>
+                        <button type="submit" id="btn-register" class="btn-login">
+                            🔐 Criar acesso local
+                        </button>
+                        <p class="text-center text-xs text-slate-500">
+                            Primeiro acesso neste PC? Crie suas credenciais — elas ficam salvas <strong class="text-slate-400">apenas aqui</strong>.
+                        </p>
+                    </form>
+
+                    <!-- ===== MODO: LOGIN ===== -->
+                    <form id="form-login" class="space-y-5 hidden" autocomplete="off">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Usuário</label>
+                            <input type="text" id="login-user" class="input-field" placeholder="Seu usuário" maxlength="32" autocomplete="username">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Senha</label>
+                            <div class="relative">
+                                <input type="password" id="login-pass" class="input-field pr-12" placeholder="Sua senha" autocomplete="current-password">
+                                <button type="button" class="toggle-pass absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#00d4ff] transition-colors" data-target="login-pass" title="Mostrar senha">👁</button>
+                                <span id="caps-indicator-login" class="absolute right-10 top-1/2 -translate-y-1/2 text-xs text-yellow-500 font-bold hidden" title="Caps Lock ativado">⇪</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <label class="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-slate-300 transition-colors">
+                                <input type="checkbox" id="remember-me" class="accent-[#00d4ff] w-4 h-4 rounded">
+                                Lembrar de mim
+                            </label>
+                            <a href="#" id="link-reset" class="text-[#00d4ff] hover:underline text-xs">Esqueceu a senha?</a>
+                        </div>
+                        <button type="submit" id="btn-login" class="btn-login">
+                            🚀 Entrar e abrir o Painel
+                        </button>
+                    </form>
+
+                    <!-- ===== MODO: LOGADO (sessão ativa) ===== -->
+                    <div id="form-session" class="space-y-6 hidden text-center">
+                        <div class="w-20 h-20 mx-auto rounded-full bg-[#00ff88]/10 border border-[#00ff88]/30 flex items-center justify-center text-4xl">
+                            ✅
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Sessão ativa</h3>
+                            <p class="text-slate-400 text-sm mt-1">
+                                Conectado como <strong class="text-[#00d4ff]" id="session-user">usuário</strong>
+                            </p>
+                        </div>
+                        <button id="btn-continue" class="btn-login">🚀 Abrir Painel agora</button>
+                        <button id="btn-logout" class="w-full text-slate-500 hover:text-[#ff4757] text-sm transition-colors">
+                            Sair da sessão
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-center text-slate-600 text-xs mt-6 leading-relaxed">
+                    🔒 Autenticação local de conveniência. A segurança real do app é feita pela 
+                    whitelist de operações e tokens do launcher (MESTRE_*_TOKEN).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =====================================================================
+           SESSÃO DE LOGIN — Mestre do PC
+           Autenticação LOCAL (localStorage) para conveniência do usuário.
+           Não é segurança criptográfica real: o launcher continua protegendo
+           o app via whitelist + tokens. Hash simples apenas evita senha em
+           texto puro no armazenamento local.
+           ===================================================================== */
+
+        const APP_URL = 'http://127.0.0.1:7777';
+        const LS_ACCOUNT = 'mestre-site-account';   // {user, hash}
+        const LS_SESSION = 'mestre-site-session';    // {user, expiresAt}
+
+        // Hash simples (djb2) — apenas para não guardar a senha literal
+        function simpleHash(str) {
+            let hash = 5381;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
+            }
+            return hash.toString(16);
+        }
+
+        // ===== Referências de UI =====
+        const formRegister = document.getElementById('form-register');
+        const formLogin = document.getElementById('form-login');
+        const formSession = document.getElementById('form-session');
+        const msgError = document.getElementById('msg-error');
+        const msgInfo = document.getElementById('msg-info');
+        const msgSuccess = document.getElementById('msg-success');
+        const subtitle = document.getElementById('form-subtitle');
+
+        function showError(text) {
+            msgError.textContent = text;
+            msgError.classList.add('show');
+            msgError.classList.add('shake');
+            setTimeout(() => msgError.classList.remove('shake'), 500);
+        }
+        function clearMessages() {
+            [msgError, msgInfo, msgSuccess].forEach(m => m.classList.remove('show'));
+        }
+        function showInfo(text) {
+            msgInfo.innerHTML = text;
+            msgInfo.classList.add('show');
+        }
+        function showSuccess(text) {
+            msgSuccess.innerHTML = text;
+            msgSuccess.classList.add('show');
+        }
+
+        // ===== Estado inicial: decidir qual formulário mostrar =====
+        (function init() {
+            const account = localStorage.getItem(LS_ACCOUNT);
+            const sessionRaw = localStorage.getItem(LS_SESSION);
+            let session = null;
+            try { session = sessionRaw ? JSON.parse(sessionRaw) : null; } catch (e) { session = null; }
+
+            const sessionValid = session && session.expiresAt > Date.now();
+
+            if (!account) {
+                // Primeiro acesso: cadastro
+                formRegister.classList.remove('hidden');
+                formLogin.classList.add('hidden');
+                subtitle.textContent = 'Crie seu acesso local (primeira vez neste PC)';
+            } else if (sessionValid) {
+                // Já logado
+                formRegister.classList.add('hidden');
+                formLogin.classList.add('hidden');
+                formSession.classList.remove('hidden');
+                document.getElementById('session-user').textContent = session.user;
+                subtitle.textContent = 'Você já está autenticado';
+            } else {
+                // Conta existe, sessão expirada: login
+                formRegister.classList.add('hidden');
+                formLogin.classList.remove('hidden');
+                subtitle.textContent = 'Bem-vindo de volta! Entre para continuar';
+            }
+        })();
+
+        // ===== Toggle mostrar/ocultar senha =====
+        document.querySelectorAll('.toggle-pass').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.target);
+                input.type = input.type === 'password' ? 'text' : 'password';
+                btn.textContent = input.type === 'password' ? '👁' : '🙈';
+            });
+        });
+
+        // ===== Detecção de Caps Lock =====
+        ['reg-pass2', 'login-pass'].forEach(id => {
+            const input = document.getElementById(id);
+            const indicator = document.getElementById(id === 'login-pass' ? 'caps-indicator-login' : 'caps-indicator');
+            input.addEventListener('keyup', (e) => {
+                indicator.classList.toggle('hidden', !e.getModifierState || !e.getModifierState('CapsLock'));
+            });
+        });
+
+        // ===== Cadastro (primeiro acesso) =====
+        formRegister.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clearMessages();
+
+            const user = document.getElementById('reg-user').value.trim().toLowerCase();
+            const pass = document.getElementById('reg-pass').value;
+            const pass2 = document.getElementById('reg-pass2').value;
+
+            if (!/^[a-z0-9_.-]{3,32}$/.test(user)) {
+                return showError('⚠️ Usuário inválido: 3–32 caracteres (letras, números, . _ -)');
+            }
+            if (pass.length < 4) {
+                return showError('⚠️ A senha precisa ter no mínimo 4 caracteres.');
+            }
+            if (pass !== pass2) {
+                return showError('⚠️ As senhas não coincidem.');
+            }
+
+            // Salva a conta local (hash, nunca a senha literal)
+            localStorage.setItem(LS_ACCOUNT, JSON.stringify({
+                user: user,
+                hash: simpleHash(user + '::' + pass)
+            }));
+
+            // Cria sessão (30 dias) e vai para o painel
+            startSession(user, true);
+        });
+
+        // ===== Login =====
+        formLogin.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clearMessages();
+
+            const user = document.getElementById('login-user').value.trim().toLowerCase();
+            const pass = document.getElementById('login-pass').value;
+
+            let account = null;
+            try { account = JSON.parse(localStorage.getItem(LS_ACCOUNT)); } catch (err) {}
+
+            if (!account || !user || !pass) {
+                return showError('⚠️ Preencha usuário e senha.');
+            }
+            if (account.user !== user || account.hash !== simpleHash(user + '::' + pass)) {
+                return showError('❌ Usuário ou senha incorretos.');
+            }
+
+            const remember = document.getElementById('remember-me').checked;
+            startSession(user, remember);
+        });
+
+        // ===== Cria sessão e verifica o launcher =====
+        function startSession(user, remember) {
+            const expiresAt = Date.now() + (remember ? 30 : 1) * 24 * 60 * 60 * 1000; // 30 dias ou 1 dia
+            localStorage.setItem(LS_SESSION, JSON.stringify({ user, expiresAt }));
+
+            showSuccess('✅ Credenciais verificadas! Buscando o painel local...');
+            document.getElementById('form-register').classList.add('hidden');
+            document.getElementById('form-login').classList.add('hidden');
+            formSession.classList.remove('hidden');
+            document.getElementById('session-user').textContent = user;
+            document.getElementById('btn-continue').disabled = true;
+
+            checkLauncherAndRedirect();
+        }
+
+        // ===== Verifica se o launcher (app) está online e redireciona =====
+        function checkLauncherAndRedirect() {
+            showInfo('🔎 Verificando se o painel está rodando em <code>127.0.0.1:7777</code>...');
+
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 4000);
+
+            // O launcher expõe a rota /ping para health check
+            fetch(APP_URL + '/ping', { signal: controller.signal, mode: 'no-cors' })
+                .then(() => {
+                    clearTimeout(timeout);
+                    redirectToApp();
+                })
+                .catch(() => {
+                    // Fallback: mesmo com erro de CORS, se houve resposta de rede, o app está no ar.
+                    // Tentamos de novo com HEAD; se falhar de novo, assumimos offline.
+                    fetch(APP_URL, { mode: 'no-cors', signal: controller.signal })
+                        .then(() => { clearTimeout(timeout); redirectToApp(); })
+                        .catch(() => { clearTimeout(timeout); showOfflineHelp(); });
+                });
+        }
+
+        function redirectToApp() {
+            showSuccess('✅ Painel detectado! Redirecionando em instantes...');
+            setTimeout(() => { window.location.href = APP_URL; }, 900);
+        }
+
+        function showOfflineHelp() {
+            msgInfo.classList.remove('show');
+            document.getElementById('btn-continue').disabled = false;
+            showError(
+                '❌ O painel não está respondendo em 127.0.0.1:7777.\n' +
+                'Inicie o launcher primeiro (ex.: start-mestre-v10.ps1) e tente novamente.'
+            );
+            // Botão tentar de novo
+            const btn = document.getElementById('btn-continue');
+            btn.innerHTML = '🔄 Tentar novamente';
+            btn.onclick = () => {
+                btn.innerHTML = '🔎 Verificando painel...';
+                btn.disabled = true;
+                clearMessages();
+                checkLauncherAndRedirect();
+            };
+        }
+
+        // ===== Sessão ativa: botões =====
+        document.getElementById('btn-continue').addEventListener('click', () => {
+            clearMessages();
+            checkLauncherAndRedirect();
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            localStorage.removeItem(LS_SESSION);
+            location.reload();
+        });
+
+        // ===== "Esqueceu a senha" = redefinir acesso local =====
+        document.getElementById('link-reset').addEventListener('click', (e) => {
+            e.preventDefault();
+            const confirmReset = confirm(
+                'Redefinir o acesso local?\n\n' +
+                'Isso apaga o usuário/senha salvo NESTE navegador e permite criar novos.\n' +
+                'Não afeta o aplicativo, apenas esta tela de login.'
+            );
+            if (confirmReset) {
+                localStorage.removeItem(LS_ACCOUNT);
+                localStorage.removeItem(LS_SESSION);
+                location.reload();
+            }
+        });
+
+        // ===== Partículas decorativas =====
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.bottom = '-10px';
+            p.style.animationDuration = (Math.random() * 12 + 8) + 's';
+            p.style.animationDelay = (Math.random() * 12) + 's';
+            const size = Math.random() * 3 + 2;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            if (Math.random() > 0.5) p.style.background = '#00ff88';
+            particlesContainer.appendChild(p);
+        }
+    </script>
+</body>
+</html>

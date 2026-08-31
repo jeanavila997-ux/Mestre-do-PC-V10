@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação - Mestre do PC V10</title>
+    <meta name="description" content="Documentação oficial do Mestre do PC V10: arquitetura, segurança, Ollama, MCP, Notepad++ e integrações.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00d4ff;
+            --accent2: #00ff88;
+            --bg-deep: #0a0f14;
+            --bg-surface: #111820;
+            --bg-card: #151c28;
+            --border: #2a3548;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: #e8edf2; 
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .bg-card { background-color: var(--bg-card); }
+        .border-mestre { border-color: var(--border); }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass {
+            background: rgba(17, 24, 32, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(42, 53, 72, 0.5);
+        }
+
+        /* Reveal on scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Scroll-Spy: item ativo da sidebar */
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            transition: all 0.25s ease;
+            border-left: 2px solid transparent;
+        }
+        .sidebar-link:hover { color: #e8edf2; background: rgba(26, 34, 48, 0.5); }
+        .sidebar-link.active {
+            color: var(--accent);
+            background: rgba(0, 212, 255, 0.08);
+            border-left: 2px solid var(--accent);
+            font-weight: 600;
+        }
+
+        /* Code blocks com botão copiar */
+        .code-block { position: relative; }
+        .code-block pre { margin: 0; }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(42, 53, 72, 0.8);
+            color: #e8edf2;
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.25s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .code-block:hover .copy-btn { opacity: 1; }
+        .copy-btn:hover { background: var(--accent); color: black; border-color: var(--accent); }
+        .copy-btn.copied { background: var(--accent2); color: black; border-color: var(--accent2); }
+
+        /* Callouts */
+        .callout {
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            border: 1px solid;
+        }
+        .callout-info { background: rgba(0, 212, 255, 0.08); border-color: rgba(0, 212, 255, 0.25); color: #7dd3fc; }
+        .callout-warn { background: rgba(255, 184, 0, 0.08); border-color: rgba(255, 184, 0, 0.25); color: #fbbf24; }
+        .callout-success { background: rgba(0, 255, 136, 0.08); border-color: rgba(0, 255, 136, 0.25); color: #6ee7a0; }
+
+        /* Badge de categoria */
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge-safe { background: rgba(0, 255, 136, 0.15); color: #00ff88; }
+        .badge-danger { background: rgba(255, 71, 87, 0.15); color: #ff6b78; }
+
+        /* Back to top */
+        #back-to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 90;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+        #back-to-top.visible { opacity: 1; visibility: visible; }
+        #back-to-top:hover { transform: translateY(-4px) scale(1.05); }
+
+        /* Diagrama de arquitetura */
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .arch-node {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+            background: rgba(10, 15, 20, 0.6);
+            transition: all 0.3s ease;
+        }
+        .arch-node:hover { border-color: var(--accent); transform: scale(1.02); }
+        .arch-arrow {
+            color: var(--accent);
+            font-size: 1.2rem;
+            animation: arrowPulse 2s ease-in-out infinite;
+        }
+        @keyframes arrowPulse {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(3px); }
+        }
+        .arch-label {
+            font-size: 0.7rem;
+            color: #6b7a90;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: -4px;
+        }
+
+        /* Tabela responsiva */
+        .doc-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .doc-table th {
+            text-align: left;
+            padding: 12px 16px;
+            color: var(--accent);
+            background: rgba(0, 212, 255, 0.05);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .doc-table td {
+            padding: 12px 16px;
+            color: #94a3b8;
+            border-bottom: 1px solid rgba(42, 53, 72, 0.4);
+        }
+        .doc-table tr:hover td { background: rgba(0, 212, 255, 0.03); color: #e8edf2; }
+
+        /* Mobile menu */
+        #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        #mobile-menu.open { max-height: 400px; }
+
+        section { scroll-margin-top: 90px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar Glass -->
+    <nav class="glass fixed top-0 w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="index.html" class="text-[#00d4ff] font-bold text-xl flex items-center gap-2 hover:scale-105 transition-transform">
+                <span class="text-2xl">🚀</span> Mestre do PC
+            </a>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a href="index.html" class="text-slate-400 hover:text-[#00d4ff] transition-colors">Home</a>
+                <a href="download.html" class="text-slate-400 hover:text-[#00d4ff] transition-colors">Download</a>
+                <a href="docs.html" class="text-white hover:text-[#00d4ff] transition-colors">Docs</a>
+                <a href="login.html" class="text-slate-400 hover:text-[#00d4ff] transition-colors border border-[#2a3548] rounded-full px-4 py-2">Entrar</a>
+                <a href="download.html" class="bg-[#00d4ff] text-black px-5 py-2 rounded-full font-bold hover:bg-[#00b8dd] transition-all hover:shadow-[0_0_15px_rgba(0,212,255,0.4)]">Baixar Agora</a>
+            </div>
+            <button id="hamburger-btn" class="md:hidden text-white text-2xl" aria-label="Abrir menu">☰</button>
+        </div>
+        <div id="mobile-menu" class="md:hidden bg-[#111820] border-t border-[#2a3548]">
+            <div class="flex flex-col p-4 gap-3 text-sm">
+                <a href="index.html" class="text-slate-300 hover:text-[#00d4ff] p-2">Home</a>
+                <a href="download.html" class="text-slate-300 hover:text-[#00d4ff] p-2">Download</a>
+                <a href="login.html" class="text-slate-300 hover:text-[#00d4ff] p-2 border border-[#2a3548] rounded-lg">Entrar</a>
+                <a href="download.html" class="bg-[#00d4ff] text-black px-4 py-2 rounded-lg font-bold text-center">Baixar Agora</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 pt-16">
+        <!-- Sidebar -->
+        <aside class="w-72 bg-[#111820] border-r border-mestre hidden md:block p-6 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto">
+            <div class="flex items-center gap-2 mb-8 p-3 rounded-xl bg-[#00d4ff]/5 border border-[#00d4ff]/20">
+                <span class="status-dot" style="width:8px;height:8px;background:#00ff88;border-radius:50%;animation:statusPulse 2s ease-in-out infinite;"></span>
+                <span class="text-xs font-bold text-[#00d4ff] uppercase tracking-widest">Docs V11</span>
+            </div>
+
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span class="text-sm">📚</span> Introdução
+            </h3>
+            <ul class="space-y-1 mb-8">
+                <li><a href="#visao" class="sidebar-link" data-spy="visao">🏠 Visão Geral</a></li>
+                <li><a href="#arquitetura" class="sidebar-link" data-spy="arquitetura">🏗️ Arquitetura</a></li>
+                <li><a href="#seguranca" class="sidebar-link" data-spy="seguranca">🛡️ Segurança & Whitelist</a></li>
+            </ul>
+
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span class="text-sm">🧭</span> Guias de Integração
+            </h3>
+            <ul class="space-y-1 mb-8">
+                <li><a href="#ollama" class="sidebar-link" data-spy="ollama">🤖 Ollama Local</a></li>
+                <li><a href="#mcp" class="sidebar-link" data-spy="mcp">🔗 Protocolo MCP</a></li>
+                <li><a href="#npp" class="sidebar-link" data-spy="npp">📝 Notepad++</a></li>
+                <li><a href="#extensao" class="sidebar-link" data-spy="extensao">🌐 Extensão de Navegador</a></li>
+            </ul>
+
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span class="text-sm">⚙️</span> Referência
+            </h3>
+            <ul class="space-y-1">
+                <li><a href="#operacoes" class="sidebar-link" data-spy="operacoes">📋 Operações (Categorias)</a></li>
+                <li><a href="#variaveis" class="sidebar-link" data-spy="variaveis">🔑 Variáveis de Ambiente</a></li>
+                <li><a href="#faq-docs" class="sidebar-link" data-spy="faq-docs">❓ FAQ Técnico</a></li>
+            </ul>
+        </aside>
+
+        <!-- Conteúdo -->
+        <main class="flex-1 p-6 md:p-16 max-w-5xl">
+            <!-- Breadcrumb -->
+            <div class="text-xs text-slate-500 mb-8 flex items-center gap-2">
+                <a href="index.html" class="hover:text-[#00d4ff] transition-colors">Home</a>
+                <span>/</span>
+                <span class="text-slate-400">Documentação</span>
+            </div>
+
+            <!-- ===== VISÃO GERAL ===== -->
+            <section id="visao" class="mb-24 reveal">
+                <h1 class="text-4xl md:text-5xl font-extrabold mb-6 text-white tracking-tight">Documentação <span class="gradient-text">Oficial</span></h1>
+                <p class="text-slate-400 text-lg leading-relaxed mb-8">
+                    O Mestre do PC V10/V11 é uma aplicação local de diagnóstico e manutenção do Windows, focada em segurança e integração com modelos de linguagem (LLMs).
+                </p>
+                <div class="callout callout-success mb-8">
+                    <strong>🔒 Princípio central:</strong> Agentes de IA <u>nunca</u> executam código shell livremente. Cada comando é validado contra uma whitelist antes de ser enviado ao PowerShell.
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-card border border-mestre p-6 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="text-3xl mb-3">🖥️</div>
+                        <h3 class="font-bold text-white mb-2">Painel Web Local</h3>
+                        <p class="text-slate-400 text-sm">SPA em <code class="text-[#00d4ff]">http://127.0.0.1:7777</code> com chat, diagnósticos e memória.</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-6 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="text-3xl mb-3">🔗</div>
+                        <h3 class="font-bold text-white mb-2">Servidor MCP</h3>
+                        <p class="text-slate-400 text-sm">Integração nativa com Claude Desktop, Copilot CLI e outros clientes MCP.</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-6 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="text-3xl mb-3">🧠</div>
+                        <h3 class="font-bold text-white mb-2">Chat com Memória</h3>
+                        <p class="text-slate-400 text-sm">Memórias persistidas em IndexedDB e <code class="text-[#00d4ff]">chat-memories.json</code>.</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-6 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="text-3xl mb-3">📝</div>
+                        <h3 class="font-bold text-white mb-2">Multi-Integração</h3>
+                        <p class="text-slate-400 text-sm">Notepad++, extensão Chrome/Firefox e webhooks Discord/Teams.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== ARQUITETURA ===== -->
+            <section id="arquitetura" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">🏗️ Arquitetura do Sistema</h2>
+                <p class="text-slate-400 mb-8 leading-relaxed">
+                    O fluxo de dados é unidirecional e auditável: cada camada valida a anterior antes de delegar execução.
+                </p>
+
+                <div class="bg-card border border-mestre rounded-3xl p-6 md:p-10">
+                    <div class="arch-flow max-w-md mx-auto">
+                        <div class="arch-node" style="border-color: rgba(0,212,255,0.4);">
+                            <div class="text-white font-bold">🧠 AI Client</div>
+                            <div class="text-slate-500 text-xs">Claude Desktop · Copilot CLI · Browser</div>
+                        </div>
+                        <div class="arch-label">stdio (MCP) ou HTTP</div>
+                        <div class="arch-arrow">↓</div>
+                        <div class="arch-node">
+                            <div class="text-white font-bold">mcp-server/index.js</div>
+                            <div class="text-slate-500 text-xs">Bridge AI — não elevada</div>
+                        </div>
+                        <div class="arch-label">POST {id, params}</div>
+                        <div class="arch-arrow">↓</div>
+                        <div class="arch-node">
+                            <div class="text-white font-bold">v10/launcher.js</div>
+                            <div class="text-slate-500 text-xs">Backend HTTP · 127.0.0.1:7777 · valida origem + headers</div>
+                        </div>
+                        <div class="arch-label">resolve via operation-registry</div>
+                        <div class="arch-arrow">↓</div>
+                        <div class="arch-node" style="border-color: rgba(0,255,136,0.4);">
+                            <div class="text-white font-bold">powershell.exe</div>
+                            <div class="text-slate-500 text-xs">Somente comandos whitelisted executam</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout callout-info mt-6">
+                    <strong>Fluxo de execução:</strong> o cliente envia <code>POST /run</code> → o launcher resolve a operação via <code>registry.resolve()</code> → spawna o PowerShell → retorna um <code>jobId</code> → o cliente consulta <code>GET /run-status?id=&lt;jobId&gt;</code>.
+                </div>
+            </section>
+
+            <!-- ===== SEGURANÇA ===== -->
+            <section id="seguranca" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">🛡️ Segurança & Whitelist</h2>
+                <p class="text-slate-400 mb-6 leading-relaxed">
+                    Todas as operações são definidas em <code class="text-[#00d4ff]">v10/allowed-operations.json</code>. Se um comando não estiver lá, ele é recusado instantaneamente.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-card border border-mestre p-6 rounded-2xl">
+                        <h4 class="font-bold text-white mb-4 flex items-center gap-2">
+                            <span class="badge badge-safe">Filtro</span> Sanitização de Argumentos
+                        </h4>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            <code class="text-[#00d4ff]">sanitizeToolArgument</code> aceita apenas <code>[a-zA-Z0-9_. -]</code> (máx. 128 chars) e <strong>rejeita</strong> — nunca "limpa" — entradas perigosas.
+                        </p>
+                    </div>
+                    <div class="bg-card border border-mestre p-6 rounded-2xl">
+                        <h4 class="font-bold text-white mb-4 flex items-center gap-2">
+                            <span class="badge badge-safe">Guard</span> Anti Prompt-Injection
+                        </h4>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            <code class="text-[#00d4ff]">checkPromptInjection()</code> classifica entradas como <code>benigno</code>, <code>suspeito</code> ou <code>malicioso</code>. Apenas <code>malicioso</code> bloqueia.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="code-block bg-card border border-mestre rounded-2xl overflow-hidden">
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-mestre">
+                        <h4 class="font-bold text-white text-sm">Exemplo de Operação Segura (whitelist)</h4>
+                    </div>
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                    <pre class="bg-black p-6 text-xs text-slate-400 overflow-x-auto"><code>{
+  "id": "rede_testar_dns_google_cloudflare",
+  "title": "Testar DNS (Google + Cloudflare)",
+  "category": "Rede",
+  "destructive": false,
+  "command": "Resolve-DnsName google.com",
+  "description": "Testa resolução de DNS."
+}</code></pre>
+                </div>
+
+                <div class="callout callout-warn mt-6">
+                    <strong>⚠️ Modo livre (opt-in):</strong> existe um <code>modo-livre</code> opcional que aceita qualquer comando PowerShell, mas toda execução é logada em nível <code>SECURITY</code> nos audit logs.
+                </div>
+            </section>
+
+            <!-- ===== OLLAMA ===== -->
+            <section id="ollama" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">🤖 Ollama Local</h2>
+                <p class="text-slate-400 mb-8 leading-relaxed">
+                    O Mestre do PC integra-se ao Ollama rodando localmente em <code class="text-[#00d4ff]">127.0.0.1:11434</code>. Se você definir <code class="text-[#00d4ff]">OLLAMA_API_KEY</code>, o chat alterna automaticamente para o modo cloud (<code>https://ollama.com/api</code>).
+                </p>
+
+                <h3 class="text-xl font-bold text-white mb-4">Instalação do Ollama</h3>
+                <div class="code-block bg-black border border-mestre rounded-2xl overflow-hidden mb-8 relative">
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                    <pre class="p-6 text-sm text-slate-400 overflow-x-auto"><code># Instalar via winget (Windows)
+winget install Ollama.Ollama
+
+# Baixar um modelo
+ollama pull llama3.1
+
+# Verificar se está online
+curl http://localhost:11434/api/tags</code></pre>
+                </div>
+
+                <h3 class="text-xl font-bold text-white mb-4">Perfis de Modelo</h3>
+                <p class="text-slate-400 mb-4 text-sm">O arquivo <code class="text-[#00d4ff]">model-profiles.json</code> traz presets prontos:</p>
+                <div class="bg-card border border-mestre rounded-2xl overflow-x-auto">
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>Perfil</th>
+                                <th>Uso recomendado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="font-mono text-[#00d4ff]">fast</td><td>Respostas rápidas e tarefas simples</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">balanced</td><td>Uso geral do chat</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">agent</td><td>Execução de operações assistida</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">coding</td><td>Geração e explicação de código</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">reasoning</td><td>Diagnóstico e análise complexa</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">dialogue</td><td>Conversa natural</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">transcription</td><td>Áudio → texto</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout callout-info mt-6">
+                    <strong>Teste rápido:</strong> a operação <code>rede_testar_ollama</code> verifica se o Ollama está online e lista os modelos instalados.
+                </div>
+            </section>
+
+            <!-- ===== MCP ===== -->
+            <section id="mcp" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">🔗 Protocolo MCP</h2>
+                <p class="text-slate-400 mb-8 leading-relaxed">
+                    O servidor MCP (Model Context Protocol) expõe as operações whitelisted para clientes como <strong class="text-white">Claude Desktop</strong> e <strong class="text-white">GitHub Copilot CLI</strong> — via stdio, sem nunca expor shell direto.
+                </p>
+
+                <h3 class="text-xl font-bold text-white mb-4">1. Configure o Claude Desktop</h3>
+                <p class="text-slate-400 mb-4 text-sm">
+                    Abra o arquivo <code class="text-[#00d4ff]">claude_desktop_config.json</code> (em <code>%APPDATA%\Claude\claude_desktop_config.json</code>) e adicione:
+                </p>
+                <div class="code-block bg-black border border-mestre rounded-2xl overflow-hidden mb-8 relative">
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                    <pre class="p-6 text-xs text-slate-400 overflow-x-auto"><code>{
+  "mcpServers": {
+    "mestre-do-pc": {
+      "command": "node",
+      "args": ["C:/caminho/para/Mestre-do-PC-V10/mcp-server/index.js"],
+      "env": {
+        "MESTRE_BASE_URL": "http://127.0.0.1:7777"
+      }
+    }
+  }
+}</code></pre>
+                </div>
+
+                <h3 class="text-xl font-bold text-white mb-4">2. Ferramentas MCP Disponíveis</h3>
+                <div class="bg-card border border-mestre rounded-2xl overflow-x-auto mb-8">
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>Ferramenta</th>
+                                <th>Função</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="font-mono text-[#00d4ff]">run_operation</td><td>Executa uma operação da whitelist por ID + params</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">classify_command</td><td>Retorna <code>{allowed, destructive, id, title, category}</code></td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">ollama_chat</td><td>Chat com streaming para o Ollama (com guard de injeção)</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">get_memory / memories</td><td>Consulta o sistema de memórias do chat</td></tr>
+                            <tr><td class="font-mono text-[#00d4ff]">get_operation_status</td><td>Consulta status de jobs em execução</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-bold text-white mb-4">3. Copilot CLI</h3>
+                <p class="text-slate-400 mb-4 text-sm">
+                    Para o GitHub Copilot CLI, registre o servidor MCP com:
+                </p>
+                <div class="code-block bg-black border border-mestre rounded-2xl overflow-hidden mb-8 relative">
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                    <pre class="p-6 text-sm text-slate-400 overflow-x-auto"><code>copilot mcp add mestre-do-pc -- node "C:/caminho/para/mcp-server/index.js"</code></pre>
+                </div>
+
+                <div class="callout callout-success">
+                    <strong>✅ Cabeçalho de segurança:</strong> toda requisição ao launcher exige o header <code>X-Mestre-Client</code> e origem validada — o MCP envia automaticamente <code>mcp</code> como cliente.
+                </div>
+            </section>
+
+            <!-- ===== NOTEPAD++ ===== -->
+            <section id="npp" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">📝 Notepad++</h2>
+                <p class="text-slate-400 mb-8 leading-relaxed">
+                    O Mestre do PC pode ser invocado diretamente do Notepad++ para <strong class="text-white">explicar código</strong>, <strong class="text-white">perguntar à IA</strong>, <strong class="text-white">sugerir comandos</strong>, <strong class="text-white">gerar diagnósticos</strong> e <strong class="text-white">buscar na web</strong>.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-card border border-mestre p-6 rounded-2xl">
+                        <div class="text-3xl mb-3">🔐</div>
+                        <h4 class="font-bold text-white mb-2">Autenticação por Token</h4>
+                        <p class="text-slate-400 text-sm">A rota <code class="text-[#00d4ff]">/npp</code> exige o token <code class="text-[#00d4ff]">MESTRE_NPP_TOKEN</code> e uma allowlist de ações.</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-6 rounded-2xl">
+                        <div class="text-3xl mb-3">🧰</div>
+                        <h4 class="font-bold text-white mb-2">Configuração</h4>
+                        <p class="text-slate-400 text-sm">Scripts auxiliares registram os atalhos do plugin automaticamente no menu do Notepad++.</p>
+                    </div>
+                </div>
+
+                <div class="callout callout-info">
+                    <strong>📖 Detalhes:</strong> veja o guia completo em <code>docs/notepad-plus-plus-integration.md</code> no repositório.
+                </div>
+            </section>
+
+            <!-- ===== EXTENSÃO ===== -->
+            <section id="extensao" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">🌐 Extensão de Navegador</h2>
+                <p class="text-slate-400 mb-8 leading-relaxed">
+                    A extensão (Manifest V3) está disponível para Chrome e Firefox, com autenticação via <code class="text-[#00d4ff]">MESTRE_EXTENSION_TOKEN</code>.
+                </p>
+                <div class="code-block bg-black border border-mestre rounded-2xl overflow-hidden relative">
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                    <pre class="p-6 text-sm text-slate-400 overflow-x-auto"><code># Buildar a extensão (a partir da raiz do projeto)
+cd browser-extension
+node build.js chrome    # versão Chrome
+node build.js firefox   # versão Firefox</code></pre>
+                </div>
+            </section>
+
+            <!-- ===== OPERAÇÕES ===== -->
+            <section id="operacoes" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">📋 Operações por Categoria</h2>
+                <p class="text-slate-400 mb-8 leading-relaxed">
+                    São <strong class="text-white">130+ operações</strong> organizadas em 15+ categorias. Operações destrutivas exigem confirmação extra na UI.
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="bg-card border border-mestre p-5 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🔍</span>
+                            <span class="badge badge-safe">Leitura</span>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Diagnóstico & Sistema</h4>
+                        <p class="text-slate-500 text-xs mt-1">CPU, RAM, disco, temperatura, relatórios</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-5 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🌐</span>
+                            <span class="badge badge-safe">Leitura</span>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Rede</h4>
+                        <p class="text-slate-500 text-xs mt-1">Wi-Fi, DNS, portas, tracert, speed test</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-5 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">💾</span>
+                            <span class="badge badge-danger">Destrutivo</span>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">SSD & Backup</h4>
+                        <p class="text-slate-500 text-xs mt-1">TRIM, saúde SMART, backups de registro</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-5 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🛡️</span>
+                            <span class="badge badge-danger">Destrutivo</span>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Segurança & Permissões</h4>
+                        <p class="text-slate-500 text-xs mt-1">icacls, takeown, hashes, ACLs</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-5 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🧩</span>
+                            <span class="badge badge-danger">Destrutivo</span>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Drivers & UWP</h4>
+                        <p class="text-slate-500 text-xs mt-1">Instalar, rollback, reset de apps</p>
+                    </div>
+                    <div class="bg-card border border-mestre p-5 rounded-2xl hover:border-[#00d4ff] transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">⚙️</span>
+                            <span class="badge badge-danger">Destrutivo</span>
+                        </div>
+                        <h4 class="font-bold text-white text-sm">Dev Tools</h4>
+                        <p class="text-slate-500 text-xs mt-1">Node, .NET, Rust, Go, Docker, WSL via winget</p>
+                    </div>
+                </div>
+
+                <div class="callout callout-warn mt-6">
+                    <strong>⚠️ Confirmação obrigatória:</strong> a UI usa <code>POST /classify</code> para identificar operações destrutivas e sempre pede confirmação antes de executá-las.
+                </div>
+            </section>
+
+            <!-- ===== VARIÁVEIS ===== -->
+            <section id="variaveis" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">🔑 Variáveis de Ambiente</h2>
+                <div class="bg-card border border-mestre rounded-2xl overflow-x-auto mb-6">
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>Variável</th>
+                                <th>Descrição</th>
+                                <th>Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-mono text-[#00d4ff]">MESTRE_BASE_URL</td>
+                                <td>Endpoint do launcher</td>
+                                <td class="font-mono text-xs">http://127.0.0.1:7777</td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono text-[#00d4ff]">MESTRE_PROJETO_PATH</td>
+                                <td>Raiz do projeto para ferramentas git/log</td>
+                                <td class="text-slate-500">—</td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono text-[#00d4ff]">MESTRE_EXTENSION_TOKEN</td>
+                                <td>Token de autenticação da extensão</td>
+                                <td class="text-slate-500">—</td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono text-[#00d4ff]">MESTRE_NPP_TOKEN</td>
+                                <td>Token de autenticação do Notepad++</td>
+                                <td class="text-slate-500">—</td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono text-[#00d4ff]">OLLAMA_MODEL</td>
+                                <td>Modelo padrão do chat</td>
+                                <td class="text-slate-500">—</td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono text-[#00d4ff]">OLLAMA_MODEL_PROFILE</td>
+                                <td>Preset de perfil (fast, coding...)</td>
+                                <td class="font-mono text-xs">balanced</td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono text-[#00d4ff]">OLLAMA_API_KEY</td>
+                                <td>Se definida, alterna para o modo cloud</td>
+                                <td class="text-slate-500">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="callout callout-warn">
+                    <strong>⚠️ Nunca</strong> faça hardcode de caminhos ou tokens no código — use sempre variáveis de ambiente (veja <code>.env.example</code>).
+                </div>
+            </section>
+
+            <!-- ===== FAQ ===== -->
+            <section id="faq-docs" class="mb-24 reveal">
+                <h2 class="text-3xl font-bold mb-6 text-white">❓ FAQ Técnico</h2>
+                <div class="space-y-4">
+                    <div class="faq-item bg-card border border-mestre rounded-2xl overflow-hidden cursor-pointer">
+                        <div class="flex items-center justify-between p-6">
+                            <h3 class="font-bold text-white text-sm">Como funciona o guard contra prompt injection?</h3>
+                            <span class="faq-icon text-[#00d4ff] text-2xl">+</span>
+                        </div>
+                        <div class="faq-answer px-6 pb-6 text-slate-400 text-sm leading-relaxed">
+                            O <code class="text-[#00d4ff]">checkPromptInjection()</code> analisa cada mensagem do chat antes de enviá-la ao Ollama. Ele classifica como <code>benigno</code>, <code>suspeito</code> ou <code>malicioso</code>. Apenas <code>malicioso</code> bloqueia a execução; <code>suspeito</code> apenas é logado.
+                        </div>
+                    </div>
+                    <div class="faq-item bg-card border border-mestre rounded-2xl overflow-hidden cursor-pointer">
+                        <div class="flex items-center justify-between p-6">
+                            <h3 class="font-bold text-white text-sm">Onde ficam os logs de auditoria?</h3>
+                            <span class="faq-icon text-[#00d4ff] text-2xl">+</span>
+                        </div>
+                        <div class="faq-answer px-6 pb-6 text-slate-400 text-sm leading-relaxed">
+                            O <code class="text-[#00d4ff]">audit-logger.js</code> escreve JSON lines com 7 níveis (INFO, WARNING, ERROR, SECURITY, COMMAND_EXEC, IA_OPERATION, WEBHOOK), com rotação de 10 MB e retenção de 30 arquivos. Chaves sensíveis são redigidas automaticamente.
+                        </div>
+                    </div>
+                    <div class="faq-item bg-card border border-mestre rounded-2xl overflow-hidden cursor-pointer">
+                        <div class="flex items-center justify-between p-6">
+                            <h3 class="font-bold text-white text-sm">Como rodar os testes?</h3>
+                            <span class="faq-icon text-[#00d4ff] text-2xl">+</span>
+                        </div>
+                        <div class="faq-answer px-6 pb-6 text-slate-400 text-sm leading-relaxed">
+                            <code class="text-[#00d4ff]">cd mcp-server && npm test</code> roda toda a suíte (node:test). Para um arquivo específico: <code class="text-[#00d4ff]">node --test test/security.test.js</code>. A CI roda em Windows com Node 20/22.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#111820] border-t border-mestre py-16 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="text-2xl font-bold text-white mb-6">🚀 Mestre do PC</div>
+            <div class="flex justify-center gap-8 mb-8 text-slate-400 text-sm">
+                <a href="index.html" class="hover:text-white transition-colors">Home</a>
+                <a href="download.html" class="hover:text-white transition-colors">Download</a>
+                <a href="docs.html" class="hover:text-white transition-colors">Documentação</a>
+                <a href="https://github.com/jeanavila997-ux/Mestre-do-PC-V10" class="hover:text-white transition-colors">GitHub</a>
+            </div>
+            <p class="text-slate-500 text-xs uppercase tracking-widest">© 2024 Mestre do PC V10. Licença MIT.</p>
+        </div>
+    </footer>
+
+    <div id="back-to-top" title="Voltar ao topo">↑</div>
+
+    <script>
+        // ===== REVEAL ON SCROLL =====
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        // ===== SCROLL-SPY (sidebar) =====
+        const sections = document.querySelectorAll('main section[id]');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+        const spyObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    sidebarLinks.forEach(link => link.classList.remove('active'));
+                    const activeLink = document.querySelector(`.sidebar-link[data-spy="${entry.target.id}"]`);
+                    if (activeLink) activeLink.classList.add('active');
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+        sections.forEach(section => spyObserver.observe(section));
+
+        // ===== COPY CODE =====
+        function copyCode(btn) {
+            const pre = btn.parentElement.querySelector('pre');
+            const text = pre ? pre.innerText : '';
+            navigator.clipboard.writeText(text.trim()).then(() => {
+                btn.textContent = '✓ Copiado!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copiar';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // ===== BACK TO TOP =====
+        window.addEventListener('scroll', () => {
+            const backToTop = document.getElementById('back-to-top');
+            if (window.scrollY > 600) backToTop.classList.add('visible');
+            else backToTop.classList.remove('visible');
+        });
+        document.getElementById('back-to-top').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // ===== MOBILE MENU =====
+        document.getElementById('hamburger-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('open');
+        });
+
+        // ===== FAQ ACCORDION =====
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.faq-item').forEach(other => {
+                    if (other !== item) other.classList.remove('active');
+                });
+                item.classList.toggle('active');
+            });
+        });
+    </script>
+
+    <style>
+        /* FAQ (após JS classes) */
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; }
+        .faq-item.active .faq-answer { max-height: 300px; padding-top: 0; }
+        .faq-item.active .faq-icon { transform: rotate(45deg); }
+        .faq-icon { transition: transform 0.3s ease; }
+
+        @keyframes statusPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(0, 255, 136, 0); }
+        }
+    </style>
+</body>
+</html>
