@@ -11,7 +11,8 @@
  */
 
 import { auditLog, AuditLevel } from "../../mcp-server/audit-logger.js";
-import { sanitizeToolArgument } from "../../mcp-server/security.js";
+import { resolve4, resolve6 } from "node:dns/promises";
+import { isIP } from "node:net";
 
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
 const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || "";
@@ -57,9 +58,7 @@ function buildOllamaHeaders() {
  * @returns {Promise<Array<{title:string, url:string, snippet:string}>>}
  */
 export async function searchWeb(query, maxResults = 5) {
-  const cleanQuery = sanitizeToolArgument(query);
-  if (!cleanQuery) throw new Error("Termo de busca inválido ou vazio.");
-  if (cleanQuery.length > MAX_QUERY_LEN) throw new Error("Termo de busca muito longo.");
+  const cleanQuery = validateSearchQuery(query);
 
   const limit = Math.min(Math.max(1, Math.floor(Number(maxResults) || 5)), 10);
 
@@ -164,7 +163,7 @@ export async function fetchWebPage(url) {
   }
 
   // Fallback manual
-  const res = await fetch(cleanUrl, {
+  const res = await safeRemoteFetch(cleanUrl, {
     headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     signal: AbortSignal.timeout(15000),
   });
@@ -174,6 +173,16 @@ export async function fetchWebPage(url) {
   const text = stripHtml(html);
   await auditLog(AuditLevel.IA_OPERATION, "web_fetch_manual", { url: cleanUrl, chars: text.length });
   return { title: titleMatch ? stripHtml(titleMatch[1]) : parsed.hostname, content: text.slice(0, 20000), links: [] };
+}
+
+/** Valida texto de busca como dado web, sem as restrições de argumentos PowerShell. */
+export function validateSearchQuery(value) {
+  const rawQuery = typeof value === "string" ? value : "";
+  if (/[\u0000-\u001f\u007f]/.test(rawQuery)) throw new Error("Termo de busca contém caracteres inválidos.");
+  const cleanQuery = rawQuery.trim();
+  if (!cleanQuery) throw new Error("Termo de busca inválido ou vazio.");
+  if (cleanQuery.length > MAX_QUERY_LEN) throw new Error("Termo de busca muito longo.");
+  return cleanQuery;
 }
 
 /** Valida URLs sem aplicar a regra restrita usada para argumentos de comandos. */
@@ -193,7 +202,67 @@ export function validateWebUrl(value) {
   if (!["http:", "https:"].includes(parsed.protocol)) {
     throw new Error("Apenas URLs http/https são permitidas.");
   }
+  if (parsed.username || parsed.password) throw new Error("URLs com credenciais não são permitidas.");
   return { cleanUrl, parsed };
+}
+
+function isPrivateAddress(address) {
+  if (address.includes(":")) {
+    const normalized = address.toLowerCase();
+    return normalized === "::" ||
+      normalized === "::1" ||
+      normalized.startsWith("fc") ||
+      normalized.startsWith("fd") ||
+      /^fe[89ab]/.test(normalized) ||
+      normalized.startsWith("::ffff:");
+  }
+
+  const parts = address.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return true;
+  const [a, b] = parts;
+  return a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    a === 169 && b === 254 ||
+    a === 172 && b >= 16 && b <= 31 ||
+    a === 192 && b === 168 ||
+    a === 100 && b >= 64 && b <= 127 ||
+    a >= 224;
+}
+
+export async function assertSafeRemoteUrl(value) {
+  const { cleanUrl, parsed } = validateWebUrl(value);
+  const hostname = parsed.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  if (hostname === "localhost" || hostname.endsWith(".localhost")) {
+    throw new Error("URLs locais ou privadas não são permitidas.");
+  }
+
+  let addresses;
+  if (isIP(hostname)) {
+    addresses = [hostname];
+  } else {
+    const [ipv4, ipv6] = await Promise.all([
+      resolve4(hostname).catch(() => []),
+      resolve6(hostname).catch(() => []),
+    ]);
+    addresses = [...ipv4, ...ipv6];
+  }
+  if (!addresses.length) throw new Error("Não foi possível resolver o endereço da URL.");
+  if (addresses.some(isPrivateAddress)) throw new Error("URLs locais ou privadas não são permitidas.");
+  return cleanUrl;
+}
+
+async function safeRemoteFetch(value, options) {
+  let currentUrl = value;
+  for (let redirects = 0; redirects <= 5; redirects += 1) {
+    await assertSafeRemoteUrl(currentUrl);
+    const response = await fetch(currentUrl, { ...options, redirect: "manual" });
+    if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+    const location = response.headers.get("location");
+    if (!location) return response;
+    currentUrl = new URL(location, currentUrl).href;
+  }
+  throw new Error("A página excedeu o limite de redirecionamentos.");
 }
 
 /**

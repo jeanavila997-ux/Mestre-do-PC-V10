@@ -17,7 +17,7 @@
  *   DELETE /operations/:id              — exclui
  */
 
-import { readFile, writeFile, rename, unlink } from "node:fs/promises";
+import { copyFile, readFile, writeFile, rename, unlink } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -81,13 +81,10 @@ async function saveCatalog(catalog) {
   const hadOriginal = existsSync(OPERATIONS_FILE);
   await writeFile(tempFile, JSON.stringify(catalog, null, 2), "utf8");
   try {
-    if (hadOriginal) await rename(OPERATIONS_FILE, backupFile);
+    if (hadOriginal) await copyFile(OPERATIONS_FILE, backupFile);
     await rename(tempFile, OPERATIONS_FILE);
   } catch (error) {
     try { await unlink(tempFile); } catch {}
-    if (hadOriginal && !existsSync(OPERATIONS_FILE) && existsSync(backupFile)) {
-      try { await rename(backupFile, OPERATIONS_FILE); } catch {}
-    }
     throw error;
   }
 }

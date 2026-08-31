@@ -37,10 +37,6 @@ const LEGACY_SCRIPTS = new Set([
 ]);
 const PS_EXCLUDE_PATTERNS = ["node_modules", ".git", ".claude", "validate_all.ps1"];
 
-function npmCommand() {
-  return process.platform === "win32" ? "npm.cmd" : "npm";
-}
-
 const COLORS = {
   reset: "\x1b[0m",
   cyan: "\x1b[36m",
@@ -85,10 +81,10 @@ function log(level, message) {
 }
 
 async function runCommand(label, command, options = {}) {
-  const { cwd = PROJECT_ROOT, env = process.env, timeout = 120_000 } = options;
+  const { cwd = PROJECT_ROOT, env = process.env, timeout = 120_000, shell = false } = options;
   const [exe, ...exeArgs] = command;
   return new Promise((resolve) => {
-    const child = spawn(exe, exeArgs, { cwd, env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(exe, exeArgs, { cwd, env, shell, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
     const timer = setTimeout(() => child.kill("SIGTERM"), timeout);
@@ -159,8 +155,11 @@ async function checkPowerShellScript(script) {
   const psCommand = `
     $errors = $null
     $tokens = $null
-    $ast = [System.Management.Automation.Language.Parser]::ParseFile(
-      '${script.path.replace(/'/g, "''")}',
+    $scriptPath = '${script.path.replace(/'/g, "''")}'
+    $content = [System.IO.File]::ReadAllText($scriptPath, [System.Text.UTF8Encoding]::new($false))
+    $ast = [System.Management.Automation.Language.Parser]::ParseInput(
+      $content,
+      $scriptPath,
       [ref]$tokens,
       [ref]$errors
     )
@@ -212,8 +211,10 @@ async function runNpmTest() {
   const isWin = process.platform === "win32";
   const result = await runCommand(
     "npm test",
-    isWin ? [npmCommand(), "test"] : ["npm", "test"],
-    { cwd: join(PROJECT_ROOT, "mcp-server"), timeout: 180_000, shell: isWin },
+    isWin
+      ? [process.env.ComSpec || "cmd.exe", "/d", "/s", "/c", "npm.cmd test"]
+      : ["npm", "test"],
+    { cwd: join(PROJECT_ROOT, "mcp-server"), timeout: 180_000 },
   );
   return { ok: result.ok, output: result.stdout + result.stderr };
 }
