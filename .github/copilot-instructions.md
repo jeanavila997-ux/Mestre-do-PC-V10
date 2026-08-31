@@ -138,10 +138,10 @@ PowerShell                    ← only whitelisted commands execute
 
 ## Adding a new operation
 
-1. Add an entry to `v10/allowed-operations.json` with `id`, `title`, `category`, `destructive`, and `command`.
+1. Add an entry to `v10/allowed-operations.json` with `id`, `title`, `category`, `destructive`, `command`, and `description`.
 2. For parameterized commands, use `{{UPPERCASE_NAME}}` placeholders and define `params` with regex validation per parameter. Keep regex anchored (`^...$`).
-3. Add a corresponding entry in the `mestreTools` object in `mcp-server/index.js` with matching `id`, `description`, and `command` or template reference.
-4. Add or update tests in `mcp-server/test/` (at minimum a unit test for the mapping and a whitelist-enforcement check).
+3. The MCP server derives its tool list automatically from `v10/operation-registry.js`, which reads `v10/allowed-operations.json`. **Do not** add a manual entry to `mcp-server/index.js`; the `mestreTools` object is built dynamically.
+4. Add or update tests in `mcp-server/test/` (at minimum a whitelist-enforcement check and a `/classify` or `/run` contract test).
 5. Run `npm test` in `mcp-server/`, `node --check v10\launcher.js`, and `.\validate-v11.ps1`.
 6. If the operation is destructive or unusual, add it to `docs/` or update `CHANGELOG-V11.md`.
 

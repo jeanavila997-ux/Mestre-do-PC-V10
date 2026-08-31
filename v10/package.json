@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node launcher.js"
   },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "dependencies": {
     "mysql2": "^3.11.0"
   },

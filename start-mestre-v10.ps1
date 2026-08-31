@@ -14,8 +14,8 @@ $InstallDir = $PSScriptRoot
 $OllamaExe = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
 $OllamaApi = "http://localhost:11434"
 $LauncherUrl = "http://127.0.0.1:7777"
-# V10/V11: o launcher primario e o Node.js (v10\launcher.js). O antigo
-# MestreDoPC-Launcher.ps1 foi removido do repositorio.
+# V10/V11: o launcher primário é o Node.js (v10\launcher.js). O script
+# MestreDoPC-Launcher.ps1 permanece apenas como redirecionador de compatibilidade.
 $LauncherJs = Join-Path $InstallDir "v10\launcher.js"
 $LogFile = Join-Path $InstallDir "logs\shortcut.log"
 

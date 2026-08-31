@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt: Análise Completa - Mestre do PC V10/V11</title>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f8fa;
+            --text-primary: #24292f;
+            --text-secondary: #57606a;
+            --border: #d0d7de;
+            --accent: #0969da;
+            --success: #1a7f37;
+            --warning: #9a6700;
+            --danger: #d1242f;
+            --code-bg: #f6f8fa;
+        }
+
+        @media print {
+            :root {
+                --bg-primary: #ffffff;
+                --bg-secondary: #f6f8fa;
+                --text-primary: #000000;
+                --text-secondary: #333333;
+                --border: #cccccc;
+                --accent: #0044cc;
+                --code-bg: #f6f8fa;
+            }
+            body { font-size: 11pt; }
+            pre, code { font-size: 10pt; }
+            h1 { font-size: 18pt; }
+            h2 { font-size: 16pt; }
+            h3 { font-size: 14pt; }
+            .no-print { display: none !important; }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header-actions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        h1 {
+            font-size: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        h2 {
+            font-size: 22px;
+            padding-top: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        h4 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul, ol {
+            margin-left: 24px;
+            margin-bottom: 16px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .objective-box {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .objective-box strong {
+            color: var(--accent);
+        }
+
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 85%;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: var(--bg-secondary);
+        }
+
+        .diagram {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            white-space: pre;
+            line-height: 1.4;
+        }
+
+        .checkbox-list {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .checkbox-list li {
+            padding: 6px 0;
+        }
+
+        .checkbox-list li::before {
+            content: "☐ ";
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        .status-success { background: #dafbe1; color: var(--success); }
+        .status-warning { background: #fff8c5; color: var(--warning); }
+        .status-danger { background: #ffebe9; color: var(--danger); }
+
+        .section-number {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--border);
+            padding-left: 16px;
+            margin: 16px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .important-note {
+            background: #fff8c5;
+            border-left: 4px solid var(--warning);
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .important-note strong {
+            color: var(--warning);
+        }
+
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 20px 15px;
+            }
+            .header-actions {
+                position: static;
+                margin-bottom: 20px;
+            }
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-actions no-print">
+        <button class="btn btn-secondary" onclick="toggleTheme()">🌓 Tema</button>
+        <button class="btn btn-primary" onclick="window.print()">📄 Imprimir / Salvar PDF</button>
+    </div>
+
+    <h1>🔍 Prompt: Análise Completa do Mestre do PC V10/V11</h1>
+
+    <div class="objective-box">
+        <p><strong>Objetivo:</strong> Realizar uma análise completa e estruturada do projeto Mestre do PC antes de iniciar qualquer implementação, refatoração ou correção.</p>
+        <p><strong>Contexto:</strong> Você é um agente especializado em análise de arquitetura de software. Sua tarefa é entender profundamente o estado atual do projeto, identificar dependências, mapear componentes e produzir um plano claro de trabalho.</p>
+    </div>
+
+    <h2><span class="section-number">1.</span> 📋 Leitura do Contexto do Projeto</h2>
+    <p>Primeiro, consulte as fontes de verdade do projeto na seguinte ordem:</p>
+
+    <ol>
+        <li>
+            <strong><code>AGENTS.md</code></strong> na raiz do repositório (<code>C:\Users\Jeanc\AGENTS.md</code>)
+            <ul>
+                <li>Leia as seções: "O que é este repositório", "Projetos ativos", "Mestre do PC V10/V11"</li>
+                <li>Anote: stack, arquitetura, componentes principais, regras de segurança</li>
+            </ul>
+        </li>
+        <li>
+            <strong><code>projects-index/INDEX.md</code></strong>
+            <ul>
+                <li>Verifique se há atualizações de status ou caminhos diferentes</li>
+            </ul>
+        </li>
+        <li>
+            <strong><code>Mestre-do-PC-V10-clean/</code></strong> (diretório do projeto ativo)
+            <ul>
+                <li>Este é o diretório canônico da versão V10/V11</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2><span class="section-number">2.</span> 🔍 Análise de Arquitetura</h2>
+    <p>Leia e documente os seguintes arquivos-chave:</p>
+
+    <h3>Camada 1: Frontend</h3>
+    <ul>
+        <li><code>Mestre-do-PC-V10-clean/v10/index.html</code> → Interface web (SPA)</li>
+        <li><code>Mestre-do-PC-V10-clean/v10/rede-dashboard.js</code> → Painel de rede</li>
+    </ul>
+
+    <h3>Camada 2: Launcher (dois modos)</h3>
+    <ul>
+        <li><code>Mestre-do-PC-V10-clean/v10/launcher.js</code> → Launcher Node.js (dev/fallback)</li>
+        <li><code>Mestre-do-PC-V10-clean/MestreDoPC-Launcher.ps1</code> → Launcher PowerShell (produção/elevado)</li>
+    </ul>
+
+    <h3>Camada 3: MCP Server</h3>
+    <ul>
+        <li><code>Mestre-do-PC-V10-clean/mcp-server/index.js</code> → Servidor MCP (~68 ferramentas)</li>
+        <li><code>Mestre-do-PC-V10-clean/mcp-server/security.js</code> → Sanitização e prompt injection</li>
+        <li><code>Mestre-do-PC-V10-clean/mcp-server/audit-logger.js</code> → Logs de auditoria</li>
+        <li><code>Mestre-do-PC-V10-clean/mcp-server/model-profiles.json</code> → Perfis de IA</li>
+    </ul>
+
+    <h3>Catálogo de Operações</h3>
+    <ul>
+        <li><code>Mestre-do-PC-V10-clean/v10/allowed-operations.json</code> → <strong>Whitelist de comandos</strong></li>
+    </ul>
+
+    <h3>Integrações</h3>
+    <ul>
+        <li><code>Mestre-do-PC-V10-clean/browser-extension/</code> → Extensão Chrome/Edge</li>
+        <li><code>Mestre-do-PC-V10-clean/v10/notepad-plus-plus/</code> → Integração Notepad++</li>
+    </ul>
+
+    <h3>Documentação Existente</h3>
+    <ul>
+        <li><code>Mestre-do-PC-V10-clean/docs/</code> → Documentação complementar</li>
+    </ul>
+
+    <h2><span class="section-number">3.</span> 📊 Status Atual do Projeto</h2>
+    <p>Para cada componente abaixo, determine e documente:</p>
+
+    <h3>3.1 Estado do Código</h3>
+
+    <h4>Frontend (v10/index.html):</h4>
+    <ul class="checkbox-list">
+        <li>Total de linhas</li>
+        <li>Funcionalidades implementadas</li>
+        <li>Funcionalidades marcadas como TODO/FIXME/BUG no código</li>
+        <li>Temas suportados (claro/escuro)</li>
+        <li>Integrações ativas (Ollama, launcher, extensão)</li>
+    </ul>
+
+    <h4>Launcher Node.js (v10/launcher.js):</h4>
+    <ul class="checkbox-list">
+        <li>Whitelist implementada</li>
+        <li>Endpoints HTTP: <code>/status</code>, <code>/run</code>, <code>/run-status</code>, <code>/shutdown</code>, <code>/npp</code></li>
+        <li>Proxy Ollama configurado</li>
+        <li>Jobs PowerShell (máximo 3 simultâneos)</li>
+        <li>Validação de origem/CORS</li>
+    </ul>
+
+    <h4>Launcher PowerShell (MestreDoPC-Launcher.ps1):</h4>
+    <ul class="checkbox-list">
+        <li>Auto-elevação (Administrator)</li>
+        <li>Mesma whitelist do Node.js</li>
+        <li>Escuta em <code>127.0.0.1:7777</code></li>
+    </ul>
+
+    <h4>MCP Server (mcp-server/index.js):</h4>
+    <ul class="checkbox-list">
+        <li>Número de ferramentas registradas</li>
+        <li>Categorias de ferramentas</li>
+        <li>Integração com Ollama (local/cloud)</li>
+        <li>Integração com launcher (POST /run)</li>
+    </ul>
+
+    <h4>Segurança (mcp-server/security.js):</h4>
+    <ul class="checkbox-list">
+        <li>Função <code>sanitizeToolArgument</code></li>
+        <li>Função <code>checkPromptInjection</code></li>
+        <li>Heurísticas de detecção</li>
+    </ul>
+
+    <h4>Testes (mcp-server/test/):</h4>
+    <ul class="checkbox-list">
+        <li><code>security.test.js</code> → testes de sanitização</li>
+        <li><code>notepad-plus-plus.test.js</code> → testes de integração /npp</li>
+        <li>Cobertura atual</li>
+    </ul>
+
+    <h3>3.2 Dependências Externas</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Dependência</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Versão/URL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Node.js</td>
+                <td>Runtime</td>
+                <td>[ ] Instalado</td>
+                <td><code>node --version</code></td>
+            </tr>
+            <tr>
+                <td>npm</td>
+                <td>Pacote</td>
+                <td>[ ] Instalado</td>
+                <td><code>npm --version</code></td>
+            </tr>
+            <tr>
+                <td>PowerShell 5.1</td>
+                <td>Shell</td>
+                <td>[ ] Disponível</td>
+                <td><code>$PSVersionTable</code></td>
+            </tr>
+            <tr>
+                <td>PowerShell 7</td>
+                <td>Shell</td>
+                <td>[ ] Disponível</td>
+                <td><code>pwsh --version</code></td>
+            </tr>
+            <tr>
+                <td>Ollama</td>
+                <td>IA local</td>
+                <td>[ ] Rodando</td>
+                <td><code>http://127.0.0.1:11434</code></td>
+            </tr>
+            <tr>
+                <td>Windows 10/11</td>
+                <td>SO</td>
+                <td>[ ] Compatível</td>
+                <td>x64</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>3.3 Dependências de Pacote (npm)</h3>
+
+    <ul>
+        <li><code>Mestre-do-PC-V10-clean/v10/package.json</code> → dependências do launcher</li>
+        <li><code>Mestre-do-PC-V10-clean/mcp-server/package.json</code> → dependências do MCP</li>
+        <li><code>Mestre-do-PC-V10-clean/browser-extension/package.json</code> → dependências da extensão</li>
+    </ul>
+
+    <pre><code class="language-powershell">cd Mestre-do-PC-V10-clean\v10
+npm ls --depth=0
+
+cd ..\mcp-server
+npm ls --depth=0</code></pre>
+
+    <h3>3.4 Variáveis de Ambiente</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Variável</th>
+                <th>Significado</th>
+                <th>Valor Atual</th>
+                <th>Obrigatória?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>MESTRE_PROJETO_PATH</code></td>
+                <td>Caminho raiz</td>
+                <td></td>
+                <td>Sim</td>
+            </tr>
+            <tr>
+                <td><code>MESTRE_BASE_URL</code></td>
+                <td>URL do launcher</td>
+                <td><code>http://127.0.0.1:7777</code></td>
+                <td>Não</td>
+            </tr>
+            <tr>
+                <td><code>MESTRE_EXTENSION_TOKEN</code></td>
+                <td>Token extensão</td>
+                <td></td>
+                <td>Habilita integração</td>
+            </tr>
+            <tr>
+                <td><code>MESTRE_NPP_TOKEN</code></td>
+                <td>Token Notepad++</td>
+                <td></td>
+                <td>Habilita integração</td>
+            </tr>
+            <tr>
+                <td><code>OLLAMA_URL</code></td>
+                <td>URL Ollama</td>
+                <td><code>http://127.0.0.1:11434</code></td>
+                <td>Não</td>
+            </tr>
+            <tr>
+                <td><code>OLLAMA_API_KEY</code></td>
+                <td>Modo cloud</td>
+                <td></td>
+                <td>Opcional</td>
+            </tr>
+            <tr>
+                <td><code>OLLAMA_MODEL</code></td>
+                <td>Modelo IA</td>
+                <td></td>
+                <td>Opcional</td>
+            </tr>
+            <tr>
+                <td><code>OLLAMA_MODEL_PROFILE</code></td>
+                <td>Perfil (fast/balanced/etc)</td>
+                <td></td>
+                <td>Opcional</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2><span class="section-number">4.</span> 🧩 Mapeamento de Dependências Internas</h2>
+
+    <div class="diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                    USUÁRIO / NAVEGADOR                       │
+│              http://127.0.0.1:7777 (v10/index.html)          │
+└────────────────────────┬────────────────────────────────────┘
+                         │ X-Mestre-Client: v10-web
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      LAUNCHER (7777)                         │
+│  [v10/launcher.js] OU [MestreDoPC-Launcher.ps1]             │
+│  • Valida contra allowed-operations.json                    │
+│  • Gerencia jobs PowerShell (max 3)                         │
+│  • Proxy Ollama                                             │
+│  • Endpoint /npp (Notepad++)                                │
+└────────────┬──────────────────────────────────┬─────────────┘
+             │                                  │
+             │ POST /run                        │ GET /status
+             ▼                                  ▼
+┌────────────────────────────┐    ┌────────────────────────────┐
+│       MCP SERVER (stdio)   │    │    STATUS DO LAUNCHER      │
+│  mcp-server/index.js       │    │  • Jobs ativos             │
+│  ~68 ferramentas           │    │  • Whitelist               │
+│  X-Mestre-Client: mcp      │    │  • Uptime                  │
+└────────────────────────────┘    └────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    OLLAMA (11434)                            │
+│  Local: http://127.0.0.1:11434                              │
+│  Cloud: https://ollama.com/api (se OLLAMA_API_KEY)          │
+└─────────────────────────────────────────────────────────────┘
+    </div>
+
+    <h2><span class="section-number">5.</span> 🎯 Identificação do Plano de Trabalho</h2>
+    <p>Com base na análise acima, produza:</p>
+
+    <h3>5.1 Estado Atual (AS-IS)</h3>
+    <p>Descreva em 3-5 parágrafos:</p>
+    <ul>
+        <li>O que está funcionando</li>
+        <li>O que está parcialmente implementado</li>
+        <li>O que está quebrado/incompleto</li>
+        <li>Gaps de documentação</li>
+        <li>Dívida técnica identificada</li>
+    </ul>
+
+    <h3>5.2 Estado Desejado (TO-BE)</h3>
+    <p>Com base em:</p>
+    <ul>
+        <li>Comentários TODO/FIXME no código</li>
+        <li>Issues em aberto (se houver)</li>
+        <li>Funcionalidades mencionadas na documentação mas não implementadas</li>
+        <li>Melhorias de arquitetura sugeridas</li>
+    </ul>
+    <p>Descreva a visão de estado completo.</p>
+
+    <h3>5.3 Dependências Críticas</h3>
+
+    <h4>Pré-requisitos absolutos (nada funciona sem isso):</h4>
+    <ul class="checkbox-list">
+        <li>Node.js 20+ instalado</li>
+        <li>Ollama rodando</li>
+        <li>PowerShell com Execution Policy adequada</li>
+    </ul>
+
+    <h4>Dependências de build/teste:</h4>
+    <ul class="checkbox-list">
+        <li><code>npm install</code> em v10/ e mcp-server/</li>
+        <li><code>npm test</code> passando</li>
+    </ul>
+
+    <h4>Dependências de runtime:</h4>
+    <ul class="checkbox-list">
+        <li>Launcher rodando (Node ou PS)</li>
+        <li>MCP server conectado</li>
+        <li>Tokens de integração configurados</li>
+    </ul>
+
+    <h4>Dependências opcionais (habilitam features):</h4>
+    <ul class="checkbox-list">
+        <li>Extensão do navegador</li>
+        <li>Notepad++ com plugin PythonScript</li>
+        <li>Modo cloud Ollama (API key)</li>
+    </ul>
+
+    <h3>5.4 Plano de Ação Proposto</h3>
+
+    <h4>Fase 0: Validação de Ambiente (Dia 1)</h4>
+    <ul class="checkbox-list">
+        <li>Verificar Node.js, npm, PowerShell</li>
+        <li>Verificar Ollama (local ou cloud)</li>
+        <li>Clonar/atualizar repositório</li>
+        <li>Instalar dependências npm</li>
+    </ul>
+
+    <h4>Fase 1: Smoke Test (Dia 1)</h4>
+    <ul class="checkbox-list">
+        <li>Iniciar launcher (Node ou PS)</li>
+        <li>Acessar http://127.0.0.1:7777</li>
+        <li>Executar comando simples via UI</li>
+        <li>Rodar <code>npm test</code> no mcp-server</li>
+    </ul>
+
+    <h4>Fase 2: Análise de Gaps (Dia 2)</h4>
+    <ul class="checkbox-list">
+        <li>Listar funcionalidades faltantes</li>
+        <li>Priorizar com o usuário</li>
+        <li>Criar backlog estruturado</li>
+    </ul>
+
+    <h4>Fase 3+: Implementação (a definir)</h4>
+    <ul class="checkbox-list">
+        <li>Depende da priorização do usuário</li>
+    </ul>
+
+    <h2><span class="section-number">6.</span> 📝 Entregável Final</h2>
+    <p>Produza um relatório em Markdown com a seguinte estrutura:</p>
+
+    <pre><code># Relatório de Análise - Mestre do PC V10/V11
+
+## Resumo Executivo
+(3-5 frases sobre o estado geral)
+
+## 1. Arquitetura Atual
+(Diagrama + descrição dos componentes)
+
+## 2. Status por Componente
+| Componente | Status | Observações |
+|------------|--------|-------------|
+| Frontend   | ✅/⚠️/❌ | ... |
+| Launcher   | ✅/⚠️/❌ | ... |
+| MCP Server | ✅/⚠️/❌ | ... |
+| Testes     | ✅/⚠️/❌ | ... |
+
+## 3. Dependências
+### 3.1 Externas
+(lista com status de instalação/configuração)
+
+### 3.2 Internas
+(grau de acoplamento entre módulos)
+
+## 4. Gaps Identificados
+- Funcionalidades incompletas
+- Bugs conhecidos
+- Dívida técnica
+
+## 5. Plano de Ação Recomendado
+### Fase 0: Ambiente
+(passos validados)
+
+### Fase 1: Smoke Test
+(comandos exatos)
+
+### Fase 2+: Implementação
+(priorização sugerida)
+
+## 6. Riscos e Mitigações
+| Risco | Impacto | Mitigação |
+|-------|---------|-----------|
+| ...   | ...     | ...       |
+
+## 7. Próximos Passos Imediatos
+1. [ ] Ação 1
+2. [ ] Ação 2
+3. [ ] Ação 3</code></pre>
+
+    <h2><span class="section-number">7.</span> ✅ Critérios de Sucesso</h2>
+
+    <ul class="checkbox-list">
+        <li>Todos os arquivos-chave foram lidos e compreendidos</li>
+        <li>Dependências externas verificadas (instaladas/não instaladas)</li>
+        <li>Dependências internas mapeadas (grafo de acoplamento)</li>
+        <li>Status de cada componente documentado (✅/⚠️/❌)</li>
+        <li>Plano de ação priorizado e factível</li>
+        <li>Riscos identificados com mitigação</li>
+        <li>Usuário pode executar "Fase 0" e "Fase 1" imediatamente após a análise</li>
+    </ul>
+
+    <div class="important-note">
+        <h3>⚠️ Notas Importantes</h3>
+        <ul>
+            <li><strong>Nunca</strong> execute comandos destrutivos sem confirmação explícita</li>
+            <li><strong>Sempre</strong> verifique a sintaxe antes de rodar scripts (node --check, PowerShell Parser)</li>
+            <li><strong>Prefira</strong> ferramentas MCP do Mestre do PC para diagnóstico quando disponível</li>
+            <li><strong>Mantenha</strong> separação entre launcher elevado e MCP não-elevado</li>
+            <li><strong>Respeite</strong> a whitelist de <code>allowed-operations.json</code> — não sugira comandos fora dela</li>
+        </ul>
+    </div>
+
+    <p style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-secondary);">
+        <strong>Fim do Prompt</strong>
+    </p>
+
+    <script>
+        function toggleTheme() {
+            const root = document.documentElement;
+            const currentBg = getComputedStyle(root).getPropertyValue('--bg-primary').trim();
+            
+            if (currentBg === '#ffffff') {
+                root.style.setProperty('--bg-primary', '#1c2128');
+                root.style.setProperty('--bg-secondary', '#282f38');
+                root.style.setProperty('--text-primary', '#f0f6fc');
+                root.style.setProperty('--text-secondary', '#8b949e');
+                root.style.setProperty('--border', '#30363d');
+                root.style.setProperty('--code-bg', '#282f38');
+            } else {
+                root.style.setProperty('--bg-primary', '#ffffff');
+                root.style.setProperty('--bg-secondary', '#f6f8fa');
+                root.style.setProperty('--text-primary', '#24292f');
+                root.style.setProperty('--text-secondary', '#57606a');
+                root.style.setProperty('--border', '#d0d7de');
+                root.style.setProperty('--code-bg', '#f6f8fa');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -612,6 +612,9 @@
         animation: neonGreenPulse 2s ease-in-out infinite;
         z-index: 2;
       }
+      .cmd-card-web { background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(162,0,255,0.06)); border-color: rgba(0,212,255,0.25); }
+      .cmd-card-web:hover { border-color: rgba(0,212,255,0.5); box-shadow: 0 0 14px rgba(0,212,255,0.15); }
+      .web-card-desc { font-size: 0.82rem; color: #8b949e; margin: 8px 0 12px; line-height: 1.35; }
       .cmd-card-new h4 { transition: 0.3s; }
       .cmd-card-new:hover {
         border-color: rgba(0,255,136,0.7) !important;
@@ -689,25 +692,38 @@
       .param-actions { display: flex; gap: 10px; justify-content: flex-end; }
       .btn-param-cancel { padding: 8px 18px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 0.88rem; }
       .btn-param-confirm { padding: 8px 20px; background: var(--danger); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 0.88rem; }
-      /* ===== Painel de Output (padrão V7) ===== */
-      .output-panel { display: none; margin-bottom: 20px; background: #010409; border: 1px solid rgba(0,212,255,0.3); border-radius: 12px; overflow: hidden; }
-      .output-header { padding: 10px 16px; background: rgba(0,212,255,0.08); border-bottom: 1px solid rgba(0,212,255,0.2); display: flex; justify-content: space-between; align-items: center; }
-      .output-title { color: var(--accent); font-weight: bold; font-size: 0.9rem; }
-      .output-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 1.1rem; }
-      .output-content { padding: 16px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: #e6edf3; white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow-y: auto; margin: 0; }
-      /* ===== NOVO V11.1: Output History + toolbar ===== */
-      .output-header-actions { display: flex; gap: 6px; align-items: center; }
-      .output-action-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+      /* ===== Painel de Output (redesign V11.2) ===== */
+      .output-panel { display: none; margin-bottom: 20px; background: #010409; border: 1px solid rgba(0,212,255,0.3); border-radius: 14px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+      .output-header { padding: 12px 18px; background: linear-gradient(135deg, rgba(0,212,255,0.14), rgba(0,255,136,0.06)); border-bottom: 1px solid rgba(0,212,255,0.2); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .output-title { color: var(--accent); font-weight: bold; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; }
+      .output-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 1.15rem; border-radius: 6px; padding: 2px 6px; transition: 0.15s; }
+      .output-close:hover { color: var(--danger); background: rgba(248,81,73,0.1); }
+      .output-content { padding: 16px 18px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.82rem; color: #e6edf3; white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow-y: auto; margin: 0; }
+      /* Barra de estatísticas */
+      .output-stats { display: flex; gap: 8px; padding: 10px 18px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
+      .output-stat-pill { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 600; background: var(--card); border: 1px solid var(--border); color: var(--text); }
+      .output-stat-pill.total { border-color: rgba(0,212,255,0.35); color: var(--accent); }
+      .output-stat-pill.ok { border-color: rgba(63,185,80,0.4); color: var(--success); }
+      .output-stat-pill.err { border-color: rgba(248,81,73,0.4); color: var(--danger); }
+      /* ===== Toolbar + exportação em múltiplos formatos ===== */
+      .output-header-actions { display: flex; gap: 6px; align-items: center; position: relative; }
+      .output-action-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 5px 12px; cursor: pointer; font-size: 0.8rem; transition: 0.15s; }
       .output-action-btn:hover { border-color: var(--accent); background: rgba(0,212,255,0.1); }
+      .output-export-wrap { position: relative; }
+      .output-export-menu { display: none; position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; min-width: 190px; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 14px 34px rgba(0,0,0,0.45); overflow: hidden; padding: 6px; }
+      .output-export-menu.open { display: block; }
+      .output-export-menu button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; background: none; border: none; border-radius: 7px; color: var(--text); font-size: 0.82rem; cursor: pointer; transition: 0.12s; }
+      .output-export-menu button:hover { background: rgba(0,212,255,0.12); color: var(--accent); }
       .output-history { max-height: 320px; overflow-y: auto; border-top: 1px solid rgba(0,212,255,0.2); }
-      .output-empty { padding: 12px 16px; font-size: 0.8rem; color: #8b949e; }
-      .output-entry { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 10px 16px; border-left: 3px solid transparent; }
+      .output-empty { padding: 24px 18px; font-size: 0.85rem; color: #8b949e; text-align: center; }
+      .output-entry { margin: 10px 12px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-left: 3px solid transparent; transition: 0.15s; }
+      .output-entry:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
       .output-entry.ok { border-left-color: var(--success); }
       .output-entry.err { border-left-color: var(--danger); }
-      .output-entry-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; align-items: baseline; }
-      .output-entry-title { font-size: 0.8rem; font-weight: 600; color: var(--text); word-break: break-all; }
+      .output-entry-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; align-items: baseline; }
+      .output-entry-title { font-size: 0.82rem; font-weight: 600; color: var(--text); word-break: break-all; }
       .output-entry-date { font-size: 0.7rem; color: #8b949e; white-space: nowrap; }
-      .output-entry-body { font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.78rem; color: #79c0ff; white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; margin: 0 0 6px; }
+      .output-entry-body { font-family: "Cascadia Mono", Consolas, monospace; font-size: 0.78rem; color: #79c0ff; white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 8px; margin: 0 0 8px; }
       body.light .output-entry-body { background: rgba(0,0,0,0.05); color: #0550ae; }
       .output-entry-actions { display: flex; gap: 6px; flex-wrap: wrap; }
       .output-entry-actions button { padding: 4px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.72rem; cursor: pointer; transition: 0.2s; }
@@ -740,6 +756,7 @@
           <input type="text" id="searchInput" class="search" placeholder="🔍 Buscar comando..." />
           <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
           <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11.2">🎉 Novidades V11.2</button></a>
+          <a href="/gerenciar-comandos.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#a200ff,#00d4ff);color:#fff;font-weight:700" title="Editar, ativar e desativar comandos e ferramentas">⚙️ Gerenciar</button></a>
           <button class="btn-open-ps" onclick="openPS()">⚡ PowerShell</button>
           <button class="btn-open-ps btn-ia-local" onclick="mestreChat.open()">🤖 IA Local</button>
           <button class="btn-open-ps btn-stop" id="btnPower" onclick="togglePower()" title="Parar o launcher (encerra o servidor local)">⏻ Parar</button>
@@ -778,15 +795,29 @@
         </div>
         <div id="queueList"></div>
       </div>
-      <!-- Modal de parâmetro -->
+      <!-- Modal de parâmetro (suporta 1+ campos) -->
       <div id="paramOverlay" class="param-overlay">
         <div class="param-modal">
           <h3 id="paramTitle" class="param-title">Parâmetro necessário</h3>
-          <p id="paramDesc" class="param-desc"></p>
-          <input id="paramInput" type="text" class="param-input" onkeydown="if(event.key==='Enter') confirmParam()" />
+          <div id="paramFields"></div>
           <div class="param-actions">
             <button class="btn-param-cancel" onclick="cancelParam()">Cancelar</button>
             <button class="btn-param-confirm" onclick="confirmParam()">▶ Executar</button>
+          </div>
+        </div>
+      </div>
+      <!-- Modal Web Search / Web Fetch -->
+      <div id="webOverlay" class="param-overlay" style="display:none">
+        <div class="param-modal">
+          <h3 id="webModalTitle" class="param-title">Buscar na Web</h3>
+          <div id="webModalFields">
+            <p id="webModalDesc" class="param-desc">Informe o termo de busca:</p>
+            <input type="text" id="webModalInput" class="param-input" placeholder="ex: atualização de segurança Windows" onkeydown="if(event.key==='Enter')confirmWebModal()">
+            <input type="text" id="webModalExtra" class="param-input" style="margin-top:10px; display:none" placeholder="Pergunta ou URL complementar">
+          </div>
+          <div class="param-actions">
+            <button class="btn-param-cancel" onclick="closeWebModal()">Cancelar</button>
+            <button class="btn-param-confirm" id="webModalOk" onclick="confirmWebModal()">🔍 Buscar</button>
           </div>
         </div>
       </div>
@@ -795,11 +826,22 @@
         <div class="output-header">
           <span class="output-title">⚡ Output do Comando</span>
           <div class="output-header-actions">
-            <button class="output-action-btn" onclick="downloadOutputReport()" title="Baixar relatório completo em Markdown">📥 Relatório</button>
+            <div class="output-export-wrap">
+              <button class="output-action-btn" onclick="toggleExportMenu(event)" title="Baixar relatório em diferentes formatos">📥 Exportar ▾</button>
+              <div class="output-export-menu" id="outputExportMenu">
+                <button onclick="exportOutputReport('md')">📝 Markdown (.md)</button>
+                <button onclick="exportOutputReport('txt')">📄 Texto (.txt)</button>
+                <button onclick="exportOutputReport('csv')">📊 CSV (.csv)</button>
+                <button onclick="exportOutputReport('excel')">📗 Excel (.xls)</button>
+                <button onclick="exportOutputReport('word')">📘 Word (.doc)</button>
+                <button onclick="exportOutputReport('pdf')">🧾 PDF (imprimir)</button>
+              </div>
+            </div>
             <button class="output-action-btn" onclick="clearOutputHistory()" title="Limpar histórico de outputs">🗑️ Limpar</button>
             <button class="output-close" onclick="document.getElementById('outputPanel').style.display='none'">✕</button>
           </div>
         </div>
+        <div class="output-stats" id="outputStats"></div>
         <pre id="outputContent" class="output-content"></pre>
         <div class="output-history" id="outputHistory"></div>
       </div>
@@ -860,17 +902,49 @@
       {
         id: "cat_libs",
         label: "📚 Bibliotecas",
-        cmds: [
-          ["pip install requests", "pip install --upgrade requests; Write-Host \"✅ requests instalado/atualizado!\" -ForegroundColor Green"],
-          ["pip install numpy + pandas", "pip install --upgrade numpy pandas; Write-Host \"✅ numpy e pandas instalados!\" -ForegroundColor Green"],
-          ["pip install matplotlib", "pip install --upgrade matplotlib; Write-Host \"✅ matplotlib instalado!\" -ForegroundColor Green"],
-          ["pip install psutil", "pip install --upgrade psutil; Write-Host \"✅ psutil instalado!\" -ForegroundColor Green"],
-          ["pip install openpyxl", "pip install --upgrade openpyxl; Write-Host \"✅ openpyxl instalado!\" -ForegroundColor Green"],
-          ["npm install no projeto", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green"],
-          ["npm install -g typescript", "npm install -g typescript; Write-Host \"✅ TypeScript instalado globalmente!\" -ForegroundColor Green"],
-          ["npm install -g nodemon", "npm install -g nodemon; Write-Host \"✅ nodemon instalado globalmente!\" -ForegroundColor Green"],
-          ["pip install pywin32", "pip install --upgrade pywin32; Write-Host \"✅ pywin32 instalado!\" -ForegroundColor Green"],
-          ["pip install pillow", "pip install --upgrade pillow; Write-Host \"✅ pillow instalado!\" -ForegroundColor Green"],
+        subcategories: [
+          {
+            label: "🐍 Python",
+            cmds: [
+              ["pip install requests", "pip install --upgrade requests; Write-Host \"✅ requests instalado/atualizado!\" -ForegroundColor Green"],
+              ["pip install numpy + pandas", "pip install --upgrade numpy pandas; Write-Host \"✅ numpy e pandas instalados!\" -ForegroundColor Green"],
+              ["pip install matplotlib", "pip install --upgrade matplotlib; Write-Host \"✅ matplotlib instalado!\" -ForegroundColor Green"],
+              ["pip install psutil", "pip install --upgrade psutil; Write-Host \"✅ psutil instalado!\" -ForegroundColor Green"],
+              ["pip install openpyxl", "pip install --upgrade openpyxl; Write-Host \"✅ openpyxl instalado!\" -ForegroundColor Green"],
+              ["pip install pywin32", "pip install --upgrade pywin32; Write-Host \"✅ pywin32 instalado!\" -ForegroundColor Green"],
+              ["pip install pillow", "pip install --upgrade pillow; Write-Host \"✅ pillow instalado!\" -ForegroundColor Green"],
+              ["pip install scikit-learn", "pip install --upgrade scikit-learn; Write-Host \"✅ scikit-learn instalado!\" -ForegroundColor Green"],
+              ["pip install beautifulsoup4 + lxml", "pip install --upgrade beautifulsoup4 lxml; Write-Host \"✅ beautifulsoup4 e lxml instalados!\" -ForegroundColor Green"],
+              ["pip install selenium", "pip install --upgrade selenium; Write-Host \"✅ selenium instalado!\" -ForegroundColor Green"],
+              ["pip install flask", "pip install --upgrade flask; Write-Host \"✅ flask instalado!\" -ForegroundColor Green"],
+              ["pip install fastapi", "pip install --upgrade fastapi uvicorn; Write-Host \"✅ fastapi e uvicorn instalados!\" -ForegroundColor Green"],
+              ["pip install sqlalchemy", "pip install --upgrade sqlalchemy; Write-Host \"✅ sqlalchemy instalado!\" -ForegroundColor Green"],
+              ["pip install jupyter", "pip install --upgrade jupyter; Write-Host \"✅ jupyter instalado!\" -ForegroundColor Green"],
+              ["pip install python-dotenv", "pip install --upgrade python-dotenv; Write-Host \"✅ python-dotenv instalado!\" -ForegroundColor Green"],
+            ],
+          },
+          {
+            label: "🟩 Node.js",
+            cmds: [
+              ["npm install no projeto", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green"],
+              ["npm install -g typescript", "npm install -g typescript; Write-Host \"✅ TypeScript instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g nodemon", "npm install -g nodemon; Write-Host \"✅ nodemon instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g pnpm", "npm install -g pnpm; Write-Host \"✅ pnpm instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g @angular/cli", "npm install -g @angular/cli; Write-Host \"✅ Angular CLI instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g @nestjs/cli", "npm install -g @nestjs/cli; Write-Host \"✅ NestJS CLI instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g eslint + prettier", "npm install -g eslint prettier; Write-Host \"✅ eslint e prettier instalados globalmente!\" -ForegroundColor Green"],
+              ["npm install -g pm2", "npm install -g pm2; Write-Host \"✅ pm2 instalado globalmente!\" -ForegroundColor Green"],
+            ],
+          },
+          {
+            label: "🐚 PowerShell",
+            cmds: [
+              ["Install-Module Terminal-Icons", "Install-Module -Name Terminal-Icons -Scope CurrentUser -Force; Write-Host \"✅ Terminal-Icons instalado!\" -ForegroundColor Green"],
+              ["Install-Module PSReadLine", "Install-Module -Name PSReadLine -Force -SkipPublisherCheck; Write-Host \"✅ PSReadLine instalado!\" -ForegroundColor Green"],
+              ["Install-Module BurntToast", "Install-Module -Name BurntToast -Scope CurrentUser -Force; Write-Host \"✅ BurntToast instalado!\" -ForegroundColor Green"],
+              ["Install-Module PSWindowsUpdate", "Install-Module PSWindowsUpdate -Force -SkipPublisherCheck -AcceptLicense; Write-Host \"✅ PSWindowsUpdate instalado!\" -ForegroundColor Green"],
+            ],
+          },
         ],
       },
       {
@@ -880,68 +954,82 @@
           {
             label: "💻 Código",
             cmds: [
-              ["Pull qwen2.5-coder:3b-instruct", "ollama pull qwen2.5-coder:3b-instruct"],
-              ["Pull kimi-k2.7-code:cloud", "ollama pull kimi-k2.7-code:cloud"],
-              ["Pull deepseek-coder-v2", "ollama pull deepseek-coder-v2"],
-              ["Pull codellama:7b-code", "ollama pull codellama:7b-code"],
-              ["Pull codellama:13b-code", "ollama pull codellama:13b-code"],
-              ["Pull codegemma:2b-code", "ollama pull codegemma:2b-code"],
-              ["Pull qwen2.5-coder:7b", "ollama pull qwen2.5-coder:7b"],
+              ["Pull qwen2.5-coder:3b-instruct (~1.9 GB)", "ollama pull qwen2.5-coder:3b-instruct"],
+              ["Pull qwen2.5-coder:7b (~4.7 GB)", "ollama pull qwen2.5-coder:7b"],
+              ["Pull qwen2.5-coder:14b (~9.0 GB)", "ollama pull qwen2.5-coder:14b"],
+              ["Pull kimi-k2.7-code:cloud (☁️ Cloud — 0 GB local)", "ollama pull kimi-k2.7-code:cloud"],
+              ["Pull deepseek-coder-v2 (~8.9 GB)", "ollama pull deepseek-coder-v2"],
+              ["Pull deepseek-coder:6.7b (~3.8 GB)", "ollama pull deepseek-coder:6.7b"],
+              ["Pull codellama:7b-code (~3.8 GB)", "ollama pull codellama:7b-code"],
+              ["Pull codellama:13b-code (~7.4 GB)", "ollama pull codellama:13b-code"],
+              ["Pull codegemma:2b-code (~1.6 GB)", "ollama pull codegemma:2b-code"],
+              ["Pull starcoder2:3b (~1.7 GB)", "ollama pull starcoder2:3b"],
+              ["Pull starcoder2:7b (~4.0 GB)", "ollama pull starcoder2:7b"],
             ],
           },
           {
             label: "👁️ Visão",
             cmds: [
-              ["Pull llava-phi3", "ollama pull llava-phi3"],
-              ["Pull llava:13b", "ollama pull llava:13b"],
-              ["Pull bakllava", "ollama pull bakllava"],
-              ["Pull moondream2", "ollama pull moondream2"],
-              ["Pull minicpm-v", "ollama pull minicpm-v"],
-              ["Pull llama3.2-vision", "ollama pull llama3.2-vision"],
-              ["Pull granite3.2-vision", "ollama pull granite3.2-vision"],
+              ["Pull llava-phi3 (~2.9 GB)", "ollama pull llava-phi3"],
+              ["Pull llava:13b (~8.0 GB)", "ollama pull llava:13b"],
+              ["Pull bakllava (~4.7 GB)", "ollama pull bakllava"],
+              ["Pull moondream (~1.7 GB)", "ollama pull moondream"],
+              ["Pull minicpm-v (~5.5 GB)", "ollama pull minicpm-v"],
+              ["Pull llama3.2-vision (~7.8 GB)", "ollama pull llama3.2-vision"],
+              ["Pull granite3.2-vision (~2.4 GB)", "ollama pull granite3.2-vision"],
             ],
           },
           {
             label: "📝 Texto",
             cmds: [
-              ["Pull llama3.2", "ollama pull llama3.2"],
-              ["Pull qwen2.5:7b", "ollama pull qwen2.5:7b"],
-              ["Pull mistral", "ollama pull mistral"],
-              ["Pull gemma2:2b", "ollama pull gemma2:2b"],
-              ["Pull phi4", "ollama pull phi4"],
-              ["Pull phi3:medium", "ollama pull phi3:medium"],
-              ["Pull command-r7b", "ollama pull command-r7b"],
+              ["Pull llama3.2 (~2.0 GB)", "ollama pull llama3.2"],
+              ["Pull llama3.1:8b (~4.9 GB)", "ollama pull llama3.1:8b"],
+              ["Pull qwen2.5:7b (~4.7 GB)", "ollama pull qwen2.5:7b"],
+              ["Pull qwen2.5:14b (~9.0 GB)", "ollama pull qwen2.5:14b"],
+              ["Pull mistral (~4.4 GB)", "ollama pull mistral"],
+              ["Pull mistral-nemo (~7.1 GB)", "ollama pull mistral-nemo"],
+              ["Pull gemma2:2b (~1.6 GB)", "ollama pull gemma2:2b"],
+              ["Pull gemma2:9b (~5.4 GB)", "ollama pull gemma2:9b"],
+              ["Pull phi4 (~9.1 GB)", "ollama pull phi4"],
+              ["Pull phi3.5:3.8b (~2.2 GB)", "ollama pull phi3.5:3.8b"],
+              ["Pull phi3:medium (~7.9 GB)", "ollama pull phi3:medium"],
+              ["Pull command-r7b (~5.1 GB)", "ollama pull command-r7b"],
             ],
           },
           {
             label: "🖼️ Imagem / Multimodal",
             cmds: [
-              ["Pull llava (análise de imagem)", "ollama pull llava"],
-              ["Pull llama3.2-vision", "ollama pull llama3.2-vision"],
-              ["Pull granite3.2-vision", "ollama pull granite3.2-vision"],
-              ["Pull llava-llama3", "ollama pull llava-llama3"],
+              ["Pull llava (~4.7 GB)", "ollama pull llava"],
+              ["Pull llama3.2-vision (~7.8 GB)", "ollama pull llama3.2-vision"],
+              ["Pull granite3.2-vision (~2.4 GB)", "ollama pull granite3.2-vision"],
+              ["Pull llava-llama3 (~5.5 GB)", "ollama pull llava-llama3"],
             ],
           },
           {
             label: "🛠️ Ferramentas",
             cmds: [
-              ["Pull llama3.2 (tools)", "ollama pull llama3.2"],
-              ["Pull qwen2.5 (tools)", "ollama pull qwen2.5"],
-              ["Pull mistral (tools)", "ollama pull mistral"],
-              ["Pull command-r7b (tools)", "ollama pull command-r7b"],
-              ["Pull athene-v2:agent", "ollama pull athene-v2:agent"],
-              ["Pull qwen2.5:14b (tools)", "ollama pull qwen2.5:14b"],
+              ["Pull llama3.2 (tools ~2.0 GB)", "ollama pull llama3.2"],
+              ["Pull llama3.1:8b (tools ~4.9 GB)", "ollama pull llama3.1:8b"],
+              ["Pull qwen2.5 (tools ~4.7 GB)", "ollama pull qwen2.5"],
+              ["Pull qwen2.5:14b (tools ~9.0 GB)", "ollama pull qwen2.5:14b"],
+              ["Pull mistral (tools ~4.4 GB)", "ollama pull mistral"],
+              ["Pull command-r7b (tools ~5.1 GB)", "ollama pull command-r7b"],
+              ["Pull athene-v2:latest (~47 GB — grande!)", "ollama pull athene-v2:latest"],
+              ["Pull nemotron-mini:4b (~2.7 GB)", "ollama pull nemotron-mini:4b"],
+              ["Pull hermes3 (~4.7 GB)", "ollama pull hermes3"],
             ],
           },
           {
             label: "🎓 Aprendizagem / Leve",
             cmds: [
-              ["Pull tinyllama", "ollama pull tinyllama"],
-              ["Pull qwen2.5:0.5b", "ollama pull qwen2.5:0.5b"],
-              ["Pull phi3", "ollama pull phi3"],
-              ["Pull gemma2:2b-instruct", "ollama pull gemma2:2b-instruct"],
-              ["Pull smollm2:135m", "ollama pull smollm2:135m"],
-              ["Pull qwen2.5:1.5b", "ollama pull qwen2.5:1.5b"],
+              ["Pull tinyllama (~0.6 GB)", "ollama pull tinyllama"],
+              ["Pull qwen2.5:0.5b (~0.4 GB)", "ollama pull qwen2.5:0.5b"],
+              ["Pull qwen2.5:1.5b (~1.0 GB)", "ollama pull qwen2.5:1.5b"],
+              ["Pull qwen2.5:3b (~1.9 GB)", "ollama pull qwen2.5:3b"],
+              ["Pull phi3 (~2.2 GB)", "ollama pull phi3"],
+              ["Pull phi3.5:3.8b (~2.2 GB)", "ollama pull phi3.5:3.8b"],
+              ["Pull gemma2:2b-instruct-q4_0 (~1.6 GB)", "ollama pull gemma2:2b-instruct-q4_0"],
+              ["Pull smollm2:135m (~0.3 GB)", "ollama pull smollm2:135m"],
             ],
           },
           {
@@ -998,7 +1086,7 @@
         label: "3. Memória / RAM",
         cmds: [
           ["Liberar Memória RAM Imediatamente", "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers(); Write-Host \"✅ RAM liberada!\" -ForegroundColor Green"],
-          ["Ver Uso Atual de RAM", "$ram = Get-WmiObject Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host \"RAM Livre: $livre GB de $total GB\" -ForegroundColor Cyan"],
+          ["Ver Uso Atual de RAM","$ram = Get-CimInstance Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host \"RAM Livre: $livre GB de $total GB\" -ForegroundColor Cyan"],
           ["Listar Processos por Uso de RAM", "Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
           ["Desativar SuperFetch (SysMain)", "Set-Service -Name \"SysMain\" -StartupType Disabled; Stop-Service -Name \"SysMain\" -Force; Write-Host \"✅ SysMain desativado!\" -ForegroundColor Green"],
           ["Reativar SuperFetch (SysMain)", "Set-Service -Name \"SysMain\" -StartupType Automatic; Start-Service -Name \"SysMain\"; Write-Host \"✅ SysMain reativado!\" -ForegroundColor Green"],
@@ -1011,12 +1099,12 @@
         label: "4. Processos",
         cmds: [
           ["Listar Processos Ativos", "Get-Process | Sort-Object CPU -Descending | Select-Object -First 20 Name,Id,CPU,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,1)}} | Format-Table -AutoSize"],
-          ["Encerrar Processo por Nome", "Stop-Process -Name \"NOME_DO_PROCESSO\" -Force -EA 0; Write-Host \"✅ Processo encerrado!\" -ForegroundColor Green"],
+          ["Encerrar Processo por Nome","Stop-Process -Name \"§NOME_PROCESSO§\" -Force -EA 0; if ($?) { Write-Host \"✅ Processo §NOME_PROCESSO§ encerrado com sucesso!\" -ForegroundColor Green } else { Write-Host \"⚠️ Processo §NOME_PROCESSO§ não encontrado ou já encerrado.\" -ForegroundColor Yellow }"],
           ["Encerrar Todos Chrome", "Stop-Process -Name \"chrome\" -Force -EA 0; Write-Host \"✅ Chrome encerrado!\" -ForegroundColor Green"],
           ["Encerrar Todos Edge", "Stop-Process -Name \"msedge\" -Force -EA 0; Write-Host \"✅ Edge encerrado!\" -ForegroundColor Green"],
           ["Listar Serviços em Execução", "Get-Service | Where-Object Status -eq \"Running\" | Sort-Object DisplayName | Format-Table -AutoSize"],
           ["Listar Startups do Sistema", "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,User | Format-Table -AutoSize"],
-          ["Desativar Serviço por Nome", "Set-Service -Name \"NOME_SERVICO\" -StartupType Disabled; Stop-Service \"NOME_SERVICO\" -Force"],
+          ["Desativar Serviço por Nome","Set-Service -Name \"§NOME_SERVICO§\" -StartupType Disabled -EA 0; Stop-Service -Name \"§NOME_SERVICO§\" -Force -EA 0; if ($?) { Write-Host \"✅ Serviço §NOME_SERVICO§ desativado!\" -ForegroundColor Green } else { Write-Host \"⚠️ Serviço §NOME_SERVICO§ não encontrado.\" -ForegroundColor Yellow }"],
           ["Reiniciar Explorer", "Stop-Process -Name explorer -Force; Start-Process explorer; Write-Host \"✅ Explorer reiniciado!\" -ForegroundColor Green"],
           ["Ver tarefas agendadas", "Get-ScheduledTask | Where-Object State -eq \"Ready\" | Select-Object TaskName,TaskPath | Format-Table -AutoSize"],
         ],
@@ -1029,9 +1117,9 @@
           ["CHKDSK Verificação Rápida", "chkdsk C: /f /r; Write-Host \"✅ CHKDSK agendado para o próximo boot!\" -ForegroundColor Green"],
           ["Otimizar / Desfragmentar Disco", "Optimize-Volume -DriveLetter C -Defrag -Verbose"],
           ["Trim SSD", "Optimize-Volume -DriveLetter C -ReTrim -Verbose; Write-Host \"✅ TRIM executado!\" -ForegroundColor Green"],
-          ["Verificar Saúde do Disco (SMART)", "Get-WmiObject -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize"],
+          ["Verificar Saúde do Disco (SMART)","Get-CimInstance -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize"],
           ["Encontrar Pastas Gigantes (C:)", "Get-ChildItem C: -Directory | ForEach-Object { $s=(Get-ChildItem $_.FullName -Recurse -EA 0 | Measure-Object -Property Length -Sum).Sum; [PSCustomObject]@{Pasta=$_.Name;GB=[math]::Round($s/1GB,2)} } | Sort-Object GB -Desc | Select-Object -First 15 | Format-Table"],
-          ["Relatório de Disco (WinSAT)", "winsat disk -drive C"],
+          ["Relatório de Disco (WinSAT)","winsat disk -drive C"],
           ["Desativar Hibernação (libera espaço)", "powercfg -h off; Write-Host \"✅ Hibernação desativada, hiberfil.sys removido!\" -ForegroundColor Green"],
           ["Ativar Hibernação", "powercfg -h on; Write-Host \"✅ Hibernação ativada!\" -ForegroundColor Green"],
         ],
@@ -1045,7 +1133,7 @@
           ["Velocidade de Download (Teste rápido)", "Invoke-WebRequest -Uri \"http://speedtest.tele2.net/1MB.zip\" -OutFile \"$env:TEMP\\test.zip\" -UseBasicParsing; Write-Host \"✅ Download concluído!\" -ForegroundColor Green"],
           ["Flush e Renovar IP", "ipconfig /flushdns; ipconfig /release; ipconfig /renew; Write-Host \"✅ IP renovado!\" -ForegroundColor Green"],
           ["Resetar Pilha TCP/IP", "netsh int ip reset; netsh winsock reset; Write-Host \"✅ TCP/IP resetado! Reinicie o PC.\" -ForegroundColor Green"],
-          ["Ver Conexões Ativas", "netstat -ano | Select-String \"ESTABLISHED\""],
+          ["Ver Conexões Ativas","netstat -ano | Select-String \"ESTABLISHED\""],
           ["Ver Adaptadores de Rede", "Get-NetAdapter | Select-Object Name,Status,LinkSpeed,MacAddress | Format-Table -AutoSize"],
           ["Testar DNS", "Resolve-DnsName google.com; Resolve-DnsName cloudflare.com"],
           ["Ping para múltiplos servidores", "\"8.8.8.8\",\"1.1.1.1\",\"208.67.222.222\" | ForEach-Object { $r=Test-Connection $_ -Count 1 -EA 0; Write-Host \"$_ -> $($r.ResponseTime)ms\" }"],
@@ -1060,7 +1148,7 @@
           ["DISM Verificar Saúde", "DISM /Online /Cleanup-Image /CheckHealth"],
           ["DISM Scan Saúde", "DISM /Online /Cleanup-Image /ScanHealth"],
           ["Reparar Windows Update", "net stop wuauserv; net stop cryptSvc; net stop bits; net stop msiserver; Remove-Item \"C:\\Windows\\SoftwareDistribution\" -Recurse -Force -EA 0; net start wuauserv; net start cryptSvc; net start bits; net start msiserver; Write-Host \"✅ WU reparado!\" -ForegroundColor Green"],
-          ["Resetar Políticas de Grupo", "secedit /configure /cfg %windir%\\inf\\defltbase.inf /db defltbase.sdb /verbose"],
+          ["Resetar Políticas de Grupo","secedit /configure /cfg %windir%\\inf\\defltbase.inf /db defltbase.sdb /verbose"],
           ["Reparar .NET Framework", "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"],
           ["Verificar Erros de Boot", "bootrec /scanos; bootrec /fixmbr; bootrec /fixboot; bootrec /rebuildbcd"],
           ["Reparar Registro do Windows", "$ErrorActionPreference=\"SilentlyContinue\"; $reg=\"HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\"; Write-Host \"Versão: $((Get-ItemProperty $reg).ProductName)\" -ForegroundColor Cyan"],
@@ -1072,8 +1160,8 @@
         id: "cat_health",
         label: "🩺 Saúde do PC",
         cmds: [
-          ["Relatório rápido do PC", "$os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host \"===== RELATORIO RAPIDO DO PC =====\" -ForegroundColor Cyan; Write-Host \"Computador: $env:COMPUTERNAME\"; Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\"; Write-Host \"CPU: $($cpu.Name)\"; Write-Host \"RAM: $ramLivre GB livre de $ramTotal GB\"; Write-Host \"Disco C: $diskLivre GB livre de $diskTotal GB\"; Write-Host \"Uptime: $($uptime.Days)d $($uptime.Hours)h\"; Write-Host \"\"; Write-Host \"Top 10 processos por RAM:\" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host \"\"; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host \"Internet: OK\" -ForegroundColor Green}else{Write-Host \"Internet: SEM CONEXAO\" -ForegroundColor Red}"],
-          ["Exportar diagnóstico para logs", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir (\"diagnostico-\"+(Get-Date -Format \"yyyyMMdd-HHmmss\")+\".txt\"); $os=Get-WmiObject Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @(\"===== DIAGNOSTICO MESTRE DO PC =====\",\"Data: $(Get-Date)\",\"Computador: $env:COMPUTERNAME\",\"Windows: $($os.Caption) Build $($os.BuildNumber)\",\"RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))\",\"Disco C livre GB: $([math]::Round($disk.Free/1GB,2))\",\"\",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host \"Diagnostico salvo em: $file\" -ForegroundColor Green"],
+          ["Relatório rápido do PC","$os=Get-CimInstance Win32_OperatingSystem; $cpu=Get-CimInstance Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host \"===== RELATORIO RAPIDO DO PC =====\" -ForegroundColor Cyan; Write-Host \"Computador: $env:COMPUTERNAME\"; Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\"; Write-Host \"CPU: $($cpu.Name)\"; Write-Host \"RAM: $ramLivre GB livre de $ramTotal GB\"; Write-Host \"Disco C: $diskLivre GB livre de $diskTotal GB\"; Write-Host \"Uptime: $($uptime.Days)d $($uptime.Hours)h\"; Write-Host \"\"; Write-Host \"Top 10 processos por RAM:\" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host \"\"; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host \"Internet: OK\" -ForegroundColor Green}else{Write-Host \"Internet: SEM CONEXAO\" -ForegroundColor Red}"],
+          ["Exportar diagnóstico para logs","$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir (\"diagnostico-\"+(Get-Date -Format \"yyyyMMdd-HHmmss\")+\".txt\"); $os=Get-CimInstance Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @(\"===== DIAGNOSTICO MESTRE DO PC =====\",\"Data: $(Get-Date)\",\"Computador: $env:COMPUTERNAME\",\"Windows: $($os.Caption) Build $($os.BuildNumber)\",\"RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))\",\"Disco C livre GB: $([math]::Round($disk.Free/1GB,2))\",\"\",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host \"Diagnostico salvo em: $file\" -ForegroundColor Green"],
           ["Listar modelos Ollama", "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
           ["Testar Ollama (qwen3-coder-next:cloud)", "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://localhost:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
           ["Abrir pasta do projeto", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; Start-Process $project; Write-Host \"Pasta do projeto aberta: $project\" -ForegroundColor Green"],
@@ -1081,14 +1169,14 @@
           ["Abrir TEMP do usuário", "Start-Process $env:TEMP; Write-Host \"TEMP aberto: $env:TEMP\" -ForegroundColor Green"],
           ["Abrir Startup do usuário", "$startup=[Environment]::GetFolderPath(\"Startup\"); Start-Process $startup; Write-Host \"Startup aberto: $startup\" -ForegroundColor Green"],
           ["Ver tarefas MestreDoPC", "$names=@(\"MestreDoPC_Admin_Launcher\",\"MestreDoPC_Startup\"); $rows=foreach($name in $names){ $task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue; if($task){ $info=Get-ScheduledTaskInfo -TaskName $name -ErrorAction SilentlyContinue; [pscustomobject]@{Task=$name;State=$task.State;LastRun=$info.LastRunTime;LastResult=$info.LastTaskResult;NextRun=$info.NextRunTime} } else { [pscustomobject]@{Task=$name;State=\"Nao encontrada\";LastRun=\"\";LastResult=\"\";NextRun=\"\"} } }; $rows | Format-Table -AutoSize"],
-          ["Checkup Geral (Resumo Completo)", "$os=Get-WmiObject Win32_OperatingSystem; $cpu=Get-WmiObject Win32_Processor; $disk=Get-PSDrive C; $ram=[math]::Round($os.FreePhysicalMemory/1MB,1); $totalRam=[math]::Round($os.TotalVisibleMemorySize/1MB,1); $diskFree=[math]::Round($disk.Free/1GB,1); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,1); $up=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $days=([datetime]::Now-$up).Days; Write-Host \"=== CHECKUP DO PC ===\" -ForegroundColor Cyan; Write-Host \"CPU: $($cpu.Name)\" -ForegroundColor White; Write-Host \"RAM: $ram GB livre de $totalRam GB\" -ForegroundColor $(if($ram -lt 2){\"Red\"}else{\"Green\"}); Write-Host \"Disco C: $diskFree GB livre de $diskTotal GB\" -ForegroundColor $(if($diskFree -lt 20){\"Red\"}else{\"Green\"}); Write-Host \"Uptime: $days dias\" -ForegroundColor $(if($days -gt 7){\"Yellow\"}else{\"Green\"}); Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\" -ForegroundColor White"],
+          ["Checkup Geral (Resumo Completo)","$os=Get-CimInstance Win32_OperatingSystem; $cpu=Get-CimInstance Win32_Processor; $disk=Get-PSDrive C; $ram=[math]::Round($os.FreePhysicalMemory/1MB,1); $totalRam=[math]::Round($os.TotalVisibleMemorySize/1MB,1); $diskFree=[math]::Round($disk.Free/1GB,1); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,1); $up=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $days=([datetime]::Now-$up).Days; Write-Host \"=== CHECKUP DO PC ===\" -ForegroundColor Cyan; Write-Host \"CPU: $($cpu.Name)\" -ForegroundColor White; Write-Host \"RAM: $ram GB livre de $totalRam GB\" -ForegroundColor $(if($ram -lt 2){\"Red\"}else{\"Green\"}); Write-Host \"Disco C: $diskFree GB livre de $diskTotal GB\" -ForegroundColor $(if($diskFree -lt 20){\"Red\"}else{\"Green\"}); Write-Host \"Uptime: $days dias\" -ForegroundColor $(if($days -gt 7){\"Yellow\"}else{\"Green\"}); Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\" -ForegroundColor White"],
           ["Verificar Saúde da Bateria", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'battery-report.html\'; powercfg /batteryreport /output \"$report\"; Write-Host \"✅ Relatório da bateria salvo em: $report\" -ForegroundColor Green"],
           ["Relatório de Energia Completo", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output \"$report\"; Write-Host \"✅ Relatório de energia salvo em: $report (aguarde 60s para completar)!\" -ForegroundColor Green"],
           ["Verificar Integridade do Sistema (SFC + DISM)", "Write-Host \"Etapa 1/2: DISM...\" -ForegroundColor Yellow; DISM /Online /Cleanup-Image /ScanHealth; Write-Host \"Etapa 2/2: SFC...\" -ForegroundColor Yellow; sfc /scannow; Write-Host \"✅ Verificação completa!\" -ForegroundColor Green"],
           ["Verificar Atualizações Pendentes", "$updates = (New-Object -ComObject Microsoft.Update.Session).CreateUpdateSearcher().Search(\"IsInstalled=0\"); if($updates.Updates.Count -gt 0) { Write-Host \"$($updates.Updates.Count) atualizações pendentes:\" -ForegroundColor Yellow; $updates.Updates | ForEach-Object { Write-Host \"  - $($_.Title)\" } } else { Write-Host \"✅ Sistema atualizado!\" -ForegroundColor Green }"],
-          ["Verificar Versão da BIOS/UEFI", "Get-WmiObject Win32_BIOS | Select-Object Manufacturer,Name,SMBIOSBIOSVersion,ReleaseDate | Format-List"],
+          ["Verificar Versão da BIOS/UEFI","Get-CimInstance Win32_BIOS | Select-Object Manufacturer,Name,SMBIOSBIOSVersion,ReleaseDate | Format-List"],
           ["Verificar Saúde do Disco (SMART)", "Get-PhysicalDisk | Select-Object FriendlyName,MediaType,HealthStatus,OperationalStatus,@{N=\"Tamanho(GB)\";E={[math]::Round($_.Size/1GB,1)}} | Format-Table -AutoSize"],
-          ["Listar Drivers Desatualizados", "Get-WmiObject Win32_PnPSignedDriver | Where-Object {$_.DriverDate} | Select-Object DeviceName,DriverVersion,@{N=\"Data\";E={[Management.ManagementDateTimeConverter]::ToDateTime($_.DriverDate).ToString(\"dd/MM/yyyy\")}} | Sort-Object Data | Select-Object -First 15 | Format-Table -AutoSize"],
+          ["Listar Drivers Desatualizados","Get-CimInstance Win32_PnPSignedDriver | Where-Object {$_.DriverDate} | Select-Object DeviceName,DriverVersion,@{N=\"Data\";E={[Management.ManagementDateTimeConverter]::ToDateTime($_.DriverDate).ToString(\"dd/MM/yyyy\")}} | Sort-Object Data | Select-Object -First 15 | Format-Table -AutoSize"],
           ["Verificar Erros Recentes do Sistema", "Get-WinEvent -FilterHashtable @{LogName=\"System\";Level=2;StartTime=(Get-Date).AddDays(-7)} -MaxEvents 15 -EA 0 | Select-Object TimeCreated,Id,Message | Format-Table -Wrap -AutoSize"],
           ["Tempo de Boot do Windows", "$boot = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6005} -MaxEvents 1).TimeCreated; $ready = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6013} -MaxEvents 1 -EA 0); Write-Host \"Último boot: $boot\" -ForegroundColor Cyan"],
         ],
@@ -1098,13 +1186,13 @@
         label: "8. Diagnóstico",
         cmds: [
           ["Informações do Sistema", "Get-ComputerInfo | Select-Object WindowsProductName,WindowsVersion,OsArchitecture,CsName,CsProcessors,CsTotalPhysicalMemory | Format-List"],
-          ["Temperatura do CPU (WMI)", "Get-WmiObject MSAcpi_ThermalZoneTemperature -Namespace \"root/wmi\" | ForEach-Object { Write-Host \"Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C\" }"],
+          ["Temperatura do CPU (WMI)","Get-CimInstance MSAcpi_ThermalZoneTemperature -Namespace \"root/wmi\" | ForEach-Object { Write-Host \"Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C\" }"],
           ["Histórico de Erros do Sistema", "Get-EventLog -LogName System -EntryType Error -Newest 20 | Select-Object TimeGenerated,Source,Message | Format-Table -AutoSize"],
-          ["Uptime do Sistema", "$boot=(Get-WmiObject Win32_OperatingSystem).LastBootUpTime; $up=[Management.ManagementDateTimeConverter]::ToDateTime($boot); Write-Host \"Ligado desde: $up ($(([datetime]::Now - $up).Days)d $(([datetime]::Now - $up).Hours)h)\" -ForegroundColor Cyan"],
-          ["Placa de Vídeo (GPU)", "Get-WmiObject Win32_VideoController | Select-Object Name,DriverVersion,@{N=\"VRAM(GB)\";E={[math]::Round($_.AdapterRAM/1GB,2)}} | Format-Table -AutoSize"],
-          ["Inventário de Software Instalado", "Get-WmiObject Win32_Product | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
-          ["Verificar Drivers Problemáticos", "Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,ConfigManagerErrorCode | Format-Table -AutoSize"],
-          ["Teste de Memória RAM (Agendar)", "MdSched.exe"],
+          ["Uptime do Sistema","$boot=(Get-CimInstance Win32_OperatingSystem).LastBootUpTime; $up=[Management.ManagementDateTimeConverter]::ToDateTime($boot); Write-Host \"Ligado desde: $up ($(([datetime]::Now - $up).Days)d $(([datetime]::Now - $up).Hours)h)\" -ForegroundColor Cyan"],
+          ["Placa de Vídeo (GPU)","Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,@{N=\"VRAM(GB)\";E={[math]::Round($_.AdapterRAM/1GB,2)}} | Format-Table -AutoSize"],
+          ["Inventário de Software Instalado","Get-CimInstance Win32_Product | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
+          ["Verificar Drivers Problemáticos","Get-CimInstance Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,ConfigManagerErrorCode | Format-Table -AutoSize"],
+          ["Teste de Memória RAM (Agendar)","MdSched.exe"],
           ["Relatório de Energia do Sistema", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output \"$report\"; Write-Host \"✅ Relatório salvo em: $report\" -ForegroundColor Green"],
         ],
       },
@@ -1118,7 +1206,7 @@
           ["Cancelar Desligamento Agendado", "shutdown /a; Write-Host \"✅ Desligamento cancelado!\" -ForegroundColor Green"],
           ["Suspender o PC", "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState(\"Suspend\",$false,$false)"],
           ["Hibernar o PC", "shutdown /h"],
-          ["Sair da Conta do Usuário", "logoff"],
+          ["Sair da Conta do Usuário","logoff"],
           ["Desligar em 30 minutos", "shutdown /s /t 1800; Write-Host \"⏱️ PC desligará em 30 minutos.\" -ForegroundColor Yellow"],
           ["Reiniciar para BIOS/UEFI", "shutdown /r /fw /t 5; Write-Host \"🔄 Reiniciando para UEFI em 5s...\" -ForegroundColor Cyan"],
         ],
@@ -1164,7 +1252,7 @@
           ["Verificar Firewall do Windows", "Get-NetFirewallProfile | Select-Object Name,Enabled | Format-Table"],
           ["Ativar Firewall em todos os perfis", "Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True; Write-Host \"✅ Firewall ativado!\" -ForegroundColor Green"],
           ["Ver Regras de Firewall Ativas", "Get-NetFirewallRule | Where-Object Enabled -eq True | Select-Object DisplayName,Direction,Action | Format-Table -AutoSize"],
-          ["Checar Portas Abertas", "netstat -ano | Where-Object { $_ -match \"LISTENING\" } | Select-Object -First 20"],
+          ["Checar Portas Abertas","netstat -ano | Where-Object { $_ -match \"LISTENING\" } | Select-Object -First 20"],
           ["Listar Processos Suspeitos (sem assinatura)", "Get-Process | Where-Object { -not (Get-AuthenticodeSignature $_.Path -EA 0).IsOSBinary } | Select-Object Name,Path,Id | Format-Table -AutoSize"],
         ],
       },
@@ -1220,7 +1308,7 @@
           ["Pausar Windows Update (35 dias)", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -Value (Get-Date).ToString('yyyy-MM-dd'); Write-Host '✅ Windows Update pausado!' -ForegroundColor Green"],
           ["Retomar Windows Update", "Remove-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -EA 0; Write-Host '✅ Windows Update retomado!' -ForegroundColor Green"],
           ["Histórico de Atualizações", "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn | Format-Table -AutoSize"],
-          ["Desinstalar Atualização Específica", "wusa /uninstall /kb:NUMERO_KB /quiet /norestart; Write-Host 'Substitua NUMERO_KB pelo KB desejado.' -ForegroundColor Yellow"],
+          ["Desinstalar Atualização Específica","wusa /uninstall /kb:§NUMERO_KB§ /quiet /norestart; Write-Host \"Substitua NUMERO_KB pelo KB desejado.\" -ForegroundColor Yellow"],
           ["Forçar Busca de Atualizações", "UsoClient StartScan; Write-Host '✅ Busca de atualizações iniciada!' -ForegroundColor Green"],
           ["Instalar Atualizações Pendentes", "Install-Module PSWindowsUpdate -Force -AllowClobber -EA 0; Import-Module PSWindowsUpdate -EA 0; Install-WindowsUpdate -AcceptAll -AutoReboot; Write-Host '✅ Atualizações instaladas!' -ForegroundColor Green"],
           ["Listar Atualizações Recusadas", "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Updates' -EA 0 | Format-List"],
@@ -1231,14 +1319,14 @@
         id: "cat17",
         label: "17. Drivers (NOVO)",
         cmds: [
-          ["Listar Todos os Drivers", "Get-WmiObject Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Sort-Object DeviceName | Format-Table -AutoSize"],
-          ["Drivers com Problema", "Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,DeviceID,ConfigManagerErrorCode | Format-Table -AutoSize"],
-          ["Exportar Lista de Drivers", "Get-WmiObject Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Export-Csv '$env:USERPROFILE\\Desktop\\drivers.csv' -NoTypeInformation; Write-Host '✅ Lista exportada!' -ForegroundColor Green"],
-          ["Atualizar Driver por Hardware ID", "pnputil /add-driver CAMINHO.inf /install; Write-Host 'Substitua CAMINHO.inf pelo caminho do driver.' -ForegroundColor Yellow"],
-          ["Listar Drivers de Terceiros", "Get-WmiObject Win32_PnPSignedDriver | Where-Object { -not $_.IsOSBinary } | Select-Object DeviceName,DriverVersion,Manufacturer | Format-Table -AutoSize"],
+          ["Listar Todos os Drivers","Get-CimInstance Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Sort-Object DeviceName | Format-Table -AutoSize"],
+          ["Drivers com Problema","Get-CimInstance Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,DeviceID,ConfigManagerErrorCode | Format-Table -AutoSize"],
+          ["Exportar Lista de Drivers","Get-CimInstance Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Export-Csv '$env:USERPROFILE\\Desktop\\drivers.csv' -NoTypeInformation; Write-Host '✅ Lista exportada!' -ForegroundColor Green"],
+          ["Atualizar Driver por Hardware ID","pnputil /add-driver \"§CAMINHO_INF§\" /install; Write-Host \"Substitua CAMINHO.inf pelo caminho do driver.\" -ForegroundColor Yellow"],
+          ["Listar Drivers de Terceiros","Get-CimInstance Win32_PnPSignedDriver | Where-Object { -not $_.IsOSBinary } | Select-Object DeviceName,DriverVersion,Manufacturer | Format-Table -AutoSize"],
           ["Remover Driver Antigo (pnputil)", "pnputil /enum-drivers; Write-Host 'Liste os drivers com o comando acima e use pnputil /delete-driver oemXX.inf' -ForegroundColor Yellow"],
-          ["Verificar Versão do Driver de Vídeo", "Get-WmiObject Win32_VideoController | Select-Object Name,DriverVersion,DriverDate | Format-List"],
-          ["Backup de Drivers de Rede", "$dir='$env:USERPROFILE\\Desktop\\backup-net-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Get-WmiObject Win32_PnPSignedDriver | Where-Object { $_.DeviceClass -eq 'NET' } | Export-Csv (Join-Path $dir 'net-drivers.csv') -NoTypeInformation; Write-Host '✅ Backup de drivers de rede criado!' -ForegroundColor Green"],
+          ["Verificar Versão do Driver de Vídeo","Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,DriverDate | Format-List"],
+          ["Backup de Drivers de Rede","$dir='$env:USERPROFILE\\Desktop\\backup-net-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceClass -eq 'NET' } | Export-Csv (Join-Path $dir 'net-drivers.csv') -NoTypeInformation; Write-Host '✅ Backup de drivers de rede criado!' -ForegroundColor Green"],
         ],
       },
       {
@@ -1263,21 +1351,21 @@
           {
             label: "🔍 Reconhecimento de Rede",
             cmds: [
-              ["Scan de Portas (Port Query)", "portqry -n 127.0.0.1 -p tcp -e 1-1024 2>&1; if ($LASTEXITCODE -ne 0) { Write-Host 'PortQry não encontrado. Use: winget install Microsoft.Portqry' -ForegroundColor Yellow }"],
+              ["Scan de Portas (Port Query)","portqry -n 127.0.0.1 -p tcp -e 1-1024 2>&1; if ($LASTEXITCODE -ne 0) { Write-Host 'PortQry não encontrado. Use: winget install Microsoft.Portqry' -ForegroundColor Yellow }"],
               ["Scan de Portas com Test-NetConnection", "1..1024 | ForEach-Object { $r = Test-NetConnection -ComputerName 127.0.0.1 -Port $_ -WarningAction SilentlyContinue; if ($r.TcpTestSucceeded) { Write-Host \"Porta $_ ABERTA\" -ForegroundColor Green } }"],
               ["Listar Todas as Conexões TCP/UDP", "Get-NetTCPConnection | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess | Sort-Object State | Format-Table -AutoSize"],
               ["Listar Conexões LISTENING", "Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -EA 0; [PSCustomObject]@{Porta=$_.LocalPort;Processo=$p.Name;PID=$_.OwningProcess} } | Format-Table -AutoSize"],
               ["Descobrir Hosts Ativos (ARP Scan)", "Get-NetNeighbor | Where-Object { $_.State -ne 'Unreachable' } | Select-Object IPAddress,LinkLayerAddress,State,InterfaceAlias | Format-Table -AutoSize"],
-              ["Mapear Rede Local (NetBIOS)", "nbtstat -n; Write-Host '---'; nbtstat -c"],
+              ["Mapear Rede Local (NetBIOS)","nbtstat -n; Write-Host '---'; nbtstat -c"],
               ["Tabela de Roteamento (route print)", "route print"],
-              ["Resolver DNS Reverso (IP → Nome)", "$ip = Read-Host 'Digite o IP'; Resolve-DnsName -Name $ip -ErrorAction SilentlyContinue | Select-Object Name,Type,NameHost | Format-Table -AutoSize"],
+              ["Resolver DNS Reverso (IP → Nome)","Resolve-DnsName -Name §IP_ALVO§ -ErrorAction SilentlyContinue | Select-Object Name,Type,NameHost | Format-Table -AutoSize"],
             ],
           },
           {
             label: "🔐 Análise de Vulnerabilidades",
             cmds: [
               ["Verificar Hotfixes Instalados", "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn,InstalledBy | Format-Table -AutoSize"],
-              ["Buscar CVEs por Hotfix (NVD)", "$kb = Read-Host 'Digite o KB (ex: KB5034441)'; Start-Process \"https://nvd.nist.gov/vuln/search/results?query=$kb\"; Write-Host 'Abrindo NVD para pesquisa...' -ForegroundColor Cyan"],
+              ["Buscar CVEs por Hotfix (NVD)","Start-Process \"https://nvd.nist.gov/vuln/search/results?query=§CODIGO_KB§\"; Write-Host 'Abrindo NVD para pesquisa...' -ForegroundColor Cyan"],
               ["Verificar Serviços Vulneráveis (SMB v1)", "Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol | Select-Object FeatureName,State; if ((Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol).State -eq 'Enabled') { Write-Host '⚠️ SMBv1 ATIVO - Vulnerável a EternalBlue!' -ForegroundColor Red } else { Write-Host '✅ SMBv1 desativado' -ForegroundColor Green }"],
               ["Desativar SMBv1 (EternalBlue)", "Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart; Write-Host '✅ SMBv1 desativado! Reinicie o PC.' -ForegroundColor Green"],
               ["Verificar RDP Ativo", "Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections | Select-Object fDenyTSConnections; if ((Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections).fDenyTSConnections -eq 0) { Write-Host '⚠️ RDP ATIVO - Verifique segurança!' -ForegroundColor Yellow } else { Write-Host '✅ RDP desativado' -ForegroundColor Green }"],
@@ -1294,7 +1382,7 @@
               ["Listar Usuários Locais", "Get-LocalUser | Select-Object Name,Enabled,LastLogon,PasswordLastSet,PasswordRequired | Format-Table -AutoSize"],
               ["Verificar Senhas Nunca Expiram", "Get-LocalUser | Where-Object { $_.PasswordNeverExpires -eq $true } | Select-Object Name,PasswordNeverExpires | Format-Table -AutoSize"],
               ["Forçar Senha Forte (Política)", "net accounts /minpwlen:12 /maxpwage:30 /minpwage:1; Write-Host '✅ Política de senha configurada: mín 12 chars, expira em 30 dias' -ForegroundColor Green"],
-              ["Verificar Hashes de Arquivos (MD5/SHA256)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Write-Host 'MD5:' (Get-FileHash $file -Algorithm MD5).Hash; Write-Host 'SHA256:' (Get-FileHash $file -Algorithm SHA256).Hash } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Hashes de Arquivos (MD5/SHA256)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { Write-Host 'MD5:' (Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm MD5).Hash; Write-Host 'SHA256:' (Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm SHA256).Hash } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
               ["Verificar Credenciais Armazenadas (Vault)", "vaultcmd /list"],
               ["Desativar Cache de Credenciais", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name 'CachedLogonsCount' -Value 0 -EA 0; Write-Host '✅ Cache de credenciais desativado!' -ForegroundColor Green"],
             ],
@@ -1302,24 +1390,24 @@
           {
             label: "🌐 Segurança Web & Rede",
             cmds: [
-              ["Verificar Proxy do Sistema", "netsh winhttp show proxy"],
+              ["Verificar Proxy do Sistema","netsh winhttp show proxy"],
               ["Verificar Certificados Raiz", "Get-ChildItem Cert:\\LocalMachine\\Root | Select-Object Subject,NotAfter,Thumbprint | Sort-Object NotAfter | Format-Table -AutoSize"],
               ["Verificar Certificados Expirados", "Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) } | Select-Object Subject,NotAfter | Format-Table -AutoSize; if (-not (Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) })) { Write-Host '✅ Nenhum certificado raiz expirado' -ForegroundColor Green }"],
-              ["Testar HTTPS de um Site", "$url = Read-Host 'URL (ex: https://google.com)'; try { $r = Invoke-WebRequest -Uri $url -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }"],
-              ["Verificar Conexões HTTPS Ativas", "Get-NetTCPConnection -State Established | Where-Object { $_.RemotePort -eq 443 } | Select-Object LocalAddress,RemoteAddress,RemotePort,OwningProcess | Format-Table -AutoSize"],
+              ["Testar HTTPS de um Site","try { $r = Invoke-WebRequest -Uri \"§URL_TESTE§\" -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }"],
+              ["Verificar Conexões HTTPS Ativas","Get-NetTCPConnection -State Established | Where-Object { $_.RemotePort -eq 443 } | Select-Object LocalAddress,RemoteAddress,RemotePort,OwningProcess | Format-Table -AutoSize"],
               ["Listar Regras de Firewall de Entrada", "Get-NetFirewallRule -Direction Inbound -Enabled True | Select-Object DisplayName,Action,Profile | Sort-Object DisplayName | Format-Table -AutoSize"],
-              ["Bloquear IP Específico no Firewall", "$ip = Read-Host 'IP para bloquear'; New-NetFirewallRule -DisplayName \"Block $ip\" -Direction Inbound -Action Block -RemoteAddress $ip; Write-Host \"✅ IP $ip bloqueado!\" -ForegroundColor Green"],
-              ["Remover Regra de Bloqueio de IP", "$ip = Read-Host 'IP para desbloquear'; Remove-NetFirewallRule -DisplayName \"Block $ip\" -EA 0; Write-Host \"✅ IP $ip desbloqueado!\" -ForegroundColor Green"],
+              ["Bloquear IP Específico no Firewall","New-NetFirewallRule -DisplayName \"Block §IP_BLOQUEIO§\" -Direction Inbound -Action Block -RemoteAddress §IP_BLOQUEIO§; Write-Host \"✅ IP §IP_BLOQUEIO§ bloqueado!\" -ForegroundColor Green"],
+              ["Remover Regra de Bloqueio de IP","Remove-NetFirewallRule -DisplayName \"Block §IP_DESBLOQUEIO§\" -EA 0; Write-Host \"✅ IP §IP_DESBLOQUEIO§ desbloqueado!\" -ForegroundColor Green"],
             ],
           },
           {
             label: "🕵️ Forense & Análise",
             cmds: [
-              ["Análise de Arquivo (file type)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { $bytes = [System.IO.File]::ReadAllBytes($file)[0..3]; $hex = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '; Write-Host \"Assinatura (hex): $hex\" -ForegroundColor Cyan; Write-Host \"Tamanho: $((Get-Item $file).Length) bytes\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Análise de Arquivo (file type)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { $bytes = [System.IO.File]::ReadAllBytes(\"§CAMINHO_ARQUIVO§\")[0..3]; $hex = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '; Write-Host \"Assinatura (hex): $hex\" -ForegroundColor Cyan; Write-Host \"Tamanho: $((Get-Item \"§CAMINHO_ARQUIVO§\").Length) bytes\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
               ["Extrair Strings de Arquivo", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Select-String -Path $file -Pattern '[\x20-\x7E]{6,}' -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 50 } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Metadados de Arquivo", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Get-Item $file | Select-Object Name,Length,CreationTime,LastAccessTime,LastWriteTime,Attributes | Format-List } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Extrair Hash de Arquivo (Todos os Algoritmos)", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { foreach ($algo in @('MD5','SHA1','SHA256','SHA384','SHA512')) { Write-Host \"$algo`: $((Get-FileHash $file -Algorithm $algo).Hash)\" -ForegroundColor Cyan } } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Listar Arquivos Modificados Recentemente (24h)", "$dir = Read-Host 'Diretório (ex: C:\\Users)'; Get-ChildItem $dir -Recurse -File -EA 0 | Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-24) } | Select-Object FullName,LastWriteTime,Length | Sort-Object LastWriteTime -Descending | Select-Object -First 30 | Format-Table -AutoSize"],
+              ["Verificar Metadados de Arquivo","if (Test-Path \"§CAMINHO_ARQUIVO§\") { Get-Item \"§CAMINHO_ARQUIVO§\" | Select-Object Name,Length,CreationTime,LastAccessTime,LastWriteTime,Attributes | Format-List } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Extrair Hash de Arquivo (Todos os Algoritmos)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { foreach ($algo in @('MD5','SHA1','SHA256','SHA384','SHA512')) { Write-Host \"$algo`: $((Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm $algo).Hash)\" -ForegroundColor Cyan } } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Listar Arquivos Modificados Recentemente (24h)","Get-ChildItem \"§DIRETORIO_ALVO§\" -Recurse -File -EA 0 | Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-24) } | Select-Object FullName,LastWriteTime,Length | Sort-Object LastWriteTime -Descending | Select-Object -First 30 | Format-Table -AutoSize"],
               ["Verificar Logs de Segurança (Login Falhou)", "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='IP';E={$_.Properties[11].Value}},@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"],
               ["Verificar Logins Bem-sucedidos", "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4624} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"],
               ["Exportar Logs de Segurança para CSV", "$out = '$env:USERPROFILE\\Desktop\\security-logs.csv'; Get-WinEvent -FilterHashtable @{LogName='Security';Id=@(4624,4625)} -MaxEvents 100 -EA 0 | Select-Object TimeCreated,Id,@{N='Details';E={$_.Message.Substring(0,200)}} | Export-Csv $out -NoTypeInformation; Write-Host \"✅ Logs exportados: $out\" -ForegroundColor Green"],
@@ -1328,40 +1416,40 @@
           {
             label: "📁 Permissões de Arquivos (chmod/chown)",
             cmds: [
-              ["chmod 644 (Dono: RW, Outros: R)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(M)\"; icacls $f /grant \"Todos:(R)\"; Write-Host '✅ chmod 644 aplicado: dono tem RW, outros apenas leitura' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 755 (Dono: RWX, Outros: RX)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado: dono tem RWX, outros leitura+execução' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 600 (Apenas Dono: RW)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(M)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado: apenas o dono tem RW' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 700 (Apenas Dono: RWX)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(F)\"; icacls $f /remove \"Todos\" 2>$null; icacls $f /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado: apenas o dono tem RWX' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 777 (Todos: RWX - PERIGOSO)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total - use com cautela!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 444 (Todos: Somente Leitura)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f /inheritance:r; icacls $f /grant \"$env:USERNAME:(R)\"; icacls $f /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado: todos têm apenas leitura' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chown user:group (Alterar Dono e Grupo)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Novo dono (ex: Jeanc)'; $g = Read-Host 'Novo grupo (ex: Administradores)'; if (Test-Path $f) { takeown /f $f /a; icacls $f /setowner $u; icacls $f /grant \"$u:(F)\"; icacls $f /grant \"$g:(F)\"; Write-Host \"✅ chown aplicado: dono=$u, grupo=$g\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chown user (Alterar Apenas Dono)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Novo dono (ex: Jeanc)'; if (Test-Path $f) { icacls $f /setowner $u; icacls $f /grant \"$u:(F)\"; Write-Host \"✅ chown aplicado: dono alterado para $u\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Permissões de Arquivo (icacls)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { icacls $f } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Permissões (ACL detalhada)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { (Get-Acl $f).Access | Select-Object IdentityReference,FileSystemRights,AccessControlType,IsInherited | Format-Table -AutoSize } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Conceder Permissão Total (Full Control)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(F)\"; Write-Host \"✅ Permissão total concedida a $u\" -ForegroundColor Green"],
-              ["Conceder Permissão de Leitura (Read)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(R)\"; Write-Host \"✅ Permissão de leitura concedida a $u\" -ForegroundColor Green"],
-              ["Conceder Permissão de Escrita (Write/Modify)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(M)\"; Write-Host \"✅ Permissão de escrita concedida a $u\" -ForegroundColor Green"],
-              ["Conceder Permissão de Execução (Execute)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(X)\"; Write-Host \"✅ Permissão de execução concedida a $u\" -ForegroundColor Green"],
-              ["Conceder Leitura + Execução (RX)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário (ex: Jeanc)'; icacls $f /grant \"$u:(RX)\"; Write-Host \"✅ Permissão de leitura + execução concedida a $u\" -ForegroundColor Green"],
-              ["Negar Acesso a Usuário (Deny)", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário para negar'; icacls $f /deny \"$u:(F)\"; Write-Host \"✅ Acesso negado a $u\" -ForegroundColor Green"],
-              ["Remover Permissões de Usuário", "$f = Read-Host 'Caminho do arquivo'; $u = Read-Host 'Usuário para remover'; icacls $f /remove $u; Write-Host \"✅ Permissões de $u removidas\" -ForegroundColor Green"],
-              ["Resetar Permissões (Herdar do diretório pai)", "$f = Read-Host 'Caminho do arquivo'; icacls $f /reset; Write-Host '✅ Permissões resetadas (herdando do diretório pai)' -ForegroundColor Green"],
-              ["Desativar Herança de Permissões", "$f = Read-Host 'Caminho do arquivo'; icacls $f /inheritance:d; Write-Host '✅ Herança desativada - permissões copiadas' -ForegroundColor Green"],
-              ["Ativar Herança de Permissões", "$f = Read-Host 'Caminho do arquivo'; icacls $f /inheritance:e; Write-Host '✅ Herança ativada' -ForegroundColor Green"],
-              ["Verificar Proprietário do Arquivo (chown)", "$f = Read-Host 'Caminho do arquivo'; if (Test-Path $f) { (Get-Acl $f).Owner; Write-Host \"Proprietário: $((Get-Acl $f).Owner)\" -ForegroundColor Cyan } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Alterar Proprietário do Arquivo (takeown)", "$f = Read-Host 'Caminho do arquivo'; takeown /f $f; Write-Host '✅ Proprietário alterado para o usuário atual' -ForegroundColor Green"],
-              ["Alterar Proprietário para Administradores", "$f = Read-Host 'Caminho do arquivo'; takeown /f $f /a; icacls $f /grant Administradores:(F); Write-Host '✅ Proprietário alterado para Administradores' -ForegroundColor Green"],
-              ["Aplicar Permissões Recursivamente (pasta)", "$f = Read-Host 'Caminho da pasta'; $u = Read-Host 'Usuário (ex: Jeanc)'; $p = Read-Host 'Permissão (F=Total, R=Leitura, W=Escrita, X=Execução)'; icacls $f /grant \"$u:($p)\" /t /c; Write-Host \"✅ Permissão $p aplicada recursivamente a $u\" -ForegroundColor Green"],
-              ["Backup de Permissões (ACL)", "$f = Read-Host 'Caminho do arquivo'; $bak = $f + '.acl.bak'; icacls $f /save $bak; Write-Host \"✅ Permissões salvas em: $bak\" -ForegroundColor Green"],
-              ["Restaurar Permissões (ACL)", "$f = Read-Host 'Caminho do arquivo (.acl.bak)'; $dir = Read-Host 'Diretório do backup'; icacls $dir /restore $f; Write-Host '✅ Permissões restauradas' -ForegroundColor Green"],
-              ["Listar Arquivos Sem Dono (Orphaned ACLs)", "$dir = Read-Host 'Diretório para escanear'; Get-ChildItem $dir -Recurse -File -EA 0 | ForEach-Object { try { $acl = Get-Acl $_.FullName -EA 0; if ($acl.Owner -match 'S-1-5') { [PSCustomObject]@{Arquivo=$_.FullName; Owner=$acl.Owner} } } catch {} } | Format-Table -AutoSize"],
+              ["chmod 644 (Dono: RW, Outros: R)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(M)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(R)\"; Write-Host '✅ chmod 644 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 755 (Dono: RWX, Outros: RX)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 600 (Apenas Dono: RW)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(M)\"; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Todos\" 2>$null; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 700 (Apenas Dono: RWX)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Todos\" 2>$null; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 777 (Todos: RWX - PERIGOSO)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chmod 444 (Todos: Somente Leitura)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(R)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chown user:group (Alterar Dono e Grupo)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { takeown /f \"§CAMINHO_ARQUIVO§\" /a; icacls \"§CAMINHO_ARQUIVO§\" /setowner §NOME_DONO§; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_DONO§:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_GRUPO§:(F)\"; Write-Host \"✅ chown aplicado: dono=§NOME_DONO§, grupo=§NOME_GRUPO§\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["chown user (Alterar Apenas Dono)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /setowner §NOME_DONO§; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_DONO§:(F)\"; Write-Host \"✅ chown aplicado: dono alterado para §NOME_DONO§\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Permissões de Arquivo (icacls)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Verificar Permissões (ACL detalhada)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { (Get-Acl \"§CAMINHO_ARQUIVO§\").Access | Select-Object IdentityReference,FileSystemRights,AccessControlType,IsInherited | Format-Table -AutoSize } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Conceder Permissão Total (Full Control)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(F)\"; Write-Host \"✅ Permissão total concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Conceder Permissão de Leitura (Read)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(R)\"; Write-Host \"✅ Permissão de leitura concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Conceder Permissão de Escrita (Write/Modify)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(M)\"; Write-Host \"✅ Permissão de escrita concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Conceder Permissão de Execução (Execute)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(X)\"; Write-Host \"✅ Permissão de execução concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Conceder Leitura + Execução (RX)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(RX)\"; Write-Host \"✅ Permissão de leitura + execução concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Negar Acesso a Usuário (Deny)","icacls \"§CAMINHO_ARQUIVO§\" /deny \"§NOME_USUARIO§:(F)\"; Write-Host \"✅ Acesso negado a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Remover Permissões de Usuário","icacls \"§CAMINHO_ARQUIVO§\" /remove §NOME_USUARIO§; Write-Host \"✅ Permissões de §NOME_USUARIO§ removidas\" -ForegroundColor Green"],
+              ["Resetar Permissões (Herdar do diretório pai)","icacls \"§CAMINHO_ARQUIVO§\" /reset; Write-Host '✅ Permissões resetadas (herdando do diretório pai)' -ForegroundColor Green"],
+              ["Desativar Herança de Permissões","icacls \"§CAMINHO_ARQUIVO§\" /inheritance:d; Write-Host '✅ Herança desativada - permissões copiadas' -ForegroundColor Green"],
+              ["Ativar Herança de Permissões","icacls \"§CAMINHO_ARQUIVO§\" /inheritance:e; Write-Host '✅ Herança ativada' -ForegroundColor Green"],
+              ["Verificar Proprietário do Arquivo (chown)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { (Get-Acl \"§CAMINHO_ARQUIVO§\").Owner; Write-Host \"Proprietário: $((Get-Acl \"§CAMINHO_ARQUIVO§\").Owner)\" -ForegroundColor Cyan } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
+              ["Alterar Proprietário do Arquivo (takeown)","takeown /f \"§CAMINHO_ARQUIVO§\"; Write-Host '✅ Proprietário alterado para o usuário atual' -ForegroundColor Green"],
+              ["Alterar Proprietário para Administradores","takeown /f \"§CAMINHO_ARQUIVO§\" /a; icacls \"§CAMINHO_ARQUIVO§\" /grant Administradores:(F); Write-Host '✅ Proprietário alterado para Administradores' -ForegroundColor Green"],
+              ["Aplicar Permissões Recursivamente (pasta)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(§NIVEL_PERMISSAO§)\" /t /c; Write-Host \"✅ Permissão §NIVEL_PERMISSAO§ aplicada recursivamente a §NOME_USUARIO§\" -ForegroundColor Green"],
+              ["Backup de Permissões (ACL)","$bak = \"§CAMINHO_ARQUIVO§\" + '.acl.bak'; icacls \"§CAMINHO_ARQUIVO§\" /save $bak; Write-Host \"✅ Permissões salvas em: $bak\" -ForegroundColor Green"],
+              ["Restaurar Permissões (ACL)","icacls \"§DIRETORIO_ALVO§\" /restore \"§CAMINHO_ARQUIVO§\"; Write-Host '✅ Permissões restauradas' -ForegroundColor Green"],
+              ["Listar Arquivos Sem Dono (Orphaned ACLs)","Get-ChildItem \"§DIRETORIO_ALVO§\" -Recurse -File -EA 0 | ForEach-Object { try { $acl = Get-Acl $_.FullName -EA 0; if ($acl.Owner -match 'S-1-5') { [PSCustomObject]@{Arquivo=$_.FullName; Owner=$acl.Owner} } } catch {} } | Format-Table -AutoSize"],
             ],
           },
           {
             label: "⚡ Endurecimento do Sistema (Hardening)",
             cmds: [
               ["Desativar AutoRun/AutoPlay", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\AutoplayHandlers' -Name 'DisableAutoplay' -Value 1 -EA 0; Write-Host '✅ AutoPlay desativado!' -ForegroundColor Green"],
-              ["Ativar Bloqueio de Script Powershell (Constrained)", "Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green"],
+              ["Ativar Bloqueio de Script Powershell (Constrained)","Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green"],
               ["Verificar Configuração de Execução de Scripts", "Get-ExecutionPolicy -List | Format-Table -AutoSize"],
               ["Desativar PowerShell v2 (Reduz Superfície de Ataque)", "Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root -NoRestart -EA 0; Write-Host '✅ PowerShell v2 desativado!' -ForegroundColor Green"],
               ["Ativar Auditoria de Logon", "auditpol /set /subcategory:'Logon' /success:enable /failure:enable; Write-Host '✅ Auditoria de logon ativada!' -ForegroundColor Green"],
@@ -1433,6 +1521,16 @@
           ["Instalar Pacote Pip", "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip install $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
           ["Desinstalar Pacote Pip", "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip uninstall -y $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
           ["Criar Ambiente Virtual (venv)", "$nome = Read-Host \"Nome do ambiente virtual\"; if ($nome -match \"^[a-zA-Z0-9_-]{1,64}$\") { python -m venv $nome; Write-Host \"✅ Ambiente virtual '$nome' criado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome inválido.\" -ForegroundColor Red }"],
+        ],
+      },
+      {
+        id: "cat_web",
+        label: "🌐 Web / IA",
+        isNew: true,
+        cmds: [
+          ["Buscar na Web", "__WEB_SEARCH__"],
+          ["Buscar e Resumir Página", "__WEB_FETCH__"],
+          ["Consultar Fonte Oficial .gov.br", "__WEB_GOV__"],
         ],
       },
 
@@ -1550,6 +1648,45 @@
           const danger = isDangerous(cmd[1]);
           const dangerBadge = danger ? `<span class="danger-badge" title="Comando destrutivo — use com cuidado">⚠️ destrutivo</span>` : "";
           const newClass = isNew ? "cmd-card-new" : "";
+
+          // Cards especiais de Web / IA não executam PowerShell
+          if (cmd[1] === "__WEB_SEARCH__") {
+            cards += `<div class="cmd-card ${newClass} cmd-card-web">
+      <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
+      <h4>${cmd[0]}</h4>
+      <code id="${uid}" style="display:none">${esc}</code>
+      <p class="web-card-desc">Busca na web usando Ollama Cloud (se OLLAMA_API_KEY configurada) ou DuckDuckGo.</p>
+      <div class="btn-row">
+        <button class="btn btn-run" onclick="runWebSearch('${uid}')">🔍 Buscar</button>
+      </div>
+    </div>`;
+            return;
+          }
+          if (cmd[1] === "__WEB_FETCH__") {
+            cards += `<div class="cmd-card ${newClass} cmd-card-web">
+      <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
+      <h4>${cmd[0]}</h4>
+      <code id="${uid}" style="display:none">${esc}</code>
+      <p class="web-card-desc">Busca na web e extrai/resume o conteúdo da primeira página encontrada.</p>
+      <div class="btn-row">
+        <button class="btn btn-run" onclick="runWebFetch('${uid}')">📖 Buscar e Ler</button>
+      </div>
+    </div>`;
+            return;
+          }
+          if (cmd[1] === "__WEB_GOV__") {
+            cards += `<div class="cmd-card ${newClass} cmd-card-web">
+      <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
+      <h4>${cmd[0]}</h4>
+      <code id="${uid}" style="display:none">${esc}</code>
+      <p class="web-card-desc">Consulta apenas domínios oficiais brasileiros (.gov.br, ibge.gov.br, embrapa.br, usp.br, etc.).</p>
+      <div class="btn-row">
+        <button class="btn btn-run" onclick="runWebGov('${uid}')">🏛️ Consultar</button>
+      </div>
+    </div>`;
+            return;
+          }
+
           cards += `<div class="cmd-card ${danger ? "danger" : ""} ${newClass}">
       <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
       ${dangerBadge}
@@ -1565,7 +1702,7 @@
         });
         return cards;
       }
-      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python"];
+      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web"];
       CATS.forEach((c) => {
         const div = document.createElement("div");
         div.className = "category";
@@ -1754,7 +1891,7 @@
         const deadline = Date.now() + 15 * 60 * 1000;
         while (Date.now() < deadline) {
           let d;
-          try { d = await (await fetch(API + "/run-status?id=" + encodeURIComponent(jobId), { signal: AbortSignal.timeout(5000) })).json(); }
+          try { d = await (await fetch(API + "/run-status?id=" + encodeURIComponent(jobId), { headers: PRIVILEGED_HEADERS, signal: AbortSignal.timeout(5000) })).json(); }
           catch { await sleep(1500); continue; }
           if (typeof onProgress === "function") onProgress(d);
           if (d.state === "running") { await sleep(1200); continue; }
@@ -1813,39 +1950,81 @@
         return m + "m";
       }
       // ===== Padrões que precisam de parâmetro (padrão V7) =====
-      const PARAM_PATTERNS = [
-        { regex: /NOME_DO_PROCESSO/, title: "⚡ Encerrar Processo", desc: "Informe o nome exato do processo (sem .exe):", placeholder: "ex: notepad, chrome, msedge", token: "NOME_DO_PROCESSO" },
-        { regex: /NOME_SERVICO/, title: "🔧 Desativar Serviço", desc: "Informe o nome do serviço:", placeholder: "ex: wuauserv, SysMain, Spooler", token: "NOME_SERVICO" },
-        { regex: /NUMERO_KB/, title: "📦 Desinstalar Atualização", desc: "Informe o número do KB (sem o prefixo KB):", placeholder: "ex: 5005565", token: "NUMERO_KB" },
-        { regex: /CAMINHO\.inf/, title: "🔌 Driver INF", desc: "Informe o caminho completo do arquivo .inf:", placeholder: "ex: C:\\Drivers\\driver.inf", token: "CAMINHO.inf" },
-      ];
+      // Registro de tokens §TOKEN§ usados nos botões que pedem parâmetro.
+      // Cada botão pode conter 1+ tokens; um campo de input é criado por token encontrado.
+      const TOKEN_DEFS = {
+        NOME_PROCESSO: { title: "⚡ Nome do Processo", desc: "Informe o nome exato do processo (sem .exe):", placeholder: "ex: notepad, chrome, msedge", validate: /^[a-zA-Z0-9_. -]{1,128}$/ },
+        NOME_SERVICO: { title: "🔧 Nome do Serviço", desc: "Informe o nome do serviço:", placeholder: "ex: wuauserv, SysMain, Spooler", validate: /^[a-zA-Z0-9_. -]{1,128}$/ },
+        NUMERO_KB: { title: "📦 Número do KB", desc: "Informe o número do KB (sem o prefixo KB):", placeholder: "ex: 5005565", validate: /^\d{4,10}$/ },
+        CODIGO_KB: { title: "🛡️ Código do KB", desc: "Informe o KB com o prefixo (para busca de CVEs):", placeholder: "ex: KB5034441", validate: /^KB[0-9]{6,8}$/i },
+        CAMINHO_INF: { title: "🔌 Driver INF", desc: "Informe o caminho completo do arquivo .inf:", placeholder: "ex: C:\\Drivers\\driver.inf", validate: /^[a-zA-Z]:[a-zA-Z0-9\\._\- ]{1,255}\.inf$/i },
+        IP_BLOQUEIO: { title: "🚫 IP para Bloquear", desc: "Informe o IP a bloquear no firewall:", placeholder: "ex: 203.0.113.5", validate: /^(\d{1,3}\.){3}\d{1,3}$/ },
+        IP_DESBLOQUEIO: { title: "✅ IP para Desbloquear", desc: "Informe o IP a desbloquear:", placeholder: "ex: 203.0.113.5", validate: /^(\d{1,3}\.){3}\d{1,3}$/ },
+        IP_ALVO: { title: "🌐 Endereço IP", desc: "Informe o endereço IP:", placeholder: "ex: 8.8.8.8", validate: /^(\d{1,3}\.){3}\d{1,3}$/ },
+        CAMINHO_ARQUIVO: { title: "📁 Caminho do Arquivo", desc: "Informe o caminho completo do arquivo:", placeholder: "ex: C:\\Users\\voce\\arquivo.txt", validate: /^[a-zA-Z0-9\\._:\- /]{1,260}$/ },
+        DIRETORIO_ALVO: { title: "📂 Diretório", desc: "Informe o caminho da pasta:", placeholder: "ex: C:\\Users\\voce\\Documentos", validate: /^[a-zA-Z0-9\\._:\- /]{1,260}$/ },
+        NOME_DONO: { title: "👤 Novo Dono", desc: "Informe o novo dono do arquivo:", placeholder: "ex: Jeanc", validate: /^[a-zA-Z0-9._-]{1,64}$/ },
+        NOME_GRUPO: { title: "👥 Grupo", desc: "Informe o grupo:", placeholder: "ex: Administradores", validate: /^[a-zA-Z0-9._-]{1,64}$/ },
+        NOME_USUARIO: { title: "👤 Usuário", desc: "Informe o nome do usuário:", placeholder: "ex: Jeanc", validate: /^[a-zA-Z0-9._-]{1,64}$/ },
+        NIVEL_PERMISSAO: { title: "🔑 Permissão", desc: "F=Total, R=Leitura, W=Escrita, X=Execução:", placeholder: "ex: F", validate: /^[FRWMX]$/i },
+        URL_TESTE: { title: "🔗 URL", desc: "Informe a URL completa (com https://):", placeholder: "ex: https://google.com", validate: /^https:\/\/[a-zA-Z0-9.-]{1,253}(?::\d{1,5})?(?:[/?#][a-zA-Z0-9\-._~:/?#[\]@!&'()*+,;=%]{0,500})?$/ },
+      };
+      // Encontra, em ordem de aparição, todos os tokens §TOKEN§ presentes no comando.
+      function findTokens(code) {
+        const found = [];
+        const re = /§([A-Z_]+)§/g;
+        let m;
+        while ((m = re.exec(code)) !== null) {
+          if (TOKEN_DEFS[m[1]] && !found.includes(m[1])) found.push(m[1]);
+        }
+        return found;
+      }
       let _pendingCmd = null;
-      let _pendingToken = null;
-      function cancelParam() { document.getElementById("paramOverlay").style.display = "none"; _pendingCmd = null; _pendingToken = null; }
+      function cancelParam() { document.getElementById("paramOverlay").style.display = "none"; _pendingCmd = null; }
+      function renderParamFields(tokens) {
+        document.getElementById("paramTitle").textContent = tokens.length === 1 ? TOKEN_DEFS[tokens[0]].title : "Parâmetros necessários";
+        const container = document.getElementById("paramFields");
+        container.innerHTML = "";
+        tokens.forEach((token, i) => {
+          const def = TOKEN_DEFS[token];
+          const wrap = document.createElement("div");
+          wrap.className = "param-field";
+          wrap.style.marginBottom = "14px";
+          const desc = document.createElement("p");
+          desc.className = "param-desc";
+          desc.textContent = def.desc;
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "param-input";
+          input.placeholder = def.placeholder;
+          input.dataset.token = token;
+          input.id = "paramField_" + i;
+          if (i === 0) input.onkeydown = (e) => { if (e.key === "Enter") confirmParam(); };
+          wrap.appendChild(desc);
+          wrap.appendChild(input);
+          container.appendChild(wrap);
+        });
+      }
       async function confirmParam() {
-        const val = document.getElementById("paramInput").value.trim();
-        if (!val) { document.getElementById("paramInput").focus(); return; }
-        let replacement = val;
-        if (_pendingToken === "NOME_DO_PROCESSO" || _pendingToken === "NOME_SERVICO") {
-          if (!/^[a-zA-Z0-9_. -]{1,128}$/.test(val)) {
-            alert("Use apenas letras, números, espaço, ponto, hífen e sublinhado.");
+        const inputs = [...document.querySelectorAll("#paramFields input")];
+        const replacements = [];
+        for (const input of inputs) {
+          const token = input.dataset.token;
+          const def = TOKEN_DEFS[token];
+          const val = input.value.trim();
+          if (!val || !def.validate.test(val)) {
+            alert(`Valor inválido — ${def.desc}`);
+            input.focus();
             return;
           }
-        } else if (_pendingToken === "NUMERO_KB") {
-          if (!/^\d{4,10}$/.test(val)) {
-            alert("Informe somente o número do KB.");
-            return;
-          }
-        } else if (_pendingToken === "CAMINHO.inf") {
-          if (!/^[a-zA-Z]:\\[^"'\r\n;&|`$<>]+\.inf$/i.test(val)) {
-            alert("Informe um caminho local seguro terminado em .inf.");
-            return;
-          }
-          replacement = `"${val}"`;
+          replacements.push([token, val]);
         }
         document.getElementById("paramOverlay").style.display = "none";
-        const finalCmd = _pendingCmd.replace(new RegExp(_pendingToken.replace(".", "\\."), "g"), replacement);
-        _pendingCmd = null; _pendingToken = null;
+        let finalCmd = _pendingCmd;
+        for (const [token, val] of replacements) {
+          finalCmd = finalCmd.split(`§${token}§`).join(val);
+        }
+        _pendingCmd = null;
         await executeCmd(finalCmd);
       }
       function showToast(msg, color) {
@@ -1854,8 +2033,14 @@
         t.style.background = color || "var(--accent2)";
         t.style.color = color === "#f85149" ? "#fff" : "#000";
         t.style.display = "flex";
+        t.style.animation = "none";
+        t.offsetHeight; // força reflow para reiniciar a animação
+        t.style.animation = "fadeInScale 0.3s ease-out";
         clearTimeout(t._tid);
-        t._tid = setTimeout(() => (t.style.display = "none"), 2500);
+        t._tid = setTimeout(() => {
+          t.style.animation = "fadeInScale 0.3s ease-out reverse";
+          setTimeout(() => { t.style.display = "none"; }, 300);
+        }, 2500);
       }
       // ===== checkServer() (padrão V7) + dashboard + MCP + Ollama =====
       async function checkServer() {
@@ -1910,7 +2095,7 @@
         const pollIntervalMs = options.pollIntervalMs || 1200;
         const deadline = Date.now() + timeoutMs;
         while (Date.now() < deadline) {
-          const statusRes = await fetch(API + "/run-status?id=" + encodeURIComponent(submitData.jobId), { signal: AbortSignal.timeout(5000) });
+          const statusRes = await fetch(API + "/run-status?id=" + encodeURIComponent(submitData.jobId), { headers: PRIVILEGED_HEADERS, signal: AbortSignal.timeout(5000) });
           const statusData = await statusRes.json();
           if (statusRes.ok === false) throw new Error(statusData.output || "Falha ao consultar o status do comando.");
           if (typeof options.onProgress === "function") options.onProgress(statusData);
@@ -1923,15 +2108,12 @@
       // ===== runCmd() (padrão V7) =====
       async function runCmd(uid) {
         const code = document.getElementById(uid).innerText.trim();
-        const pattern = PARAM_PATTERNS.find(p => p.regex.test(code));
-        if (pattern) {
-          _pendingCmd = code; _pendingToken = pattern.token;
-          document.getElementById("paramTitle").textContent = pattern.title;
-          document.getElementById("paramDesc").textContent = pattern.desc;
-          document.getElementById("paramInput").placeholder = pattern.placeholder;
-          document.getElementById("paramInput").value = "";
+        const tokens = findTokens(code);
+        if (tokens.length > 0) {
+          _pendingCmd = code;
+          renderParamFields(tokens);
           document.getElementById("paramOverlay").style.display = "flex";
-          setTimeout(() => document.getElementById("paramInput").focus(), 80);
+          setTimeout(() => document.getElementById("paramField_0")?.focus(), 80);
           return;
         }
         try { await navigator.clipboard.writeText(code); } catch {}
@@ -1967,6 +2149,97 @@
           serverOnline = false; checkServer();
         }
       }
+      // ===== Web / IA cards na UI principal =====
+      let _webModalMode = null;
+      function closeWebModal() { document.getElementById("webOverlay").style.display = "none"; _webModalMode = null; }
+      function openWebModal(mode) {
+        _webModalMode = mode;
+        const title = document.getElementById("webModalTitle");
+        const desc = document.getElementById("webModalDesc");
+        const extra = document.getElementById("webModalExtra");
+        const ok = document.getElementById("webModalOk");
+        document.getElementById("webModalInput").value = "";
+        extra.value = "";
+        if (mode === "search") {
+          title.textContent = "Buscar na Web";
+          desc.textContent = "Informe o termo de busca:";
+          extra.style.display = "none";
+          ok.textContent = "🔍 Buscar";
+        } else if (mode === "fetch") {
+          title.textContent = "Buscar e Resumir Página";
+          desc.textContent = "Informe o termo de busca (a primeira página será resumida):";
+          extra.style.display = "block";
+          extra.placeholder = "Pergunta sobre o conteúdo da página (opcional)";
+          ok.textContent = "📖 Buscar e Ler";
+        } else if (mode === "gov") {
+          title.textContent = "Consultar Fonte Oficial .gov.br";
+          desc.textContent = "Informe a URL completa de uma fonte oficial brasileira:";
+          extra.style.display = "block";
+          extra.placeholder = "Termo de busca dentro da página (opcional)";
+          ok.textContent = "🏛️ Consultar";
+        }
+        document.getElementById("webOverlay").style.display = "flex";
+        setTimeout(() => document.getElementById("webModalInput").focus(), 80);
+      }
+      function runWebSearch() { openWebModal("search"); }
+      function runWebFetch() { openWebModal("fetch"); }
+      function runWebGov() { openWebModal("gov"); }
+      async function confirmWebModal() {
+        const input = document.getElementById("webModalInput").value.trim();
+        const extra = document.getElementById("webModalExtra").value.trim();
+        if (!input) { showToast("⚠️ Informe um valor", "#f0a800"); return; }
+        document.getElementById("webOverlay").style.display = "none";
+        const panel = document.getElementById("outputPanel");
+        const content = document.getElementById("outputContent");
+        panel.style.display = "block";
+        content.textContent = "⏳ Consultando...";
+        content.style.color = "#e6edf3";
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        try {
+          let out = "";
+          if (_webModalMode === "search") {
+            const res = await fetch(`${API}/api/web-search?q=${encodeURIComponent(input)}&max_results=5`, { headers: PRIVILEGED_HEADERS, signal: AbortSignal.timeout(25000) });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Falha na busca");
+            out = data.results.map((r, i) => `${i + 1}. ${r.title}\n   ${r.url}\n   ${r.snippet}`).join("\n\n");
+            if (!out) out = "Nenhum resultado encontrado.";
+          } else if (_webModalMode === "fetch") {
+            const res = await fetch(`${API}/api/tools/buscar_e_resumir_pagina`, {
+              method: "POST",
+              headers: PRIVILEGED_HEADERS,
+              body: JSON.stringify({ query: input, pergunta: extra, max_results: 3 }),
+              signal: AbortSignal.timeout(120000),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.error || "Falha ao buscar/resumir");
+            const r = data.result;
+            out = `Busca: ${input}\n\nPágina: ${r.pagina?.titulo || ""}\n${r.pagina?.url || ""}\n\nResumo:\n${r.pagina?.resumo || ""}`;
+            if (r.resposta) out += `\n\nResposta da IA:\n${r.resposta}`;
+          } else if (_webModalMode === "gov") {
+            const res = await fetch(`${API}/api/tools/consultar_fonte_oficial_gov`, {
+              method: "POST",
+              headers: PRIVILEGED_HEADERS,
+              body: JSON.stringify({ url: input, termo: extra }),
+              signal: AbortSignal.timeout(30000),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.error || "Falha ao consultar");
+            out = `URL: ${input}\n\nConteúdo:\n${data.result?.conteudo || ""}`;
+          }
+          content.textContent = out;
+          content.style.color = "#e6edf3";
+          addOutputEntry(`[WEB] ${_webModalMode}: ${input}`, out, true);
+          showToast("✅ Concluído", "var(--accent2)");
+        } catch (err) {
+          content.textContent = "Erro: " + err.message;
+          content.style.color = "#f85149";
+          addOutputEntry(`[WEB] ${_webModalMode}: ${input}`, "Erro: " + err.message, false);
+          showToast("❌ Falha na consulta web", "#f85149");
+        } finally {
+          _webModalMode = null;
+        }
+      }
+
       async function openPS() {
         if (serverOnline === false) { showToast("ℹ️ Execute o Launcher como Administrador primeiro.", "#00d4ff"); checkServer(); return; }
         showToast("⚡ Abrindo PowerShell admin...", "#00d4ff");
@@ -2057,7 +2330,14 @@
         if (!confirm(aviso)) return;
         showToast("⏻ Encerrando launcher...", "#f85149");
         try {
-          const res = await fetch(API + "/shutdown", { method: "POST", headers: { "X-Mestre-Client": "v10-web" }, signal: AbortSignal.timeout(10000) });
+          const res = await fetch(API + "/shutdown", { 
+            method: "POST", 
+            headers: { 
+              "X-Mestre-Client": "v10-web",
+              "Origin": API
+            }, 
+            signal: AbortSignal.timeout(10000) 
+          });
           const data = await res.json();
           if (res.ok === false || data.success !== true) throw new Error(data.output || "Falha ao encerrar.");
           serverOnline = false;
@@ -2097,10 +2377,23 @@
         renderOutputHistory();
         return entry;
       }
+      function renderOutputStats() {
+        const bar = document.getElementById("outputStats");
+        if (!bar) return;
+        if (!outputHistory.length) { bar.innerHTML = ""; return; }
+        const okCount = outputHistory.filter(e => e.success).length;
+        const errCount = outputHistory.length - okCount;
+        bar.innerHTML = `
+          <span class="output-stat-pill total">📋 ${outputHistory.length} comando${outputHistory.length === 1 ? "" : "s"}</span>
+          <span class="output-stat-pill ok">✅ ${okCount} sucesso${okCount === 1 ? "" : "s"}</span>
+          <span class="output-stat-pill err">❌ ${errCount} falha${errCount === 1 ? "" : "s"}</span>
+        `;
+      }
       function renderOutputHistory() {
         const container = document.getElementById("outputHistory");
         if (!container) return;
-        if (!outputHistory.length) { container.innerHTML = ""; return; }
+        renderOutputStats();
+        if (!outputHistory.length) { container.innerHTML = `<div class="output-empty">Nenhum comando executado ainda.</div>`; return; }
         container.innerHTML = outputHistory.slice().reverse().map(e => {
           const icon = e.success ? "✅" : "❌";
           const dateStr = new Date(e.date).toLocaleString("pt-BR");
@@ -2151,29 +2444,112 @@
         showToast("🧠 Output salvo como memória da IA", "#a200ff");
       }
       // ===== NOVO V11.1: Download de relatório do Output =====
-      function downloadOutputReport() {
+      // ===== Exportação de relatório em múltiplos formatos =====
+      function toggleExportMenu(ev) {
+        ev?.stopPropagation();
+        const menu = document.getElementById("outputExportMenu");
+        if (!menu) return;
         if (!outputHistory.length) { showToast("⚠️ Nenhum output para exportar", "#f0a800"); return; }
+        menu.classList.toggle("open");
+      }
+      document.addEventListener("click", (ev) => {
+        const menu = document.getElementById("outputExportMenu");
+        if (menu && menu.classList.contains("open") && !ev.target.closest(".output-export-wrap")) {
+          menu.classList.remove("open");
+        }
+      });
+      function _reportTimestamp() {
         const d = new Date();
         const pad = (n) => String(n).padStart(2, "0");
-        const okCount = outputHistory.filter(e => e.success).length;
-        let md = `# 📋 Relatório de Comandos — Mestre do PC V11\n\n`;
-        md += `**Data:** ${d.toLocaleString("pt-BR")}\n`;
-        md += `**Computador:** ${location.hostname || "local"}\n`;
-        md += `**Total de comandos:** ${outputHistory.length}\n`;
-        md += `**Sucessos:** ${okCount} | **Falhas:** ${outputHistory.length - okCount}\n\n---\n\n`;
-        outputHistory.forEach((e, i) => {
-          md += `## ${i + 1}. ${e.success ? "✅" : "❌"} Comando\n\n`;
-          md += `**Data:** ${new Date(e.date).toLocaleString("pt-BR")}\n\n`;
-          md += `\`\`\`powershell\n${e.cmd}\n\`\`\`\n\n`;
-          md += `**Output:**\n\n\`\`\`\n${e.output || "(sem output)"}\n\`\`\`\n\n---\n\n`;
-        });
-        const blob = new Blob([md], { type: "text/markdown" });
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}`;
+      }
+      function _downloadBlob(content, mimeType, filename) {
+        const blob = new Blob([content], { type: mimeType });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `mestre-output-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}-${pad(d.getMinutes())}.md`;
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(a.href);
-        showToast("📥 Relatório de outputs baixado", "var(--accent2)");
+      }
+      function exportOutputReport(format) {
+        document.getElementById("outputExportMenu")?.classList.remove("open");
+        if (!outputHistory.length) { showToast("⚠️ Nenhum output para exportar", "#f0a800"); return; }
+        const stamp = _reportTimestamp();
+        const okCount = outputHistory.filter(e => e.success).length;
+        const meta = {
+          data: new Date().toLocaleString("pt-BR"),
+          computador: location.hostname || "local",
+          total: outputHistory.length,
+          sucessos: okCount,
+          falhas: outputHistory.length - okCount,
+        };
+        if (format === "md") {
+          let md = `# 📋 Relatório de Comandos — Mestre do PC V11\n\n`;
+          md += `**Data:** ${meta.data}\n**Computador:** ${meta.computador}\n`;
+          md += `**Total de comandos:** ${meta.total}\n**Sucessos:** ${meta.sucessos} | **Falhas:** ${meta.falhas}\n\n---\n\n`;
+          outputHistory.forEach((e, i) => {
+            md += `## ${i + 1}. ${e.success ? "✅" : "❌"} Comando\n\n**Data:** ${new Date(e.date).toLocaleString("pt-BR")}\n\n`;
+            md += `\`\`\`powershell\n${e.cmd}\n\`\`\`\n\n**Output:**\n\n\`\`\`\n${e.output || "(sem output)"}\n\`\`\`\n\n---\n\n`;
+          });
+          _downloadBlob(md, "text/markdown", `mestre-output-${stamp}.md`);
+        } else if (format === "txt") {
+          let txt = `RELATÓRIO DE COMANDOS — MESTRE DO PC V11\n${"=".repeat(48)}\n`;
+          txt += `Data: ${meta.data}\nComputador: ${meta.computador}\n`;
+          txt += `Total: ${meta.total} | Sucessos: ${meta.sucessos} | Falhas: ${meta.falhas}\n${"=".repeat(48)}\n\n`;
+          outputHistory.forEach((e, i) => {
+            txt += `[${i + 1}] ${e.success ? "OK" : "FALHA"} — ${new Date(e.date).toLocaleString("pt-BR")}\n`;
+            txt += `Comando: ${e.cmd}\n\nOutput:\n${e.output || "(sem output)"}\n\n${"-".repeat(48)}\n\n`;
+          });
+          _downloadBlob(txt, "text/plain;charset=utf-8", `mestre-output-${stamp}.txt`);
+        } else if (format === "csv") {
+          const escCsv = (v) => `"${String(v ?? "").replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
+          let csv = "Numero;Status;Data;Comando;Output\n";
+          outputHistory.forEach((e, i) => {
+            csv += [i + 1, e.success ? "Sucesso" : "Falha", new Date(e.date).toLocaleString("pt-BR"), escCsv(e.cmd), escCsv(e.output)].join(";") + "\n";
+          });
+          _downloadBlob("﻿" + csv, "text/csv;charset=utf-8", `mestre-output-${stamp}.csv`);
+        } else if (format === "excel") {
+          // Excel abre XML SpreadsheetML normalmente com extensão .xls, sem precisar de biblioteca.
+          const escXml = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          let rows = `<Row ss:StyleID="header"><Cell><Data ss:Type="String">#</Data></Cell><Cell><Data ss:Type="String">Status</Data></Cell><Cell><Data ss:Type="String">Data</Data></Cell><Cell><Data ss:Type="String">Comando</Data></Cell><Cell><Data ss:Type="String">Output</Data></Cell></Row>`;
+          outputHistory.forEach((e, i) => {
+            rows += `<Row><Cell><Data ss:Type="Number">${i + 1}</Data></Cell><Cell><Data ss:Type="String">${e.success ? "Sucesso" : "Falha"}</Data></Cell><Cell><Data ss:Type="String">${escXml(new Date(e.date).toLocaleString("pt-BR"))}</Data></Cell><Cell><Data ss:Type="String">${escXml(e.cmd)}</Data></Cell><Cell><Data ss:Type="String">${escXml(e.output).slice(0, 32000)}</Data></Cell></Row>`;
+          });
+          const xml = `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#4472C4" ss:Pattern="Solid"/></Style></Styles><Worksheet ss:Name="Output Mestre do PC"><Table><Column ss:Width="30"/><Column ss:Width="70"/><Column ss:Width="120"/><Column ss:Width="260"/><Column ss:Width="400"/>${rows}</Table></Worksheet></Workbook>`;
+          _downloadBlob(xml, "application/vnd.ms-excel", `mestre-output-${stamp}.xls`);
+        } else if (format === "word") {
+          // Truque compatível: Word abre HTML normalmente quando salvo com extensão .doc.
+          const escHtml = (v) => escapeHtml(v ?? "");
+          let body = `<h1 style="color:#00758f">Relatório de Comandos — Mestre do PC V11</h1>`;
+          body += `<p><b>Data:</b> ${meta.data}<br/><b>Computador:</b> ${meta.computador}<br/><b>Total:</b> ${meta.total} | <b>Sucessos:</b> ${meta.sucessos} | <b>Falhas:</b> ${meta.falhas}</p><hr/>`;
+          outputHistory.forEach((e, i) => {
+            body += `<h3>${i + 1}. ${e.success ? "✅" : "❌"} Comando — ${new Date(e.date).toLocaleString("pt-BR")}</h3>`;
+            body += `<pre style="background:#f4f4f4;padding:8px;border-radius:4px;font-family:Consolas,monospace">${escHtml(e.cmd)}</pre>`;
+            body += `<p><b>Output:</b></p><pre style="background:#f9f9f9;padding:8px;border-radius:4px;font-family:Consolas,monospace;white-space:pre-wrap">${escHtml(e.output) || "(sem output)"}</pre><hr/>`;
+          });
+          const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Relatório Mestre do PC</title></head><body style="font-family:Calibri,Arial,sans-serif">${body}</body></html>`;
+          _downloadBlob(html, "application/msword", `mestre-output-${stamp}.doc`);
+        } else if (format === "pdf") {
+          // Sem biblioteca de geração de PDF no bundle: abre uma janela de impressão
+          // já formatada — o usuário escolhe "Salvar como PDF" no diálogo do navegador.
+          const escHtml = (v) => escapeHtml(v ?? "");
+          let body = `<h1>📋 Relatório de Comandos — Mestre do PC V11</h1>`;
+          body += `<p><b>Data:</b> ${meta.data} &nbsp; <b>Computador:</b> ${meta.computador}</p>`;
+          body += `<p><b>Total:</b> ${meta.total} &nbsp; <b>Sucessos:</b> ${meta.sucessos} &nbsp; <b>Falhas:</b> ${meta.falhas}</p><hr/>`;
+          outputHistory.forEach((e, i) => {
+            body += `<div style="page-break-inside:avoid;margin-bottom:14px">`;
+            body += `<h3>${i + 1}. ${e.success ? "✅" : "❌"} — ${new Date(e.date).toLocaleString("pt-BR")}</h3>`;
+            body += `<pre style="background:#f4f4f4;padding:8px;border-radius:4px;font-family:Consolas,monospace;white-space:pre-wrap">${escHtml(e.cmd)}</pre>`;
+            body += `<pre style="background:#f9f9f9;padding:8px;border-radius:4px;font-family:Consolas,monospace;white-space:pre-wrap">${escHtml(e.output) || "(sem output)"}</pre></div>`;
+          });
+          const win = window.open("", "_blank", "width=900,height=700");
+          if (!win) { showToast("⚠️ O navegador bloqueou a janela de impressão. Permita pop-ups.", "#f0a800"); return; }
+          win.document.write(`<html><head><meta charset="utf-8"><title>Relatório Mestre do PC</title><style>body{font-family:Arial,sans-serif;color:#111;padding:20px}h1{color:#0077aa}</style></head><body>${body}</body></html>`);
+          win.document.close();
+          win.focus();
+          setTimeout(() => win.print(), 300);
+        }
+        showToast("📥 Relatório exportado", "var(--accent2)");
       }
       function escapeHtml(str) {
         if (str == null) return "";
@@ -2203,7 +2579,7 @@
       document.addEventListener("keydown", (e) => {
         if (e.ctrlKey && e.key === "k") { e.preventDefault(); document.getElementById("searchInput").focus(); }
         if (e.ctrlKey && e.key === "/") { e.preventDefault(); mestreChat.open(); }
-        if (e.key === "Escape") { mestreChat.close(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; }
+        if (e.key === "Escape") { mestreChat.close(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; document.getElementById("webOverlay").style.display = "none"; }
       });
       // ===== BOOT com polling otimizado =====
       renderFavorites();
@@ -2411,24 +2787,6 @@
         header.style.transition = 'all 0.3s ease';
       });
 
-      // ===== ANIMAÇÕES: Toast slide-in =====
-      const originalShowToast = showToast;
-      window.showToast = function(msg, color) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.style.background = color || 'var(--accent2)';
-        t.style.color = color === '#f85149' ? '#fff' : '#000';
-        t.style.display = 'flex';
-        t.style.animation = 'none';
-        t.offsetHeight; // Trigger reflow
-        t.style.animation = 'fadeInScale 0.3s ease-out';
-        clearTimeout(t._tid);
-        t._tid = setTimeout(() => {
-          t.style.animation = 'fadeInScale 0.3s ease-out reverse';
-          setTimeout(() => { t.style.display = 'none'; }, 300);
-        }, 2500);
-      };
-
       // ===== ANIMAÇÕES: Metric values com countUp effect =====
       const metricObserver = new MutationObserver((mutations) => {
         mutations.forEach(mutation => {
@@ -2454,13 +2812,21 @@
       import { initChat } from "/chat/chat-module.js";
       const launcherUrl = window.location.protocol.startsWith("http") ? window.location.origin : "http://127.0.0.1:7777";
       const TOAST_COLORS = { error: "#f85149", warning: "#f0a800", info: "var(--accent2)" };
-      window.mestreChat = initChat({
-        rootSelector: "#chat-root",
-        launcherUrl,
-        clientHeader: "v10-web",
-        onToast: (msg, type) => window.showToast(msg, TOAST_COLORS[type] || TOAST_COLORS.info),
-        onOutput: (cmd, output, success) => addOutputEntry(cmd, output, success),
-      });
+      try {
+        window.mestreChat = initChat({
+          rootSelector: "#chat-root",
+          launcherUrl,
+          clientHeader: "v10-web",
+          onToast: (msg, type) => window.showToast(msg, TOAST_COLORS[type] || TOAST_COLORS.info),
+          onOutput: (cmd, output, success) => addOutputEntry(cmd, output, success),
+        });
+      } catch (err) {
+        console.error("Falha ao inicializar o chat IA:", err);
+        window.mestreChat = {
+          open: () => window.showToast("🤖 Chat IA indisponível no momento.", "#f0a800"),
+          close: () => {},
+        };
+      }
     </script>
     <!-- Módulo de Diagnóstico de Rede (Casa5G Dashboard integrado) -->
     <script src="rede-dashboard.js" defer></script>

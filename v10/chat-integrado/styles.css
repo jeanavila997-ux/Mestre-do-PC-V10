@@ -344,6 +344,38 @@ body {
 
 .composer-input::placeholder { color: var(--text-muted) }
 
+.active-memories {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  animation: fadeInScale 0.2s ease-out;
+}
+
+.active-memory-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 212, 255, 0.12);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.active-memory-chip button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
+}
+
+.active-memory-chip button:hover { color: var(--danger) }
+
 .composer-toolbar {
   display: flex;
   align-items: center;
@@ -391,6 +423,8 @@ body {
 .icon-circle-btn.send-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #000; font-weight: 700 }
 .icon-circle-btn.send-btn:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3) }
 .icon-circle-btn.send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none }
+.icon-circle-btn.stop-btn { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse 1.2s ease-in-out infinite }
+.icon-circle-btn.stop-btn:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3) }
 
 /* ── Quick categories ─────────────────────────────────────────────── */
 
@@ -646,6 +680,27 @@ body.sidebar-collapsed .main { margin-left: 0 }
 .tool-card .tool-icon { font-size: 18px; margin-bottom: 4px }
 .tool-card .tool-name { font-weight: 600; color: var(--text) }
 .tool-card .tool-desc { color: var(--text-muted); font-size: 11px; margin-top: 2px }
+
+.tool-card.disabled { opacity: 0.55; border-color: var(--border) }
+.tool-card.disabled:hover { border-color: var(--warning); background: rgba(240, 168, 0, 0.06) }
+.tool-card.disabled .tool-name { color: var(--text-muted) }
+
+.tool-toggle-btn {
+  margin-top: 8px;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tool-toggle-btn.on { border-color: rgba(0, 255, 136, 0.4); color: var(--accent2) }
+.tool-toggle-btn.on:hover { background: rgba(0, 255, 136, 0.1) }
+.tool-toggle-btn.off { border-color: rgba(240, 168, 0, 0.4); color: var(--warning) }
+.tool-toggle-btn.off:hover { background: rgba(240, 168, 0, 0.1) }
 
 /* ── Memories panel ───────────────────────────────────────────────── */
 

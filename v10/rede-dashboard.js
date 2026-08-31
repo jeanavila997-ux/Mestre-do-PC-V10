@@ -9,8 +9,9 @@ const RedeDashboard = {
   monitoramentoAtivo: false,
   intervaloId: null,
   historico: [],
-  ollamaHost: 'http://localhost:11434',
-  ollamaModel: 'qwen2.5-coder:3b',
+  launcherUrl: (window.location.protocol.startsWith('http') ? window.location.origin : 'http://127.0.0.1:7777'),
+  ollamaHost: (window.location.protocol.startsWith('http') ? window.location.origin : 'http://127.0.0.1:7777'),
+  ollamaModel: 'qwen2.5-coder:3b-instruct',
   destinos: ['1.1.1.1', '8.8.8.8', '9.9.9.9'],
   idxDestino: 0,
   maxHistorico: 50,
@@ -266,7 +267,7 @@ const RedeDashboard = {
   // Executar operação registrada via /run (polling de job)
   async executarOperacao(id) {
     try {
-      const runRes = await fetch('http://127.0.0.1:7777/run', {
+      const runRes = await fetch(`${this.launcherUrl}/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Mestre-Client': 'v10-web' },
         body: JSON.stringify({ id })
@@ -276,7 +277,9 @@ const RedeDashboard = {
 
       for (let i = 0; i < 60; i++) {
         await new Promise(r => setTimeout(r, 500));
-        const statusRes = await fetch(`http://127.0.0.1:7777/run-status?id=${runData.jobId}`);
+        const statusRes = await fetch(`${this.launcherUrl}/run-status?id=${runData.jobId}`, {
+          headers: { 'X-Mestre-Client': 'v10-web' }
+        });
         const status = await statusRes.json();
         if (status.done) return status.output || '';
       }
@@ -450,10 +453,10 @@ Status: ${ult.saude}
 
 O que pode estar causando problemas?`;
 
-      const res = await fetch(`${this.ollamaHost}/api/chat`, {
+      const res = await fetch(`${this.ollamaHost}/ollama/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: this.ollamaModel, messages: [{ role: 'user', content: prompt }], stream: false })
+        headers: { 'Content-Type': 'application/json', 'X-Mestre-Client': 'v10-web' },
+        body: JSON.stringify({ model: this.ollamaModel, messages: [{ role: 'user', content: prompt }], stream: false, keep_alive: '5m' })
       });
 
       if (!res.ok) throw new Error('Ollama offline');

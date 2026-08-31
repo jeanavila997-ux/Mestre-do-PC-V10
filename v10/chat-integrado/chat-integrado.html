@@ -16,11 +16,17 @@
   <div class="nav-group">
     <div class="nav-item active" id="btnNewChat"><span class="nav-icon">＋</span><span>Novo chat</span></div>
     <div class="nav-item" id="btnMemories"><span class="nav-icon">🧠</span><span>Memórias</span></div>
+    <div class="nav-item" id="btnToolsNav"><span class="nav-icon">🛠️</span><span>Ferramentas</span></div>
+    <div class="nav-item" onclick="location.href='/gerenciar-comandos.html'"><span class="nav-icon">⚙️</span><span>Gerenciar</span></div>
   </div>
   <div class="nav-group">
     <div class="nav-item"><span class="nav-icon">🔧</span><span>Diagnóstico IA</span></div>
     <div class="nav-item"><span class="nav-icon">🛠️</span><span>Manutenção</span></div>
     <div class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-item" id="btnThemeNav"><span class="nav-icon">◐</span><span>Tema</span></div>
+    <div class="nav-item" id="btnClearNav"><span class="nav-icon">🗑️</span><span>Limpar chat</span></div>
   </div>
   <div class="section-title"><span>Conversas</span><span id="syncBadge" class="sync-badge">Sync: --</span></div>
   <div class="chat-list" id="chatHistory"></div>
@@ -70,6 +76,7 @@
     </div>
 
     <div class="composer-box">
+      <div class="active-memories" id="activeMemories"></div>
       <textarea class="composer-input" id="promptInput" placeholder="Pergunte qualquer coisa ou use 🔧 para ferramentas..."></textarea>
       <div class="composer-toolbar">
         <div class="toolbar-left">
@@ -79,6 +86,7 @@
         </div>
         <div class="toolbar-right">
           <button class="icon-circle-btn" id="btnMic" title="Entrada por voz">🎤</button>
+          <button class="icon-circle-btn stop-btn" id="btnStop" title="Parar geração" style="display:none">⏹</button>
           <button class="icon-circle-btn send-btn" id="btnSend" title="Enviar">➤</button>
         </div>
       </div>

@@ -11,6 +11,7 @@
 
 import { checkPromptInjection, sanitizeToolArgument } from "../../mcp-server/security.js";
 import { auditLog, queryAuditLog, exportAuditReport, AuditLevel } from "../../mcp-server/audit-logger.js";
+import { searchWeb, fetchWebPage, isGovBrDomain } from "./web-search.js";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -241,28 +242,6 @@ async function classifyLauncherCommand(cmd) {
   return resp.json();
 }
 
-// ── Busca web (DuckDuckGo) ──────────────────────────────────────────
-
-async function searchWeb(query, maxResults = 5) {
-  const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-  const resp = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
-  });
-  const html = await resp.text();
-  const results = [];
-  const regex = /<a[^>]*class="result__a"[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/g;
-  let match;
-  while ((match = regex.exec(html)) && results.length < maxResults) {
-    const title = match[2].replace(/<[^>]*>/g, "").trim();
-    let link = match[1];
-    if (link.startsWith("//duckduckgo.com/l/?uddg=")) {
-      link = decodeURIComponent(link.split("uddg=")[1].split("&")[0]);
-    }
-    results.push({ title, link });
-  }
-  return results;
-}
-
 // ── RAG Query ───────────────────────────────────────────────────────
 
 async function ragQuery(query, contextDocs = []) {
@@ -372,17 +351,14 @@ async function monitorAndAlert(webhookUrl, cpuLimite = 80, ramLimite = 80, disco
 // ── Consultar fonte oficial gov ─────────────────────────────────────
 
 async function consultarFonteOficialGov(url, termo) {
-  const dominiosPermitidos = ["gov.br", "ibge.gov.br", "embrapa.br", "in.gov.br", "planalto.gov.br", "usp.br", "unicamp.br", "fiocruz.br"];
-  const parsed = new URL(url);
-  const permitido = dominiosPermitidos.some(d => parsed.hostname.endsWith(d));
-  if (!permitido) throw new Error(`Domínio não permitido: ${parsed.hostname}. Use apenas fontes oficiais.`);
-  const resp = await fetch(url);
-  const html = await resp.text();
-  const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  if (!termo) return text.slice(0, 5000);
-  const idx = text.toLowerCase().indexOf(termo.toLowerCase());
+  if (!isGovBrDomain(url)) {
+    throw new Error("Domínio não permitido. Use apenas fontes oficiais (.gov.br, ibge.gov.br, embrapa.br, etc.).");
+  }
+  const page = await fetchWebPage(url);
+  if (!termo) return page.content.slice(0, 5000);
+  const idx = page.content.toLowerCase().indexOf(termo.toLowerCase());
   if (idx === -1) return `Termo "${termo}" não encontrado no conteúdo da página.`;
-  return text.slice(Math.max(0, idx - 200), idx + 2000);
+  return page.content.slice(Math.max(0, idx - 200), idx + 2000);
 }
 
 // ── Catálogo de ferramentas ─────────────────────────────────────────
@@ -392,19 +368,42 @@ export const TOOLS_API = {
     const guard = guardPromptInjection(pergunta, "perguntar_ia");
     if (guard.blocked) return { error: "Prompt bloqueado por segurança", details: guard.result };
     let context = "";
+    let webResults;
     if (usar_web) {
-      const results = await searchWeb(pergunta, 3);
-      context = results.map(r => r.title).join("; ");
+      webResults = await searchWeb(pergunta, 3);
+      context = webResults.map(r => `${r.title}: ${r.snippet}`).join("\n");
     }
     const system = "Você é o Mestre do PC, assistente especializado em Windows. Responda em português brasileiro de forma direta.";
-    const messages = [{ role: "user", content: context ? `${pergunta}\n\nContexto da web: ${context}` : pergunta }];
+    const messages = [{ role: "user", content: context ? `${pergunta}\n\nContexto da web:\n${context}` : pergunta }];
     const answer = await ollamaChat({ messages, system, think: pensar });
-    return { resposta: answer, web_results: usar_web ? await searchWeb(pergunta, 3) : undefined };
+    return { resposta: answer, web_results: webResults };
   },
 
   buscar_na_web: async ({ query, max_results = 5 }) => {
     const results = await searchWeb(query, max_results);
     return { results };
+  },
+
+  buscar_e_resumir_pagina: async ({ query, pergunta, max_results = 3 }) => {
+    const guard = guardPromptInjection(`${query}\n${pergunta || ""}`, "buscar_e_resumir_pagina");
+    if (guard.blocked) return { error: "Prompt bloqueado por segurança", details: guard.result };
+    const webResults = await searchWeb(query, max_results);
+    if (!webResults.length) return { error: "Nenhum resultado encontrado." };
+    const first = webResults[0];
+    const page = await fetchWebPage(first.url);
+    let resposta;
+    if (pergunta) {
+      const system = "Você é o Mestre do PC. Responda com base no conteúdo da página, em português brasileiro.";
+      const messages = [
+        { role: "user", content: `Página: ${page.title}\nURL: ${first.url}\n\nConteúdo:\n${page.content.slice(0, 12000)}\n\nPergunta: ${pergunta}` },
+      ];
+      resposta = await ollamaChat({ messages, system, timeoutMs: 90000 });
+    }
+    return {
+      busca: webResults,
+      pagina: { titulo: page.title, url: first.url, resumo: page.content.slice(0, 500) + "..." },
+      resposta,
+    };
   },
 
   perguntar_ia_com_contexto: async ({ pergunta, contexto }) => {
@@ -467,6 +466,28 @@ export const TOOLS_API = {
 
   consultar_fonte_oficial_gov: async ({ url, termo }) => {
     return { conteudo: await consultarFonteOficialGov(url, termo) };
+  },
+
+  ler_pagina_web: async ({ url, pergunta, max_chars = 8000 }) => {
+    const guard = guardPromptInjection(`${url}\n${pergunta || ""}`, "ler_pagina_web");
+    if (guard.blocked) return { error: "Prompt/URL bloqueado por segurança", details: guard.result };
+    const page = await fetchWebPage(url);
+    let resposta;
+    if (pergunta) {
+      const system = "Você é o Mestre do PC. Responda com base no conteúdo da página fornecida, em português brasileiro.";
+      const content = page.content.slice(0, Math.min(Math.max(500, Number(max_chars) || 8000), 20000));
+      const messages = [
+        { role: "user", content: `Página: ${page.title}\nURL: ${page.url || url}\n\nConteúdo:\n${content}\n\nPergunta: ${pergunta}` },
+      ];
+      resposta = await ollamaChat({ messages, system, timeoutMs: 90000 });
+    }
+    return {
+      titulo: page.title,
+      url,
+      resumo: page.content.slice(0, 500) + (page.content.length > 500 ? "..." : ""),
+      resposta,
+      links: page.links.slice(0, 20),
+    };
   },
 
   verificar_prompt: async ({ texto }) => {
