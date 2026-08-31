@@ -513,14 +513,6 @@
       "description": "Testar Conectividade com a Internet."
     },
     {
-      "id": "velocidade_de_download_teste_rapido",
-      "title": "Velocidade de Download (Teste rápido)",
-      "category": "Outros",
-      "destructive": false,
-      "command": "Invoke-WebRequest -Uri \"http://speedtest.tele2.net/1MB.zip\" -OutFile \"$env:TEMP\\test.zip\" -UseBasicParsing; Write-Host \"✅ Download concluído!\" -ForegroundColor Green",
-      "description": "Velocidade de Download."
-    },
-    {
       "id": "flush_e_renovar_ip",
       "title": "Flush e Renovar IP",
       "category": "Outros",
@@ -663,14 +655,6 @@
       "destructive": false,
       "command": "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }",
       "description": "Lista modelos disponíveis no Ollama local e destaca modelos cloud no texto."
-    },
-    {
-      "id": "testar_ollama_qwen3_coder_next_cloud",
-      "title": "Testar Ollama (qwen3-coder-next:cloud)",
-      "category": "Ollama",
-      "destructive": false,
-      "command": "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://localhost:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }",
-      "description": "Testar Ollama."
     },
     {
       "id": "abrir_pasta_do_projeto",
@@ -2385,14 +2369,6 @@
       "description": "Resetar Políticas de Grupo."
     },
     {
-      "id": "teste_memoria_ram_agendar",
-      "title": "Teste de Memória RAM (Agendar)",
-      "category": "Sistema",
-      "destructive": false,
-      "command": "MdSched.exe",
-      "description": "Teste de Memória RAM."
-    },
-    {
       "id": "sair_da_conta_do_usuario",
       "title": "Sair da Conta do Usuário",
       "category": "Sistema",
@@ -2449,39 +2425,28 @@
       "description": "Ativar Bloqueio de Script Powershell."
     },
     {
-      "title": "Consultar Fonte Oficial Gov",
-      "command": "Write-Host \"Consulta a fontes oficiais gov.br\"",
-      "id": "consultar_fonte_oficial_gov",
+      "id": "velocidade_de_download_teste_rapido",
+      "title": "Velocidade de Download (Teste rápido)",
+      "category": "Outros",
       "destructive": false,
-      "category": "Pesquisa"
+      "command": "Invoke-WebRequest -Uri \"http://speedtest.tele2.net/1MB.zip\" -OutFile \"$env:TEMP\\test.zip\" -UseBasicParsing; Write-Host \"✅ Download concluído!\" -ForegroundColor Green",
+      "description": "Velocidade de Download."
     },
     {
-      "title": "Extrair Evidência de PDF Local",
-      "command": "Write-Host \"Extração de evidência de PDF local\"",
-      "id": "extrair_evidencia_de_pdf_local",
+      "id": "testar_ollama_qwen3_coder_next_cloud",
+      "title": "Testar Ollama (qwen3-coder-next:cloud)",
+      "category": "Ollama",
       "destructive": false,
-      "category": "Pesquisa"
+      "command": "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://localhost:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }",
+      "description": "Testar Ollama."
     },
     {
-      "title": "Simular Cenário Econômico",
-      "command": "Write-Host \"Simulação de cenário econômico\"",
-      "id": "simular_cenario_economico",
+      "id": "teste_memoria_ram_agendar",
+      "title": "Teste de Memória RAM (Agendar)",
+      "category": "Sistema",
       "destructive": false,
-      "category": "Análise"
-    },
-    {
-      "title": "Congelar Tabela Final",
-      "command": "Write-Host \"Congelamento de tabela final\"",
-      "id": "congelar_tabela_final",
-      "destructive": true,
-      "category": "Dados"
-    },
-    {
-      "title": "Gerar Snapshot Git",
-      "command": "Write-Host \"Geração de snapshot git\"",
-      "id": "gerar_snapshot_git",
-      "destructive": false,
-      "category": "Git"
+      "command": "MdSched.exe",
+      "description": "Teste de Memória RAM."
     }
   ],
   "templates": [
@@ -3159,22 +3124,6 @@
       "description": "Testar Internet."
     },
     {
-      "id": "rede_testar_dns_google_cloudflare",
-      "title": "Testar DNS (Google + Cloudflare)",
-      "category": "Rede",
-      "destructive": false,
-      "command": "Write-Host '=== Teste de DNS ===' -ForegroundColor Cyan; @('google.com','cloudflare.com','microsoft.com') | ForEach-Object { try { $r = Resolve-DnsName $_ -ErrorAction Stop; Write-Host \"[$_] OK - $($r[0].IPAddress)\" -ForegroundColor Green } catch { Write-Host \"[$_] FALHOU\" -ForegroundColor Red } }",
-      "description": "Testar DNS."
-    },
-    {
-      "id": "rede_testar_https443",
-      "title": "Testar HTTPS (Porta 443)",
-      "category": "Rede",
-      "destructive": false,
-      "command": "Write-Host '=== Teste HTTPS (443) ===' -ForegroundColor Cyan; @('google.com','cloudflare.com','microsoft.com') | ForEach-Object { $r = Test-NetConnection $_ -Port 443 -WarningAction SilentlyContinue; if($r.TcpTestSucceeded) { Write-Host \"[$_] HTTPS OK\" -ForegroundColor Green } else { Write-Host \"[$_] HTTPS FALHOU\" -ForegroundColor Red } }",
-      "description": "Testar HTTPS."
-    },
-    {
       "id": "rede_wifi_redes_proximas",
       "title": "Wi-Fi Redes Próximas",
       "category": "Rede",
@@ -3580,17 +3529,6 @@
       "description": "Verifica Hashes de Arquivos."
     },
     {
-      "id": "testar_https_de_site",
-      "title": "Testar HTTPS de um Site",
-      "category": "Rede",
-      "destructive": false,
-      "pattern": "try { $r = Invoke-WebRequest -Uri \"{{URL_TESTE}}\" -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }",
-      "params": {
-        "url_teste": "^https://[a-zA-Z0-9.\\-]{1,253}(?:/[a-zA-Z0-9\\-._~:/?#\\[\\]@!&'*+,;=%]{0,500})?$"
-      },
-      "description": "Testar HTTPS de um Site."
-    },
-    {
       "id": "analise_de_arquivo_file_type",
       "title": "Análise de Arquivo (file type)",
       "category": "Segurança",
@@ -3691,136 +3629,31 @@
       "description": "Lista Arquivos Sem Dono."
     },
     {
-      "id": "instalar_dotnet_sdk",
-      "title": "Instalar .NET SDK 8 (Microsoft)",
-      "category": ".NET",
-      "destructive": true,
-      "command": "winget install Microsoft.DotNet.SDK.8 --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do .NET SDK 8 iniciada!\" -ForegroundColor Green",
-      "description": "Instala o .NET SDK 8 via WinGet."
+      "id": "rede_testar_dns_google_cloudflare",
+      "title": "Testar DNS (Google + Cloudflare)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "Write-Host '=== Teste de DNS ===' -ForegroundColor Cyan; @('google.com','cloudflare.com','microsoft.com') | ForEach-Object { try { $r = Resolve-DnsName $_ -ErrorAction Stop; Write-Host \"[$_] OK - $($r[0].IPAddress)\" -ForegroundColor Green } catch { Write-Host \"[$_] FALHOU\" -ForegroundColor Red } }",
+      "description": "Testar DNS."
     },
     {
-      "id": "instalar_dotnet_runtime",
-      "title": "Instalar .NET Runtime 8 (Microsoft)",
-      "category": ".NET",
-      "destructive": true,
-      "command": "winget install Microsoft.DotNet.Runtime.8 --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do .NET Runtime 8 iniciada!\" -ForegroundColor Green",
-      "description": "Instala o .NET Runtime 8 via WinGet."
+      "id": "rede_testar_https443",
+      "title": "Testar HTTPS (Porta 443)",
+      "category": "Rede",
+      "destructive": false,
+      "command": "Write-Host '=== Teste HTTPS (443) ===' -ForegroundColor Cyan; @('google.com','cloudflare.com','microsoft.com') | ForEach-Object { $r = Test-NetConnection $_ -Port 443 -WarningAction SilentlyContinue; if($r.TcpTestSucceeded) { Write-Host \"[$_] HTTPS OK\" -ForegroundColor Green } else { Write-Host \"[$_] HTTPS FALHOU\" -ForegroundColor Red } }",
+      "description": "Testar HTTPS."
     },
     {
-      "id": "instalar_visual_studio_build_tools",
-      "title": "Instalar Visual Studio Build Tools 2022 (Microsoft)",
-      "category": "Microsoft",
-      "destructive": true,
-      "command": "winget install Microsoft.VisualStudio.2022.BuildTools --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Visual Studio Build Tools iniciada!\" -ForegroundColor Green",
-      "description": "Instala o Visual Studio 2022 Build Tools via WinGet."
-    },
-    {
-      "id": "instalar_windows_sdk",
-      "title": "Instalar Windows SDK (Microsoft)",
-      "category": "Microsoft",
-      "destructive": true,
-      "command": "winget install Microsoft.WindowsSDK --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Windows SDK iniciada!\" -ForegroundColor Green",
-      "description": "Instala o Windows SDK via WinGet."
-    },
-    {
-      "id": "instalar_azure_cli",
-      "title": "Instalar Azure CLI (Microsoft)",
-      "category": "Microsoft",
-      "destructive": true,
-      "command": "winget install Microsoft.AzureCLI --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Azure CLI iniciada!\" -ForegroundColor Green",
-      "description": "Instala o Azure CLI via WinGet."
-    },
-    {
-      "id": "instalar_github_cli",
-      "title": "Instalar GitHub CLI",
-      "category": "Microsoft",
-      "destructive": true,
-      "command": "winget install GitHub.cli --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do GitHub CLI iniciada!\" -ForegroundColor Green",
-      "description": "Instala o GitHub CLI (gh) via WinGet."
-    },
-    {
-      "id": "instalar_docker_desktop",
-      "title": "Instalar Docker Desktop",
-      "category": "DevOps",
-      "destructive": true,
-      "command": "winget install Docker.DockerDesktop --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Docker Desktop iniciada!\" -ForegroundColor Green",
-      "description": "Instala o Docker Desktop via WinGet."
-    },
-    {
-      "id": "instalar_wsl",
-      "title": "Instalar WSL (Windows Subsystem for Linux)",
-      "category": "DevOps",
-      "destructive": true,
-      "command": "wsl --install; Write-Host \"✅ Instalação do WSL iniciada! Reinicie o computador para concluir.\" -ForegroundColor Green",
-      "description": "Instala o WSL via comando nativo do Windows."
-    },
-    {
-      "id": "instalar_rust",
-      "title": "Instalar Rust (Rustup)",
-      "category": "Linguagens",
-      "destructive": true,
-      "command": "winget install Rustlang.Rustup --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Rust iniciada!\" -ForegroundColor Green",
-      "description": "Instala o Rust via WinGet (Rustup)."
-    },
-    {
-      "id": "instalar_go",
-      "title": "Instalar Go (Golang)",
-      "category": "Linguagens",
-      "destructive": true,
-      "command": "winget install GoLang.Go --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Go iniciada!\" -ForegroundColor Green",
-      "description": "Instala o Go via WinGet."
-    },
-    {
-      "id": "instalar_java_temurin",
-      "title": "Instalar Java JDK 21 (Eclipse Temurin)",
-      "category": "Linguagens",
-      "destructive": true,
-      "command": "winget install EclipseAdoptium.Temurin.21.JDK --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Java JDK 21 iniciada!\" -ForegroundColor Green",
-      "description": "Instala o Java JDK 21 (Eclipse Temurin) via WinGet."
-    },
-    {
-      "id": "instalar_ferramenta_dotnet_global",
-      "title": "Instalar Ferramenta .NET (Global)",
-      "category": ".NET",
-      "destructive": true,
-      "pattern": "dotnet tool install --global {{PACOTE}}; Write-Host \"✅ Ferramenta .NET {{PACOTE}} instalada!\" -ForegroundColor Green",
+      "id": "testar_https_de_site",
+      "title": "Testar HTTPS de um Site",
+      "category": "Rede",
+      "destructive": false,
+      "pattern": "try { $r = Invoke-WebRequest -Uri \"{{URL_TESTE}}\" -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }",
       "params": {
-        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
+        "url_teste": "^https://[a-zA-Z0-9.\\-]{1,253}(?::[0-9]{1,5})?(?:[/\\?#][a-zA-Z0-9\\-._~:/\\?#\\[\\]@!&'*+,;=%]{0,500})?$"
       },
-      "description": "Instala uma ferramenta .NET globalmente via dotnet tool. Informe o parâmetro 'pacote' com o nome do pacote."
-    },
-    {
-      "id": "desinstalar_ferramenta_dotnet_global",
-      "title": "Desinstalar Ferramenta .NET (Global)",
-      "category": ".NET",
-      "destructive": true,
-      "pattern": "dotnet tool uninstall --global {{PACOTE}}; Write-Host \"✅ Ferramenta .NET {{PACOTE}} desinstalada!\" -ForegroundColor Green",
-      "params": {
-        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
-      },
-      "description": "Desinstala uma ferramenta .NET global. Informe o parâmetro 'pacote' com o nome do pacote."
-    },
-    {
-      "id": "instalar_pacote_winget_generico",
-      "title": "Instalar Pacote via WinGet (por ID)",
-      "category": "Pacotes",
-      "destructive": true,
-      "pattern": "winget install --id {{PACOTE_ID}} --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Pacote {{PACOTE_ID}} instalado!\" -ForegroundColor Green",
-      "params": {
-        "pacote_id": "^[a-zA-Z0-9_.-]{1,100}$"
-      },
-      "description": "Instala qualquer pacote disponível no WinGet pelo seu ID (ex: Microsoft.PowerToys). Informe o parâmetro 'pacote_id'."
-    },
-    {
-      "id": "instalar_pacote_chocolatey",
-      "title": "Instalar Pacote via Chocolatey",
-      "category": "Pacotes",
-      "destructive": true,
-      "pattern": "choco install {{PACOTE}} -y; Write-Host \"✅ Pacote {{PACOTE}} instalado via Chocolatey!\" -ForegroundColor Green",
-      "params": {
-        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
-      },
-      "description": "Instala um pacote via Chocolatey (requer choco instalado). Informe o parâmetro 'pacote' com o nome do pacote."
+      "description": "Testar HTTPS de um Site."
     }
   ]
 }

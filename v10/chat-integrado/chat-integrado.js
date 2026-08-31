@@ -52,6 +52,7 @@ const state = {
   conversas: [],
   memorias: [],
   tools: [],
+  toolsDesativadas: [],
   perfis: [],
   perfilAtivo: "balanced",
   modeloAtivo: "",
@@ -382,28 +383,48 @@ async function executeTool(toolName, args) {
   return result;
 }
 
-function showToolsPanel() {
-  const panel = $("toolsPanel");
-  const grid = panel.querySelector(".tools-grid");
+function renderToolsGrid() {
+  const grid = $("toolsPanel").querySelector(".tools-grid");
   grid.innerHTML = "";
-
-  for (const toolName of state.tools) {
+  const todas = [...state.tools, ...state.toolsDesativadas];
+  for (const toolName of todas) {
     const info = TOOL_DESCRIPTIONS[toolName] || { icon: "❓", desc: toolName };
+    const ativa = state.tools.includes(toolName);
     const card = document.createElement("div");
-    card.className = "tool-card";
+    card.className = "tool-card" + (ativa ? "" : " disabled");
     card.innerHTML = `
       <div class="tool-icon">${info.icon}</div>
       <div class="tool-name">${toolName}</div>
       <div class="tool-desc">${info.desc}</div>
+      <button class="tool-toggle-btn ${ativa ? "on" : "off"}" data-tool="${toolName}" title="${ativa ? "Desativar ferramenta" : "Ativar ferramenta"}">${ativa ? "🟢 Ativa" : "⏸ Desativada"}</button>
     `;
-    card.addEventListener("click", () => {
-      panel.classList.remove("show");
-      handleToolClick(toolName);
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".tool-toggle-btn")) {
+        toggleTool(toolName);
+        return;
+      }
+      if (state.tools.includes(toolName)) {
+        $("toolsPanel").classList.remove("show");
+        handleToolClick(toolName);
+      }
     });
     grid.appendChild(card);
   }
+}
 
-  panel.classList.toggle("show");
+async function toggleTool(toolName) {
+  try {
+    await apiPost(`/api/tools/${toolName}/toggle`);
+    await loadTools();
+    renderToolsGrid();
+  } catch (err) {
+    alert("Falha ao alternar ferramenta: " + (err.message || "erro"));
+  }
+}
+
+function showToolsPanel() {
+  renderToolsGrid();
+  $("toolsPanel").classList.toggle("show");
 }
 
 async function handleToolClick(toolName) {
@@ -709,6 +730,7 @@ async function loadTools() {
   try {
     const data = await apiGet("/api/tools");
     state.tools = data.tools || [];
+    state.toolsDesativadas = data.desativadas || [];
     $("btnConnectors").querySelector("span").textContent = `🔧 Ferramentas (${state.tools.length})`;
   } catch { /* offline */ }
 }

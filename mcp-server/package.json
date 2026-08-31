@@ -6,7 +6,7 @@
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
-        "test": "node --test"
+        "test": "node --test --test-concurrency=1"
     },
     "keywords": [
         "mcp",
@@ -15,6 +15,9 @@
     ],
     "author": "Jeanc",
     "license": "ISC",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.30.0",
         "mysql2": "^3.11.0"

@@ -120,3 +120,24 @@ test("launcher Node aceita id+params e rejeita comandos não cadastrados", async
   assert.equal(free.status, 403);
 });
 
+test("/run-status exige o mesmo cliente autorizado que inicia jobs", async (t) => {
+  const port = await reservePort();
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, [join(root, "v10", "launcher.js")], {
+    cwd: join(root, "v10"),
+    env: { ...process.env, MPC_PORT: String(port) },
+    windowsHide: true,
+    stdio: "ignore",
+  });
+  t.after(() => child.kill());
+
+  await waitForServer(base);
+
+  const anonymous = await fetch(base + "/run-status?id=unknown");
+  assert.equal(anonymous.status, 403);
+
+  const mcp = await fetch(base + "/run-status?id=unknown", {
+    headers: { "X-Mestre-Client": "mcp" },
+  });
+  assert.equal(mcp.status, 404);
+});

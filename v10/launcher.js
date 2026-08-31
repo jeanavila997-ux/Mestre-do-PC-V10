@@ -14,8 +14,9 @@ import { dirname, extname, join, resolve, sep } from "node:path";
 import { checkPromptInjection } from "../mcp-server/security.js";
 import { auditLog, AuditLevel } from "../mcp-server/audit-logger.js";
 import { handleApiRoute } from "./chat-integrado/api-routes.js";
-import { loadOperationRegistry } from "./operation-registry.js";
+import { loadOperationRegistry, clearOperationRegistryCache } from "./operation-registry.js";
 import { handleMemoryRoutes } from "./memory-routes.js";
+import { handleOperationRoutes } from "./operation-routes.js";
 import { 
   createMemory, 
   listMemories, 
@@ -31,6 +32,9 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.MPC_PORT ? Number(process.env.MPC_PORT) : 7777;
 const HOST = process.env.MPC_HOST || "127.0.0.1";
+if (HOST !== "127.0.0.1") {
+  throw new Error("MPC_HOST deve ser 127.0.0.1; o launcher não aceita exposição em rede.");
+}
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
 const BASE_URL = `http://${HOST}:${PORT}`;
 const PROJECT_DIR = join(__dirname, "..");
@@ -95,13 +99,22 @@ function detectarElevacao() {
   });
 }
 
-const registry = await loadOperationRegistry(join(__dirname, "allowed-operations.json"));
-const { operations: allowedOperations, templates: allowedTemplates } = registry;
-const fixedTemplates = registry.fixedTemplates;
-const fixedCommandEntries = registry.exactEntries;
-const operationsById = registry.operationsById;
-const exactCommands = registry.exactCommands;
-const compiledTemplates = registry.compiledTemplates;
+let registry = await loadOperationRegistry(join(__dirname, "allowed-operations.json"));
+let allowedOperations = registry.operations;
+let allowedTemplates = registry.templates;
+function applyRegistryRefs() {
+  allowedOperations = registry.operations;
+  allowedTemplates = registry.templates;
+}
+applyRegistryRefs();
+// Recarrega a whitelist do disco após edições feitas pela UI de gestão
+// (/gerenciar-comandos.html). Sem isto, o launcher manteria a cópia antiga em memória.
+async function reloadRegistry() {
+  clearOperationRegistryCache();
+  registry = await loadOperationRegistry(join(__dirname, "allowed-operations.json"));
+  applyRegistryRefs();
+  return registry;
+}
 
 const jobs = new Map();
 
@@ -539,6 +552,12 @@ const server = http.createServer(async (req, res) => {
       if (handled) return;
     }
 
+    // ── Gestão de Operações/Comandos: rotas /operations* ────────────
+    if (path === "/operations" || path.startsWith("/operations/")) {
+      const handled = await handleOperationRoutes(req, res, url, { isAuthorized, allowedOrigin, reloadRegistry });
+      if (handled) return;
+    }
+
     if (path === "/ping") {
       return sendJson(res, 200, {
         status: "ok",
@@ -636,6 +655,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (path === "/run-status") {
+      if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado.", state: "forbidden" }, allowedOrigin);
       const id = url.searchParams.get("id");
       const job = jobs.get(id);
       if (!job) return sendJson(res, 404, { success: false, output: "Job not found", state: "not_found" }, allowedOrigin);

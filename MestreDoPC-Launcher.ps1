@@ -1,7 +1,16 @@
 # ================================================================
-# Mestre do PC V10 - Servidor HTTP Admin (porta 7777)
-# A interface V10 envia comandos autorizados via fetch() -> este PS executa como Admin
+# Compatibilidade: o launcher PowerShell foi substituído por v10\launcher.js.
+# Mantido apenas para instalações antigas que ainda chamam este arquivo.
 # ================================================================
+$nodeLauncher = Join-Path $PSScriptRoot "start-mestre-v10.ps1"
+if (-not (Test-Path -LiteralPath $nodeLauncher)) {
+    throw "Inicializador Node.js não encontrado: $nodeLauncher"
+}
+Write-Warning "MestreDoPC-Launcher.ps1 está obsoleto; iniciando o launcher Node.js."
+& $nodeLauncher
+exit $LASTEXITCODE
+
+# Implementação legada mantida abaixo apenas para histórico e não é executada.
 
 # Resolve o caminho do script logo no bootstrap para reutilizar no PID, task e elevacao.
 $scriptPath = $PSCommandPath

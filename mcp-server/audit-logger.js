@@ -74,7 +74,7 @@ export async function auditLog(level, action, details = {}, userId = "system") {
     
     // Log de segurança também vai para console
     if (level === AuditLevel.SECURITY) {
-      console.error(`[AUDIT-SECURITY] ${action}: ${JSON.stringify(details)}`);
+      console.error(`[AUDIT-SECURITY] ${action}: ${JSON.stringify(logEntry.details)}`);
     }
   } catch (e) {
     console.error(`[AUDIT] Falha ao escrever log: ${e.message}`);

@@ -54,6 +54,7 @@ export class OperationRegistry {
         pattern: tpl.pattern,
         params: tpl.params || {},
         destructive: !!tpl.destructive,
+        enabled: tpl.enabled !== false,
         regex: new RegExp(`^${regexSource}$`, "s"),
       };
     });
@@ -76,9 +77,11 @@ export class OperationRegistry {
       if (!op && !tpl) return { error: `Operação '${body.id}' não encontrada.` };
 
       if (op) {
+        if (op.enabled === false) return { error: `Operação '${op.id}' está desativada. Ative-a em /gerenciar-comandos.html.` };
         return { cmd: op.command, destructive: !!op.destructive, id: op.id };
       }
 
+      if (tpl.enabled === false) return { error: `Operação '${tpl.id}' está desativada. Ative-a em /gerenciar-comandos.html.` };
       let finalCmd = tpl.pattern;
       const params = body.params || {};
       for (const [key, regexSource] of Object.entries(tpl.params || {})) {
@@ -97,10 +100,12 @@ export class OperationRegistry {
       if (cmd.length > maxCmdLength) return { error: "Comando excede o limite de tamanho." };
       if (this.exactCommands.has(cmd)) {
         const op = this.exactEntries.find((o) => o.command === cmd);
+        if (op && op.enabled === false) return { error: `Operação '${op.id}' está desativada. Ative-a em /gerenciar-comandos.html.` };
         return { cmd, destructive: !!op?.destructive, id: op?.id };
       }
       for (const compiled of this.compiledTemplates) {
         if (compiled.regex.test(cmd)) {
+          if (compiled.enabled === false) return { error: `Operação '${compiled.id}' está desativada. Ative-a em /gerenciar-comandos.html.` };
           return { cmd, destructive: compiled.destructive, id: compiled.id };
         }
       }
@@ -117,9 +122,11 @@ export class OperationRegistry {
   buildMcpToolRegistry() {
     const registry = {};
     for (const op of this.exactEntries) {
+      if (op.enabled === false) continue;
       registry[op.id] = { id: op.id, description: op.description || "", command: op.command };
     }
     for (const tpl of this.parametrizedTemplates) {
+      if (tpl.enabled === false) continue;
       registry[tpl.id] = { id: tpl.id, description: tpl.description || "", command: tpl.pattern };
     }
     return registry;

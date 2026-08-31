@@ -15,7 +15,7 @@ Aplicativo local de diagnóstico e manutenção do Windows com interface V10, in
 
 - Windows 10 ou Windows 11, 64 bits;
 - PowerShell 5.1 ou superior;
-- Node.js 20 ou superior para a versão atual;
+- Node.js 22.13 ou superior para a versão atual;
 - Ollama opcional.
 
 ## Instalação para desenvolvimento
@@ -35,7 +35,7 @@ npm start
 
 ## Segurança
 
-O launcher aceita apenas comandos que já estejam cadastrados em `v10/allowed-operations.json`. Comandos livres gerados por IA ou enviados manualmente são recusados.
+O launcher executa por padrão apenas comandos cadastrados em `v10/allowed-operations.json`. O Modo Livre é opt-in, exige confirmação no chat para cada comando e registra a execução em auditoria.
 
 Este projeto executa funções administrativas. Leia [SECURITY.md](SECURITY.md) antes de usar em computadores de produção.
 

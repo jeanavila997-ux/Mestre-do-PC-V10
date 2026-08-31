@@ -681,6 +681,27 @@ body.sidebar-collapsed .main { margin-left: 0 }
 .tool-card .tool-name { font-weight: 600; color: var(--text) }
 .tool-card .tool-desc { color: var(--text-muted); font-size: 11px; margin-top: 2px }
 
+.tool-card.disabled { opacity: 0.55; border-color: var(--border) }
+.tool-card.disabled:hover { border-color: var(--warning); background: rgba(240, 168, 0, 0.06) }
+.tool-card.disabled .tool-name { color: var(--text-muted) }
+
+.tool-toggle-btn {
+  margin-top: 8px;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tool-toggle-btn.on { border-color: rgba(0, 255, 136, 0.4); color: var(--accent2) }
+.tool-toggle-btn.on:hover { background: rgba(0, 255, 136, 0.1) }
+.tool-toggle-btn.off { border-color: rgba(240, 168, 0, 0.4); color: var(--warning) }
+.tool-toggle-btn.off:hover { background: rgba(240, 168, 0, 0.1) }
+
 /* ── Memories panel ───────────────────────────────────────────────── */
 
 .memories-panel {

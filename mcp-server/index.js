@@ -8,7 +8,7 @@ import {
   ErrorCode,
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
-import { sanitizeToolArgument, checkPromptInjection } from "./security.js";
+import { checkPromptInjection } from "./security.js";
 import { auditLog, AuditLevel, queryAuditLog } from "./audit-logger.js";
 import { loadOperationRegistry } from "../v10/operation-registry.js";
 import { readFile, readdir, access, constants } from "node:fs/promises";
@@ -271,7 +271,7 @@ async function executeLauncherCommand(commandOrPayload, options = {}) {
   while (Date.now() < deadline) {
     const statusRes = await fetch(
       MESTRE_STATUS_URL + "?id=" + encodeURIComponent(submitData.jobId),
-      { signal: AbortSignal.timeout(statusTimeoutMs) },
+      { headers: { "X-Mestre-Client": "mcp" }, signal: AbortSignal.timeout(statusTimeoutMs) },
     );
     const statusData = await statusRes.json();
 
@@ -336,7 +336,7 @@ async function executeFreeCommand(cmd, options = {}) {
   while (Date.now() < deadline) {
     const statusRes = await fetch(
       MESTRE_STATUS_URL + "?id=" + encodeURIComponent(submitData.jobId),
-      { signal: AbortSignal.timeout(statusTimeoutMs) },
+      { headers: { "X-Mestre-Client": "mcp" }, signal: AbortSignal.timeout(statusTimeoutMs) },
     );
     const statusData = await statusRes.json();
     if (statusRes.ok === false) {
@@ -2025,29 +2025,15 @@ Responda apenas com o comando PowerShell, nada mais.`,
   if (!toolConfig) throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
 
   try {
-    // Substitui placeholders no comando localmente para fallback compatível.
-    let finalCmd = toolConfig.command;
-    const params = {};
-    if (args && typeof args === "object") {
-      for (const [key, value] of Object.entries(args)) {
-        const sanitizedValue = sanitizeToolArgument(value);
-        if (sanitizedValue == null) {
-          return {
-            isError: true,
-            content: [{ type: "text", text: `Argumento inválido para o parâmetro: ${key}` }],
-          };
-        }
-        params[key] = sanitizedValue;
-        const placeholder = new RegExp(`\\{\\{${key.toUpperCase()}\\}\\}`, "g");
-        finalCmd = finalCmd.replace(placeholder, sanitizedValue);
-      }
-    }
-
-    const unfilledMatch = finalCmd.match(/\{\{[A-Z_]+\}\}/);
-    if (unfilledMatch) {
+    // A validação pertence ao OperationRegistry: cada template define a própria
+    // regex de parâmetros. Uma allowlist genérica aqui rejeitaria entradas
+    // legítimas como URLs, antes da validação específica de segurança.
+    const params = args && typeof args === "object" ? args : {};
+    const resolved = operationRegistry.resolve({ id: toolConfig.id, params });
+    if (resolved.error) {
       return {
         isError: true,
-        content: [{ type: "text", text: `Parâmetro obrigatório ausente: ${unfilledMatch[0]}. Por favor, forneça o argumento necessário.` }],
+        content: [{ type: "text", text: resolved.error }],
       };
     }
 

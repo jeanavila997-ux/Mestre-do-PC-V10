@@ -71,15 +71,30 @@ Normalmente o Claude Desktop ou Codex inicia `index.js`; não é necessário man
   "mcpServers": {
     "mestre_do_pc": {
       "command": "node",
-      "args": ["C:\\Users\\Jeanc\\Mestre-do-PC-V10-clean\\mcp-server\\index.js"],
+      "args": ["C:\\Mestre-do-PC-V10-main\\mcp-server\\index.js"],
       "env": {
-        "MESTRE_PROJETO_PATH": "C:\\Users\\Jeanc\\Mestre-do-PC-V10-clean",
+        "MESTRE_PROJETO_PATH": "C:\\Mestre-do-PC-V10-main",
         "OLLAMA_NUM_CTX": "8192",
         "OLLAMA_API_KEY": "sua_api_key_aqui"
       }
     }
   }
 }
+```
+
+### Clientes já configurados nesta máquina
+
+Registrado em 2026-08-31 com o caminho atual (`C:\Mestre-do-PC-V10-main\mcp-server\index.js`):
+
+- **Claude Code** — `~/.claude.json` → `mcpServers.mestre_do_pc`
+  (backup em `~/.claude.json.bak-mcp`; re-registrar com `node register-claude.mjs`)
+- **Codex CLI** — `~/.codex/config.toml` → `[mcp_servers.mestre_do_pc]`
+- **VS Code** — `%APPDATA%\Code\User\mcp.json` → servidor stdio `mestre-do-pc`
+
+Teste rápido de ponta a ponta (stdio):
+
+```powershell
+'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' | node index.js
 ```
 
 O MCP identifica suas requisições administrativas com `X-Mestre-Client: mcp`;

@@ -132,6 +132,33 @@ test("template parametrizado casa por cmd literal (modo legado)", async (t) => {
   assert.equal(legacy.id, "encerrar_processo");
 });
 
+test("template HTTPS rejeita expansão de expressão PowerShell", async () => {
+  const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
+  const { OperationRegistry } = await import(pathToFileURL(join(root, "v10", "operation-registry.js")).href);
+  const registry = new OperationRegistry(catalog);
+  const maliciousUrl = "https://example.com/" + "$" + "(whoami)";
+
+  const blocked = registry.resolve({ id: "testar_https_de_site", params: { url_teste: maliciousUrl } });
+  assert.match(blocked.error || "", /Parâmetro inválido/);
+
+  const allowed = registry.resolve({
+    id: "testar_https_de_site",
+    params: { url_teste: "https://example.com/status?ready=true" },
+  });
+  assert.equal(allowed.id, "testar_https_de_site");
+  assert.match(allowed.cmd, /https:\/\/example\.com\/status\?ready=true/);
+
+  for (const url of ["https://example.com:443/health", "https://example.com?ready=true", "https://example.com#status"]) {
+    assert.equal(registry.resolve({ id: "testar_https_de_site", params: { url_teste: url } }).id, "testar_https_de_site");
+  }
+});
+
+test("MCP delega a validação de parâmetros ao OperationRegistry", async () => {
+  const source = await readFile(join(root, "mcp-server", "index.js"), "utf8");
+  assert.match(source, /operationRegistry\.resolve\(\{ id: toolConfig\.id, params \}\)/);
+  assert.doesNotMatch(source, /const sanitizedValue = sanitizeToolArgument\(value\)/);
+});
+
 test("todo id do registry MCP existe em allowed-operations.json", async () => {
   // O MCP server agora deriva suas ferramentas de v10/operation-registry.js,
   // que carrega allowed-operations.json. Este teste garante que nenhuma tool

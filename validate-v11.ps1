@@ -1,4 +1,4 @@
-# Mestre do PC V11 - Validação de Scripts PowerShell
+﻿# Mestre do PC V11 - Validação de Scripts PowerShell
 # Verifica sintaxe e boas práticas em todos os scripts .ps1
 
 param(
@@ -24,6 +24,7 @@ Write-Host ""
 $passed = 0
 $failed = 0
 $warnings = 0
+$secretAssignmentPattern = '(?i)\b(password|senha|token|api[_-]?key|secret)\s*='
 
 foreach ($script in $scripts) {
     $relativePath = $script.FullName.Replace($projectRoot, "").TrimStart("\")
@@ -79,7 +80,7 @@ foreach ($script in $scripts) {
         }
         
         # Erro: Credenciais em claro
-        if ($content -match 'password\s*=\s*"[^"]+"') {
+        if ($content -match $secretAssignmentPattern) {
             Write-Host "  ❌ Senha em claro detectada!" -ForegroundColor Red
             $failed++
             continue

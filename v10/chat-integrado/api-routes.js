@@ -34,6 +34,15 @@ import { auditLog, AuditLevel } from "../../mcp-server/audit-logger.js";
 
 let syncStarted = false;
 
+/** Ferramentas desativadas pelo usuário (config tool_disabled:<nome> = "1"). */
+function getDisabledTools() {
+  return new Set(
+    db.listarConfig()
+      .filter((r) => r.chave.startsWith("tool_disabled:") && r.valor === "1")
+      .map((r) => r.chave.slice("tool_disabled:".length))
+  );
+}
+
 /**
  * Lê o corpo JSON da requisição.
  */
@@ -124,15 +133,44 @@ export async function handleApiRoute(req, res, url, ctx) {
 
   if (path === "/api/tools" && method === "GET") {
     if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
-    ok(res, { tools: TOOL_NAMES, total: TOOL_NAMES.length }, allowedOrigin);
+    const disabled = getDisabledTools();
+    const enabledTools = TOOL_NAMES.filter((t) => !disabled.has(t));
+    ok(res, {
+      tools: enabledTools,
+      total: enabledTools.length,
+      totalTodas: TOOL_NAMES.length,
+      desativadas: TOOL_NAMES.filter((t) => disabled.has(t)),
+    }, allowedOrigin);
     return true;
   }
 
-  if (parts[2] === "tools" && parts[3] && method === "POST") {
+  // POST /api/tools/:name/toggle — ativa/desativa ferramenta
+  if (parts[2] === "tools" && parts[3] && parts[4] === "toggle" && method === "POST") {
     if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
     const toolName = parts[3];
     if (!TOOL_NAMES.includes(toolName)) {
       fail(res, 404, { error: `Ferramenta "${toolName}" não existe` }, allowedOrigin);
+      return true;
+    }
+    const key = `tool_disabled:${toolName}`;
+    const atual = db.getConfig(key, "0");
+    const proximo = atual === "1" ? "0" : "1";
+    db.setConfig(key, proximo);
+    auditLog(AuditLevel.SECURITY, "tool_toggle", { tool: toolName, ativa: proximo === "0" });
+    ok(res, { success: true, tool: toolName, ativa: proximo === "0" }, allowedOrigin);
+    return true;
+  }
+
+  if (parts[2] === "tools" && parts[3] && !parts[4] && method === "POST") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    const toolName = parts[3];
+    if (!TOOL_NAMES.includes(toolName)) {
+      fail(res, 404, { error: `Ferramenta "${toolName}" não existe` }, allowedOrigin);
+      return true;
+    }
+    if (db.getConfig(`tool_disabled:${toolName}`, "0") === "1") {
+      auditLog(AuditLevel.SECURITY, "tool_blocked_disabled", { tool: toolName });
+      fail(res, 403, { success: false, error: `Ferramenta "${toolName}" está desativada. Ative-a no painel de ferramentas.` }, allowedOrigin);
       return true;
     }
     let body;

@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mestre do PC — Gerenciar Comandos &amp; Ferramentas</title>
+<style>
+:root{--bg:#05070a;--panel:#0d1117;--card:#161b22;--hover:#1c2530;--border:rgba(255,255,255,0.1);--text:#e6edf3;--text-muted:#8b949e;--accent:#00d4ff;--accent2:#00ff88;--danger:#f85149;--warning:#f0a800;--purple:#a200ff;--radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+body.light{--bg:#f6f8fa;--panel:#fff;--card:#f3f4f6;--hover:#e5e7eb;--border:rgba(0,0,0,0.12);--text:#1f2328;--text-muted:#656d76;--accent:#0969da;--accent2:#1a7f37;--danger:#cf222e;--warning:#9a6700}
+.wrap{max-width:1100px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+h1{font-size:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.spacer{flex:1}
+.btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:var(--radius);cursor:pointer;font-size:13px;transition:all .2s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-weight:700;border:none}
+.btn.danger{color:var(--danger);border-color:rgba(248,81,73,.4)}
+.btn.danger:hover{background:rgba(248,81,73,.1)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;font-size:13px}
+.stat b{font-size:20px;display:block}
+.stat.green b{color:var(--accent2)}.stat.red b{color:var(--danger)}.stat.yellow b{color:var(--warning)}.stat.blue b{color:var(--accent)}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.controls input,.controls select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:var(--radius);font-size:13px;outline:none}
+.controls input{flex:1;min-width:200px}
+.controls input:focus,.controls select:focus{border-color:var(--accent)}
+.tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.tab{padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text-muted);border:1px solid transparent}
+.tab.active{background:var(--card);color:var(--accent);border-color:var(--border)}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.row:hover{border-color:var(--accent)}
+.row .main{flex:1;min-width:220px}
+.row .title{font-weight:600;font-size:14px}
+.row .id{font-size:11px;color:var(--text-muted);font-family:monospace}
+.row .desc{font-size:12px;color:var(--text-muted);margin-top:2px}
+.row .cmd{font-size:11px;color:var(--accent2);font-family:Consolas,monospace;background:rgba(0,0,0,.3);padding:4px 8px;border-radius:6px;margin-top:6px;word-break:break-all;max-height:60px;overflow:hidden}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;display:inline-block;margin-right:4px}
+.badge.cat{background:rgba(0,212,255,.12);color:var(--accent)}
+.badge.dest{background:rgba(248,81,73,.15);color:var(--danger)}
+.badge.tpl{background:rgba(162,0,255,.15);color:var(--purple)}
+.badge.off{background:rgba(240,168,0,.15);color:var(--warning)}
+.actions{display:flex;gap:6px;align-items:center}
+.icon-btn{background:none;border:1px solid var(--border);color:var(--text-muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;transition:all .2s}
+.icon-btn:hover{color:var(--accent);border-color:var(--accent)}
+.icon-btn.del:hover{color:var(--danger);border-color:var(--danger)}
+.switch{position:relative;width:44px;height:24px;background:var(--hover);border:1px solid var(--border);border-radius:20px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.switch::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:2px;left:2px;transition:all .2s}
+.switch.on{background:var(--accent2);border-color:var(--accent2)}
+.switch.on::after{transform:translateX(20px)}
+.empty{color:var(--text-muted);text-align:center;padding:40px;font-size:14px}
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;width:560px;max-width:94vw;max-height:90vh;overflow-y:auto;padding:20px}
+.modal h2{font-size:18px;margin-bottom:16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:4px}
+.field input,.field textarea,.field select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+.field textarea{min-height:80px;resize:vertical;font-family:Consolas,monospace;font-size:12px}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--accent2);color:#000;padding:10px 20px;border-radius:40px;font-weight:700;font-size:13px;z-index:2000;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.err{background:var(--danger);color:#fff}
+.toast.warn{background:var(--warning);color:#000}
+/* Tools grid */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.tool-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-size:12px}
+.tool-card.disabled{opacity:.55}
+.tool-card .t-name{font-weight:600;font-size:13px}
+.tool-card .t-desc{color:var(--text-muted);font-size:11px;margin-top:2px}
+.tool-card .t-toggle{margin-top:8px;width:100%;border:1px solid var(--border);background:var(--card);color:var(--text-muted);border-radius:6px;padding:4px;font-size:11px;cursor:pointer}
+.tool-card .t-toggle.on{color:var(--accent2);border-color:rgba(0,255,136,.4)}
+.tool-card .t-toggle.off{color:var(--warning);border-color:rgba(240,168,0,.4)}
+@media(max-width:600px){.row{flex-direction:column;align-items:stretch}.actions{justify-content:flex-end}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>⚙️ Gerenciar Comandos &amp; Ferramentas</h1>
+    <div class="spacer"></div>
+    <button class="btn" onclick="toggleTheme()" title="Alternar tema">◐ Tema</button>
+    <button class="btn" onclick="location.href='/index.html'">← Voltar ao App</button>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="comandos" onclick="switchTab('comandos')">🛠️ Comandos</div>
+    <div class="tab" data-tab="ferramentas" onclick="switchTab('ferramentas')">🔧 Ferramentas do Chat</div>
+  </div>
+
+  <!-- Aba Comandos -->
+  <div id="tab-comandos">
+    <div class="controls">
+      <input type="text" id="search" placeholder="🔍 Buscar por título, id, comando ou descrição..." oninput="debouncedLoad()"/>
+      <select id="catFilter" onchange="loadComandos()"><option value="">Todas as categorias</option></select>
+      <select id="statusFilter" onchange="loadComandos()">
+        <option value="">Todos</option>
+        <option value="ativo">Ativos</option>
+        <option value="inativo">Inativos</option>
+      </select>
+      <button class="btn primary" onclick="openCreate()">＋ Novo Comando</button>
+    </div>
+    <div class="list" id="cmdList"></div>
+  </div>
+
+  <!-- Aba Ferramentas -->
+  <div id="tab-ferramentas" style="display:none">
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Ative/desative as ferramentas do Chat Integrado. Desativadas somem do painel e não podem ser executadas.</p>
+    <div class="tools-grid" id="toolsGrid"></div>
+  </div>
+</div>
+
+<!-- Modal editar/criar -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">Editar Comando</h2>
+    <div class="field"><label>Título *</label><input id="fTitle" placeholder="Ex: Limpar cache do Chrome"/></div>
+    <div class="field"><label>Categoria *</label><input id="fCategory" placeholder="Ex: Limpeza"/></div>
+    <div class="field"><label>Descrição</label><input id="fDesc" placeholder="Breve descrição"/></div>
+    <div class="field"><label id="fCmdLabel">Comando PowerShell *</label><textarea id="fCmd" placeholder="Ex: Remove-Item ..."></textarea></div>
+    <div class="field"><label class="check"><input type="checkbox" id="fDestructive"/> ⚠️ Destrutivo (exige confirmação)</label></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="saveModal()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = window.location.protocol.startsWith("http") ? window.location.origin : "http://127.0.0.1:7777";
+const H = { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" };
+let editingId = null;
+let debounceTimer = null;
+
+function toast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast" + (type === "err" ? " err" : type === "warn" ? " warn" : "");
+  t.style.display = "block";
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => (t.style.display = "none"), 2500);
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("light");
+  localStorage.setItem("mestre-theme", document.body.classList.contains("light") ? "light" : "dark");
+}
+if (localStorage.getItem("mestre-theme") === "light") document.body.classList.add("light");
+
+function switchTab(tab) {
+  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
+  document.getElementById("tab-comandos").style.display = tab === "comandos" ? "" : "none";
+  document.getElementById("tab-ferramentas").style.display = tab === "ferramentas" ? "" : "none";
+  if (tab === "ferramentas") loadTools();
+}
+
+function debouncedLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadComandos, 250); }
+
+async function loadComandos() {
+  const search = document.getElementById("search").value.trim();
+  const categoria = document.getElementById("catFilter").value;
+  const status = document.getElementById("statusFilter").value;
+  const qs = new URLSearchParams();
+  if (search) qs.set("search", search);
+  if (categoria) qs.set("categoria", categoria);
+  if (status) qs.set("status", status);
+  try {
+    const r = await fetch(API + "/operations?" + qs.toString(), { headers: H });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    renderStats(d);
+    // Preenche dropdown de categorias (só na primeira vez)
+    const sel = document.getElementById("catFilter");
+    if (sel.options.length <= 1 && d.categorias) {
+      d.categorias.forEach((c) => {
+        const o = document.createElement("option");
+        o.value = c; o.textContent = c;
+        sel.appendChild(o);
+      });
+    }
+    renderList(d.operations || []);
+  } catch (e) {
+    document.getElementById("cmdList").innerHTML = `<div class="empty">❌ Falha ao carregar: ${e.message}</div>`;
+  }
+}
+
+function renderStats(d) {
+  document.getElementById("stats").innerHTML = `
+    <div class="stat blue"><b>${d.totalGeral}</b>Total</div>
+    <div class="stat green"><b>${d.ativos}</b>Ativos</div>
+    <div class="stat red"><b>${d.inativos}</b>Inativos</div>
+    <div class="stat yellow"><b>${d.destrutivas}</b>Destrutivas</div>
+  `;
+}
+
+function renderList(ops) {
+  const list = document.getElementById("cmdList");
+  if (!ops.length) { list.innerHTML = `<div class="empty">Nenhum comando encontrado.</div>`; return; }
+  list.innerHTML = ops.map((op) => {
+    const cmdText = op.command || op.pattern || "";
+    const badges = `
+      <span class="badge cat">${escapeHtml(op.category || "Outros")}</span>
+      ${op.destructive ? '<span class="badge dest">⚠️ Destrutivo</span>' : ""}
+      ${op.type === "template" ? '<span class="badge tpl">Template</span>' : ""}
+      ${!op.enabled ? '<span class="badge off">Desativado</span>' : ""}
+    `;
+    return `
+      <div class="row">
+        <div class="main">
+          <div class="title">${escapeHtml(op.title)} <span class="id">${escapeHtml(op.id)}</span></div>
+          <div>${badges}</div>
+          ${op.desc ? `<div class="desc">${escapeHtml(op.desc)}</div>` : ""}
+          <div class="cmd" title="${escapeHtml(cmdText)}">${escapeHtml(cmdText)}</div>
+        </div>
+        <div class="actions">
+          <div class="switch ${op.enabled ? "on" : ""}" onclick="toggleOp('${op.id}')" title="${op.enabled ? "Desativar" : "Ativar"}"></div>
+          <button class="icon-btn" onclick="openEdit('${op.id}')" title="Editar">✏️</button>
+          <button class="icon-btn del" onclick="deleteOp('${op.id}')" title="Excluir">🗑️</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function toggleOp(id) {
+  try {
+    const r = await fetch(API + "/operations/" + encodeURIComponent(id) + "/toggle", { method: "POST", headers: H, body: "{}" });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    toast(d.enabled ? "🟢 Comando ativado" : "⏸ Comando desativado", d.enabled ? "" : "warn");
+    loadComandos();
+  } catch (e) { toast("❌ " + e.message, "err"); }
+}
+
+async function deleteOp(id) {
+  if (!confirm("Excluir este comando da whitelist?\n\nIsso impede que ele seja executado. Confirma?")) return;
+  try {
+    const r = await fetch(API + "/operations/" + encodeURIComponent(id), { method: "DELETE", headers: H });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    toast("🗑️ Comando excluído");
+    loadComandos();
+  } catch (e) { toast("❌ " + e.message, "err"); }
+}
+
+function openCreate() {
+  editingId = null;
+  document.getElementById("modalTitle").textContent = "＋ Novo Comando";
+  document.getElementById("fTitle").value = "";
+  document.getElementById("fCategory").value = "Outros";
+  document.getElementById("fDesc").value = "";
+  document.getElementById("fCmd").value = "";
+  document.getElementById("fDestructive").checked = false;
+  document.getElementById("fCmdLabel").textContent = "Comando PowerShell *";
+  document.getElementById("modal").classList.add("open");
+}
+
+async function openEdit(id) {
+  try {
+    const r = await fetch(API + "/operations/" + encodeURIComponent(id), { headers: H });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    const op = d.operation;
+    editingId = op.id;
+    document.getElementById("modalTitle").textContent = "✏️ Editar: " + op.title;
+    document.getElementById("fTitle").value = op.title || "";
+    document.getElementById("fCategory").value = op.category || "Outros";
+    document.getElementById("fDesc").value = op.desc || "";
+    document.getElementById("fCmd").value = op.command || op.pattern || "";
+    document.getElementById("fDestructive").checked = !!op.destructive;
+    document.getElementById("fCmdLabel").textContent = op.type === "template" ? "Pattern (template) *" : "Comando PowerShell *";
+    document.getElementById("modal").classList.add("open");
+  } catch (e) { toast("❌ " + e.message, "err"); }
+}
+
+function closeModal() { document.getElementById("modal").classList.remove("open"); }
+
+async function saveModal() {
+  const title = document.getElementById("fTitle").value.trim();
+  const category = document.getElementById("fCategory").value.trim();
+  const desc = document.getElementById("fDesc").value.trim();
+  const cmd = document.getElementById("fCmd").value.trim();
+  const destructive = document.getElementById("fDestructive").checked;
+  if (!title || !cmd) { toast("⚠️ Preencha título e comando", "warn"); return; }
+  const body = { title, category: category || "Outros", description: desc, command: cmd, destructive };
+  try {
+    const url = editingId ? API + "/operations/" + encodeURIComponent(editingId) : API + "/operations";
+    const method = editingId ? "PUT" : "POST";
+    const r = await fetch(url, { method, headers: H, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    toast(editingId ? "💾 Comando atualizado" : "✅ Comando criado");
+    closeModal();
+    loadComandos();
+  } catch (e) { toast("❌ " + e.message, "err"); }
+}
+
+// ── Ferramentas do chat ─────────────────────────────────────────────
+async function loadTools() {
+  try {
+    const r = await fetch(API + "/api/tools", { headers: H });
+    const d = await r.json();
+    const grid = document.getElementById("toolsGrid");
+    const todas = [...(d.tools || []), ...(d.desativadas || [])];
+    if (!todas.length) { grid.innerHTML = `<div class="empty">Nenhuma ferramenta.</div>`; return; }
+    grid.innerHTML = todas.map((name) => {
+      const ativa = (d.tools || []).includes(name);
+      return `
+        <div class="tool-card ${ativa ? "" : "disabled"}">
+          <div class="t-name">${escapeHtml(name)}</div>
+          <div class="t-desc">${ativa ? "Ativa" : "Desativada"}</div>
+          <button class="t-toggle ${ativa ? "on" : "off"}" onclick="toggleTool('${name}')">${ativa ? "🟢 Ativa" : "⏸ Desativada"}</button>
+        </div>`;
+    }).join("");
+  } catch (e) {
+    document.getElementById("toolsGrid").innerHTML = `<div class="empty">❌ ${e.message}</div>`;
+  }
+}
+
+async function toggleTool(name) {
+  try {
+    const r = await fetch(API + "/api/tools/" + encodeURIComponent(name) + "/toggle", { method: "POST", headers: H, body: "{}" });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    toast(d.ativa ? "🟢 Ferramenta ativada" : "⏸ Ferramenta desativada", d.ativa ? "" : "warn");
+    loadTools();
+  } catch (e) { toast("❌ " + e.message, "err"); }
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// Fecha modal com Esc
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+loadComandos();
+</script>
+</body>
+</html>
