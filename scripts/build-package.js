@@ -151,3 +151,18 @@ try {
 } catch (err) {
   console.warn('⚠️ Não foi possível gerar o arquivo ZIP automaticamente:', err.message);
 }
+
+// Preparar pasta dist/site (Landing page para hospedagem)
+const siteDir = path.join(baseDir, 'dist', 'site');
+fs.mkdirSync(siteDir, { recursive: true });
+fs.copyFileSync(path.join(baseDir, 'icon.ico'), path.join(siteDir, 'icon.ico'));
+if (fs.existsSync(path.join(baseDir, 'logo-mestre-v7-transparent.png'))) {
+  fs.copyFileSync(path.join(baseDir, 'logo-mestre-v7-transparent.png'), path.join(siteDir, 'logo.png'));
+}
+if (fs.existsSync(path.join(baseDir, 'favicon.png'))) {
+  fs.copyFileSync(path.join(baseDir, 'favicon.png'), path.join(siteDir, 'favicon.png'));
+}
+if (fs.existsSync(zipPath)) {
+  fs.copyFileSync(zipPath, path.join(siteDir, 'ClientePackage.zip'));
+}
+console.log('🌐 Site para hospedagem preparado em:', siteDir);
