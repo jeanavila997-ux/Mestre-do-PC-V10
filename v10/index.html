@@ -524,6 +524,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        -webkit-user-select: none;
         user-select: none;
         transition: 0.2s;
       }
@@ -671,7 +672,7 @@
         display: none; align-items: center; gap: 8px; font-size: 0.95rem;
       }
       /* Modal de confirmação de comando (substitui window.confirm no fluxo da IA) */
-      .cmd-confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(6px); z-index: 10050; display: none; justify-content: center; align-items: center; }
+      .cmd-confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.78); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); z-index: 10050; display: none; justify-content: center; align-items: center; }
       .cmd-confirm-overlay.open { display: flex; }
       .cmd-confirm-modal { width: 620px; max-width: 94vw; background: var(--panel); border: 1px solid var(--danger); border-radius: 14px; overflow: hidden; }
       .cmd-confirm-modal.safe { border-color: var(--accent2); }
@@ -684,7 +685,7 @@
       .cmd-confirm-foot button.primary { background: var(--danger); border-color: var(--danger); color: #fff; }
       .cmd-confirm-foot button.primary.safe { background: var(--accent2); border-color: var(--accent2); color: #000; }
       /* ===== Modal parâmetro (padrão V7) ===== */
-      .param-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 9000; justify-content: center; align-items: center; }
+      .param-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); z-index: 9000; justify-content: center; align-items: center; }
       .param-modal { background: var(--panel); border: 1px solid rgba(0,212,255,0.3); border-radius: 14px; padding: 28px 32px; width: 420px; max-width: 95vw; }
       .param-title { color: var(--accent); margin-bottom: 8px; font-size: 1rem; }
       .param-desc { color: #8b949e; font-size: 0.88rem; margin-bottom: 14px; }
@@ -731,7 +732,7 @@
       .output-entry-actions button.btn-ia:hover { border-color: var(--purple); color: #c9a0ff; }
       .output-entry-actions button.btn-mem:hover { border-color: var(--accent2); color: var(--accent2); }
       /* ===== NOVO: Terminal modal com output ao vivo ===== */
-      .term-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 9500; justify-content: center; align-items: center; }
+      .term-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); z-index: 9500; justify-content: center; align-items: center; }
       .term-overlay.open { display: flex; }
       .term-modal { width: 800px; max-width: 95vw; height: 70vh; background: var(--panel); border: 1px solid var(--accent2); border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 40px rgba(0,255,136,0.2); }
       .term-head { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }

@@ -200,7 +200,7 @@ body{
 .ia-typing span:nth-child(3){animation-delay:0.4s}
 
 /* Modal de confirmação */
-.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
 .confirm-overlay.show{opacity:1;pointer-events:auto}
 .confirm-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;max-width:500px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.6);animation:fadeInScale 0.25s ease}
 .confirm-card.destructive{border-color:var(--danger);box-shadow:0 0 24px rgba(248,81,73,0.3)}
