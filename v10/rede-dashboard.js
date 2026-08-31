@@ -128,7 +128,7 @@ const RedeDashboard = {
         <span class="rd-proxima" id="rd-proxima"></span>
       </div>
 
-      <div class="rd-offline" id="rd-offline">⚠️ Sem contato com o launcher em <b>http://127.0.0.1:7777</b> — o painel não consegue executar diagnósticos. Verifique se o Mestre do PC está rodando (atalho da Área de Trabalho) e clique em TESTAR.</div>
+      <div class="rd-offline" id="rd-offline">⚠️ Sem contato com o launcher — o painel não consegue executar diagnósticos. Verifique se o Mestre do PC está rodando (atalho da Área de Trabalho) e clique em TESTAR.</div>
 
       <div class="rd-history">
         <div class="rd-history-header">
@@ -406,12 +406,12 @@ const RedeDashboard = {
     }
   },
 
-  // Verificar se o launcher responde (liveness da porta 7777)
+  // Verificar se o launcher responde (liveness da própria origem)
   async checarLauncher() {
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 4000);
-      const r = await fetch('http://127.0.0.1:7777/', { method: 'GET', signal: ctrl.signal });
+      const r = await fetch('/', { method: 'GET', signal: ctrl.signal });
       clearTimeout(timer);
       return r.ok;
     } catch { return false; }
@@ -426,7 +426,7 @@ const RedeDashboard = {
   // Executar operação registrada via /run (polling de job)
   async executarOperacao(id) {
     try {
-      const runRes = await fetch('http://127.0.0.1:7777/run', {
+      const runRes = await fetch('/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Mestre-Client': 'v10-web' },
         body: JSON.stringify({ id })
@@ -436,7 +436,7 @@ const RedeDashboard = {
 
       for (let i = 0; i < 60; i++) {
         await new Promise(r => setTimeout(r, 500));
-        const statusRes = await fetch(`http://127.0.0.1:7777/run-status?id=${runData.jobId}`);
+        const statusRes = await fetch(`/run-status?id=${runData.jobId}`);
         const status = await statusRes.json();
         if (status.done) return status.output || '';
       }
