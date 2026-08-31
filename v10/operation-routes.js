@@ -342,3 +342,4 @@ export async function handleOperationRoutes(req, res, url, ctx) {
   fail(res, 404, { error: "Rota /operations não encontrada." }, allowedOrigin);
   return true;
 }
+

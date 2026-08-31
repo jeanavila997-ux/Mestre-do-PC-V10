@@ -18,6 +18,12 @@ cd ..\v10
 npm install
 ```
 
+Or run the automated installer as Administrator:
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File install.ps1
+```
+
 ### Manual activation after opening the shortcut
 
 The desktop shortcut **only opens the app**. After opening the shortcut, activation is performed manually by the user.
@@ -27,7 +33,7 @@ The desktop shortcut **only opens the app**. After opening the shortcut, activat
 3. If you prefer a fully manual update-and-activation workflow, run:
    ```powershell
    cd <project-root>
-   .\ativar-atualizar-tudo.bat
+   .\ativar-atualizar-tudo.ps1
    ```
    This script pauses for confirmation before each major step (elevation, `git pull`, dependency install, tests, launcher start).
 
@@ -37,9 +43,14 @@ For a background launcher that survives logoffs, register the scheduled task `Me
 
 ## Build, test, and lint
 
-All commands run from the project root (`Mestre-do-PC-V10-clean/`).
+All commands run from the project root (`Mestre-do-PC-V10/`).
 
 ```powershell
+# Unified validation (preferred entry point)
+node scripts\validate.mjs                 # quick + npm test + PS syntax + HTML smoke
+node scripts\validate.mjs --depth=full    # full checks
+node scripts\validate.mjs --depth=ci      # CI-friendly JSON output
+
 # MCP server — install dependencies and run the full suite
 cd mcp-server
 npm ci
@@ -56,20 +67,21 @@ node --check mcp-server\index.js
 node --check mcp-server\security.js
 node --check mcp-server\audit-logger.js
 node --check v10\launcher.js
+node --check v10\operation-registry.js
 
 # Validate PowerShell scripts (all .ps1 files under the project root)
 .\validate-v11.ps1
 
-# Quick PowerShell syntax check for the primary launcher (legacy PowerShell backend, not present in this repo)
-# $code = Get-Content .\MestreDoPC-Launcher.ps1 -Raw
-# [System.Management.Automation.Language.Parser]::ParseFile("MestreDoPC-Launcher.ps1", [ref]$null, [ref]$null)
-
 # Project-wide smoke validation (JSON/HTML checks)
 .\validate_all.ps1
 
+# Ollama connectivity/model smoke check
+node scripts\test_ollama.mjs
+
 # Build the browser extension bundle
-cd ..\browser-extension
-node build.js
+cd browser-extension
+node build.js chrome
+node build.js firefox
 ```
 
 The MCP test suite lives in `mcp-server/test/` and is organized by concern:
@@ -86,7 +98,7 @@ The MCP test suite lives in `mcp-server/test/` and is organized by concern:
 - `ollama-smoke-script.test.js` — Ollama smoke checks
 - `project-smoke.test.js` — project structure smoke tests
 
-Run one file with `node --test test/<file>.js`. CI (`.github/workflows/ci.yml`) runs on Windows with Node 20.x and 22.x, executing `npm ci && npm test` in `mcp-server/` plus `node --check` on `v10/launcher.js`, `mcp-server/index.js`, and `mcp-server/security.js`.
+Run one file with `node --test test/<file>.js`. CI (`.github/workflows/ci.yml`) runs on Windows with Node 22.x and 24.x, executing `npm ci && npm test` in `mcp-server/` plus `node --check` on `v10/launcher.js`, `mcp-server/index.js`, and `mcp-server/security.js`.
 
 ## Architecture
 
@@ -109,11 +121,12 @@ PowerShell                    ← only whitelisted commands execute
 - The MCP server **never** runs commands directly. All administrative operations go through the launcher on `127.0.0.1:7777`.
 - The launcher validates every command against `v10/allowed-operations.json`. Free-form or AI-generated commands are rejected.
 - The primary backend in this repository is `v10/launcher.js` — a pure Node.js HTTP server on port 7777. Start it with `cd v10 && npm start` (development) or via `mcp-server\start-launcher.ps1`.
-- PowerShell launcher and startup scripts remain for scheduled/elevated Windows activation, but the development backend is `v10/launcher.js`; `start-mestre-v10.ps1` starts the Node.js launcher.
+- `v10/operation-registry.js` is the single source of truth: it loads `v10/allowed-operations.json` and exposes `resolve()`, `buildMcpToolRegistry()`, and `buildMcpToolSchemas()`. Both the launcher and the MCP server derive their tool lists from this module.
+- `MestreDoPC-Launcher.ps1` is the legacy elevated PowerShell backend and still exists, but it is not the default path. Do not recreate it unless explicitly required.
 - The Node.js backend enforces the same security model as the legacy PowerShell backend: origin validation, required `X-Mestre-Client` header, and the operation whitelist.
-- Ollama runs at `127.0.0.1:11434`. The MCP server calls it directly for AI tools; the launcher is not involved in AI queries.
+- Ollama runs at `127.0.0.1:11434`. The MCP server calls it directly for AI tools; the launcher proxies chat streaming but is not involved in command execution.
 - Parameterized templates in `allowed-operations.json` use `{{UPPERCASE_NAME}}` placeholders. The launcher compiles them into anchored regexes with named groups and validates each parameter against its declared regex before substitution.
-- The Node.js backend supports `{id}` for exact operations and `{id, params}` for parameterized templates. Jobs are tracked with a max of 3 concurrent and a 15-minute timeout.
+- The Node.js backend supports `{id}` for exact operations and `{id, params}` for parameterized templates. Jobs are tracked with a max of 3 concurrent, a 15-minute timeout, and 30-minute retention.
 
 **Other components:**
 - `v10/index.html` — single-file SPA (no build step), served by the launcher. Uses CSS custom properties and vanilla JS; the `CATS` array defines command categories, and `renderCards()` renders cards (V11 cards get neon-green glow via `.cmd-card-new`).
@@ -121,6 +134,8 @@ PowerShell                    ← only whitelisted commands execute
 - `browser-extension/` — Manifest V3 Chrome/Firefox extension. It talks to the launcher with `X-Mestre-Client: browser-extension` and a token from `MESTRE_EXTENSION_TOKEN`. Build with `cd browser-extension && node build.js`; prebuilt zips live in `browser-extension/dist/`.
 - `v10/notepad-plus-plus/` — Notepad++ integration for explaining code, asking the AI, suggesting commands, and generating diagnostics. See `docs/notepad-plus-plus-integration.md`.
 - `v10/rede-dashboard.js` — client-side network diagnostics panel loaded by `index.html`.
+- `v10/memory-manager.js` + `v10/memory-routes.js` — persistent memory store. The UI keeps data in IndexedDB and syncs to `/memories/*`, persisted in `v10/data/memories/chat-memories.json`.
+- `mcp-server/auth/local-token.js`, `mcp-server/db/mcp-db-tools.js`, and `mcp-server/transports/` — local authentication, MySQL/MariaDB tools, and transport implementations. Database tools are gated by `MESTRE_LOCAL_MCP_TOKEN`; they remain disabled when the token is unset.
 - `mcp-server/prompt-guard-server.py` — optional Python microservice on `127.0.0.1:7778/classify` for prompt-injection detection. It falls back to the regex heuristic in `security.js` if `transformers`/`torch` are unavailable. Not started automatically; unrelated to the Node MCP/launcher stack.
 - `testsprite-plans/` and `testsprite-backend/` — TestSprite frontend plans and Python backend smoke tests ready for integration once the launcher is running. These are not executed by `npm test`; see `ONBOARD_TESTSPRITE.md`.
 
@@ -145,6 +160,14 @@ PowerShell                    ← only whitelisted commands execute
 5. Run `npm test` in `mcp-server/`, `node --check v10\launcher.js`, and `.\validate-v11.ps1`.
 6. If the operation is destructive or unusual, add it to `docs/` or update `CHANGELOG-V11.md`.
 
+## Contributing workflow
+
+1. Create a branch from `main`.
+2. Make small, documented changes.
+3. Run `npm ci && npm test` in `mcp-server/` and `node --check v10\launcher.js`.
+4. Do not add free-form commands; new operations must be added to the catalog and receive a security review.
+5. Open a pull request describing risk, impact, and rollback steps.
+
 ## Environment variables
 
 | Variable | Default | Purpose |
@@ -154,10 +177,12 @@ PowerShell                    ← only whitelisted commands execute
 | `MESTRE_AUDIT_LOG_DIR` | `logs/audit` | Audit log directory |
 | `MESTRE_EXTENSION_TOKEN` | *(empty)* | Auth token for the browser extension (`X-Mestre-Client: browser-extension`) |
 | `MESTRE_EXTENSION_ORIGINS` | *(empty)* | Comma-separated allowed extension origins |
-| `MESTRE_NPP_TOKEN` | *(empty)* | Auth token for Notepad++ integration |
+| `MESTRE_NPP_TOKEN` | *(empty)* | Auth token for Notepad++ integration; `/npp` returns 501 until this is set |
+| `MESTRE_MODO_LIVRE` | *(empty)* | Set to `1` to enable Modo Livre on startup (persisted in `logs/config/modo-livre.json`) |
+| `MESTRE_LOCAL_MCP_TOKEN` | *(empty)* | Enables local MySQL/MariaDB MCP tools in `mcp-server/db/mcp-db-tools.js`; database tools stay disabled when unset |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama API base URL. Switches to `https://ollama.com/api` automatically when `OLLAMA_API_KEY` is set |
 | `OLLAMA_API_KEY` | *(empty)* | API key for Ollama Cloud; activates cloud mode and adds an auth header |
-| `OLLAMA_MODEL` | `qwen2.5-coder:1.5b` | Default model. Some profiles/docs reference `qwen2.5-coder:3b-instruct` |
+| `OLLAMA_MODEL` | `qwen2.5-coder:3b-instruct` | Default model |
 | `OLLAMA_MODEL_PROFILE` | *(empty)* | Selects a preset from `mcp-server/model-profiles.json`: `fast`, `balanced`, `agent`, `coding`, `reasoning` |
 | `OLLAMA_TEMPERATURE` | `0.7` | Sampling temperature |
 | `OLLAMA_TOP_P` | `0.9` | Nucleus sampling |
@@ -180,8 +205,8 @@ Explicit `OLLAMA_*` values override the selected profile. Always use `MESTRE_PRO
 - `mcp-server/package.json` uses an `overrides` block to pin transitive dependencies (fast-uri, hono, @hono/node-server, ip-address, path-to-regexp, qs, body-parser) to patched versions. `npm audit fix` alone cannot bump overridden packages — update the `overrides` versions manually, then run `npm install` and `npm test`.
 - The UI (`v10/index.html`) is a single-file app with no build step. All CSS is inline, uses CSS custom properties (`--accent`, `--card`, etc.), and vanilla JS. The `CATS` array defines categories; V11 cards use `.cmd-card-new` with `@keyframes neonGreenPulse`/`neonGreenTextGlow`/`neonGreenBtnGlow`.
 - PowerShell commands in `allowed-operations.json` use `-ErrorAction SilentlyContinue` (abbreviated `-EA 0`) for non-critical cleanup steps.
-- Validate PowerShell scripts with `validate-v11.ps1` before committing; it checks syntax, deprecated cmdlets, plaintext credentials, `Write-Host` colors, and excessive `SilentlyContinue`.
+- Validate changes before committing with `node scripts\validate.mjs --depth=full` (or `.\validate-v11.ps1` for PowerShell-only checks).
 - The launcher enforces job concurrency (max 3 simultaneous jobs), a 15-minute timeout per job, and 30-minute job retention.
 - Audit logging uses 7 levels (`INFO`, `WARNING`, `ERROR`, `SECURITY`, `COMMAND_EXEC`, `IA_OPERATION`, `WEBHOOK`) with rotation (10 MB max, 30 files retained) and redacts sensitive data.
 - The UI's CSP includes `frame-ancestors 'none'`; all launcher responses include `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, and `Cache-Control: no-store`.
-- Legacy `MestreDoPC-Launcher.ps1` PowerShell backend and a `legado/` directory are referenced in older docs but are not present in this repository. Treat them as historical; do not recreate them unless explicitly required.
+- Legacy `MestreDoPC-Launcher.ps1` PowerShell backend still exists but is no longer the default path. Treat it as historical; do not recreate it unless explicitly required.

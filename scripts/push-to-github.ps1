@@ -4,10 +4,9 @@
 Write-Host "🚀 Enviando alterações para o GitHub..." -ForegroundColor Cyan
 Write-Host ""
 
-$repoPath = "C:\Users\Jeanc\Mestre-do-PC-V10-clean"
-$branch = "feat/chat-redesign-aplicado"
-
-Set-Location $repoPath
+Set-Location $PSScriptRoot
+$branch = (git branch --show-current 2>$null)
+if (-not $branch) { $branch = "main" }
 
 # Verifica status
 Write-Host "📊 Status do repositório:" -ForegroundColor Yellow
