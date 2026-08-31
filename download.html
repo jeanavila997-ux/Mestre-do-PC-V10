@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download - Mestre do PC V10</title>
+    <meta name="description" content="Baixe o Mestre do PC V10: instalação rápida via PowerShell ou modo desenvolvedor com Node.js e npm.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00d4ff;
+            --accent2: #00ff88;
+            --bg-deep: #0a0f14;
+            --bg-card: #151c28;
+            --border: #2a3548;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: #e8edf2; 
+            overflow-x: hidden;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .bg-card { background-color: var(--bg-card); }
+        .border-mestre { border-color: var(--border); }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass {
+            background: rgba(17, 24, 32, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(42, 53, 72, 0.5);
+        }
+
+        /* Reveal on scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* Menu mobile */
+        #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        #mobile-menu.open { max-height: 400px; }
+
+        /* Botão copiar com feedback */
+        .copy-btn {
+            background: rgba(42, 53, 72, 0.8);
+            color: #e8edf2;
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .copy-btn:hover { background: var(--accent); color: black; border-color: var(--accent); }
+        .copy-btn.copied { background: var(--accent2); color: black; border-color: var(--accent2); }
+
+        /* Callouts */
+        .callout {
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            border: 1px solid;
+        }
+        .callout-info { background: rgba(0, 212, 255, 0.08); border-color: rgba(0, 212, 255, 0.25); color: #7dd3fc; }
+        .callout-warn { background: rgba(255, 184, 0, 0.08); border-color: rgba(255, 184, 0, 0.25); color: #fbbf24; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar Glass -->
+    <nav class="glass fixed top-0 w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="index.html" class="text-[#00d4ff] font-bold text-xl flex items-center gap-2 hover:scale-105 transition-transform">
+                <span class="text-2xl">🚀</span> Mestre do PC
+            </a>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a href="index.html" class="text-slate-400 hover:text-[#00d4ff] transition-colors">Home</a>
+                <a href="download.html" class="text-white hover:text-[#00d4ff] transition-colors">Download</a>
+                <a href="docs.html" class="text-slate-400 hover:text-[#00d4ff] transition-colors">Docs</a>
+                <a href="login.html" class="text-slate-400 hover:text-[#00d4ff] transition-colors border border-[#2a3548] rounded-full px-4 py-2">Entrar</a>
+                <a href="download.html" class="bg-[#00d4ff] text-black px-5 py-2 rounded-full font-bold hover:bg-[#00b8dd] transition-all hover:shadow-[0_0_15px_rgba(0,212,255,0.4)]">Baixar Agora</a>
+            </div>
+            <button id="hamburger-btn" class="md:hidden text-white text-2xl" aria-label="Abrir menu">☰</button>
+        </div>
+        <!-- Menu Mobile -->
+        <div id="mobile-menu" class="md:hidden bg-[#111820] border-t border-[#2a3548]">
+            <div class="flex flex-col p-4 gap-3 text-sm">
+                <a href="index.html" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2">Home</a>
+                <a href="download.html" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2">Download</a>
+                <a href="docs.html" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2">Docs</a>
+                <a href="login.html" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2 border border-[#2a3548] rounded-lg text-center">Entrar</a>
+                <a href="download.html" class="mobile-link bg-[#00d4ff] text-black px-4 py-2 rounded-lg font-bold text-center">Baixar Agora</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pt-36 pb-16 px-4 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#00d4ff] opacity-5 blur-[150px] rounded-full pointer-events-none"></div>
+        <div class="max-w-3xl mx-auto relative z-10">
+            <h1 class="reveal text-4xl md:text-6xl font-extrabold mb-4 tracking-tight text-white">
+                Obtenha o <span class="gradient-text">Mestre do PC</span>
+            </h1>
+            <p class="reveal text-slate-400 text-lg">Escolha o método de instalação que melhor se adapta ao seu perfil.</p>
+        </div>
+    </section>
+
+    <!-- Métodos de Instalação -->
+    <section class="pb-24 px-4 max-w-7xl mx-auto w-full">
+        <div class="grid md:grid-cols-2 gap-8">
+
+            <!-- Instalação Rápida -->
+            <div class="reveal bg-card border border-mestre p-8 rounded-3xl hover:border-[#00d4ff] transition-all shadow-xl">
+                <div class="w-14 h-14 bg-[#00ff88]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">⚡</div>
+                <h2 class="text-2xl font-bold mb-4 text-white">Instalação Rápida</h2>
+                <p class="text-slate-400 mb-6 text-sm leading-relaxed">A forma mais rápida de começar. Execute no PowerShell <strong class="text-slate-300">(como Administrador)</strong>:</p>
+                <div class="bg-black p-4 rounded-2xl border border-mestre font-mono text-xs relative group">
+                    <code id="cmd-quick" class="text-slate-300 block break-all leading-relaxed">
+                        git clone https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git<br>
+                        cd Mestre-do-PC-V10<br>
+                        .\ativar-atualizar-tudo.ps1
+                    </code>
+                    <button class="copy-btn absolute top-2 right-2" data-copy="cmd-quick">Copiar</button>
+                </div>
+                <div class="callout callout-info mt-6">
+                    <strong>ℹ️ O que o script faz:</strong> baixa dependências, roda os testes, inicia o launcher e registra as tarefas agendadas.
+                </div>
+            </div>
+
+            <!-- Modo Desenvolvedor -->
+            <div class="reveal bg-card border border-mestre p-8 rounded-3xl hover:border-[#00d4ff] transition-all shadow-xl" style="transition-delay: 0.1s">
+                <div class="w-14 h-14 bg-[#00d4ff]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">🛠️</div>
+                <h2 class="text-2xl font-bold mb-4 text-white">Modo Desenvolvedor</h2>
+                <p class="text-slate-400 mb-6 text-sm leading-relaxed">Para quem quer customizar a ferramenta ou contribuir:</p>
+                <ul class="space-y-4 text-slate-300 text-sm">
+                    <li class="flex items-center gap-3">
+                        <span class="w-6 h-6 bg-[#2a3548] rounded-full flex items-center justify-center text-xs shrink-0">1</span>
+                        Clone o repositório do GitHub.
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="w-6 h-6 bg-[#2a3548] rounded-full flex items-center justify-center text-xs shrink-0">2</span>
+                        Instale as dependências em <code class="bg-black px-1 rounded">/v10</code> e <code class="bg-black px-1 rounded">/mcp-server</code>.
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="w-6 h-6 bg-[#2a3548] rounded-full flex items-center justify-center text-xs shrink-0">3</span>
+                        Execute <code class="bg-black px-1 rounded">npm start</code> em ambos os diretórios.
+                    </li>
+                </ul>
+                <div class="bg-black p-4 rounded-2xl border border-mestre font-mono text-xs relative mt-6">
+                    <code id="cmd-dev" class="text-slate-300 block leading-relaxed">
+                        cd mcp-server && npm ci && npm test<br>
+                        cd ..\v10 && npm install && npm start
+                    </code>
+                    <button class="copy-btn absolute top-2 right-2" data-copy="cmd-dev">Copiar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Requisitos -->
+        <div class="reveal bg-card border border-mestre p-8 rounded-3xl mt-8">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3">📋 Requisitos do Sistema</h3>
+            <div class="grid md:grid-cols-4 gap-4 text-sm">
+                <div class="p-4 rounded-2xl bg-[#0a0f14]/50 border border-[#2a3548] hover:border-[#00d4ff] transition-colors">
+                    <div class="text-2xl mb-2">🪟</div>
+                    <p class="text-slate-300 font-semibold">Windows 10/11</p>
+                    <p class="text-slate-500 text-xs">64 bits</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-[#0a0f14]/50 border border-[#2a3548] hover:border-[#00d4ff] transition-colors">
+                    <div class="text-2xl mb-2">⌨️</div>
+                    <p class="text-slate-300 font-semibold">PowerShell 5.1+</p>
+                    <p class="text-slate-500 text-xs">Nativo no Windows</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-[#0a0f14]/50 border border-[#2a3548] hover:border-[#00d4ff] transition-colors">
+                    <div class="text-2xl mb-2">🟢</div>
+                    <p class="text-slate-300 font-semibold">Node.js 20+</p>
+                    <p class="text-slate-500 text-xs">Para o launcher e MCP</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-[#0a0f14]/50 border border-[#2a3548] hover:border-[#00d4ff] transition-colors">
+                    <div class="text-2xl mb-2">🤖</div>
+                    <p class="text-slate-300 font-semibold">Ollama</p>
+                    <p class="text-slate-500 text-xs">Opcional — para IA local</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verificação de Integridade -->
+        <div class="reveal bg-card border border-mestre p-8 rounded-3xl mt-8">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">🔒 Verificação de Integridade</h3>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+                Após baixar, verifique o hash SHA256 do arquivo para garantir que ele não foi alterado:
+            </p>
+            <div class="bg-black p-4 rounded-2xl border border-mestre font-mono text-xs relative">
+                <code id="cmd-hash" class="text-slate-300 block leading-relaxed break-all">
+                    Get-FileHash .\Mestre-do-PC-V10.zip -Algorithm SHA256
+                </code>
+                <button class="copy-btn absolute top-2 right-2" data-copy="cmd-hash">Copiar</button>
+            </div>
+            <div class="callout callout-warn mt-6">
+                <strong>⚠️ Segurança:</strong> o launcher aceita apenas comandos cadastrados em <code>allowed-operations.json</code>. Leia o <a href="https://github.com/jeanavila997-ux/Mestre-do-PC-V10/blob/main/SECURITY.md" target="_blank" class="underline hover:text-white">SECURITY.md</a> antes de usar em computadores de produção.
+            </div>
+        </div>
+
+        <!-- CTA GitHub -->
+        <div class="reveal text-center mt-16">
+            <a href="https://github.com/jeanavila997-ux/Mestre-do-PC-V10" target="_blank"
+               class="inline-flex items-center gap-3 bg-[#1a2230] text-white border border-[#2a3548] px-10 py-4 rounded-2xl font-bold text-lg hover:border-[#00d4ff] transition-all hover:scale-105">
+                ⭐ Ver no GitHub
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#111820] border-t border-mestre py-16 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="text-2xl font-bold text-white mb-6">🚀 Mestre do PC</div>
+            <div class="flex justify-center gap-8 mb-8 text-slate-400 text-sm">
+                <a href="index.html" class="hover:text-white transition-colors">Home</a>
+                <a href="download.html" class="hover:text-white transition-colors">Download</a>
+                <a href="docs.html" class="hover:text-white transition-colors">Documentação</a>
+                <a href="login.html" class="hover:text-white transition-colors">Entrar</a>
+                <a href="https://github.com/jeanavila997-ux/Mestre-do-PC-V10" class="hover:text-white transition-colors">GitHub</a>
+            </div>
+            <p class="text-slate-500 text-xs uppercase tracking-widest">© 2024 Mestre do PC V10. Licença MIT.</p>
+        </div>
+    </footer>
+
+    <script>
+        // ===== REVEAL ON SCROLL =====
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        // ===== MENU MOBILE =====
+        document.getElementById('hamburger-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('open');
+        });
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.remove('open');
+            });
+        });
+
+        // ===== BOTÃO COPIAR (com feedback) =====
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const el = document.getElementById(btn.dataset.copy);
+                navigator.clipboard.writeText(el.innerText.trim()).then(() => {
+                    btn.textContent = '✓ Copiado!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = 'Copiar';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

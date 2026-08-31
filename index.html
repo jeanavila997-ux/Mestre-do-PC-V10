@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mestre do PC V10 - Automação e Diagnóstico Windows</title>
+    <meta name="description" content="A ferramenta definitiva de diagnóstico e manutenção local para Windows. Segura, privada e potencializada por IA local com protocolo MCP.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00d4ff;
+            --accent2: #00ff88;
+            --bg-deep: #0a0f14;
+            --bg-surface: #111820;
+            --bg-card: #151c28;
+            --border: #2a3548;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: #e8edf2; 
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradientShift 4s ease infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(17, 24, 32, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(42, 53, 72, 0.5);
+        }
+
+        /* ===== PRELOADER ===== */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-deep);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        #preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .preloader-logo {
+            font-size: 3rem;
+            animation: pulseLogo 1.5s ease-in-out infinite;
+        }
+        @keyframes pulseLogo {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+        .preloader-bar {
+            width: 200px;
+            height: 3px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        .preloader-bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 40%;
+            background: var(--accent);
+            border-radius: 3px;
+            animation: loadSlide 1.2s ease-in-out infinite;
+        }
+        @keyframes loadSlide {
+            0% { left: -40%; }
+            100% { left: 100%; }
+        }
+
+        /* ===== SCROLL PROGRESS ===== */
+        #scroll-progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            width: 0%;
+            z-index: 100;
+            transition: width 0.1s linear;
+        }
+
+        /* ===== PARTÍCULAS ===== */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: floatParticle linear infinite;
+            pointer-events: none;
+        }
+        @keyframes floatParticle {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-600px) rotate(360deg); opacity: 0; }
+        }
+
+        /* ===== REVEAL ON SCROLL ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== TILT 3D ===== */
+        .tilt-card {
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease, box-shadow 0.3s ease;
+            will-change: transform;
+        }
+        .tilt-card:hover {
+            box-shadow: 0 20px 50px rgba(0, 212, 255, 0.15), 0 0 30px rgba(0, 212, 255, 0.08);
+            border-color: var(--accent) !important;
+        }
+
+        /* ===== MARQUEE ===== */
+        .marquee {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+        .marquee-track {
+            display: inline-flex;
+            gap: 3rem;
+            animation: marqueeMove 25s linear infinite;
+            padding-right: 3rem;
+        }
+        @keyframes marqueeMove {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        .marquee::before, .marquee::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 80px;
+            z-index: 2;
+        }
+        .marquee::before { left: 0; background: linear-gradient(90deg, var(--bg-deep), transparent); }
+        .marquee::after { right: 0; background: linear-gradient(-90deg, var(--bg-deep), transparent); }
+
+        /* ===== TYPING TERMINAL ===== */
+        .typing-line {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid var(--accent);
+            width: 0;
+            animation: typing 2s steps(40, end) 1s forwards, blink 0.75s step-end infinite;
+        }
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        @keyframes blink {
+            from, to { border-color: transparent }
+            50% { border-color: var(--accent) }
+        }
+
+        /* ===== FAQ ===== */
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 300px;
+            padding-top: 1rem;
+        }
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
+        .faq-icon { transition: transform 0.3s ease; }
+
+        /* ===== FLOATING BUTTON ===== */
+        #back-to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 90;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        #back-to-top:hover { transform: translateY(-4px) scale(1.05); }
+
+        /* ===== MOBILE MENU ===== */
+        #mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+        #mobile-menu.open {
+            max-height: 300px;
+        }
+
+        /* ===== GRID DECORADO ===== */
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(42, 53, 72, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(42, 53, 72, 0.3) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 100%);
+        }
+
+        /* Status pulsante */
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--accent2);
+            border-radius: 50%;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+        @keyframes statusPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(0, 255, 136, 0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="preloader-logo">🚀</div>
+        <div class="preloader-bar"></div>
+        <p class="text-slate-500 text-sm font-mono">Carregando Mestre do PC...</p>
+    </div>
+
+    <!-- Barra de Progresso de Scroll -->
+    <div id="scroll-progress"></div>
+
+    <!-- Navbar Glass -->
+    <nav class="glass fixed top-0 w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="index.html" class="text-[#00d4ff] font-bold text-xl flex items-center gap-2 hover:scale-105 transition-transform">
+                <span class="text-2xl">🚀</span> Mestre do PC
+            </a>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a href="#features" class="text-slate-400 hover:text-[#00d4ff] transition-colors">Recursos</a>
+                <a href="#arquitetura" class="text-slate-400 hover:text-[#00d4ff] transition-colors">Arquitetura</a>
+                <a href="#stats" class="text-slate-400 hover:text-[#00d4ff] transition-colors">Estatísticas</a>
+                <a href="#faq" class="text-slate-400 hover:text-[#00d4ff] transition-colors">FAQ</a>
+                <a href="login.html" class="text-slate-400 hover:text-[#00d4ff] transition-colors border border-[#2a3548] rounded-full px-4 py-2">Entrar</a>
+                <a href="download.html" class="bg-[#00d4ff] text-black px-5 py-2 rounded-full font-bold hover:bg-[#00b8dd] transition-all hover:shadow-[0_0_15px_rgba(0,212,255,0.4)]">Baixar Agora</a>
+            </div>
+            <!-- Botão hamburger mobile -->
+            <button id="hamburger-btn" class="md:hidden text-white text-2xl" aria-label="Abrir menu">
+                ☰
+            </button>
+        </div>
+        <!-- Menu mobile -->
+        <div id="mobile-menu" class="md:hidden bg-[#111820] border-t border-[#2a3548]">
+            <div class="flex flex-col p-4 gap-3 text-sm">
+                <a href="#features" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2">Recursos</a>
+                <a href="#arquitetura" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2">Arquitetura</a>
+                <a href="#stats" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2">Estatísticas</a>
+                <a href="#faq" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2">FAQ</a>
+                <a href="login.html" class="mobile-link text-slate-300 hover:text-[#00d4ff] p-2 border border-[#2a3548] rounded-lg text-center">Entrar</a>
+                <a href="download.html" class="bg-[#00d4ff] text-black px-4 py-2 rounded-lg font-bold text-center">Baixar Agora</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-36 pb-24 px-4 text-center overflow-hidden">
+        <!-- Grid decorativo de fundo -->
+        <div class="grid-bg absolute inset-0 pointer-events-none"></div>
+        <!-- Glow principal -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#00d4ff] opacity-5 blur-[150px] rounded-full pointer-events-none"></div>
+        <!-- Partículas -->
+        <div id="particles-container" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
+
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="reveal inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/20 text-[#00d4ff] text-xs font-bold uppercase tracking-widest">
+                <span class="status-dot"></span> Windows Power Tool V10
+            </div>
+            <h1 class="reveal text-6xl md:text-8xl font-extrabold mb-8 gradient-text leading-tight tracking-tighter">
+                Mestre do PC
+            </h1>
+            <p class="reveal text-xl text-slate-400 mb-12 leading-relaxed max-w-2xl mx-auto">
+                Transforme a manutenção do seu Windows em uma experiência inteligente. 
+                Diagnóstico, reparo e automação via <span class="text-white font-semibold">IA Local</span> e <span class="text-white font-semibold">MCP</span>.
+            </p>
+            <div class="reveal flex flex-col sm:flex-row justify-center gap-6">
+                <a href="download.html" class="bg-[#00d4ff] text-black px-10 py-4 rounded-2xl font-bold text-lg hover:bg-[#00b8dd] transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(0,212,255,0.3)] active:scale-95">
+                    🚀 Começar Agora
+                </a>
+                <a href="https://github.com/jeanavila997-ux/Mestre-do-PC-V10" target="_blank" class="bg-[#1a2230] text-white border border-[#2a3548] px-10 py-4 rounded-2xl font-bold text-lg hover:border-[#00d4ff] transition-all hover:bg-[#1a2230]/80">
+                    ⭐ GitHub
+                </a>
+            </div>
+
+            <!-- Stats rápidos -->
+            <div class="reveal mt-16 flex justify-center gap-12 text-slate-500 text-sm">
+                <div class="flex flex-col items-center">
+                    <span class="text-2xl font-bold text-white" data-counter="130">0</span>
+                    <span class="text-xs">+ Operações</span>
+                </div>
+                <div class="w-px bg-[#2a3548]"></div>
+                <div class="flex flex-col items-center">
+                    <span class="text-2xl font-bold text-white" data-counter="100">0</span>
+                    <span class="text-xs">% Local & Privado</span>
+                </div>
+                <div class="w-px bg-[#2a3548]"></div>
+                <div class="flex flex-col items-center">
+                    <span class="text-2xl font-bold text-white" data-counter="0">0</span>
+                    <span class="text-xs">Telemetria</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marquee de Integrações -->
+    <section class="py-8 border-y border-[#2a3548] bg-[#111820]/30">
+        <div class="marquee">
+            <div class="marquee-track text-slate-500 font-semibold text-lg">
+                <span>🤖 Ollama</span><span>•</span>
+                <span>🧠 Claude Desktop</span><span>•</span>
+                <span>🐙 GitHub Copilot</span><span>•</span>
+                <span>📝 Notepad++</span><span>•</span>
+                <span>🌐 Chrome / Firefox</span><span>•</span>
+                <span>🔔 Discord Webhooks</span><span>•</span>
+                <span>💬 Microsoft Teams</span><span>•</span>
+                <span>🔒 Whitelist Security</span><span>•</span>
+                <span>⚡ PowerShell 5.1+</span><span>•</span>
+                <span>🤖 Ollama</span><span>•</span>
+                <span>🧠 Claude Desktop</span><span>•</span>
+                <span>🐙 GitHub Copilot</span><span>•</span>
+                <span>📝 Notepad++</span><span>•</span>
+                <span>🌐 Chrome / Firefox</span><span>•</span>
+                <span>🔔 Discord Webhooks</span><span>•</span>
+                <span>💬 Microsoft Teams</span><span>•</span>
+                <span>🔒 Whitelist Security</span><span>•</span>
+                <span>⚡ PowerShell 5.1+</span><span>•</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-20 reveal">
+                <h2 class="text-4xl font-bold text-white mb-4">Potência e <span class="gradient-text">Segurança</span></h2>
+                <p class="text-slate-400">Tudo o que você precisa para manter seu PC em estado de performance máxima.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="tilt-card reveal bg-[#151c28] border border-[#2a3548] p-10 rounded-3xl">
+                    <div class="w-14 h-14 bg-[#00d4ff]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">🛡️</div>
+                    <h3 class="text-2xl font-bold mb-3 text-white">Segurança Total</h3>
+                    <p class="text-slate-400 leading-relaxed">Whitelists rigorosas garantem que a IA nunca execute códigos maliciosos ou imprevistos no seu sistema.</p>
+                </div>
+                <div class="tilt-card reveal bg-[#151c28] border border-[#2a3548] p-10 rounded-3xl" style="transition-delay: 0.1s">
+                    <div class="w-14 h-14 bg-[#00ff88]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">🤖</div>
+                    <h3 class="text-2xl font-bold mb-3 text-white">IA Local</h3>
+                    <p class="text-slate-400 leading-relaxed">Integração com Ollama. Seus dados nunca saem da sua máquina. Privacidade absoluta garantida.</p>
+                </div>
+                <div class="tilt-card reveal bg-[#151c28] border border-[#2a3548] p-10 rounded-3xl" style="transition-delay: 0.2s">
+                    <div class="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-3xl mb-6">⚡</div>
+                    <h3 class="text-2xl font-bold mb-3 text-white">Performance</h3>
+                    <p class="text-slate-400 leading-relaxed">Otimização de SSD, limpeza de UWP, reparos de drivers e diagnóstico de rede em segundos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="arquitetura" class="py-24 px-4">
+        <div class="max-w-7xl mx-auto bg-[#151c28] border border-[#2a3548] rounded-[3rem] p-8 md:p-20 flex flex-col md:flex-row items-center gap-16 relative overflow-hidden reveal">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-[#00d4ff] opacity-5 blur-[100px] rounded-full"></div>
+            
+            <div class="flex-1 relative z-10">
+                <h2 class="text-4xl font-bold mb-6 text-white tracking-tight">Arquitetura <span class="text-[#00d4ff]">Local-First</span></h2>
+                <p class="text-slate-400 mb-10 text-lg leading-relaxed">
+                    Uma ponte segura entre seus agentes de IA e o sistema operacional, eliminando riscos de injeção de código.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-[#0a0f14]/50 border border-[#2a3548] hover:border-[#00d4ff] transition-colors">
+                        <span class="text-[#00ff88] text-xl">✔</span>
+                        <span class="text-slate-300">Painel Web em <code class="text-[#00d4ff]">localhost:7777</code></span>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-[#0a0f14]/50 border border-[#2a3548] hover:border-[#00d4ff] transition-colors">
+                        <span class="text-[#00ff88] text-xl">✔</span>
+                        <span class="text-slate-300">Servidor MCP para Claude Desktop</span>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-[#0a0f14]/50 border border-[#2a3548] hover:border-[#00d4ff] transition-colors">
+                        <span class="text-[#00ff88] text-xl">✔</span>
+                        <span class="text-slate-300">Validação via <code class="text-[#00d4ff]">allowed-operations.json</code></span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 w-full bg-black p-6 rounded-3xl border border-[#2a3548] shadow-2xl font-mono text-sm relative overflow-hidden">
+                <div class="flex gap-2 mb-6">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div class="space-y-3">
+                    <div class="text-slate-500"># Iniciando Mestre do PC V10...</div>
+                    <div class="text-[#00ff88] flex items-center gap-2">
+                        <span>&gt;</span> <span class="typing-line">rede_testar_internet_multiplos</span>
+                    </div>
+                    <div class="text-slate-400 pl-4" style="animation: fadeInDelayed 1s ease-out 3s forwards; opacity:0;">[8.8.8.8] OK - 12ms</div>
+                    <div class="text-slate-400 pl-4" style="animation: fadeInDelayed 1s ease-out 3.5s forwards; opacity:0;">[1.1.1.1] OK - 8ms</div>
+                    <div class="text-slate-400 pl-4" style="animation: fadeInDelayed 1s ease-out 4s forwards; opacity:0;">[9.9.9.9] OK - 15ms</div>
+                    <div class="text-[#00d4ff] font-bold pl-4 mt-4" style="animation: fadeInDelayed 1s ease-out 4.5s forwards; opacity:0">
+                        &gt; Sistema Saudável. Tudo pronto! ✅
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats" class="py-20 bg-[#111820]/50 border-y border-[#2a3548]">
+        <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div class="reveal">
+                <div class="text-5xl font-extrabold gradient-text mb-2"><span data-counter="130">0</span>+</div>
+                <div class="text-slate-500 text-sm uppercase tracking-widest">Operações</div>
+            </div>
+            <div class="reveal" style="transition-delay: 0.1s">
+                <div class="text-5xl font-extrabold gradient-text mb-2"><span data-counter="15">0</span></div>
+                <div class="text-slate-500 text-sm uppercase tracking-widest">Categorias</div>
+            </div>
+            <div class="reveal" style="transition-delay: 0.2s">
+                <div class="text-5xl font-extrabold gradient-text mb-2"><span data-counter="4">0</span></div>
+                <div class="text-slate-500 text-sm uppercase tracking-widest">Integrações IA</div>
+            </div>
+            <div class="reveal" style="transition-delay: 0.3s">
+                <div class="text-5xl font-extrabold gradient-text mb-2"><span data-counter="100">0</span>%</div>
+                <div class="text-slate-500 text-sm uppercase tracking-widest">Open Source</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-24 px-4">
+        <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-4xl font-bold text-white mb-4">Perguntas <span class="gradient-text">Frequentes</span></h2>
+                <p class="text-slate-400">Tudo o que você precisa saber antes de começar.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="faq-item reveal bg-[#151c28] border border-[#2a3548] rounded-2xl overflow-hidden cursor-pointer">
+                    <div class="faq-question flex items-center justify-between p-6">
+                        <h3 class="font-bold text-white">O Mestre do PC é seguro?</h3>
+                        <span class="faq-icon text-[#00d4ff] text-2xl">+</span>
+                    </div>
+                    <div class="faq-answer px-6 pb-6 text-slate-400 leading-relaxed">
+                        Sim! A segurança é o pilar central do projeto. Toda operação é validada contra uma whitelist estrita (<code class="text-[#00d4ff]">allowed-operations.json</code>) antes de ser executada. Comandos livres gerados por IA são sempre recusados.
+                    </div>
+                </div>
+
+                <div class="faq-item reveal bg-[#151c28] border border-[#2a3548] rounded-2xl overflow-hidden cursor-pointer">
+                    <div class="faq-question flex items-center justify-between p-6">
+                        <h3 class="font-bold text-white">Preciso de internet para usar?</h3>
+                        <span class="faq-icon text-[#00d4ff] text-2xl">+</span>
+                    </div>
+                    <div class="faq-answer px-6 pb-6 text-slate-400 leading-relaxed">
+                        Não! O Mestre do PC é 100% local-first. A interface, o launcher e o servidor MCP rodam na sua máquina. A IA via Ollama também funciona localmente, sem enviar dados para nuvens.
+                    </div>
+                </div>
+
+                <div class="faq-item reveal bg-[#151c28] border border-[#2a3548] rounded-2xl overflow-hidden cursor-pointer">
+                    <div class="faq-question flex items-center justify-between p-6">
+                        <h3 class="font-bold text-white">Quais são os requisitos?</h3>
+                        <span class="faq-icon text-[#00d4ff] text-2xl">+</span>
+                    </div>
+                    <div class="faq-answer px-6 pb-6 text-slate-400 leading-relaxed">
+                        Windows 10 ou 11 (64 bits), PowerShell 5.1+ e Node.js 20+. O Ollama é opcional para funcionalidades de IA. Tudo isso gratuito e open source (licença MIT).
+                    </div>
+                </div>
+
+                <div class="faq-item reveal bg-[#151c28] border border-[#2a3548] rounded-2xl overflow-hidden cursor-pointer">
+                    <div class="faq-question flex items-center justify-between p-6">
+                        <h3 class="font-bold text-white">Funciona com Claude ou Copilot?</h3>
+                        <span class="faq-icon text-[#00d4ff] text-2xl">+</span>
+                    </div>
+                    <div class="faq-answer px-6 pb-6 text-slate-400 leading-relaxed">
+                        Sim! O servidor MCP nativo se integra com Claude Desktop e GitHub Copilot CLI. Também existe extensão para Chrome/Firefox e plugin para Notepad++.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Final -->
+    <section class="py-24 px-4">
+        <div class="max-w-5xl mx-auto text-center relative overflow-hidden rounded-[3rem] bg-gradient-to-r from-[#00d4ff]/10 via-[#00ff88]/10 to-[#00d4ff]/10 border border-[#00d4ff]/20 p-16 reveal">
+            <div class="absolute inset-0 grid-bg opacity-40"></div>
+            <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-6 relative z-10">Pronto para dominar seu PC?</h2>
+            <p class="text-slate-400 text-lg mb-10 relative z-10">Junte-se aos usuários que já automatizam a manutenção do Windows com segurança total.</p>
+            <a href="download.html" class="relative z-10 inline-block bg-[#00d4ff] text-black px-12 py-5 rounded-2xl font-bold text-xl hover:bg-[#00b8dd] transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(0,212,255,0.4)] active:scale-95">
+                🚀 Baixar Agora — É Grátis
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#111820] border-t border-[#2a3548] py-16 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="text-2xl font-bold text-white mb-6">🚀 Mestre do PC</div>
+            <div class="flex justify-center gap-8 mb-8 text-slate-400 text-sm">
+                <a href="index.html" class="hover:text-white transition-colors">Home</a>
+                <a href="download.html" class="hover:text-white transition-colors">Download</a>
+                <a href="docs.html" class="hover:text-white transition-colors">Documentação</a>
+                <a href="https://github.com/jeanavila997-ux/Mestre-do-PC-V10" class="hover:text-white transition-colors">GitHub</a>
+            </div>
+            <p class="text-slate-500 text-xs uppercase tracking-widest">© 2024 Mestre do PC V10. Licença MIT. Desenvolvido para Performance.</p>
+        </div>
+    </footer>
+
+    <!-- Botão Voltar ao Topo -->
+    <div id="back-to-top" title="Voltar ao topo">↑</div>
+
+    <script>
+        // ===== PRELOADER =====
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('hidden');
+            }, 800);
+        });
+
+        // ===== SCROLL PROGRESS =====
+        window.addEventListener('scroll', () => {
+            const scrollProgress = document.getElementById('scroll-progress');
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (window.scrollY / totalHeight) * 100;
+            scrollProgress.style.width = progress + '%';
+
+            // Botão voltar ao topo
+            const backToTop = document.getElementById('back-to-top');
+            if (window.scrollY > 600) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // Botão voltar ao topo
+        document.getElementById('back-to-top').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // ===== REVEAL ON SCROLL =====
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        // ===== CONTADORES ANIMADOS =====
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseInt(el.dataset.counter);
+                    if (target === 0) { el.textContent = '0'; return; }
+                    let current = 0;
+                    const increment = Math.ceil(target / 40);
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        el.textContent = current;
+                    }, 30);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('[data-counter]').forEach(el => counterObserver.observe(el));
+
+        // ===== PARTÍCULAS =====
+        const particlesContainer = document.getElementById('particles-container');
+        for (let i = 0; i < 25; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.bottom = '-10px';
+            particle.style.animationDuration = (Math.random() * 10 + 8) + 's';
+            particle.style.animationDelay = (Math.random() * 10) + 's';
+            const size = Math.random() * 3 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            if (Math.random() > 0.5) particle.style.background = '#00ff88';
+            particlesContainer.appendChild(particle);
+        }
+
+        // ===== TILT 3D =====
+        document.querySelectorAll('.tilt-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(800px) rotateX(0) rotateY(0) translateY(0)';
+            });
+        });
+
+        // ===== MENU MOBILE =====
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        hamburgerBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('open');
+        });
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+            });
+        });
+
+        // ===== FAQ =====
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.faq-item').forEach(other => {
+                    if (other !== item) other.classList.remove('active');
+                });
+                item.classList.toggle('active');
+            });
+        });
+    </script>
+
+    <!-- Animação auxiliar (usada inline) -->
+    <style>
+        @keyframes fadeInDelayed {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</body>
+</html>
