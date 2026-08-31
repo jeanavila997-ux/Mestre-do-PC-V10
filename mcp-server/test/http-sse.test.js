@@ -156,9 +156,13 @@ describe("http-sse", () => {
   });
 
   it("abre stream /sse com token válido", async () => {
-    const res = await fetch(`${baseUrl}/sse?token=${encodeURIComponent(token)}`);
+    const ac = new AbortController();
+    const res = await fetch(`${baseUrl}/sse?token=${encodeURIComponent(token)}`, { signal: ac.signal });
     assert.equal(res.status, 200);
-    const text = await res.text();
+    const reader = res.body.getReader();
+    const { value } = await reader.read();
+    const text = new TextDecoder().decode(value);
+    ac.abort();
     assert.ok(text.includes("event: endpoint"));
     assert.ok(text.includes("/messages?sessionId="));
   });
@@ -191,9 +195,12 @@ describe("http-sse", () => {
   });
 
   it("roundtrip SSE: initialize + tools/list", async () => {
-    const sseRes = await fetch(`${baseUrl}/sse?token=${encodeURIComponent(token)}`);
+    const ac = new AbortController();
+    const sseRes = await fetch(`${baseUrl}/sse?token=${encodeURIComponent(token)}`, { signal: ac.signal });
     assert.equal(sseRes.status, 200);
-    const sseText = await sseRes.text();
+    const reader = sseRes.body.getReader();
+    const { value } = await reader.read();
+    const sseText = new TextDecoder().decode(value);
     const match = sseText.match(/sessionId=([^\n]+)/);
     assert.ok(match, "deve conter sessionId");
     const sessionId = match[1].trim();
@@ -209,5 +216,6 @@ describe("http-sse", () => {
       }),
     });
     assert.equal(initRes.status, 202, "POST deve ser aceito");
+    ac.abort();
   });
 });
