@@ -1,0 +1,332 @@
+ANÁLISE DE ARQUITETURA — MCP E CONECTORES
+Projeto: Mestre-do-PC V10/V11
+Data: 31/08/2026
+Base: Documento PDF "Mestre-do-PC_Arquitetura_MCP_Conectores.pdf"
+
+================================================================================
+RESUMO EXECUTIVO
+================================================================================
+
+O documento consolida a arquitetura do Mestre do PC em 11 dimensões. Esta análise
+mapeia cada componente para o estado atual do código, identificando o que já
+está em produção e o que permanece como roadmap.
+
+================================================================================
+1. ARQUITETURA MCP LOCAL + MCP REMOTE GATEWAY
+================================================================================
+
+ESTADO ATUAL:
+✅ MCP Local (stdio) — Producao
+   • mcp-server/index.js: servidor MCP via stdio
+   • 68 ferramentas expostas via operation-registry.js
+   • Comunicação HTTP com launcher em 127.0.0.1:7777
+
+⚠️ Remote Gateway — NAO IMPLEMENTADO
+   • Cliente MCP HTTP para servidores remotos ausente
+   • Sem suporte a OAuth/token refresh para servidores remotos
+   • Sem gerenciamento de múltiplos servidores simultâneos
+
+ARQUIVOS-CHAVE:
+• mcp-server/index.js
+• v10/operation-registry.js
+• v10/launcher.js
+
+COMPLEXIDADE DE IMPLEMENTAÇÃO: Média-Alta
+
+================================================================================
+2. MODELO DE CONECTORES
+================================================================================
+
+CONECTORES ATUAIS (3):
+✅ MCP stdio — Claude Desktop / Qwen Code / Copilot CLI
+✅ Browser Extension — Manifest V3, token-gated
+✅ Notepad++ Plugin — token-gated, ações limitadas
+
+CONECTORES PLANEJADOS:
+⚪ Claude MCP Server (@anthropic/mcp-server)
+⚪ OpenAI MCP (quando disponível)
+⚪ Google Gemini MCP
+⚪ Ollama MCP local (http://127.0.0.1:11434/mcp)
+
+ARQUIVOS-CHAVE:
+• browser-extension/ (Manifest V3)
+• docs/notepad-plus-plus-integration.md
+• mcp-server/index.js (stdio)
+
+================================================================================
+3. FRAMEWORK DE PERMISSÕES
+================================================================================
+
+IMPLEMENTADO:
+✅ allowed-operations.json — whitelist de comandos PowerShell
+✅ operation-registry.js — valida e compila templates parametrizados
+✅ sanitizeToolArgument() — regex ^[a-zA-Z0-9_. -]{1,128}$
+✅ /classify — classificação de operações destrutivas
+
+PONTOS FORTES:
+• Single source of truth em allowed-operations.json
+• Geração dinâmica de schemas MCP a partir de {{PLACEHOLDER}}
+• Rejeição (não stripping) de input inválido
+
+GAPS:
+• Permissões não granulares por tipo de cliente
+• Sem rate limiting por usuário/token
+
+ARQUIVOS-CHAVE:
+• v10/allowed-operations.json
+• v10/operation-registry.js
+• mcp-server/security.js
+
+================================================================================
+4. TOOL REGISTRY
+================================================================================
+
+IMPLEMENTAÇÃO ATUAL:
+• buildMcpToolRegistry() → mestreTools map
+• buildMcpToolSchemas() → inputSchema automático
+• 68 ferramentas categorizadas
+
+DIFERENCIAL:
+Geração automática de schemas MCP a partir dos placeholders
+{{PLACEHOLDER}} em allowed-operations.json, evitando duplicação.
+
+ARQUIVOS-CHAVE:
+• v10/operation-registry.js
+
+================================================================================
+5. APPROVAL ENGINE
+================================================================================
+
+IMPLEMENTADO:
+✅ Operações com destructive: true requerem confirmação (/classify)
+✅ Modo Livre (/modo-livre) como opt-in explícito
+✅ Log em nível SECURITY para comandos fora da whitelist
+
+SUGESTÃO DO DOCUMENTO:
+UI mais explícita para operações de alto risco:
+• desativar_servico
+• encerrar_processo
+• limpar_* (operações destrutivas)
+
+ARQUIVOS-CHAVE:
+• v10/launcher.js (endpoint /classify)
+• v10/allowed-operations.json (flag destructive)
+
+================================================================================
+6. AUDITORIA
+================================================================================
+
+IMPLEMENTADO:
+✅ 7 níveis: INFO, WARNING, ERROR, SECURITY, COMMAND_EXEC, IA_OPERATION, WEBHOOK
+✅ Rotação: 10MB max, 30 arquivos retidos
+✅ Redação de chaves sensíveis (password, key, token, secret, webhook_url)
+
+ENDPOINTS ÚTEIS:
+• GET /auditoria/logs?level=SECURITY&limit=20
+• POST /auditoria/exportar-relatorio (Markdown)
+
+ARQUIVOS-CHAVE:
+• mcp-server/audit-logger.js
+• v10/launcher.js (rotas de auditoria)
+
+================================================================================
+7. SEGURANÇA DE REDE
+================================================================================
+
+CAMADAS IMPLEMENTADAS:
+1. CORS — Origin deve igualar MESTRE_BASE_URL (exceto MCP)
+2. Headers — X-Content-Type-Options: nosniff, Referrer-Policy: no-referrer
+3. CSP — frame-ancestors 'none' previne clickjacking
+4. Tokens — X-Mestre-Extension-Token, X-Mestre-Npp-Token
+
+REGRAS DE OURO:
+• Nunca restaurar acesso file:// à UI (sempre http://127.0.0.1:7777)
+• MCP não envia Origin; clientes HTTP devem validar
+• Tokens gateiam integrações (extension, NPP)
+
+ARQUIVOS-CHAVE:
+• v10/launcher.js
+
+================================================================================
+8. INTEGRAÇÃO COM CLAUDE
+================================================================================
+
+DOIS CENÁRIOS:
+
+1. Claude como CLIENTE MCP (stdio)
+   • Claude Desktop consome ferramentas do Mestre do PC
+   • Configuração no claude_desktop_config.json
+
+2. Claude como SERVIDOR MCP (Remote Gateway)
+   • Mestre do PC conecta ao @anthropic/mcp-server
+   • Usa ferramentas do Claude: file_read, file_write, web_search
+   • Requer implementação do Remote Gateway
+
+O documento parece sugerir o CENÁRIO 2.
+
+ARQUIVOS-CHAVE:
+• mcp-server/index.js (cliente atual)
+• (futuro) mcp-server/remote-gateway.js (não existe)
+
+================================================================================
+9. ROADMAP V11 / AI HEADLESS
+================================================================================
+
+AI HEADLESS = Agente CLI sem UI que:
+• Executa diagnósticos automatizados via MCP
+• Usa Ollama para raciocínio (local ou cloud)
+• Envia alertas via webhooks
+• Opera em modo headless (servidor/CI)
+
+ARQUIVOS RELACIONADOS:
+• plano_agente_cli_python_ollama_hostinger.pdf (não legível sem poppler)
+• GUIA-RAPIDO-V11.md (seção de webhooks e monitoramento)
+
+FUNCIONALIDADES V11 JÁ ENTREGUES:
+✅ Monitoramento de temperatura CPU
+✅ Backup de drivers
+✅ SSD health check
+✅ UWP app diagnostics
+✅ Webhooks (Discord, Teams, Slack)
+✅ Auditoria completa
+
+================================================================================
+10. GOVERNANÇA DE DEPENDÊNCIAS
+================================================================================
+
+RECOMENDAÇÕES (do arquivo Sugestao_de_Melhorias_Dependencias.txt):
+
+PRIORIDADE | AÇÃO
+-----------|------
+P0         | Documentar racional do @hono/node-server (reachability: stdio only)
+P0         | Confirmar papel do mysql2 (core vs opcional)
+P0         | npm ci + npm audit no CI
+P1         | Inventário de overrides com justificativa
+P1         | Separar runtime, tooling e integrações opcionais
+P2         | Isolar MySQL como feature flag
+
+OVERRIDES ATUAIS (mcp-server/package.json):
+• hono
+• @hono/node-server
+• fast-uri
+• path-to-regexp
+• qs
+• body-parser
+
+STATUS:
+✅ Overrides existem para mitigar vulnerabilidades
+⚠️ Documentação dos overrides não está formalizada
+
+ARQUIVOS-CHAVE:
+• mcp-server/package.json (overrides)
+• Mestre-do-PC-V10_Sugestao_de_Melhorias_Dependencias.txt
+
+================================================================================
+11. CRITÉRIOS DE ACEITE
+================================================================================
+
+DO CHECKLIST-IMPLANTACAO-V11.md:
+
+✅ IMPLANTAÇÃO APROVADA SE:
+[ ] 100% dos testes passando
+[ ] 100% dos scripts validados
+[ ] Todas as operações básicas funcionais
+[ ] Webhooks testados e aprovados
+[ ] Logs de auditoria operacionais
+[ ] Nenhum erro crítico nos logs
+
+❌ IMPLANTAÇÃO REPROVADA SE:
+[ ] Erros de sintaxe JavaScript/PowerShell
+[ ] Testes falhando
+[ ] Webhooks não enviam
+[ ] Logs não são criados
+[ ] Operações críticas falham
+
+================================================================================
+LACUNAS IDENTIFICADAS (ROADMAP)
+================================================================================
+
+1. REMOTE MCP GATEWAY
+   Gap: Cliente MCP HTTP para servidores remotos não implementado
+   Complexidade: Média-Alta
+   Arquivos novos necessários: mcp-server/remote-gateway.js
+
+2. MENU MCP NA UI
+   Gap: Aba "🔌 MCP" sugerida mas não criada em v10/index.html
+   Complexidade: Média
+   Referência: sugestoes/sugestoes Qwen/sugestao-menu-mcp.md
+
+3. DOCUMENTAÇÃO DE OVERRIDES
+   Gap: Falta inventário formal com justificativas de segurança
+   Complexidade: Baixa
+   Arquivo novo sugerido: mcp-server/DEPENDENCY-OVERRIDES.md
+
+4. MYSQL2 COMO OPCIONAL
+   Gap: Importado no core, deveria ser feature-flag
+   Complexidade: Baixa-Média
+   Arquivos afetados: v10/chat-integrado/mysql-sync.js
+
+5. AI HEADLESS / AGENTE CLI
+   Gap: Plano existe, implementação pendente
+   Complexidade: Média
+   Referência: plano_agente_cli_python_ollama_hostinger.pdf
+
+================================================================================
+CONCLUSÃO
+================================================================================
+
+O documento PDF consolida uma arquitetura MADURA EM PRODUÇÃO para o núcleo MCP
+local, com ROADMAP CLARO para:
+
+1. Expansão multi-LLM (Remote Gateway)
+2. UI de gerenciamento MCP (Menu 🔌)
+3. Governança formal de dependências (inventário, política, CI)
+4. AI Headless (agente CLI Python + Ollama)
+
+PRINCIPAIS RISCOS MITIGADOS:
+✅ Whitelist estrita de comandos
+✅ Sanitização com rejeição (não stripping)
+✅ Prompt injection detection
+✅ Auditoria com redação de sensíveis
+✅ Separação MCP (não-elevado) / Launcher (elevado)
+
+RISCOS RESIDUAIS:
+⚠️ @hono/node-server vulnerável mas não usado (requer documentação)
+⚠️ mysql2 no core path (deveria ser opcional)
+⚠️ Overrides sem justificativa registrada (difícil auditar)
+
+================================================================================
+PRÓXIMOS PASSOS SUGERIDOS
+================================================================================
+
+Se o usuário quiser implementar alguma iniciativa:
+
+1. Menu MCP na UI — Criar interface para gerenciar múltiplos servidores MCP
+2. Remote Gateway — Implementar cliente MCP HTTP para servidores remotos
+3. Documentar overrides — Criar inventário das dependências com justificativas
+4. Isolar mysql2 — Tornar MySQL uma feature opcional
+5. AI Headless — Desenvolver agente CLI Python
+
+================================================================================
+FONTES CONSULTADAS
+================================================================================
+
+• mcp-server/index.js
+• mcp-server/audit-logger.js
+• mcp-server/security.js
+• mcp-server/package.json
+• v10/launcher.js
+• v10/operation-registry.js
+• v10/allowed-operations.json
+• v10/index.html
+• AGENTS.md
+• CLAUDE.md
+• GUIA-RAPIDO-V11.md
+• CHECKLIST-IMPLANTACAO-V11.md
+• Mestre-do-PC-V10_Sugestao_de_Melhorias_Dependencias.txt
+• sugestoes/sugestoes Qwen/sugestao-menu-mcp.md
+• sugestoes/sugestoes Qwen/skills-mcp-qwen.md
+
+================================================================================
+FIM DO DOCUMENTO
+================================================================================
