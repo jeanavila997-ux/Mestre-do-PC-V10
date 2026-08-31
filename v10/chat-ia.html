@@ -6,8 +6,39 @@
 <title>Mestre do PC — Chat IA</title>
 <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png"/>
 <style>
-:root{--bg:#05070a;--panel:#0d1117;--sidebar-bg:#0a0e14;--card:#161b22;--hover-bg:#1c2530;--border:rgba(255,255,255,0.1);--border-color:rgba(255,255,255,0.12);--text:#e6edf3;--text-muted:#8b949e;--accent:#00d4ff;--accent2:#00ff88;--danger:#f85149;--success:#238636;--warning:#f0a800;--purple:#a200ff;--radius-lg:16px;--radius-md:10px;--radius-sm:6px}
-body.light{--bg:#f6f8fa;--panel:#fff;--sidebar-bg:#f0f2f4;--card:#f3f4f6;--hover-bg:#e5e7eb;--border:rgba(0,0,0,0.12);--border-color:rgba(0,0,0,0.15);--text:#1f2328;--text-muted:#656d76;--accent:#0969da;--accent2:#1a7f37}
+:root{
+  --bg:#05070a;
+  --panel:#0d1117;
+  --sidebar-bg:#0a0e14;
+  --card:#161b22;
+  --hover-bg:#1c2530;
+  --border:rgba(255,255,255,0.1);
+  --border-color:rgba(255,255,255,0.12);
+  --text:#e6edf3;
+  --text-muted:#8b949e;
+  --accent:#00d4ff;
+  --accent2:#00ff88;
+  --danger:#f85149;
+  --success:#238636;
+  --warning:#f0a800;
+  --purple:#a200ff;
+  --radius-lg:16px;
+  --radius-md:10px;
+  --radius-sm:6px;
+}
+body.light{
+  --bg:#f6f8fa;
+  --panel:#fff;
+  --sidebar-bg:#f0f2f4;
+  --card:#f3f4f6;
+  --hover-bg:#e5e7eb;
+  --border:rgba(0,0,0,0.12);
+  --border-color:rgba(0,0,0,0.15);
+  --text:#1f2328;
+  --text-muted:#656d76;
+  --accent:#0969da;
+  --accent2:#1a7f37;
+}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeInScale{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
@@ -16,16 +47,35 @@ body.light{--bg:#f6f8fa;--panel:#fff;--sidebar-bg:#f0f2f4;--card:#f3f4f6;--hover
 @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes borderGlow{0%,100%{border-color:var(--accent)}50%{border-color:var(--accent2)}}
 @keyframes typing{0%,100%{opacity:0.3}50%{opacity:1}}
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden;transition:background 0.3s,color 0.3s}
-.sidebar{width:260px;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px;font-size:13px;transition:width 0.22s ease,padding 0.22s ease;z-index:1000}
+body{
+  font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+  overflow:hidden;
+  transition:background 0.3s,color 0.3s;
+}
+.sidebar{
+  width:260px;
+  background:var(--sidebar-bg);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:12px;
+  font-size:13px;
+  transition:width 0.22s ease,padding 0.22s ease;
+  z-index:1000;
+}
 .sidebar-header{display:flex;align-items:center;justify-content:space-between;padding:6px 8px 12px}
 .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;letter-spacing:-0.02em;color:var(--accent)}
 .brand-logo{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;animation:pulse 3s ease-in-out infinite}
 .collapse-btn{color:var(--text-muted);cursor:pointer;padding:4px;border-radius:6px;transition:all 0.2s}
 .collapse-btn:hover{color:var(--text);background:var(--hover-bg)}
 .nav-group{display:flex;flex-direction:column;gap:2px;margin-bottom:16px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-md);color:var(--text);cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-md);color:var(--text);cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;text-decoration:none}
 .nav-item::before{content:'';position:absolute;left:0;bottom:0;width:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.3s ease}
 .nav-item:hover{background:rgba(0,212,255,0.1)}
 .nav-item:hover::before{width:100%}
@@ -35,7 +85,33 @@ body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--
 .nav-item:hover .nav-icon{color:var(--accent)}
 .section-title{font-size:11px;color:var(--text-muted);padding:8px;font-weight:600;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:0.05em}
 .chat-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
-.chat-item{padding:8px 10px;border-radius:var(--radius-md);color:var(--text-muted);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all 0.2s}
+.chat-item{
+  padding:8px 10px;
+  border-radius:var(--radius-md);
+  color:var(--text-muted);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  transition:all 0.2s;
+  font-size:12.5px;
+}
+.chat-item-title{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  flex:1;
+}
+.chat-item-del{
+  opacity:0;
+  color:var(--danger);
+  font-size:12px;
+  padding:2px 6px;
+  border-radius:4px;
+  transition:all 0.2s;
+}
+.chat-item:hover .chat-item-del{opacity:0.8}
+.chat-item-del:hover{opacity:1;background:rgba(248,81,73,0.15)}
 .chat-item:hover{background:var(--hover-bg);color:var(--text)}
 .chat-item.active{background:var(--hover-bg);color:var(--text);font-weight:500;border-left:2px solid var(--accent)}
 .referral-card{background:linear-gradient(135deg,rgba(162,0,255,0.15),rgba(0,212,255,0.1));border:1px solid rgba(162,0,255,0.3);border-radius:var(--radius-md);padding:10px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;animation:borderGlow 3s ease-in-out infinite}
@@ -48,12 +124,14 @@ body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--
 .user-info{flex:1;overflow:hidden}
 .user-name{font-weight:600;font-size:12px;line-height:1.2;color:var(--text)}
 .user-email{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 .main{flex:1;display:flex;flex-direction:column;position:relative;background:var(--bg)}
 .top-bar{height:52px;display:flex;align-items:center;justify-content:flex-end;padding:0 20px;gap:12px;border-bottom:1px solid var(--border)}
-.top-btn{background:var(--card);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all 0.2s}
+.top-btn{background:var(--card);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all 0.2s;text-decoration:none}
 .top-btn:hover{background:var(--hover-bg);border-color:var(--accent);color:var(--accent)}
 .credits-badge{background:rgba(240,168,0,0.15);border:1px solid rgba(240,168,0,0.3);color:#fbbf24;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;animation:pulse 2s ease-in-out infinite}
-.content-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20px 80px;position:relative;overflow-y:auto}
+.credits-badge.online{background:rgba(35,134,54,0.15);border-color:rgba(35,134,54,0.4);color:var(--accent2)}
+.content-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 20px 80px;position:relative;overflow-y:auto}
 .hero-heading{display:flex;align-items:center;gap:14px;margin-bottom:32px;animation:fadeInUp 0.6s ease-out forwards}
 .tess-icon-big{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;animation:pulse 3s ease-in-out infinite;box-shadow:0 0 20px rgba(0,212,255,0.3)}
 .hero-title{font-size:32px;font-weight:400;font-family:"Segoe UI",system-ui,sans-serif;color:var(--text);background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradientShift 3s ease infinite;background-size:200% 200%}
@@ -69,183 +147,866 @@ body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--
 .icon-circle-btn{width:32px;height:32px;border-radius:50%;background:var(--hover-bg);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all 0.2s}
 .icon-circle-btn:hover{background:var(--card);border-color:var(--accent);color:var(--accent);transform:scale(1.05)}
 .icon-circle-btn.is-listening{background:var(--danger);border-color:var(--danger);color:#fff;animation:pulse 1.2s ease-in-out infinite}
+.icon-circle-btn.send-btn{background:var(--accent);color:#000;font-weight:bold;border:none}
+.icon-circle-btn.send-btn:hover{background:var(--accent2);transform:scale(1.08)}
 .quick-categories{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;justify-content:center;max-width:760px;animation:fadeInUp 0.6s ease-out 0.3s backwards}
 .cat-capsule{background:var(--card);border:1px solid var(--border);color:var(--text-muted);padding:8px 14px;border-radius:20px;font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s}
 .cat-capsule:hover{color:var(--text);border-color:var(--accent);background:rgba(0,212,255,0.1);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,212,255,0.15)}
-.popup-menu{position:absolute;background:var(--panel);border:1px solid var(--border);border-radius:12px;width:240px;box-shadow:0 12px 36px rgba(0,0,0,0.5),0 0 0 1px rgba(0,212,255,0.1);padding:6px;z-index:100;display:none;animation:fadeInScale 0.2s ease-out}
+
+.popup-menu{position:absolute;background:var(--panel);border:1px solid var(--border);border-radius:12px;width:240px;max-height:360px;overflow-y:auto;box-shadow:0 12px 36px rgba(0,0,0,0.5),0 0 0 1px rgba(0,212,255,0.1);padding:6px;z-index:100;display:none;animation:fadeInScale 0.2s ease-out}
 .popup-menu.show{display:block}
 .menu-item{padding:8px 10px;border-radius:8px;font-size:13px;color:var(--text);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all 0.2s}
 .menu-item:hover{background:var(--hover-bg);color:var(--accent)}
+.menu-item.selected{background:rgba(0,212,255,0.15);color:var(--accent);font-weight:600}
 .menu-item small{color:var(--text-muted);font-size:11px}
 .toggle-sw{width:32px;height:18px;background:var(--hover-bg);border:1px solid var(--border);border-radius:10px;position:relative;cursor:pointer;transition:all 0.2s}
 .toggle-sw.active{background:var(--accent);border-color:var(--accent)}
 .toggle-sw::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:1px;left:1px;transition:transform 0.2s}
 .toggle-sw.active::after{transform:translateX(14px)}
-.messages-container{width:100%;max-width:760px;display:flex;flex-direction:column;gap:20px;margin-bottom:20px;animation:fadeInUp 0.5s ease-out forwards}
+
+.messages-container{width:100%;max-width:760px;display:flex;flex-direction:column;gap:20px;margin-bottom:20px;animation:fadeInUp 0.5s ease-out forwards;flex:1;overflow-y:auto}
 .msg-row{display:flex;gap:12px;line-height:1.6;animation:slideInLeft 0.4s ease-out forwards}
 .msg-row.user{animation:slideInRight 0.4s ease-out forwards}
 .msg-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
 .msg-avatar.ai{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;animation:pulse 3s ease-in-out infinite}
 .msg-avatar.user{background:linear-gradient(135deg,var(--purple),var(--danger));color:#fff}
 .msg-body{flex:1;font-size:14.5px;color:var(--text);background:var(--card);padding:12px 14px;border-radius:12px;border:1px solid var(--border);transition:all 0.2s;word-wrap:break-word}
-.msg-body:hover{border-color:var(--accent);box-shadow:0 4px 12px rgba(0,212,255,0.1)}
+.msg-body:hover{border-color:rgba(0,212,255,0.4);box-shadow:0 4px 12px rgba(0,212,255,0.1)}
 .msg-body strong{color:var(--accent2)}
 .msg-body code{background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;font-family:"Cascadia Mono",Consolas,monospace;font-size:13px;color:var(--accent2)}
-.msg-body pre{background:rgba(0,0,0,0.4);padding:12px;border-radius:8px;overflow-x:auto;margin:8px 0;border:1px solid var(--border)}
-.msg-body pre code{background:transparent;padding:0;border-radius:0}
+.msg-body pre{background:rgba(0,0,0,0.5);padding:12px;border-radius:8px;overflow-x:auto;margin:8px 0;border:1px solid var(--border)}
+.msg-body pre code{background:transparent;padding:0;border-radius:0;color:var(--text)}
+
+/* Code Block Wrapper com botões Executar / Copiar */
+.code-block-wrapper{margin:10px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:#070b10}
+.code-block-header{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(255,255,255,0.04);border-bottom:1px solid var(--border);font-size:11px;color:var(--text-muted);font-family:monospace}
+.code-block-actions{display:flex;gap:6px}
+.btn-code-action{background:var(--hover-bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:4px}
+.btn-code-action:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+.btn-code-action.run-btn{color:var(--accent2);border-color:rgba(0,255,136,0.3)}
+.btn-code-action.run-btn:hover{background:var(--accent2);color:#000}
+.code-block-wrapper pre{margin:0;padding:12px;border:none;border-radius:0}
+
+/* Terminal output card */
+.terminal-output-card{margin-top:10px;border-radius:8px;border:1px solid var(--border);background:#020408;font-family:"Cascadia Mono",Consolas,monospace;font-size:12.5px;overflow:hidden;animation:fadeInUp 0.3s ease}
+.terminal-header{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(255,255,255,0.05);border-bottom:1px solid var(--border);font-size:11px;color:var(--text-muted)}
+.terminal-body{padding:10px 12px;max-height:220px;overflow-y:auto;white-space:pre-wrap;color:#00ff88;line-height:1.4}
+.terminal-body.error{color:#f85149}
+
+/* Typing indicator */
 .ia-typing{display:flex;gap:4px;padding:12px 14px;background:var(--card);border-radius:12px;border:1px solid var(--border);width:fit-content}
 .ia-typing span{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:typing 1.4s ease-in-out infinite}
 .ia-typing span:nth-child(2){animation-delay:0.2s}
 .ia-typing span:nth-child(3){animation-delay:0.4s}
-::-webkit-scrollbar{width:8px}
+
+/* Modal de confirmação */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.confirm-overlay.show{opacity:1;pointer-events:auto}
+.confirm-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;max-width:500px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,0.6);animation:fadeInScale 0.25s ease}
+.confirm-card.destructive{border-color:var(--danger);box-shadow:0 0 24px rgba(248,81,73,0.3)}
+.confirm-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--text)}
+.confirm-card.destructive .confirm-title{color:var(--danger)}
+.confirm-body{font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.5}
+.confirm-cmd-box{background:#000;border:1px solid var(--border);padding:10px;border-radius:6px;font-family:monospace;font-size:12px;color:var(--accent2);max-height:120px;overflow-y:auto;white-space:pre-wrap;margin-bottom:16px}
+.confirm-actions{display:flex;justify-content:flex-end;gap:8px}
+.btn-modal{padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid var(--border);transition:all 0.2s}
+.btn-modal.cancel{background:transparent;color:var(--text-muted)}
+.btn-modal.cancel:hover{background:var(--hover-bg);color:var(--text)}
+.btn-modal.confirm{background:var(--accent);color:#000;font-weight:600;border:none}
+.btn-modal.confirm:hover{background:var(--accent2)}
+.confirm-card.destructive .btn-modal.confirm{background:var(--danger);color:#fff}
+.confirm-card.destructive .btn-modal.confirm:hover{background:#ff6b6b}
+
+/* Toast container */
+.toast-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:10000;pointer-events:none}
+.toast{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,0.4);display:flex;align-items:center;gap:10px;animation:slideInRight 0.3s ease;pointer-events:auto;max-width:360px}
+.toast.success{border-color:var(--accent2);color:var(--accent2)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+.toast.warning{border-color:var(--warning);color:var(--warning)}
+.toast.info{border-color:var(--accent);color:var(--accent)}
+
+::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--hover-bg);border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:var(--card)}
+
 body.sidebar-collapsed .sidebar{width:64px;padding:14px 8px;overflow-x:hidden}
-body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .brand span,body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .nav-item span,body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .section-title span,body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .referral-card,body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .user-info{display:none}
+body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .brand span,
+body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .nav-item span,
+body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .section-title span,
+body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .referral-card,
+body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .user-info{display:none}
 body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .brand{justify-content:center}
 body.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .nav-item{justify-content:center;height:40px}
-body.sidebar-collapsed .main{margin-left:64px}
+body.sidebar-collapsed .main{margin-left:0}
 </style>
 </head>
 <body>
+
 <aside class="sidebar">
-<div class="sidebar-header">
-<div class="brand"><div class="brand-logo">M</div><span>Mestre do PC</span></div>
-<div class="collapse-btn" id="collapseBtn" title="Recolher menu">◧</div>
-</div>
-<div class="nav-group">
-<div class="nav-item active" id="btnNewChat"><span class="nav-icon">＋</span><span>Novo chat</span></div>
-<div class="nav-item"><span class="nav-icon">▤</span><span>Espaços</span></div>
-</div>
-<div class="nav-group">
-<div class="nav-item"><span class="nav-icon">❖</span><span>Agent Studio</span></div>
-<div class="nav-item"><span class="nav-icon">🔧</span><span>Diagnóstico IA</span></div>
-<div class="nav-item"><span class="nav-icon">🛠️</span><span>Manutenção</span></div>
-<div class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></div>
-</div>
-<div class="section-title"><span>Chats</span><span>⚙️ 🔎</span></div>
-<div class="chat-list" id="chatHistory">
-<div class="chat-item">📂 Adicionar pasta</div>
-<div class="chat-item">📁 OLLAMA</div>
-<div class="chat-item">📁 BOLIVIA</div>
-<div class="chat-item">📁 "Produtividade 10X com IA"</div>
-<div class="chat-item active">GitHub Repository Access: Mest...</div>
-</div>
-<div class="referral-card">
-<span class="icon">♡</span>
-<div><div class="title">Recomende Mestre do PC</div><div class="desc">Compartilhe com amigos</div></div>
-</div>
-<div class="user-profile">
-<div class="user-avatar">JA</div>
-<div class="user-info"><div class="user-name">JEAN AVILA</div><div class="user-email">jeanavila997@gmail.com</div></div>
-<span style="color:var(--text-muted)">⌄</span>
-</div>
+  <div class="sidebar-header">
+    <div class="brand"><div class="brand-logo">M</div><span>Mestre do PC</span></div>
+    <div class="collapse-btn" id="collapseBtn" title="Recolher menu">◧</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-item active" id="btnNewChat"><span class="nav-icon">＋</span><span>Novo chat</span></div>
+    <a class="nav-item" href="/memories.html"><span class="nav-icon">🧠</span><span>Memórias</span></a>
+  </div>
+  <div class="nav-group">
+    <a class="nav-item" href="/index.html"><span class="nav-icon">📊</span><span>Painel Principal</span></a>
+    <a class="nav-item" href="/novidades-v11.html"><span class="nav-icon">✨</span><span>Novidades V11</span></a>
+    <a class="nav-item" href="/prompts-de-comando.html"><span class="nav-icon">📜</span><span>Prompts de Comando</span></a>
+  </div>
+  <div class="section-title"><span>Conversas Recentes</span><span style="font-size:10px;cursor:pointer" id="btnClearHistory" title="Limpar conversas">🗑️</span></div>
+  <div class="chat-list" id="chatHistory"></div>
+  <div class="referral-card">
+    <span class="icon">♡</span>
+    <div><div class="title">Mestre do PC V10/V11</div><div class="desc">Automação e IA para Windows</div></div>
+  </div>
+  <div class="user-profile" title="Sessão local">
+    <div class="user-avatar">JA</div>
+    <div class="user-info"><div class="user-name">JEAN AVILA</div><div class="user-email">jeanavila997@gmail.com</div></div>
+    <span style="color:var(--text-muted)">⌄</span>
+  </div>
 </aside>
+
 <main class="main">
-<div class="top-bar">
-<div class="top-btn" title="Novo chat">＋</div>
-<div class="top-btn" title="Agent Studio">❖</div>
-<div class="top-btn" id="btnTheme" title="Alternar tema">◐</div>
-<div class="credits-badge"><span>🟢</span><span>Online</span></div>
-</div>
-<div class="content-area" id="contentArea">
-<div class="hero-heading" id="heroHeading">
-<div class="tess-icon-big">M</div>
-<h1 class="hero-title">De volta ao trabalho, JEAN?</h1>
-</div>
-<div class="messages-container" id="messagesContainer" style="display:none"></div>
-<div class="composer-box">
-<textarea class="composer-input" id="promptInput" placeholder="Pergunte qualquer coisa ou @ para chamar outro agente..."></textarea>
-<div class="composer-toolbar">
-<div class="toolbar-left">
-<button class="icon-circle-btn" id="btnPlus" title="Opções">＋</button>
-<div class="action-pill" id="btnChatType"><span>💬 Chat</span></div>
-<div class="action-pill" id="btnAgentSelect"><span>🤖 Agente</span></div>
-<div class="action-pill" id="btnConnectors"><span>🔗 Conectores (10)</span></div>
-</div>
-<div class="toolbar-right">
-<div class="action-pill" id="btnModelSelect"><span>🔀 Auto</span></div>
-<button class="icon-circle-btn" id="btnMic" title="Entrada por voz">🎤</button>
-</div>
-</div>
-<div class="popup-menu" id="plusMenu" style="bottom:60px;left:16px">
-<div class="menu-item"><span>📎 Adicionar fotos e arquivos</span></div>
-<div class="menu-item"><span>📂 Abrir fotos e arquivos</span></div>
-<div class="menu-item"><span>🛠️ Ferramentas</span></div>
-<div class="menu-item" id="itemConnTrigger"><span>🔗 Conectores</span><small>10 ></small></div>
-<div class="menu-item"><span>🎨 Criatividade</span></div>
-</div>
-<div class="popup-menu" id="connectorsMenu" style="bottom:60px;left:180px;width:280px">
-<div style="font-size:11px;color:var(--text-muted);padding:6px;display:flex;justify-content:space-between"><span>Este workspace permite até 10 conectores.</span><b>10/10</b></div>
-<div class="menu-item"><span>🎨 Canva</span><div class="toggle-sw active"></div></div>
-<div class="menu-item"><span>💻 Code Interpreter</span><div class="toggle-sw active"></div></div>
-<div class="menu-item"><span>🔍 Composio Search</span><div class="toggle-sw active"></div></div>
-<div class="menu-item"><span>🐙 GitHub</span><div class="toggle-sw active"></div></div>
-<div class="menu-item"><span>✉️ Gmail</span><div class="toggle-sw active"></div></div>
-<div class="menu-item"><span>📁 Google Drive</span><div class="toggle-sw active"></div></div>
-</div>
-<div class="popup-menu" id="modelsMenu" style="bottom:60px;right:16px;width:220px">
-<div style="font-size:11px;color:var(--text-muted);padding:6px">MODELOS DISPONÍVEIS</div>
-<div class="menu-item"><span>🔀 Auto</span><small>✓</small></div>
-<div class="menu-item"><span>✨ Ollama Local</span><small>Recomendado</small></div>
-<div class="menu-item"><span>🧠 Claude Opus</span></div>
-<div class="menu-item"><span>⚡ GPT-4 Turbo</span></div>
-<div class="menu-item"><span>🌐 Gemini Pro</span></div>
-</div>
-</div>
-<div class="quick-categories" id="quickCategories">
-<div class="cat-capsule">💻 Apresentações</div>
-<div class="cat-capsule">📚 Busca e Arquivos</div>
-<div class="cat-capsule">&lt;/&gt; Desenvolvimento Web</div>
-<div class="cat-capsule">📹 Vídeos</div>
-<div class="cat-capsule">🔊 Voz e Música</div>
-</div>
-</div>
+  <div class="top-bar">
+    <div class="top-btn" id="btnTopNewChat" title="Novo chat">＋</div>
+    <a class="top-btn" href="/index.html" title="Abrir Dashboard Principal">📊</a>
+    <div class="top-btn" id="btnTheme" title="Alternar tema">◐</div>
+    <div class="credits-badge" id="statusBadge"><span>🟢</span><span>Conectando...</span></div>
+  </div>
+
+  <div class="content-area" id="contentArea">
+    <div class="hero-heading" id="heroHeading">
+      <div class="tess-icon-big">M</div>
+      <h1 class="hero-title">De volta ao trabalho, JEAN?</h1>
+    </div>
+
+    <div class="messages-container" id="messagesContainer" style="display:none"></div>
+
+    <div class="composer-box">
+      <textarea class="composer-input" id="promptInput" placeholder="Pergunte qualquer coisa sobre seu PC ou peça um diagnóstico..."></textarea>
+      <div class="composer-toolbar">
+        <div class="toolbar-left">
+          <button class="icon-circle-btn" id="btnPlus" title="Mais opções">＋</button>
+          <div class="action-pill" id="btnChatType"><span>💬 Chat</span></div>
+          <div class="action-pill" id="btnConnectors"><span>🔗 Ferramentas</span></div>
+        </div>
+        <div class="toolbar-right">
+          <div class="action-pill" id="btnModelSelect"><span>🔀 Auto</span></div>
+          <button class="icon-circle-btn" id="btnMic" title="Entrada por voz">🎤</button>
+          <button class="icon-circle-btn send-btn" id="btnSend" title="Enviar mensagem">➤</button>
+        </div>
+      </div>
+
+      <!-- Plus Menu -->
+      <div class="popup-menu" id="plusMenu" style="bottom:60px;left:16px">
+        <div class="menu-item" id="actDiagCompleto"><span>🔧 Diagnóstico Rápido</span></div>
+        <div class="menu-item" id="actLimpezaTemp"><span>🧹 Limpar Temporários</span></div>
+        <div class="menu-item" id="actOtimizarMem"><span>⚡ Otimizar RAM</span></div>
+        <div class="menu-item" id="actStatusRede"><span>🌐 Teste de Conexão</span></div>
+      </div>
+
+      <!-- Connectors Menu -->
+      <div class="popup-menu" id="connectorsMenu" style="bottom:60px;left:130px;width:260px">
+        <div style="font-size:11px;color:var(--text-muted);padding:6px;display:flex;justify-content:space-between">
+          <span>Ferramentas & Diagnósticos</span>
+        </div>
+        <div class="menu-item" id="connDiag"><span>🖥️ Info do Sistema</span><small>Executar</small></div>
+        <div class="menu-item" id="connDrives"><span>💾 Espaço em Disco</span><small>Executar</small></div>
+        <div class="menu-item" id="connRede"><span>📡 Adaptadores de Rede</span><small>Executar</small></div>
+        <div class="menu-item" id="connProcessos"><span>⚙️ Processos Pesados</span><small>Executar</small></div>
+      </div>
+
+      <!-- Models Menu -->
+      <div class="popup-menu" id="modelsMenu" style="bottom:60px;right:16px;width:240px">
+        <div style="font-size:11px;color:var(--text-muted);padding:6px">MODELOS OLLAMA DISPONÍVEIS</div>
+        <div class="menu-item selected" data-model=""><span>🔀 Auto (Padrão)</span><small>✓</small></div>
+      </div>
+    </div>
+
+    <div class="quick-categories" id="quickCategories">
+      <div class="cat-capsule" data-prompt="Faça um diagnóstico completo do meu computador e verifique saúde do sistema.">💻 Diagnóstico Geral</div>
+      <div class="cat-capsule" data-prompt="Quais comandos posso rodar no PowerShell para limpar arquivos temporários com segurança?">🧹 Limpeza de Cache</div>
+      <div class="cat-capsule" data-prompt="Como posso verificar o uso de memória RAM e processos que mais consom recursos?">⚡ Performance & RAM</div>
+      <div class="cat-capsule" data-prompt="Como testar a latência da minha rede e verificar se há perda de pacotes no Windows?">🌐 Teste de Rede</div>
+      <div class="cat-capsule" data-prompt="Mostre como verificar integridade dos arquivos de sistema com SFC e DISM.">🛡️ Integridade do Windows</div>
+    </div>
+  </div>
 </main>
+
+<!-- Modal de Confirmação de Comando -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-card" id="confirmCard">
+    <div class="confirm-title" id="confirmTitle">⚠️ Executar Comando PowerShell</div>
+    <div class="confirm-body" id="confirmBody">A IA sugeriu o seguinte comando administrativo para o seu sistema:</div>
+    <div class="confirm-cmd-box" id="confirmCmdText"></div>
+    <div class="confirm-actions">
+      <button class="btn-modal cancel" id="btnConfirmCancel">Cancelar</button>
+      <button class="btn-modal confirm" id="btnConfirmOk">Executar Agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- Container de Toasts -->
+<div class="toast-container" id="toastContainer"></div>
+
 <script>
-const btnPlus=document.getElementById('btnPlus'),plusMenu=document.getElementById('plusMenu'),btnConnectors=document.getElementById('btnConnectors'),connectorsMenu=document.getElementById('connectorsMenu'),btnModelSelect=document.getElementById('btnModelSelect'),modelsMenu=document.getElementById('modelsMenu'),promptInput=document.getElementById('promptInput'),heroHeading=document.getElementById('heroHeading'),quickCategories=document.getElementById('quickCategories'),messagesContainer=document.getElementById('messagesContainer'),collapseBtn=document.getElementById('collapseBtn'),btnTheme=document.getElementById('btnTheme'),btnMic=document.getElementById('btnMic');
-let isWaitingForResponse=false;
-let voiceRecognition=null;
-function closeAllMenus(){plusMenu.classList.remove('show');connectorsMenu.classList.remove('show');modelsMenu.classList.remove('show')}
-btnPlus.addEventListener('click',e=>{e.stopPropagation();const isShow=plusMenu.classList.contains('show');closeAllMenus();if(!isShow)plusMenu.classList.add('show')});
-btnConnectors.addEventListener('click',e=>{e.stopPropagation();const isShow=connectorsMenu.classList.contains('show');closeAllMenus();if(!isShow)connectorsMenu.classList.add('show')});
-btnModelSelect.addEventListener('click',e=>{e.stopPropagation();const isShow=modelsMenu.classList.contains('show');closeAllMenus();if(!isShow)modelsMenu.classList.add('show')});
-document.addEventListener('click',()=>closeAllMenus());
-document.querySelectorAll('.toggle-sw').forEach(sw=>{sw.addEventListener('click',e=>{e.stopPropagation();sw.classList.toggle('active')})});
-collapseBtn.addEventListener('click',()=>{document.body.classList.toggle('sidebar-collapsed')});
-btnTheme.addEventListener('click',()=>{document.body.classList.toggle('light')});
-btnMic.addEventListener('click',()=>{
-  if(voiceRecognition){voiceRecognition.stop();return}
-  const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!Recognition){btnMic.title='Entrada por voz indisponível neste navegador';return}
-  voiceRecognition=new Recognition();
-  voiceRecognition.lang='pt-BR';
-  voiceRecognition.continuous=false;
-  voiceRecognition.interimResults=true;
-  btnMic.classList.add('is-listening');
-  btnMic.title='Parar entrada por voz';
-  voiceRecognition.onresult=event=>{
-    promptInput.value=Array.from(event.results).map(result=>result[0]?.transcript||'').join('').trim();
-  };
-  voiceRecognition.onerror=event=>{
-    if(event.error==='not-allowed'||event.error==='service-not-allowed'){
-      btnMic.title='Permita o acesso ao microfone para usar a entrada por voz';
+const SYSTEM_PROMPT = `Você é o Mestre do PC V10/V11, um assistente técnico de inteligência artificial de elite, especializado em diagnóstico, otimização, segurança e manutenção avançada de sistemas operacionais Windows.
+DIRETRIZES:
+1. Responda SEMPRE em português brasileiro (pt-BR) de forma clara, prestativa e objetiva.
+2. Quando sugerir comandos PowerShell ou ações no terminal do Windows, formate SEMPRE o comando exato em blocos de código com a tag \`\`\`powershell ... \`\`\`.
+3. Use comandos seguros e nativos do Windows / PowerShell 5.1.
+4. Seja estruturado: use tópicos, passos numerados e destaque termos técnicos em negrito ou código.`;
+
+// Estado
+const state = {
+  activeModel: "",
+  availableModels: [],
+  isWaiting: false,
+  abortController: null,
+  currentChatId: null,
+  conversations: [],
+  messages: [],
+  voiceRecognition: null,
+  isElevated: false,
+};
+
+const STORAGE_KEY = "MestreDoPC_ChatIA_History";
+
+// Elementos DOM
+const $ = (id) => document.getElementById(id);
+const promptInput = $("promptInput");
+const heroHeading = $("heroHeading");
+const quickCategories = $("quickCategories");
+const messagesContainer = $("messagesContainer");
+const collapseBtn = $("collapseBtn");
+const btnTheme = $("btnTheme");
+const btnMic = $("btnMic");
+const btnSend = $("btnSend");
+const btnPlus = $("btnPlus");
+const plusMenu = $("plusMenu");
+const btnConnectors = $("btnConnectors");
+const connectorsMenu = $("connectorsMenu");
+const btnModelSelect = $("btnModelSelect");
+const modelsMenu = $("modelsMenu");
+const statusBadge = $("statusBadge");
+const chatHistory = $("chatHistory");
+const btnNewChat = $("btnNewChat");
+const btnTopNewChat = $("btnTopNewChat");
+const btnClearHistory = $("btnClearHistory");
+
+// Confirmação
+const confirmOverlay = $("confirmOverlay");
+const confirmCard = $("confirmCard");
+const confirmTitle = $("confirmTitle");
+const confirmBody = $("confirmBody");
+const confirmCmdText = $("confirmCmdText");
+const btnConfirmCancel = $("btnConfirmCancel");
+const btnConfirmOk = $("btnConfirmOk");
+let confirmResolver = null;
+
+// Popups
+function closeAllMenus() {
+  plusMenu.classList.remove("show");
+  connectorsMenu.classList.remove("show");
+  modelsMenu.classList.remove("show");
+}
+btnPlus.addEventListener("click", (e) => { e.stopPropagation(); const s = plusMenu.classList.contains("show"); closeAllMenus(); if (!s) plusMenu.classList.add("show"); });
+btnConnectors.addEventListener("click", (e) => { e.stopPropagation(); const s = connectorsMenu.classList.contains("show"); closeAllMenus(); if (!s) connectorsMenu.classList.add("show"); });
+btnModelSelect.addEventListener("click", (e) => { e.stopPropagation(); const s = modelsMenu.classList.contains("show"); closeAllMenus(); if (!s) modelsMenu.classList.add("show"); });
+document.addEventListener("click", () => closeAllMenus());
+
+// Theme & Sidebar
+collapseBtn.addEventListener("click", () => document.body.classList.toggle("sidebar-collapsed"));
+btnTheme.addEventListener("click", () => {
+  document.body.classList.toggle("light");
+  localStorage.setItem("mestre_theme", document.body.classList.contains("light") ? "light" : "dark");
+});
+if (localStorage.getItem("mestre_theme") === "light") document.body.classList.add("light");
+
+// Toast
+function showToast(text, type = "info") {
+  const container = $("toastContainer");
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  let icon = "ℹ️";
+  if (type === "success") icon = "✅";
+  if (type === "error") icon = "❌";
+  if (type === "warning") icon = "⚠️";
+  el.innerHTML = `<span>${icon}</span><span>${escapeHtml(text)}</span>`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = "0";
+    el.style.transform = "translateX(40px)";
+    el.style.transition = "all 0.3s";
+    setTimeout(() => el.remove(), 300);
+  }, 4000);
+}
+
+function escapeHtml(t) {
+  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderMarkdown(text) {
+  let html = escapeHtml(text);
+  // Blocos de código powershell / shell
+  html = html.replace(/```(?:powershell|ps1|bat|cmd|bash)?\n?([\s\S]*?)```/g, (_, code) => {
+    const rawCmd = code.trim();
+    const isPs = true;
+    return `
+      <div class="code-block-wrapper">
+        <div class="code-block-header">
+          <span>⚡ PowerShell</span>
+          <div class="code-block-actions">
+            <button class="btn-code-action copy-btn" data-code="${escapeHtml(rawCmd)}">📋 Copiar</button>
+            <button class="btn-code-action run-btn" data-cmd="${escapeHtml(rawCmd)}">▶ Executar</button>
+          </div>
+        </div>
+        <pre><code>${escapeHtml(rawCmd)}</code></pre>
+      </div>
+    `;
+  });
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+  // Negrito
+  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  // Itálico
+  html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  // Quebras de linha fora de blocos
+  html = html.replace(/\n/g, "<br>");
+  return html;
+}
+
+// Attach event listeners em botões de código dinâmicos
+function wireCodeButtons(scope = document) {
+  scope.querySelectorAll(".copy-btn").forEach((btn) => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const code = btn.dataset.code || "";
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.textContent = "✓ Copiado!";
+        setTimeout(() => { btn.textContent = "📋 Copiar"; }, 2000);
+      } catch {
+        showToast("Falha ao copiar para o clipboard", "warning");
+      }
+    };
+  });
+
+  scope.querySelectorAll(".run-btn").forEach((btn) => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const cmd = btn.dataset.cmd || "";
+      handleExecuteCommand(cmd, btn);
+    };
+  });
+}
+
+// Status do Launcher / Ping
+async function checkStatus() {
+  try {
+    const res = await fetch("/ping", { headers: { "X-Mestre-Client": "v10-web" }, signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const data = await res.json();
+      state.isElevated = !!data.admin;
+      statusBadge.className = "credits-badge online";
+      statusBadge.innerHTML = `<span>🟢</span><span>Online ${data.admin ? "(Admin)" : ""}</span>`;
+    } else {
+      statusBadge.className = "credits-badge";
+      statusBadge.innerHTML = `<span>🟡</span><span>Launcher HTTP ${res.status}</span>`;
     }
+  } catch {
+    statusBadge.className = "credits-badge";
+    statusBadge.innerHTML = `<span>🔴</span><span>Offline</span>`;
+  }
+}
+
+// Carregar modelos Ollama
+async function loadModels() {
+  try {
+    const res = await fetch("/ollama/tags", { headers: { "X-Mestre-Client": "v10-web" } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const models = data.models || [];
+    state.availableModels = models.map((m) => m.name || m.model).filter(Boolean);
+
+    modelsMenu.innerHTML = `<div style="font-size:11px;color:var(--text-muted);padding:6px">MODELOS OLLAMA DISPONÍVEIS</div>`;
+    
+    // Auto item
+    const autoItem = document.createElement("div");
+    autoItem.className = `menu-item ${state.activeModel === "" ? "selected" : ""}`;
+    autoItem.dataset.model = "";
+    autoItem.innerHTML = `<span>🔀 Auto (Padrão)</span><small>${state.activeModel === "" ? "✓" : ""}</small>`;
+    autoItem.onclick = () => selectModel("");
+    modelsMenu.appendChild(autoItem);
+
+    for (const m of state.availableModels) {
+      const item = document.createElement("div");
+      item.className = `menu-item ${state.activeModel === m ? "selected" : ""}`;
+      item.dataset.model = m;
+      item.innerHTML = `<span>✨ ${escapeHtml(m)}</span><small>${state.activeModel === m ? "✓" : ""}</small>`;
+      item.onclick = () => selectModel(m);
+      modelsMenu.appendChild(item);
+    }
+  } catch { /* Ollama pode estar iniciando */ }
+}
+
+function selectModel(model) {
+  state.activeModel = model;
+  btnModelSelect.querySelector("span").textContent = model ? `✨ ${model.split(":")[0]}` : "🔀 Auto";
+  loadModels();
+  closeAllMenus();
+  showToast(model ? `Modelo alterado para: ${model}` : "Modo Automático selecionado", "info");
+}
+
+// Mensagens UI
+function addMessage(text, role, extra = {}) {
+  const row = document.createElement("div");
+  row.className = `msg-row ${role === "user" ? "user" : ""}`;
+  const avatar = document.createElement("div");
+  avatar.className = `msg-avatar ${role === "user" ? "user" : "ai"}`;
+  avatar.textContent = role === "user" ? "JA" : "M";
+
+  const body = document.createElement("div");
+  body.className = "msg-body";
+
+  if (role === "ai") {
+    body.innerHTML = renderMarkdown(text);
+    wireCodeButtons(body);
+  } else {
+    body.textContent = text;
+  }
+
+  if (extra.terminalOutput) {
+    const term = document.createElement("div");
+    term.className = "terminal-output-card";
+    term.innerHTML = `
+      <div class="terminal-header">
+        <span>🖥️ Terminal (${extra.success ? "Concluído" : "Falhou"})</span>
+        <span>${escapeHtml(extra.cmd || "")}</span>
+      </div>
+      <div class="terminal-body ${extra.success ? "" : "error"}">${escapeHtml(extra.terminalOutput)}</div>
+    `;
+    body.appendChild(term);
+  }
+
+  row.appendChild(avatar);
+  row.appendChild(body);
+  messagesContainer.appendChild(row);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  return body;
+}
+
+let streamingEl = null;
+function showTyping() {
+  const el = document.createElement("div");
+  el.className = "ia-typing";
+  el.id = "iaTyping";
+  el.innerHTML = "<span></span><span></span><span></span>";
+  messagesContainer.appendChild(el);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  return el;
+}
+function removeTyping() {
+  const el = $("iaTyping");
+  if (el) el.remove();
+}
+
+function updateStreamingText(text) {
+  if (!streamingEl) {
+    removeTyping();
+    const row = document.createElement("div");
+    row.className = "msg-row";
+    const avatar = document.createElement("div");
+    avatar.className = "msg-avatar ai";
+    avatar.textContent = "M";
+    streamingEl = document.createElement("div");
+    streamingEl.className = "msg-body";
+    row.appendChild(avatar);
+    row.appendChild(streamingEl);
+    messagesContainer.appendChild(row);
+  }
+  streamingEl.innerHTML = renderMarkdown(text);
+  wireCodeButtons(streamingEl);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Execução de Comandos com Verificação de Whitelist (/classify) e Polling (/run)
+async function handleExecuteCommand(cmd, btnTrigger) {
+  if (!cmd) return;
+  showToast("Classificando comando...", "info");
+
+  try {
+    const classifyRes = await fetch("/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+      body: JSON.stringify({ cmd }),
+    });
+
+    const verdict = await classifyRes.json();
+    if (!verdict.allowed) {
+      showToast(`⛔ Comando bloqueado: não está na whitelist permitida.`, "error");
+      addMessage(`⛔ **Comando não permitido pelo Launcher:**\n\`\`\`powershell\n${cmd}\n\`\`\`\n*Apenas operações validadas na whitelist de segurança podem ser executadas pelo Chat IA.*`, "ai");
+      return;
+    }
+
+    // Solicitar confirmação
+    const confirmed = await askConfirmation({
+      title: verdict.destructive ? "⚠️ Operação Destrutiva / Modificadora" : "⚡ Confirmar Execução de Comando",
+      reason: verdict.destructive
+        ? `Esta operação foi marcada como **potencialmente destrutiva** (${verdict.title || "Comando"}). Deseja continuar?`
+        : `Deseja executar este comando no seu sistema operacional?`,
+      cmd: verdict.resolvedCmd || cmd,
+      destructive: !!verdict.destructive,
+    });
+
+    if (!confirmed) {
+      showToast("Execução cancelada pelo usuário.", "warning");
+      return;
+    }
+
+    if (btnTrigger) {
+      btnTrigger.disabled = true;
+      btnTrigger.textContent = "⏳ Rodando...";
+    }
+    showToast("Disparando comando PowerShell...", "info");
+
+    const runRes = await fetch("/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+      body: JSON.stringify({ cmd: verdict.resolvedCmd || cmd }),
+    });
+
+    const runData = await runRes.json();
+    if (!runData.success || !runData.jobId) {
+      throw new Error(runData.output || "Falha ao iniciar o job no launcher.");
+    }
+
+    const jobId = runData.jobId;
+    const deadline = Date.now() + 120000; // 2 minutos timeout
+    let jobResult = null;
+
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 1000));
+      const statusRes = await fetch(`/run-status?id=${encodeURIComponent(jobId)}`, {
+        headers: { "X-Mestre-Client": "v10-web" },
+      });
+      const statusData = await statusRes.json();
+      if (statusData.state !== "running") {
+        jobResult = statusData;
+        break;
+      }
+    }
+
+    if (!jobResult) throw new Error("Tempo limite excedido aguardando o comando.");
+
+    const isSuccess = jobResult.success === true && jobResult.state === "completed";
+    addMessage(`Comando executado: \`${cmd}\``, "ai", {
+      terminalOutput: jobResult.output || "(Sem output retornado)",
+      success: isSuccess,
+      cmd,
+    });
+
+    showToast(isSuccess ? "✅ Comando concluído com sucesso!" : "❌ O comando retornou erro.", isSuccess ? "success" : "error");
+  } catch (err) {
+    showToast(`Erro na execução: ${err.message}`, "error");
+  } finally {
+    if (btnTrigger) {
+      btnTrigger.disabled = false;
+      btnTrigger.textContent = "▶ Executar";
+    }
+  }
+}
+
+function askConfirmation({ title, reason, cmd, destructive }) {
+  return new Promise((resolve) => {
+    confirmResolver = resolve;
+    confirmTitle.textContent = title;
+    confirmBody.innerHTML = renderMarkdown(reason);
+    confirmCmdText.textContent = cmd;
+    confirmCard.className = `confirm-card ${destructive ? "destructive" : ""}`;
+    confirmOverlay.classList.add("show");
+  });
+}
+
+btnConfirmCancel.addEventListener("click", () => {
+  confirmOverlay.classList.remove("show");
+  if (confirmResolver) { confirmResolver(false); confirmResolver = null; }
+});
+btnConfirmOk.addEventListener("click", () => {
+  confirmOverlay.classList.remove("show");
+  if (confirmResolver) { confirmResolver(true); confirmResolver = null; }
+});
+
+// Envio de Mensagem com Streaming
+async function sendMessage() {
+  if (state.isWaiting) return;
+  const msg = promptInput.value.trim();
+  if (!msg) return;
+
+  heroHeading.style.display = "none";
+  quickCategories.style.display = "none";
+  messagesContainer.style.display = "flex";
+
+  addMessage(msg, "user");
+  promptInput.value = "";
+  state.isWaiting = true;
+  state.messages.push({ role: "user", content: msg });
+  saveCurrentConversation();
+
+  showTyping();
+  streamingEl = null;
+  state.abortController = new AbortController();
+
+  try {
+    const payload = {
+      model: state.activeModel || undefined,
+      stream: true,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...state.messages.slice(-15),
+      ],
+    };
+
+    const res = await fetch("/ollama/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+      body: JSON.stringify(payload),
+      signal: state.abortController.signal,
+    });
+
+    if (!res.ok) {
+      const errTxt = await res.text();
+      throw new Error(`Ollama HTTP ${res.status}: ${errTxt.slice(0, 150)}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulatedText = "";
+    let buffer = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const chunk = JSON.parse(line);
+          if (chunk.message?.content) {
+            accumulatedText += chunk.message.content;
+            updateStreamingText(accumulatedText);
+          }
+        } catch { /* json incompleto no chunk */ }
+      }
+    }
+
+    removeTyping();
+    streamingEl = null;
+
+    if (accumulatedText) {
+      state.messages.push({ role: "assistant", content: accumulatedText });
+      saveCurrentConversation();
+    } else {
+      addMessage("(IA retornou resposta vazia)", "ai");
+    }
+  } catch (err) {
+    removeTyping();
+    streamingEl = null;
+    if (err.name !== "AbortError") {
+      addMessage(`❌ **Erro de Comunicação:** ${err.message}`, "ai");
+      showToast(err.message, "error");
+    }
+  } finally {
+    state.isWaiting = false;
+    state.abortController = null;
+    promptInput.focus();
+  }
+}
+
+// Histórico de Conversas (Persistência Local)
+function loadSavedConversations() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    state.conversations = raw ? JSON.parse(raw) : [];
+  } catch {
+    state.conversations = [];
+  }
+  renderConversationsList();
+}
+
+function saveCurrentConversation() {
+  if (!state.currentChatId) {
+    state.currentChatId = "chat_" + Date.now();
+    const title = state.messages.find((m) => m.role === "user")?.content.slice(0, 35) || "Nova conversa";
+    state.conversations.unshift({ id: state.currentChatId, title, messages: state.messages, date: Date.now() });
+  } else {
+    const item = state.conversations.find((c) => c.id === state.currentChatId);
+    if (item) {
+      item.messages = state.messages;
+      item.date = Date.now();
+    }
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.conversations.slice(0, 30)));
+  renderConversationsList();
+}
+
+function renderConversationsList() {
+  chatHistory.innerHTML = "";
+  if (!state.conversations.length) {
+    chatHistory.innerHTML = `<div style="padding:10px;font-size:11px;color:var(--text-muted);text-align:center">Nenhuma conversa salva</div>`;
+    return;
+  }
+
+  for (const conv of state.conversations) {
+    const el = document.createElement("div");
+    el.className = `chat-item ${conv.id === state.currentChatId ? "active" : ""}`;
+    el.innerHTML = `
+      <span class="chat-item-title" title="${escapeHtml(conv.title)}">💬 ${escapeHtml(conv.title)}</span>
+      <span class="chat-item-del" title="Excluir conversa">✕</span>
+    `;
+
+    el.querySelector(".chat-item-title").onclick = () => openConversation(conv.id);
+    el.querySelector(".chat-item-del").onclick = (e) => {
+      e.stopPropagation();
+      deleteConversation(conv.id);
+    };
+
+    chatHistory.appendChild(el);
+  }
+}
+
+function openConversation(id) {
+  const conv = state.conversations.find((c) => c.id === id);
+  if (!conv) return;
+  state.currentChatId = id;
+  state.messages = conv.messages || [];
+
+  heroHeading.style.display = "none";
+  quickCategories.style.display = "none";
+  messagesContainer.style.display = "flex";
+  messagesContainer.innerHTML = "";
+
+  for (const m of state.messages) {
+    addMessage(m.content, m.role === "assistant" ? "ai" : "user");
+  }
+  renderConversationsList();
+}
+
+function deleteConversation(id) {
+  state.conversations = state.conversations.filter((c) => c.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.conversations));
+  if (state.currentChatId === id) resetChatView();
+  else renderConversationsList();
+  showToast("Conversa removida.", "info");
+}
+
+function resetChatView() {
+  state.currentChatId = null;
+  state.messages = [];
+  messagesContainer.innerHTML = "";
+  messagesContainer.style.display = "none";
+  heroHeading.style.display = "flex";
+  quickCategories.style.display = "flex";
+  promptInput.value = "";
+  renderConversationsList();
+}
+
+btnNewChat.addEventListener("click", resetChatView);
+btnTopNewChat.addEventListener("click", resetChatView);
+btnClearHistory.addEventListener("click", () => {
+  if (!state.conversations.length) return;
+  if (confirm("Deseja apagar todo o histórico de conversas do Chat IA?")) {
+    state.conversations = [];
+    localStorage.removeItem(STORAGE_KEY);
+    resetChatView();
+    showToast("Histórico limpo.", "info");
+  }
+});
+
+// Quick capsules click
+document.querySelectorAll(".cat-capsule").forEach((capsule) => {
+  capsule.addEventListener("click", () => {
+    const p = capsule.dataset.prompt;
+    if (p) {
+      promptInput.value = p;
+      sendMessage();
+    }
+  });
+});
+
+// Menus de ações rápidas
+$("actDiagCompleto").onclick = () => { promptInput.value = "Execute um diagnóstico geral do meu sistema Windows."; sendMessage(); };
+$("actLimpezaTemp").onclick = () => { promptInput.value = "Como limpar com segurança os arquivos temporários e cache do Windows?"; sendMessage(); };
+$("actOtimizarMem").onclick = () => { promptInput.value = "Verifique o consumo de memória RAM e sugira otimizações seguras."; sendMessage(); };
+$("actStatusRede").onclick = () => { promptInput.value = "Faça um teste de conexão e diagnóstico dos adaptadores de rede."; sendMessage(); };
+
+$("connDiag").onclick = () => { promptInput.value = "Mostre as especificações de hardware e sistema com Get-ComputerInfo."; sendMessage(); };
+$("connDrives").onclick = () => { promptInput.value = "Mostre o espaço livre e ocupado em todas as unidades de disco."; sendMessage(); };
+$("connRede").onclick = () => { promptInput.value = "Liste os adaptadores de rede e status de IP."; sendMessage(); };
+$("connProcessos").onclick = () => { promptInput.value = "Liste os 10 processos que mais consom CPU e Memória."; sendMessage(); };
+
+// Reconhecimento de Voz (Web Speech API)
+btnMic.addEventListener("click", () => {
+  if (state.voiceRecognition) {
+    state.voiceRecognition.stop();
+    return;
+  }
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) {
+    showToast("Reconhecimento de voz não suportado neste navegador.", "warning");
+    return;
+  }
+  state.voiceRecognition = new Recognition();
+  state.voiceRecognition.lang = "pt-BR";
+  state.voiceRecognition.continuous = false;
+  state.voiceRecognition.interimResults = true;
+  btnMic.classList.add("is-listening");
+  showToast("Ouvindo... Fale agora", "info");
+
+  state.voiceRecognition.onresult = (event) => {
+    promptInput.value = Array.from(event.results).map((r) => r[0]?.transcript || "").join("").trim();
   };
-  voiceRecognition.onend=()=>{
-    voiceRecognition=null;
-    btnMic.classList.remove('is-listening');
-    btnMic.title='Entrada por voz';
+
+  state.voiceRecognition.onerror = (event) => {
+    showToast(`Erro no microfone: ${event.error}`, "warning");
+  };
+
+  state.voiceRecognition.onend = () => {
+    state.voiceRecognition = null;
+    btnMic.classList.remove("is-listening");
     promptInput.focus();
   };
-  try{voiceRecognition.start()}catch(error){voiceRecognition=null;btnMic.classList.remove('is-listening');btnMic.title='Não foi possível iniciar o microfone'}
+
+  try { state.voiceRecognition.start(); } catch (err) {
+    state.voiceRecognition = null;
+    btnMic.classList.remove("is-listening");
+  }
 });
-function addMessage(text,role){const el=document.createElement('div');el.className='msg-row'+(role==='user'?' user':'');const avatar=document.createElement('div');avatar.className='msg-avatar'+(role==='ai'?' ai':' user');avatar.textContent=role==='ai'?'M':'JA';const body=document.createElement('div');body.className='msg-body';if(role==='ai'){let html=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/```([\s\S]*?)```/g,(m,code)=>'<pre><code>'+code.trim()+'</code></pre>').replace(/\n/g,'<br>');body.innerHTML=html}else{body.textContent=text}el.appendChild(avatar);el.appendChild(body);messagesContainer.appendChild(el);messagesContainer.scrollTop=messagesContainer.scrollHeight;return el}
-function showTyping(){const el=document.createElement('div');el.className='ia-typing';el.innerHTML='<span></span><span></span><span></span>';messagesContainer.appendChild(el);messagesContainer.scrollTop=messagesContainer.scrollHeight;return el}
-async function sendMessage(){if(isWaitingForResponse)return;const input=document.getElementById('promptInput');const msg=input.value.trim();if(!msg)return;heroHeading.style.display='none';quickCategories.style.display='none';messagesContainer.style.display='flex';addMessage(msg,'user');input.value='';isWaitingForResponse=true;const typingEl=showTyping();try{await new Promise(r=>setTimeout(r,1000+Math.random()*1000));typingEl.remove();const responses=['Entendido! Como seu assistente **Mestre do PC**, estou processando: `'+msg.substring(0,50)+(msg.length>50?'...':'')+'". Como posso ajudar?','🖥️ **Analisando sua solicitação...**\n\nPosso ajudar com:\n- `Diagnóstico do sistema`\n- `Limpeza de arquivos temporários`\n- `Otimização de desempenho`\n\nO que deseja fazer?','🤖 **Processando...**\n\nSua mensagem foi recebida: "'+msg+'"\n\nEstou aqui para auxiliar na manutenção do seu PC!'];const randomResponse=responses[Math.floor(Math.random()*responses.length)];addMessage(randomResponse,'ai')}catch(err){typingEl.remove();addMessage('❌ Erro: '+err.message,'ai')}finally{isWaitingForResponse=false;input.focus()}}
-promptInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
-document.getElementById('btnNewChat').addEventListener('click',()=>{if(confirm('Iniciar novo chat?')){messagesContainer.innerHTML='';heroHeading.style.display='flex';quickCategories.style.display='flex';messagesContainer.style.display='none';promptInput.value=''}});
+
+// Eventos de Envio
+btnSend.addEventListener("click", sendMessage);
+promptInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// Inicialização
+document.addEventListener("DOMContentLoaded", () => {
+  checkStatus();
+  loadModels();
+  loadSavedConversations();
+  setInterval(checkStatus, 15000);
+});
 </script>
 </body>
 </html>

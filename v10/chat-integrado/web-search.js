@@ -13,6 +13,7 @@
 import { auditLog, AuditLevel } from "../../mcp-server/audit-logger.js";
 import { resolve4, resolve6 } from "node:dns/promises";
 import { isIP } from "node:net";
+import { sanitizeToolArgument } from "../../mcp-server/security.js";
 
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434";
 const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || "";
@@ -58,7 +59,13 @@ function buildOllamaHeaders() {
  * @returns {Promise<Array<{title:string, url:string, snippet:string}>>}
  */
 export async function searchWeb(query, maxResults = 5) {
+<<<<<<< HEAD
   const cleanQuery = validateSearchQuery(query);
+=======
+  const cleanQuery = sanitizeToolArgument(query);
+  if (!cleanQuery) throw new Error("Termo de busca inválido ou vazio.");
+  if (cleanQuery.length > MAX_QUERY_LEN) throw new Error("Termo de busca muito longo.");
+>>>>>>> origin/main
 
   const limit = Math.min(Math.max(1, Math.floor(Number(maxResults) || 5)), 10);
 
@@ -137,7 +144,24 @@ export async function searchWeb(query, maxResults = 5) {
  * @returns {Promise<{title:string, content:string, links:string[]}>}
  */
 export async function fetchWebPage(url) {
+<<<<<<< HEAD
   const { cleanUrl, parsed } = validateWebUrl(url);
+=======
+  const cleanUrl = sanitizeToolArgument(url);
+  if (!cleanUrl) throw new Error("URL inválida ou vazia.");
+  if (cleanUrl.length > MAX_URL_LEN) throw new Error("URL muito longa.");
+
+  let parsed;
+  try {
+    parsed = new URL(cleanUrl);
+  } catch {
+    throw new Error("URL malformada.");
+  }
+
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new Error("Apenas URLs http/https são permitidas.");
+  }
+>>>>>>> origin/main
 
   if (OLLAMA_API_KEY) {
     try {
@@ -163,7 +187,11 @@ export async function fetchWebPage(url) {
   }
 
   // Fallback manual
+<<<<<<< HEAD
   const res = await safeRemoteFetch(cleanUrl, {
+=======
+  const res = await fetch(cleanUrl, {
+>>>>>>> origin/main
     headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     signal: AbortSignal.timeout(15000),
   });
@@ -175,6 +203,7 @@ export async function fetchWebPage(url) {
   return { title: titleMatch ? stripHtml(titleMatch[1]) : parsed.hostname, content: text.slice(0, 20000), links: [] };
 }
 
+<<<<<<< HEAD
 /** Valida texto de busca como dado web, sem as restrições de argumentos PowerShell. */
 export function validateSearchQuery(value) {
   const rawQuery = typeof value === "string" ? value : "";
@@ -265,6 +294,8 @@ async function safeRemoteFetch(value, options) {
   throw new Error("A página excedeu o limite de redirecionamentos.");
 }
 
+=======
+>>>>>>> origin/main
 /**
  * Verifica se a URL pertence a domínios governamentais/institucionais brasileros.
  */

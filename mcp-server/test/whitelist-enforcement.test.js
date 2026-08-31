@@ -185,3 +185,54 @@ test("todo id do registry MCP existe em allowed-operations.json", async () => {
   const unpublished = [...catalogIds].filter((id) => !publishedIds.has(id));
   assert.deepEqual(unpublished, [], `operações do catálogo não publicadas como tools MCP: ${unpublished.join(", ")}`);
 });
+
+test("novas operações de instalação de ferramentas (.NET/Microsoft/DevOps/linguagens/pacotes) estão registradas e exigem confirmação", async (t) => {
+  const base = await startLauncher(t);
+  const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
+
+  const fixedInstallIds = [
+    "instalar_dotnet_sdk",
+    "instalar_dotnet_runtime",
+    "instalar_visual_studio_build_tools",
+    "instalar_windows_sdk",
+    "instalar_azure_cli",
+    "instalar_github_cli",
+    "instalar_docker_desktop",
+    "instalar_wsl",
+    "instalar_rust",
+    "instalar_go",
+    "instalar_java_temurin",
+  ];
+  for (const id of fixedInstallIds) {
+    const op = catalog.templates.find((o) => o.id === id);
+    assert.ok(op, `operação ausente do catálogo: ${id}`);
+    assert.equal(op.destructive, true, `${id} deveria exigir confirmação (destructive: true)`);
+
+    const result = await (await classify(base, { id })).json();
+    assert.equal(result.allowed, true, `/classify deveria permitir ${id}`);
+    assert.equal(result.destructive, true, `/classify deveria marcar ${id} como destrutivo`);
+  }
+});
+
+test("templates parametrizados de instalação de pacotes (.NET tool / WinGet genérico / Chocolatey) validam o parâmetro", async (t) => {
+  const base = await startLauncher(t);
+
+  const templatedIds = [
+    { id: "instalar_ferramenta_dotnet_global", param: "pacote" },
+    { id: "desinstalar_ferramenta_dotnet_global", param: "pacote" },
+    { id: "instalar_pacote_winget_generico", param: "pacote_id" },
+    { id: "instalar_pacote_chocolatey", param: "pacote" },
+  ];
+
+  for (const { id, param } of templatedIds) {
+    const ok = await (await classify(base, { id, params: { [param]: "exemplo.pacote-1" } })).json();
+    assert.equal(ok.allowed, true, `/classify deveria permitir ${id} com parâmetro válido`);
+    assert.equal(ok.destructive, true, `${id} deveria ser destrutivo`);
+    assert.match(ok.cmd, /exemplo\.pacote-1/);
+
+    const injected = await (
+      await classify(base, { id, params: { [param]: "pacote; Remove-Item C:\\ -Recurse -Force" } })
+    ).json();
+    assert.equal(injected.allowed, false, `/classify deveria bloquear injeção de comando em ${id}`);
+  }
+});
