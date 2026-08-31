@@ -2447,6 +2447,41 @@
       "destructive": true,
       "command": "Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green",
       "description": "Ativar Bloqueio de Script Powershell."
+    },
+    {
+      "title": "Consultar Fonte Oficial Gov",
+      "command": "Write-Host \"Consulta a fontes oficiais gov.br\"",
+      "id": "consultar_fonte_oficial_gov",
+      "destructive": false,
+      "category": "Pesquisa"
+    },
+    {
+      "title": "Extrair Evidência de PDF Local",
+      "command": "Write-Host \"Extração de evidência de PDF local\"",
+      "id": "extrair_evidencia_de_pdf_local",
+      "destructive": false,
+      "category": "Pesquisa"
+    },
+    {
+      "title": "Simular Cenário Econômico",
+      "command": "Write-Host \"Simulação de cenário econômico\"",
+      "id": "simular_cenario_economico",
+      "destructive": false,
+      "category": "Análise"
+    },
+    {
+      "title": "Congelar Tabela Final",
+      "command": "Write-Host \"Congelamento de tabela final\"",
+      "id": "congelar_tabela_final",
+      "destructive": true,
+      "category": "Dados"
+    },
+    {
+      "title": "Gerar Snapshot Git",
+      "command": "Write-Host \"Geração de snapshot git\"",
+      "id": "gerar_snapshot_git",
+      "destructive": false,
+      "category": "Git"
     }
   ],
   "templates": [
