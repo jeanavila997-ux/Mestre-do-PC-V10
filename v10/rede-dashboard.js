@@ -14,8 +14,7 @@ const RedeDashboard = {
   // Intervalo de atualização (padrão 5 min; configurável: 5/15/30 min / 1h)
   intervaloMs: 5 * 60 * 1000,
   chaveIntervalo: 'redeDashIntervaloMin',
-  ollamaHost: 'http://localhost:11434',
-  ollamaModel: 'qwen2.5-coder:3b',
+  ollamaModel: 'qwen2.5-coder:3b-instruct',
   maxHistorico: 50,
   chaveHistorico: 'redeDashHistorico',
 
@@ -700,13 +699,19 @@ Status: ${ult.saude}
 
 O que pode estar causando problemas?`;
 
-      const res = await fetch(`${this.ollamaHost}/api/chat`, {
+      // Vai pelo proxy do launcher (mesma origem), nunca direto no Ollama: é lá
+      // que roda o checkPromptInjection(). O prompt embute dados não confiáveis
+      // (o SSID vem de redes Wi-Fi vizinhas), então precisa passar pelo guard.
+      const res = await fetch('/ollama/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Mestre-Client': 'v10-web' },
         body: JSON.stringify({ model: this.ollamaModel, messages: [{ role: 'user', content: prompt }], stream: false })
       });
 
-      if (!res.ok) throw new Error('Ollama offline');
+      if (!res.ok) {
+        const motivo = await res.json().catch(() => null);
+        throw new Error(motivo && motivo.error ? motivo.error : 'Ollama offline');
+      }
       const d = await res.json();
       const texto = (d && d.message && typeof d.message.content === 'string') ? d.message.content : '';
       // Renderizado como texto puro (textContent), nunca como HTML: a resposta do
