@@ -3654,6 +3654,138 @@
         "diretorio_alvo": "^[a-zA-Z0-9\\\\._:\\-\\/ ]{1,260}$"
       },
       "description": "Lista Arquivos Sem Dono."
+    },
+    {
+      "id": "instalar_dotnet_sdk",
+      "title": "Instalar .NET SDK 8 (Microsoft)",
+      "category": ".NET",
+      "destructive": true,
+      "command": "winget install Microsoft.DotNet.SDK.8 --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do .NET SDK 8 iniciada!\" -ForegroundColor Green",
+      "description": "Instala o .NET SDK 8 via WinGet."
+    },
+    {
+      "id": "instalar_dotnet_runtime",
+      "title": "Instalar .NET Runtime 8 (Microsoft)",
+      "category": ".NET",
+      "destructive": true,
+      "command": "winget install Microsoft.DotNet.Runtime.8 --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do .NET Runtime 8 iniciada!\" -ForegroundColor Green",
+      "description": "Instala o .NET Runtime 8 via WinGet."
+    },
+    {
+      "id": "instalar_visual_studio_build_tools",
+      "title": "Instalar Visual Studio Build Tools 2022 (Microsoft)",
+      "category": "Microsoft",
+      "destructive": true,
+      "command": "winget install Microsoft.VisualStudio.2022.BuildTools --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Visual Studio Build Tools iniciada!\" -ForegroundColor Green",
+      "description": "Instala o Visual Studio 2022 Build Tools via WinGet."
+    },
+    {
+      "id": "instalar_windows_sdk",
+      "title": "Instalar Windows SDK (Microsoft)",
+      "category": "Microsoft",
+      "destructive": true,
+      "command": "winget install Microsoft.WindowsSDK --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Windows SDK iniciada!\" -ForegroundColor Green",
+      "description": "Instala o Windows SDK via WinGet."
+    },
+    {
+      "id": "instalar_azure_cli",
+      "title": "Instalar Azure CLI (Microsoft)",
+      "category": "Microsoft",
+      "destructive": true,
+      "command": "winget install Microsoft.AzureCLI --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Azure CLI iniciada!\" -ForegroundColor Green",
+      "description": "Instala o Azure CLI via WinGet."
+    },
+    {
+      "id": "instalar_github_cli",
+      "title": "Instalar GitHub CLI",
+      "category": "Microsoft",
+      "destructive": true,
+      "command": "winget install GitHub.cli --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do GitHub CLI iniciada!\" -ForegroundColor Green",
+      "description": "Instala o GitHub CLI (gh) via WinGet."
+    },
+    {
+      "id": "instalar_docker_desktop",
+      "title": "Instalar Docker Desktop",
+      "category": "DevOps",
+      "destructive": true,
+      "command": "winget install Docker.DockerDesktop --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Docker Desktop iniciada!\" -ForegroundColor Green",
+      "description": "Instala o Docker Desktop via WinGet."
+    },
+    {
+      "id": "instalar_wsl",
+      "title": "Instalar WSL (Windows Subsystem for Linux)",
+      "category": "DevOps",
+      "destructive": true,
+      "command": "wsl --install; Write-Host \"✅ Instalação do WSL iniciada! Reinicie o computador para concluir.\" -ForegroundColor Green",
+      "description": "Instala o WSL via comando nativo do Windows."
+    },
+    {
+      "id": "instalar_rust",
+      "title": "Instalar Rust (Rustup)",
+      "category": "Linguagens",
+      "destructive": true,
+      "command": "winget install Rustlang.Rustup --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Rust iniciada!\" -ForegroundColor Green",
+      "description": "Instala o Rust via WinGet (Rustup)."
+    },
+    {
+      "id": "instalar_go",
+      "title": "Instalar Go (Golang)",
+      "category": "Linguagens",
+      "destructive": true,
+      "command": "winget install GoLang.Go --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Go iniciada!\" -ForegroundColor Green",
+      "description": "Instala o Go via WinGet."
+    },
+    {
+      "id": "instalar_java_temurin",
+      "title": "Instalar Java JDK 21 (Eclipse Temurin)",
+      "category": "Linguagens",
+      "destructive": true,
+      "command": "winget install EclipseAdoptium.Temurin.21.JDK --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Java JDK 21 iniciada!\" -ForegroundColor Green",
+      "description": "Instala o Java JDK 21 (Eclipse Temurin) via WinGet."
+    },
+    {
+      "id": "instalar_ferramenta_dotnet_global",
+      "title": "Instalar Ferramenta .NET (Global)",
+      "category": ".NET",
+      "destructive": true,
+      "pattern": "dotnet tool install --global {{PACOTE}}; Write-Host \"✅ Ferramenta .NET {{PACOTE}} instalada!\" -ForegroundColor Green",
+      "params": {
+        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
+      },
+      "description": "Instala uma ferramenta .NET globalmente via dotnet tool. Informe o parâmetro 'pacote' com o nome do pacote."
+    },
+    {
+      "id": "desinstalar_ferramenta_dotnet_global",
+      "title": "Desinstalar Ferramenta .NET (Global)",
+      "category": ".NET",
+      "destructive": true,
+      "pattern": "dotnet tool uninstall --global {{PACOTE}}; Write-Host \"✅ Ferramenta .NET {{PACOTE}} desinstalada!\" -ForegroundColor Green",
+      "params": {
+        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
+      },
+      "description": "Desinstala uma ferramenta .NET global. Informe o parâmetro 'pacote' com o nome do pacote."
+    },
+    {
+      "id": "instalar_pacote_winget_generico",
+      "title": "Instalar Pacote via WinGet (por ID)",
+      "category": "Pacotes",
+      "destructive": true,
+      "pattern": "winget install --id {{PACOTE_ID}} --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Pacote {{PACOTE_ID}} instalado!\" -ForegroundColor Green",
+      "params": {
+        "pacote_id": "^[a-zA-Z0-9_.-]{1,100}$"
+      },
+      "description": "Instala qualquer pacote disponível no WinGet pelo seu ID (ex: Microsoft.PowerToys). Informe o parâmetro 'pacote_id'."
+    },
+    {
+      "id": "instalar_pacote_chocolatey",
+      "title": "Instalar Pacote via Chocolatey",
+      "category": "Pacotes",
+      "destructive": true,
+      "pattern": "choco install {{PACOTE}} -y; Write-Host \"✅ Pacote {{PACOTE}} instalado via Chocolatey!\" -ForegroundColor Green",
+      "params": {
+        "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
+      },
+      "description": "Instala um pacote via Chocolatey (requer choco instalado). Informe o parâmetro 'pacote' com o nome do pacote."
     }
   ]
 }

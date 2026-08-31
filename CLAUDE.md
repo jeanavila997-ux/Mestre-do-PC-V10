@@ -8,6 +8,8 @@ Mestre do PC V10/V11 is a local Windows diagnostic-and-maintenance app. It expos
 
 Everything runs on `127.0.0.1:7777` by default.
 
+Prerequisites: Windows 10/11 (64-bit), PowerShell 5.1+, Node.js 20+.
+
 - `v10/launcher.js` — **primary backend**: Node.js HTTP server on port 7777. Serves the UI, validates and runs whitelisted PowerShell commands, proxies Ollama, and hosts memory/chat routes.
 - `v10/index.html` — single-file SPA (no build step), served by the launcher.
 - `mcp-server/index.js` — MCP server over `stdio`; never runs commands itself, always calls the launcher over HTTP.
@@ -15,12 +17,13 @@ Everything runs on `127.0.0.1:7777` by default.
 - `mcp-server/security.js` — `sanitizeToolArgument()` and `checkPromptInjection()`.
 - `mcp-server/audit-logger.js` — audit logging (7 levels, rotation at 10MB / 30 files kept).
 - `v10/memory-manager.js` + `v10/memory-routes.js` — persistent memory store (IndexedDB in the UI, JSON on disk via `/memories/*`).
-- `v10/chat/` — chat module (template, module, Ollama streaming integration).
+- `v10/chat/` — chat module: `chat-module.js`, `chat-template.html`, `chat-styles.css`, Ollama streaming integration, and `Soul.md` (persona/behavior spec).
 - `v10/rede-dashboard.js` — client-side network diagnostics panel loaded by `index.html`.
 - `browser-extension/` — Manifest V3 extension (Chrome + Firefox) that talks to the launcher via `X-Mestre-Client: browser-extension` and a token from `MESTRE_EXTENSION_TOKEN`.
 - `MestreDoPC-Launcher.ps1` — legacy elevated PowerShell backend; still present but not the default. `start-mestre-v10.ps1` starts the Node.js launcher.
 - `prompt-guard-server.py` — optional standalone Python microservice (`127.0.0.1:7778/classify`) for prompt-injection detection; falls back to a regex heuristic without `transformers`/`torch`. Not started automatically, unrelated to the Node MCP/launcher stack.
-- `legado/`: old versions; do not touch them to fix V10/V11 behavior.
+- `docs/` — architecture and feature docs (RAG, memory system, network diagnostics, deployment, Notepad++ integration).
+- `SECURITY.md`, `AGENTS.md`, `QWEN.md` — related/parallel instruction and security docs at the repo root; keep in sync if you change security behavior or agent-facing conventions described here.
 
 ## Development commands
 
@@ -44,6 +47,9 @@ npm start                         # development backend on 127.0.0.1:7777
 node scripts\validate.mjs              # quick + npm test + PS syntax + HTML smoke
 node scripts\validate.mjs --depth=ci   # CI-friendly JSON output
 node scripts\validate.mjs --depth=quick # fast static checks only
+
+# Ollama connectivity/model smoke check
+node scripts\test_ollama.mjs
 
 # Legacy validation scripts (kept for reference)
 .\validate-v11.ps1               # PowerShell syntax/style only
@@ -166,6 +172,7 @@ Key flows:
 - Conventional commits (`fix:`, `feat:`, `docs:`, `chore:`, `security:`).
 - User-visible strings and documentation are in Brazilian Portuguese; keep English for protocol names, API identifiers, environment variables, and code symbols.
 - JavaScript uses ES modules and `node:` imports for built-ins. The V10 UI has no bundler or frontend build step; edit the served HTML/CSS/JS directly.
+- Keep `v10/chat/chat-module.js`, `chat-template.html`, and `chat-styles.css` aligned when changing chat UI behavior or markup structure.
 - Keep the MCP (non-elevated) / launcher (elevated) split intact — the MCP server must never run commands itself.
 - `mcp-server/package.json` pins transitive dependencies via an `overrides` block (fast-uri, hono, @hono/node-server, ip-address, path-to-regexp, qs, body-parser). `npm audit fix` alone won't bump overridden packages — update the `overrides` versions by hand, then `npm install && npm test`.
 - PowerShell commands in `allowed-operations.json` use `-ErrorAction SilentlyContinue` (`-EA 0`) for non-critical cleanup steps.
