@@ -1,7 +1,7 @@
 /**
  * Módulo de Diagnóstico de Rede - Mestre do PC V10
  * Integração do Casa5G Dashboard com o painel principal
- * Usa o launcher (porta 7777) para executar diagnósticos via /run
+ * Usa o launcher (mesma origem) para executar diagnósticos via /run
  */
 
 const RedeDashboard = {
@@ -368,7 +368,7 @@ const RedeDashboard = {
   // Executar ciclo de diagnóstico
   async ciclo() {
     try {
-      // Antes de qualquer coisa: verificar contato com o launcher (porta 7777).
+      // Antes de qualquer coisa: verificar contato com o launcher (mesma origem).
       // Se ele estiver fora, avisar na tela em vez de deixar tudo em "--".
       const online = await this.checarLauncher();
       const aviso = document.getElementById('rd-offline');
@@ -376,7 +376,7 @@ const RedeDashboard = {
         const badge = document.getElementById('rd-badge');
         if (badge) { badge.textContent = 'LAUNCHER OFF'; badge.className = 'rd-badge offline'; }
         if (aviso) aviso.classList.add('on');
-        this.log('Launcher offline (porta 7777)', 'err');
+        this.log('Launcher offline', 'err');
         return;
       }
       if (aviso) aviso.classList.remove('on');
