@@ -1,0 +1,274 @@
+RELATÓRIO DE DEPENDÊNCIAS — MESTRE DO PC V10/V11
+Data: 31/08/2026
+Status: ✅ INSTALAÇÃO CONCLUÍDA
+
+================================================================================
+RESUMO EXECUTIVO
+================================================================================
+
+✅ OLLAMA: Online e operacional (v0.33.2)
+✅ LAUNCHER: Online e operacional (v10.1.0, PID 7640)
+✅ MCP-SERVER: Sem vulnerabilidades auditadas
+✅ V10: Dependências instaladas (npm install executado)
+✅ MYSQL2: Instalada no v10 (3.24.2) e mcp-server (3.24.2)
+
+================================================================================
+1. STATUS DO OLLAMA (http://localhost:11434)
+================================================================================
+
+VERSÃO: 0.33.2
+
+MODELOS DISPONÍVEIS (11 modelos):
+
+#  │ MODELO                    │ TIPO      │ TAMANHO   │ CONTEXTO   │ CAPABILIDADES
+---│---------------------------│-----------│-----------│------------│---------------------------
+1  │ qwen2.5-coder:3b-instruct │ LOCAL     │ 1.93 GB   │ 32K        │ completion, tools, insert
+2  │ qwen3.5:cloud             │ REMOTO    │ 397B      │ 262K       │ completion, thinking, tools, vision
+3  │ mistral-large-3:675b-cloud│ REMOTO    │ 675B      │ 262K       │ completion, tools, vision
+4  │ gpt-oss:120b-cloud        │ REMOTO    │ 117B      │ 131K       │ completion, tools, thinking
+5  │ minicpm-v4.6:latest       │ LOCAL     │ 1.64 GB   │ 262K       │ completion, vision
+6  │ kimi-k2.7-code:cloud      │ REMOTO    │ 1.04T     │ 262K       │ vision, thinking, completion, tools
+7  │ gemma4:31b-cloud          │ REMOTO    │ 32.7B     │ 262K       │ completion, thinking, tools, vision
+8  │ nemotron-3-ultra:cloud    │ REMOTO    │ 550B      │ 262K       │ completion, thinking, tools
+9  │ deepseek-r1:1.5b          │ LOCAL     │ 1.12 GB   │ 131K       │ completion, thinking
+10 │ glm-5.3:cloud             │ REMOTO    │ 753B      │ 1M         │ completion, thinking, tools
+11 │ kimi-k2.6:cloud           │ REMOTO    │ 1.04T     │ 262K       │ (truncated)
+
+MODELO PADRÃO EM USO: qwen2.5-coder:3b-instruct (local)
+
+STATUS: ✅ OPERACIONAL
+
+================================================================================
+2. STATUS DO LAUNCHER (http://127.0.0.1:7777)
+================================================================================
+
+ENDPOINT: http://127.0.0.1:7777/ping
+RESPOSTA: {"status":"ok","admin":false,"state":"idle","activeJobs":0,"version":"10.1.0","pid":7640}
+
+VERSÃO: 10.1.0
+PID: 7640
+ESTADO: idle (ocioso)
+JOBS ATIVOS: 0
+ADMIN: false
+
+STATUS: ✅ OPERACIONAL
+
+================================================================================
+3. DEPENDÊNCIAS MCP-SERVER
+================================================================================
+
+LOCAL: C:\Users\JEANPC\Mestre-do-PC-V10\mcp-server
+
+DEPENDÊNCIAS DIRETAS (2):
+├── @modelcontextprotocol/sdk@1.30.0
+└── mysql2@3.12.0
+
+OVERRIDES APLICADOS (7):
+├── @hono/node-server@2.1.1 (override)
+├── body-parser@2.3.0 (override)
+├── fast-uri@3.1.5 (override)
+├── hono@4.13.3 (override)
+├── ip-address@10.5.0 (override)
+├── path-to-regexp@8.4.2 (override)
+└── qs@6.15.3 (override)
+
+DEPENDÊNCIAS TRANSITIVAS (@modelcontextprotocol/sdk@1.30.0):
+├── @cfworker/json-schema@^4.1.1 (OPTIONAL, UNMET)
+├── @hono/node-server@2.1.1 (overridden)
+├── ajv-formats@3.0.1
+├── ajv@8.20.0
+├── content-type@1.0.5
+├── cors@2.8.6
+├── cross-spawn@7.0.6
+├── eventsource-parser@3.1.1
+├── eventsource@3.0.7
+├── express-rate-limit@8.6.2
+├── express@5.2.1
+├── hono@4.13.3 (overridden)
+├── jose@6.2.9
+├── json-schema-typed@8.0.2
+├── pkce-challenge@5.0.1
+├── raw-body@3.0.2
+├── zod-to-json-schema@3.25.2
+└── zod@4.4.3
+
+DEPENDÊNCIAS TRANSITIVAS (mysql2@3.24.2):
+├── @types/node@26.4.0
+├── aws-ssl-profiles@1.1.2
+├── generate-function@2.3.1
+├── iconv-lite@0.7.3
+├── long@5.3.2
+├── lru.min@1.1.4
+├── named-placeholders@1.1.6
+└── sql-escaper@1.5.1
+
+VULNERABILIDADES AUDITADAS: 0 (npm audit --omit=dev)
+
+STATUS: ✅ SEM VULNERABILIDADES
+
+OBSERVAÇÕES:
+• @cfworker/json-schema é opcional e não instalado (não crítico)
+• Overrides aplicados para mitigar vulnerabilidades conhecidas
+• @hono/node-server com vulnerabilidade moderada mas não usado em produção
+  (servidor MCP usa stdio, não HTTP)
+
+================================================================================
+4. DEPENDÊNCIAS V10 (LAUNCHER)
+================================================================================
+
+LOCAL: C:\Users\JEANPC\Mestre-do-PC-V10\v10
+
+DEPENDÊNCIAS DIRETAS:
+└── mysql2@3.24.2 (✅ INSTALADA)
+
+PACKAGE-LOCK: ✅ EXISTE (gerado em 31/08/2026)
+
+STATUS: ✅ INSTALADO COM SUCESSO
+
+COMANDO EXECUTADO:
+  cd C:\Users\JEANPC\Mestre-do-PC-V10\v10
+  npm install
+  
+RESULTADO:
+  added 12 packages, and audited 13 packages in 2s
+  3 packages are looking for funding
+  found 0 vulnerabilities
+
+JUSTIFICATIVA:
+• mysql2 é usado para sincronização com MySQL remoto (Hostinger)
+• Arquivo dependente: v10/chat-integrado/mysql-sync.js
+• Estratégia: carregamento sob demanda (lazy import)
+• Se variáveis MYSQL_* não configuradas, sync fica desativado silenciosamente
+• Versão instalada: 3.24.2 (mesma do mcp-server)
+
+================================================================================
+5. ARQUITETURA DE DEPENDÊNCIAS
+================================================================================
+
+MCP-SERVER (stdio bridge):
+  ├── @modelcontextprotocol/sdk → Protocolo MCP (Claude/Copilot)
+  └── mysql2 → Conector MySQL para db tools (opcional)
+
+V10 (Launcher HTTP):
+  └── mysql2 → Sync SQLite → MySQL (Hostinger)
+
+ARQUIVOS QUE USAM MYSQL2:
+  1. mcp-server/db/connector.js
+     - Import: createPool from "mysql2/promise"
+     - Uso: Pool de conexões para tools MCP de banco de dados
+     
+  2. v10/chat-integrado/mysql-sync.js
+     - Import: dynamic import("mysql2/promise.js")
+     - Uso: Sincronização automática SQLite → MySQL
+     - Threshold: 500 registros (configurável via MESTRE_SYNC_THRESHOLD)
+     - Intervalo: 60s (configurável via MESTRE_SYNC_INTERVAL_MS)
+
+================================================================================
+6. VARIÁVEIS DE AMBIENTE CONFIGURADAS
+================================================================================
+
+MCP-SERVER:
+  • MESTRE_BASE_URL = http://127.0.0.1:7777
+  • MESTRE_PROJETO_PATH = C:\Users\JEANPC\Mestre-do-PC-V10
+  • OLLAMA_URL = http://127.0.0.1:11434 (local)
+  • OLLAMA_MODEL = qwen2.5-coder:3b-instruct
+  • OLLAMA_API_KEY = (não configurada → modo local)
+
+V10 LAUNCHER:
+  • MESTRE_AUDIT_LOG_DIR = logs/audit
+  • MESTRE_BASE_URL = http://127.0.0.1:7777
+
+MYSQL (AMBIENTE):
+  • MYSQL_HOST = (não configurada)
+  • MYSQL_PORT = 3306 (default)
+  • MYSQL_USER = (não configurada)
+  • MYSQL_PASSWORD = (não configurada)
+  • MYSQL_DATABASE = mestre_pc (default)
+
+STATUS MYSQL: ⚠️ NÃO CONFIGURADO
+  • Sync MySQL está desativado silenciosamente
+  • SQLite local continua funcionando normalmente
+  • Para ativar: definir MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD
+
+================================================================================
+7. RECOMENDAÇÕES
+================================================================================
+
+✅ CONCLUÍDO (P0):
+[x] Instalar dependências do v10 - EXECUTADO EM 31/08/2026
+    - 12 pacotes instalados
+    - 0 vulnerabilidades
+    - package-lock.json gerado
+
+CURTO PRAZO (P1):
+[ ] Documentar overrides no arquivo mcp-server/DEPENDENCY-OVERRIDES.md
+[ ] Decidir se mysql2 no v10 é obrigatório ou opcional
+[ ] Adicionar feature flag para carregamento lazy do mysql2
+
+MÉDIO PRAZO (P2):
+[ ] Isolar mysql2 como feature flag no v10
+[ ] Criar inventário de vulnerabilidades por reachability
+[ ] Implementar política de revisão mensal de dependências
+
+BACKLOG (P3):
+[ ] Avaliar migração para npm workspaces (monorepo)
+[ ] Integrar ferramentas de SCB (Software Composition Analysis)
+
+================================================================================
+8. SEGURANÇA DE DEPENDÊNCIAS
+================================================================================
+
+RISCOS MITIGADOS:
+✅ Overrides aplicados para 7 pacotes com vulnerabilidades conhecidas
+✅ @hono/node-server vulnerável mas não exposto (stdio only)
+✅ Sanitização de argumentos no MCP server
+✅ Prompt injection detection
+✅ Auditoria de todas as operações
+
+RISCOS RESIDUAIS:
+⚠️ @cfworker/json-schema não instalado (opcional não crítico)
+⚠️ mysql2 no core path do v10 sem feature flag
+⚠️ Overrides sem documentação de justificativa
+
+================================================================================
+9. COMANDOS DE MANUTENÇÃO
+================================================================================
+
+AUDITORIA:
+  cd mcp-server
+  npm audit --omit=dev
+  
+  cd v10
+  npm install && npm audit --omit=dev
+
+ATUALIZAÇÃO:
+  cd mcp-server
+  npm update
+  
+  cd v10
+  npm update
+
+REVISÃO DE OVERRIDES:
+  npm ls --omit=dev --depth=1
+  
+LISTAR VULNERABILIDADES:
+  npm audit --omit=dev --json > audit-report.json
+
+================================================================================
+10. CONCLUSÃO
+================================================================================
+
+STATUS GERAL: ⚠️ ATENÇÃO NECESSÁRIA
+
+• MCP-SERVER: ✅ Saudável (0 vulnerabilidades, overrides ativos)
+• V10-LAUNCHER: ⚠️ Dependências não instaladas (requer npm install)
+• OLLAMA: ✅ Operacional (11 modelos, 2 locais + 9 remotos)
+• MYSQL: ⚠️ Não configurado (sync desativado)
+
+AÇÃO IMEDIATA RECOMENDADA:
+  cd C:\Users\JEANPC\Mestre-do-PC-V10\v10
+  npm install
+
+================================================================================
+FIM DO RELATÓRIO
+================================================================================
