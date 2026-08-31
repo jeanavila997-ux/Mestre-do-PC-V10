@@ -155,7 +155,7 @@ Key flows:
 | `MESTRE_MODO_LIVRE` | *(empty)* | Set to `1` to enable Modo Livre on startup (persisted in `logs/config/modo-livre.json`) |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama API base (auto-switches to `https://ollama.com/api` when `OLLAMA_API_KEY` is set) |
 | `OLLAMA_API_KEY` | *(empty)* | Enables Ollama Cloud mode + auth header |
-| `OLLAMA_MODEL` | `qwen2.5-coder:1.5b` | Default model |
+| `OLLAMA_MODEL` | `qwen2.5-coder:3b-instruct` | Default model |
 | `OLLAMA_MODEL_PROFILE` | *(empty)* | Selects a preset from `mcp-server/model-profiles.json` (fast, balanced, agent, coding, reasoning) |
 | `OLLAMA_NUM_CTX` | `8192` | Context window (tokens) |
 | `OLLAMA_TEMPERATURE` | `0.7` | Sampling temperature |
