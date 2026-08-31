@@ -142,10 +142,10 @@ setx OLLAMA_NO_CLOUD 1             # Windows
 
 ### Passo 1 — Clonar o repositório
 ```powershell
-git clone https://github.com/jeanavila997-ux/Mestre-do-PC-V7.git MestreDoPC_V7_clone
-cd MestreDoPC_V7_clone
+git clone https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git
+cd Mestre-do-PC-V10
 ```
-> Ou baixe o ZIP em https://github.com/jeanavila997-ux/Mestre-do-PC-V7 e extraia.
+> Ou baixe o ZIP em https://github.com/jeanavila997-ux/Mestre-do-PC-V10 e extraia.
 
 ### Passo 2 — Instalação automatizada (tudo num comando)
 ```powershell
@@ -282,7 +282,7 @@ start http://127.0.0.1:7777/
 ☐ 1. Instalar Node.js 18+        → winget install OpenJS.NodeJS.LTS
 ☐ 2. Instalar Ollama             → irm https://ollama.com/install.ps1 | iex
 ☐ 3. Baixar modelo IA            → ollama pull qwen2.5-coder:3b-instruct
-☐ 4. Clonar o repo               → git clone https://github.com/jeanavila997-ux/Mestre-do-PC-V7.git
+☐ 4. Clonar o repo               → git clone https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git
 ☐ 5. Rodar instalador (Admin)    → .\INSTALAR.bat
    ↳ instala deps MCP
    ↳ registra tarefa agendada do launcher

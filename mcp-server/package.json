@@ -4,6 +4,14 @@
     "type": "module",
     "description": "Servidor MCP do Mestre do PC V10 para diagnóstico, manutenção e Ollama local.",
     "main": "index.js",
+    "homepage": "https://github.com/jeanavila997-ux/Mestre-do-PC-V10#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git"
+    },
+    "bugs": {
+        "url": "https://github.com/jeanavila997-ux/Mestre-do-PC-V10/issues"
+    },
     "scripts": {
         "start": "node index.js",
         "test": "node --test --test-concurrency=1"
@@ -11,9 +19,11 @@
     "keywords": [
         "mcp",
         "mestre-do-pc",
-        "system-tools"
+        "system-tools",
+        "windows-diagnostics",
+        "ollama"
     ],
-    "author": "Jeanc",
+    "author": "Jean Carlos de Avila",
     "license": "ISC",
     "engines": {
         "node": ">=22.13.0"

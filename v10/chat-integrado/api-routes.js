@@ -26,7 +26,7 @@
  *   PUT  /api/config             — atualiza configuração
  */
 
-import { TOOL_NAMES, executarTool, listProfiles, getProfileModel, getProfileOptions, getBestAvailableModel, getBestLocalModel, refreshAvailableModels } from "./tools-api.js";
+import { TOOL_NAMES, executarTool, listProfiles, getProfileModel, getProfileOptions, getBestAvailableModel, getBestLocalModel, refreshAvailableModels, availableModels } from "./tools-api.js";
 import { searchWeb, fetchWebPage } from "./web-search.js";
 import * as db from "./db.js";
 import { sincronizarAgora, getStatus as getSyncStatus, iniciarSyncAutomatico } from "./mysql-sync.js";
@@ -223,6 +223,75 @@ export async function handleApiRoute(req, res, url, ctx) {
       modelo: getProfileModel(perfil),
       opcoes: getProfileOptions(perfil),
       mensagem: `Defina OLLAMA_MODEL_PROFILE=${perfil} e reinicie o launcher para ativar permanentemente.`,
+    }, allowedOrigin);
+    return true;
+  }
+
+  // POST /api/models/switch — troca o modelo do chat para uma versão específica
+  if (path === "/api/models/switch" && method === "POST") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    let body;
+    try { body = await readBody(req); } catch { fail(res, 400, { error: "JSON inválido" }, allowedOrigin); return true; }
+    const { modelo, perfil } = body;
+    
+    // Validações básicas
+    if (!modelo && !perfil) {
+      fail(res, 400, { error: "Informe 'modelo' (nome do modelo) ou 'perfil' (ID do perfil)" }, allowedOrigin);
+      return true;
+    }
+    
+    // Se recebeu perfil, valida se existe
+    if (perfil) {
+      const profiles = listProfiles();
+      if (!profiles.find(p => p.id === perfil)) {
+        fail(res, 404, { error: `Perfil "${perfil}" não existe. Perfis disponíveis: ${profiles.map(p => p.id).join(", ")}` }, allowedOrigin);
+        return true;
+      }
+      // Salva a configuração do perfil no banco
+      db.setConfig("chat_model_profile", perfil);
+      db.setConfig("chat_model_override", "");
+      auditLog(AuditLevel.INFO, "model_switch_profile", { perfil, modelo: getProfileModel(perfil) });
+      ok(res, {
+        success: true,
+        tipo: "perfil",
+        perfil,
+        modelo: getProfileModel(perfil),
+        opcoes: getProfileOptions(perfil),
+        mensagem: `Perfil "${perfil}" ativado. Reinicie o launcher para aplicar permanentemente via variável de ambiente.`,
+      }, allowedOrigin);
+      return true;
+    }
+    
+    // Se recebeu modelo direto, salva como override
+    if (modelo) {
+      db.setConfig("chat_model_override", modelo);
+      db.setConfig("chat_model_profile", "");
+      auditLog(AuditLevel.INFO, "model_switch_manual", { modelo, perfil: "" });
+      ok(res, {
+        success: true,
+        tipo: "modelo",
+        modelo,
+        mensagem: `Modelo "${modelo}" definido. Reinicie o launcher para aplicar permanentemente.`,
+      }, allowedOrigin);
+      return true;
+    }
+    
+    fail(res, 400, { error: "Parâmetros inválidos" }, allowedOrigin);
+    return true;
+  }
+
+  // GET /api/models — lista modelos e perfis disponíveis
+  if (path === "/api/models" && method === "GET") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    await refreshAvailableModels();
+    const profiles = listProfiles();
+    const currentProfile = db.getConfig("chat_model_profile", "balanced");
+    const currentModel = db.getConfig("chat_model_override", "");
+    ok(res, {
+      perfis: profiles,
+      modelos_disponiveis: availableModels,
+      perfil_atual: currentProfile || "balanced",
+      modelo_atual: currentModel || "",
     }, allowedOrigin);
     return true;
   }

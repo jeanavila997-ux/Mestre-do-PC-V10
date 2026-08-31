@@ -75,6 +75,13 @@ h1{font-size:22px;background:linear-gradient(135deg,var(--accent),var(--accent2)
 .tool-card .t-toggle{margin-top:8px;width:100%;border:1px solid var(--border);background:var(--card);color:var(--text-muted);border-radius:6px;padding:4px;font-size:11px;cursor:pointer}
 .tool-card .t-toggle.on{color:var(--accent2);border-color:rgba(0,255,136,.4)}
 .tool-card .t-toggle.off{color:var(--warning);border-color:rgba(240,168,0,.4)}
+/* Cards de perfil de modelo */
+.perfil-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:all .2s}
+.perfil-card:hover{border-color:var(--accent)}
+.perfil-card.selected{border-color:var(--accent2);background:rgba(0,255,136,0.08)}
+.perfil-card .p-name{font-weight:600;font-size:13px;color:var(--text)}
+.perfil-card .p-desc{color:var(--text-muted);font-size:11px;margin-top:4px}
+.perfil-card .p-model{font-size:11px;color:var(--accent2);font-family:Consolas,monospace;margin-top:6px;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;display:inline-block}
 @media(max-width:600px){.row{flex-direction:column;align-items:stretch}.actions{justify-content:flex-end}}
 </style>
 </head>
@@ -83,6 +90,7 @@ h1{font-size:22px;background:linear-gradient(135deg,var(--accent),var(--accent2)
   <header>
     <h1>⚙️ Gerenciar Comandos &amp; Ferramentas</h1>
     <div class="spacer"></div>
+    <button class="btn" id="btnModeloAtual" onclick="openModelSwitch()" title="Mudar modelo do chat">🤖 Modelo: <span id="modeloAtualLabel">carregando...</span></button>
     <button class="btn" onclick="toggleTheme()" title="Alternar tema">◐ Tema</button>
     <button class="btn" onclick="location.href='/index.html'">← Voltar ao App</button>
   </header>
@@ -128,6 +136,35 @@ h1{font-size:22px;background:linear-gradient(135deg,var(--accent),var(--accent2)
     <div class="modal-actions">
       <button class="btn" onclick="closeModal()">Cancelar</button>
       <button class="btn primary" onclick="saveModal()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal trocar modelo -->
+<div class="overlay" id="modalModelo">
+  <div class="modal">
+    <h2>🤖 Mudar Modelo do Chat</h2>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">Selecione um perfil de modelo ou escolha um modelo específico. A mudança é imediata para novas conversas.</p>
+    
+    <div class="field">
+      <label>📦 Perfis de Modelo (Recomendado)</label>
+      <div id="perfisList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    
+    <div class="field" style="margin-top:16px">
+      <label>⚙️ Ou escolha um modelo específico</label>
+      <select id="modeloSelect" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:13px;outline:none">
+        <option value="">-- Selecionar modelo --</option>
+      </select>
+    </div>
+    
+    <div class="field" style="margin-top:12px">
+      <label style="font-size:12px;color:var(--text-muted)">Modelo atual: <span id="modeloAtualInfo" style="color:var(--accent)">-</span></label>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModelSwitch()">Cancelar</button>
+      <button class="btn primary" onclick="confirmarMudancaModelo()">💾 Aplicar</button>
     </div>
   </div>
 </div>
@@ -338,8 +375,104 @@ function escapeHtml(s) {
   return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// ── Trocar modelo do chat ─────────────────────────────────────────────
+let modeloSelecionado = null;
+let perfilSelecionado = null;
+let perfisData = [];
+
+async function carregarModelos() {
+  try {
+    const r = await fetch(API + "/api/models", { headers: H });
+    const d = await r.json();
+    perfisData = d.perfis || [];
+    
+    // Atualiza label do botão
+    const perfilAtual = d.perfil_atual || "balanced";
+    const modeloAtual = d.modelo_atual || "";
+    const label = modeloAtual ? `${modeloAtual}` : `Perfil: ${perfilAtual}`;
+    document.getElementById("modeloAtualLabel").textContent = label.length > 20 ? label.slice(0, 18) + "..." : label;
+    document.getElementById("modeloAtualInfo").textContent = label;
+    
+    // Renderiza cards de perfil
+    renderPerfisList(perfilSelecionado);
+    
+    // Preenche select de modelos
+    const modeloSelect = document.getElementById("modeloSelect");
+    modeloSelect.innerHTML = '<option value="">-- Selecionar modelo --</option>' + 
+      (d.modelos_disponiveis || []).map((m) => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
+    
+  } catch (e) {
+    document.getElementById("modeloAtualLabel").textContent = "Erro ao carregar";
+    toast("❌ Erro ao carregar modelos: " + e.message, "err");
+  }
+}
+
+function renderPerfisList(selectedId) {
+  const perfisList = document.getElementById("perfisList");
+  perfisList.innerHTML = perfisData.map((p) => `
+    <div class="perfil-card ${selectedId === p.id ? 'selected' : ''}" onclick="selecionarPerfil('${p.id}')">
+      <div class="p-name">${escapeHtml(p.label)}</div>
+      <div class="p-desc">${escapeHtml(p.description)}</div>
+      <div class="p-model">${escapeHtml(p.model)}</div>
+    </div>
+  `).join("");
+}
+
+function openModelSwitch() {
+  modeloSelecionado = null;
+  perfilSelecionado = null;
+  document.getElementById("modalModelo").classList.add("open");
+  carregarModelos();
+}
+
+function closeModelSwitch() {
+  document.getElementById("modalModelo").classList.remove("open");
+}
+
+function selecionarPerfil(id) {
+  perfilSelecionado = id;
+  modeloSelecionado = null;
+  document.getElementById("modeloSelect").value = "";
+  renderPerfisList(id);
+}
+
+async function confirmarMudancaModelo() {
+  const modelo = document.getElementById("modeloSelect").value;
+  
+  if (!modelo && !perfilSelecionado) {
+    toast("⚠️ Selecione um perfil ou modelo", "warn");
+    return;
+  }
+  
+  try {
+    const body = {};
+    if (modelo) body.modelo = modelo;
+    if (perfilSelecionado) body.perfil = perfilSelecionado;
+    
+    const r = await fetch(API + "/api/models/switch", {
+      method: "POST",
+      headers: H,
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    
+    if (!d.success) throw new Error(d.error);
+    
+    toast(d.mensagem);
+    closeModelSwitch();
+    carregarModelos();
+  } catch (e) {
+    toast("❌ Erro: " + e.message, "err");
+  }
+}
+
 // Fecha modal com Esc
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeModal();
+    closeModelSwitch();
+  }
+});
 
 loadComandos();
 </script>

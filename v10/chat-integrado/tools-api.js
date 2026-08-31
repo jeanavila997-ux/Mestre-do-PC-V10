@@ -555,4 +555,4 @@ function listProfiles() {
   }));
 }
 
-export { guardPromptInjection, ollamaChat, executeLauncherCommand, classifyLauncherCommand, getProfileModel, getProfileOptions, buildOllamaOptions, listProfiles, getBestAvailableModel, getBestLocalModel, refreshAvailableModels };
+export { guardPromptInjection, ollamaChat, executeLauncherCommand, classifyLauncherCommand, getProfileModel, getProfileOptions, buildOllamaOptions, listProfiles, getBestAvailableModel, getBestLocalModel, refreshAvailableModels, availableModels };
