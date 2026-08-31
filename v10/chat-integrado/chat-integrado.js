@@ -57,6 +57,7 @@ const state = {
   modeloAtivo: "",
   isWaiting: false,
   voiceRecognition: null,
+  abortController: null,
   messages: [], // histórico local para envio ao Ollama
 };
 
@@ -108,11 +109,84 @@ function escapeHtml(text) {
 }
 
 function renderMarkdown(text) {
-  let html = escapeHtml(text);
-  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-  html = html.replace(/```([\s\S]*?)```/g, (m, code) => `<pre><code>${code.trim()}</code></pre>`);
+  if (text == null) return "";
+  let html = escapeHtml(String(text));
+
+  // 1. Blocos de código (preserva conteúdo bruto)
+  const codeBlocks = [];
+  html = html.replace(/```([\s\S]*?)```/g, (m, code) => {
+    codeBlocks.push(`<pre><code>${code.trim()}</code></pre>`);
+    return `\u0000CODE${codeBlocks.length - 1}\u0000`;
+  });
+
+  // 2. Títulos
+  html = html.replace(/^### (.*)$/gm, "<h4>$1</h4>");
+  html = html.replace(/^## (.*)$/gm, "<h3>$1</h3>");
+  html = html.replace(/^# (.*)$/gm, "<h2>$1</h2>");
+
+  // 3. Tabelas (| a | b |)
+  html = html.replace(/((?:^\|.*\|\s*$\n?)+)/gm, (m) => {
+    const rows = m.trim().split("\n").filter((r) => r.trim());
+    if (rows.length < 2) return m;
+    const parseRow = (r) =>
+      r
+        .trim()
+        .replace(/^\||\|$/g, "")
+        .split("|")
+        .map((c) => c.trim());
+    const header = parseRow(rows[0]);
+    const isSep = (r) => /^[\s:|-]+$/.test(r.replace(/\|/g, ""));
+    const body = rows.slice(1).filter((r) => !isSep(r));
+    let out = "<table><thead><tr>";
+    header.forEach((h) => (out += `<th>${h}</th>`));
+    out += "</tr></thead><tbody>";
+    body.forEach((r) => {
+      out += "<tr>";
+      parseRow(r).forEach((c) => (out += `<td>${c}</td>`));
+      out += "</tr>";
+    });
+    out += "</tbody></table>";
+    return out;
+  });
+
+  // 4. Listas não ordenadas
+  html = html.replace(/((?:^[ \t]*[-*+][ \t]+.*(?:\n|$))+)/gm, (m) => {
+    const items = m
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => /^[-*+][ \t]+/.test(l))
+      .map((l) => `<li>${l.replace(/^[-*+][ \t]+/, "")}</li>`)
+      .join("");
+    return `<ul>${items}</ul>`;
+  });
+
+  // 5. Listas ordenadas
+  html = html.replace(/((?:^[ \t]*\d+[.)][ \t]+.*(?:\n|$))+)/gm, (m) => {
+    const items = m
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => /^\d+[.)][ \t]+/.test(l))
+      .map((l) => `<li>${l.replace(/^\d+[.)][ \t]+/, "")}</li>`)
+      .join("");
+    return `<ol>${items}</ol>`;
+  });
+
+  // 6. Citações
+  html = html.replace(/^&gt; (.*)$/gm, "<blockquote>$1</blockquote>");
+
+  // 7. Parágrafos (linhas em branco separam blocos)
+  html = html.replace(/\n{2,}/g, "</p><p>");
   html = html.replace(/\n/g, "<br>");
+
+  // 8. Inline: negrito, itálico, código, links
+  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  // 9. Restaura blocos de código
+  html = html.replace(/\u0000CODE(\d+)\u0000/g, (m, i) => codeBlocks[Number(i)] || "");
+
   return html;
 }
 
@@ -166,13 +240,46 @@ function removeTyping() {
   if (el) el.remove();
 }
 
+// ── Memórias ativas no prompt ─────────────────────────────────────
+
+function buildUserPromptWithMemories(userText) {
+  const active = state.memorias.filter((m) => m.ativa);
+  if (!active.length) return userText;
+  const parts = active.map((m) => `[Memória: ${m.titulo}]\n${m.conteudo}`);
+  return `${userText}\n\n---\nMemórias ativas para esta mensagem:\n\n${parts.join("\n\n")}`;
+}
+
+function renderActiveMemoryChips() {
+  const container = $("activeMemories");
+  if (!container) return;
+  const active = state.memorias.filter((m) => m.ativa);
+  if (!active.length) {
+    container.innerHTML = "";
+    container.style.display = "none";
+    return;
+  }
+  container.innerHTML = active
+    .map(
+      (m) =>
+        `<span class="active-memory-chip">🧠 ${escapeHtml(m.titulo)} <button data-id="${m.id}" title="Desativar">✕</button></span>`
+    )
+    .join("");
+  container.style.display = "flex";
+  container.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      await apiPost(`/api/memorias/${btn.dataset.id}/toggle`);
+      loadMemorias();
+    });
+  });
+}
+
 // ── Streaming via /ollama/chat ──────────────────────────────────────
 
 async function streamOllamaReply(userText) {
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
     ...state.messages.slice(-20),
-    { role: "user", content: userText },
+    { role: "user", content: buildUserPromptWithMemories(userText) },
   ];
 
   const body = {
@@ -182,10 +289,14 @@ async function streamOllamaReply(userText) {
     options: state.profileOptions || undefined,
   };
 
+  state.abortController = new AbortController();
+  const signal = state.abortController.signal;
+
   const resp = await fetch(BASE + "/ollama/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
     body: JSON.stringify(body),
+    signal,
   });
 
   if (!resp.ok) {
@@ -198,27 +309,43 @@ async function streamOllamaReply(userText) {
   let fullText = "";
   let buffer = "";
 
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
 
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      try {
-        const chunk = JSON.parse(line);
-        if (chunk.message?.content) {
-          fullText += chunk.message.content;
-          updateStreamingMessage(fullText);
-        }
-        if (chunk.done) break;
-      } catch { /* linha incompleta, ignora */ }
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const chunk = JSON.parse(line);
+          if (chunk.message?.content) {
+            fullText += chunk.message.content;
+            updateStreamingMessage(fullText);
+          }
+          if (chunk.done) break;
+        } catch { /* linha incompleta, ignora */ }
+      }
     }
+  } catch (err) {
+    if (err.name === "AbortError") {
+      updateStreamingMessage(fullText + "\n\n⏹ _geração interrompida_");
+      throw new Error("Geração interrompida pelo usuário.");
+    }
+    throw err;
+  } finally {
+    state.abortController = null;
   }
 
   return fullText;
+}
+
+function stopStreaming() {
+  if (state.abortController) {
+    state.abortController.abort();
+  }
 }
 
 let streamingBodyEl = null;
@@ -473,6 +600,7 @@ async function loadMemorias() {
   const data = await apiGet("/api/memorias");
   state.memorias = data.memorias || [];
   renderMemorias();
+  renderActiveMemoryChips();
 }
 
 function renderMemorias() {
@@ -632,6 +760,8 @@ async function sendMessage() {
   }).catch(() => {});
 
   showTyping();
+  $("btnStop").style.display = "";
+  $("btnSend").style.display = "none";
 
   try {
     const reply = await streamOllamaReply(msg);
@@ -653,9 +783,13 @@ async function sendMessage() {
   } catch (err) {
     removeTyping();
     streamingBodyEl = null;
-    addMessage(`❌ Erro: ${err.message}`, "ai");
+    if (err.message !== "Geração interrompida pelo usuário.") {
+      addMessage(`❌ Erro: ${err.message}`, "ai");
+    }
   } finally {
     state.isWaiting = false;
+    $("btnStop").style.display = "none";
+    $("btnSend").style.display = "";
     input.focus();
     loadSyncStatus();
   }
@@ -719,6 +853,29 @@ export async function initChatIntegrado() {
     resetChatView();
   });
 
+  // Nav: Ferramentas
+  $("btnToolsNav").addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeAllMenus();
+    showToolsPanel();
+  });
+
+  // Nav: Tema
+  $("btnThemeNav").addEventListener("click", () => {
+    $("btnTheme").click();
+  });
+
+  // Nav: Limpar chat
+  $("btnClearNav").addEventListener("click", () => {
+    if (confirm("Limpar todo o chat atual?")) {
+      $("messagesContainer").innerHTML = "";
+      $("heroHeading").style.display = "flex";
+      $("quickCategories").style.display = "flex";
+      $("messagesContainer").style.display = "none";
+      state.messages = [];
+    }
+  });
+
   // Send on Enter
   $("promptInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -729,6 +886,9 @@ export async function initChatIntegrado() {
 
   // Send button
   $("btnSend").addEventListener("click", () => sendMessage());
+
+  // Stop button
+  $("btnStop").addEventListener("click", () => stopStreaming());
 
   // Popup menus
   function closeAllMenus() {
@@ -845,6 +1005,7 @@ export async function initChatIntegrado() {
     loadProfiles(),
     loadConversas(),
     loadSyncStatus(),
+    loadMemorias(),
   ]);
 
   // Auto-refresh sync status every 30s

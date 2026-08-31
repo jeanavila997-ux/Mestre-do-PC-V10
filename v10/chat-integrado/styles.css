@@ -344,6 +344,38 @@ body {
 
 .composer-input::placeholder { color: var(--text-muted) }
 
+.active-memories {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  animation: fadeInScale 0.2s ease-out;
+}
+
+.active-memory-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 212, 255, 0.12);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.active-memory-chip button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  line-height: 1;
+}
+
+.active-memory-chip button:hover { color: var(--danger) }
+
 .composer-toolbar {
   display: flex;
   align-items: center;
@@ -391,6 +423,8 @@ body {
 .icon-circle-btn.send-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: #000; font-weight: 700 }
 .icon-circle-btn.send-btn:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3) }
 .icon-circle-btn.send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none }
+.icon-circle-btn.stop-btn { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse 1.2s ease-in-out infinite }
+.icon-circle-btn.stop-btn:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3) }
 
 /* ── Quick categories ─────────────────────────────────────────────── */
 

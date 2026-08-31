@@ -901,17 +901,49 @@
       {
         id: "cat_libs",
         label: "📚 Bibliotecas",
-        cmds: [
-          ["pip install requests", "pip install --upgrade requests; Write-Host \"✅ requests instalado/atualizado!\" -ForegroundColor Green"],
-          ["pip install numpy + pandas", "pip install --upgrade numpy pandas; Write-Host \"✅ numpy e pandas instalados!\" -ForegroundColor Green"],
-          ["pip install matplotlib", "pip install --upgrade matplotlib; Write-Host \"✅ matplotlib instalado!\" -ForegroundColor Green"],
-          ["pip install psutil", "pip install --upgrade psutil; Write-Host \"✅ psutil instalado!\" -ForegroundColor Green"],
-          ["pip install openpyxl", "pip install --upgrade openpyxl; Write-Host \"✅ openpyxl instalado!\" -ForegroundColor Green"],
-          ["npm install no projeto", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green"],
-          ["npm install -g typescript", "npm install -g typescript; Write-Host \"✅ TypeScript instalado globalmente!\" -ForegroundColor Green"],
-          ["npm install -g nodemon", "npm install -g nodemon; Write-Host \"✅ nodemon instalado globalmente!\" -ForegroundColor Green"],
-          ["pip install pywin32", "pip install --upgrade pywin32; Write-Host \"✅ pywin32 instalado!\" -ForegroundColor Green"],
-          ["pip install pillow", "pip install --upgrade pillow; Write-Host \"✅ pillow instalado!\" -ForegroundColor Green"],
+        subcategories: [
+          {
+            label: "🐍 Python",
+            cmds: [
+              ["pip install requests", "pip install --upgrade requests; Write-Host \"✅ requests instalado/atualizado!\" -ForegroundColor Green"],
+              ["pip install numpy + pandas", "pip install --upgrade numpy pandas; Write-Host \"✅ numpy e pandas instalados!\" -ForegroundColor Green"],
+              ["pip install matplotlib", "pip install --upgrade matplotlib; Write-Host \"✅ matplotlib instalado!\" -ForegroundColor Green"],
+              ["pip install psutil", "pip install --upgrade psutil; Write-Host \"✅ psutil instalado!\" -ForegroundColor Green"],
+              ["pip install openpyxl", "pip install --upgrade openpyxl; Write-Host \"✅ openpyxl instalado!\" -ForegroundColor Green"],
+              ["pip install pywin32", "pip install --upgrade pywin32; Write-Host \"✅ pywin32 instalado!\" -ForegroundColor Green"],
+              ["pip install pillow", "pip install --upgrade pillow; Write-Host \"✅ pillow instalado!\" -ForegroundColor Green"],
+              ["pip install scikit-learn", "pip install --upgrade scikit-learn; Write-Host \"✅ scikit-learn instalado!\" -ForegroundColor Green"],
+              ["pip install beautifulsoup4 + lxml", "pip install --upgrade beautifulsoup4 lxml; Write-Host \"✅ beautifulsoup4 e lxml instalados!\" -ForegroundColor Green"],
+              ["pip install selenium", "pip install --upgrade selenium; Write-Host \"✅ selenium instalado!\" -ForegroundColor Green"],
+              ["pip install flask", "pip install --upgrade flask; Write-Host \"✅ flask instalado!\" -ForegroundColor Green"],
+              ["pip install fastapi", "pip install --upgrade fastapi uvicorn; Write-Host \"✅ fastapi e uvicorn instalados!\" -ForegroundColor Green"],
+              ["pip install sqlalchemy", "pip install --upgrade sqlalchemy; Write-Host \"✅ sqlalchemy instalado!\" -ForegroundColor Green"],
+              ["pip install jupyter", "pip install --upgrade jupyter; Write-Host \"✅ jupyter instalado!\" -ForegroundColor Green"],
+              ["pip install python-dotenv", "pip install --upgrade python-dotenv; Write-Host \"✅ python-dotenv instalado!\" -ForegroundColor Green"],
+            ],
+          },
+          {
+            label: "🟩 Node.js",
+            cmds: [
+              ["npm install no projeto", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green"],
+              ["npm install -g typescript", "npm install -g typescript; Write-Host \"✅ TypeScript instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g nodemon", "npm install -g nodemon; Write-Host \"✅ nodemon instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g pnpm", "npm install -g pnpm; Write-Host \"✅ pnpm instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g @angular/cli", "npm install -g @angular/cli; Write-Host \"✅ Angular CLI instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g @nestjs/cli", "npm install -g @nestjs/cli; Write-Host \"✅ NestJS CLI instalado globalmente!\" -ForegroundColor Green"],
+              ["npm install -g eslint + prettier", "npm install -g eslint prettier; Write-Host \"✅ eslint e prettier instalados globalmente!\" -ForegroundColor Green"],
+              ["npm install -g pm2", "npm install -g pm2; Write-Host \"✅ pm2 instalado globalmente!\" -ForegroundColor Green"],
+            ],
+          },
+          {
+            label: "🐚 PowerShell",
+            cmds: [
+              ["Install-Module Terminal-Icons", "Install-Module -Name Terminal-Icons -Scope CurrentUser -Force; Write-Host \"✅ Terminal-Icons instalado!\" -ForegroundColor Green"],
+              ["Install-Module PSReadLine", "Install-Module -Name PSReadLine -Force -SkipPublisherCheck; Write-Host \"✅ PSReadLine instalado!\" -ForegroundColor Green"],
+              ["Install-Module BurntToast", "Install-Module -Name BurntToast -Scope CurrentUser -Force; Write-Host \"✅ BurntToast instalado!\" -ForegroundColor Green"],
+              ["Install-Module PSWindowsUpdate", "Install-Module PSWindowsUpdate -Force -SkipPublisherCheck -AcceptLicense; Write-Host \"✅ PSWindowsUpdate instalado!\" -ForegroundColor Green"],
+            ],
+          },
         ],
       },
       {
@@ -921,68 +953,82 @@
           {
             label: "💻 Código",
             cmds: [
-              ["Pull qwen2.5-coder:3b-instruct", "ollama pull qwen2.5-coder:3b-instruct"],
-              ["Pull kimi-k2.7-code:cloud", "ollama pull kimi-k2.7-code:cloud"],
-              ["Pull deepseek-coder-v2", "ollama pull deepseek-coder-v2"],
-              ["Pull codellama:7b-code", "ollama pull codellama:7b-code"],
-              ["Pull codellama:13b-code", "ollama pull codellama:13b-code"],
-              ["Pull codegemma:2b-code", "ollama pull codegemma:2b-code"],
-              ["Pull qwen2.5-coder:7b", "ollama pull qwen2.5-coder:7b"],
+              ["Pull qwen2.5-coder:3b-instruct (~1.9 GB)", "ollama pull qwen2.5-coder:3b-instruct"],
+              ["Pull qwen2.5-coder:7b (~4.7 GB)", "ollama pull qwen2.5-coder:7b"],
+              ["Pull qwen2.5-coder:14b (~9.0 GB)", "ollama pull qwen2.5-coder:14b"],
+              ["Pull kimi-k2.7-code:cloud (☁️ Cloud — 0 GB local)", "ollama pull kimi-k2.7-code:cloud"],
+              ["Pull deepseek-coder-v2 (~8.9 GB)", "ollama pull deepseek-coder-v2"],
+              ["Pull deepseek-coder:6.7b (~3.8 GB)", "ollama pull deepseek-coder:6.7b"],
+              ["Pull codellama:7b-code (~3.8 GB)", "ollama pull codellama:7b-code"],
+              ["Pull codellama:13b-code (~7.4 GB)", "ollama pull codellama:13b-code"],
+              ["Pull codegemma:2b-code (~1.6 GB)", "ollama pull codegemma:2b-code"],
+              ["Pull starcoder2:3b (~1.7 GB)", "ollama pull starcoder2:3b"],
+              ["Pull starcoder2:7b (~4.0 GB)", "ollama pull starcoder2:7b"],
             ],
           },
           {
             label: "👁️ Visão",
             cmds: [
-              ["Pull llava-phi3", "ollama pull llava-phi3"],
-              ["Pull llava:13b", "ollama pull llava:13b"],
-              ["Pull bakllava", "ollama pull bakllava"],
-              ["Pull moondream2", "ollama pull moondream2"],
-              ["Pull minicpm-v", "ollama pull minicpm-v"],
-              ["Pull llama3.2-vision", "ollama pull llama3.2-vision"],
-              ["Pull granite3.2-vision", "ollama pull granite3.2-vision"],
+              ["Pull llava-phi3 (~2.9 GB)", "ollama pull llava-phi3"],
+              ["Pull llava:13b (~8.0 GB)", "ollama pull llava:13b"],
+              ["Pull bakllava (~4.7 GB)", "ollama pull bakllava"],
+              ["Pull moondream (~1.7 GB)", "ollama pull moondream"],
+              ["Pull minicpm-v (~5.5 GB)", "ollama pull minicpm-v"],
+              ["Pull llama3.2-vision (~7.8 GB)", "ollama pull llama3.2-vision"],
+              ["Pull granite3.2-vision (~2.4 GB)", "ollama pull granite3.2-vision"],
             ],
           },
           {
             label: "📝 Texto",
             cmds: [
-              ["Pull llama3.2", "ollama pull llama3.2"],
-              ["Pull qwen2.5:7b", "ollama pull qwen2.5:7b"],
-              ["Pull mistral", "ollama pull mistral"],
-              ["Pull gemma2:2b", "ollama pull gemma2:2b"],
-              ["Pull phi4", "ollama pull phi4"],
-              ["Pull phi3:medium", "ollama pull phi3:medium"],
-              ["Pull command-r7b", "ollama pull command-r7b"],
+              ["Pull llama3.2 (~2.0 GB)", "ollama pull llama3.2"],
+              ["Pull llama3.1:8b (~4.9 GB)", "ollama pull llama3.1:8b"],
+              ["Pull qwen2.5:7b (~4.7 GB)", "ollama pull qwen2.5:7b"],
+              ["Pull qwen2.5:14b (~9.0 GB)", "ollama pull qwen2.5:14b"],
+              ["Pull mistral (~4.4 GB)", "ollama pull mistral"],
+              ["Pull mistral-nemo (~7.1 GB)", "ollama pull mistral-nemo"],
+              ["Pull gemma2:2b (~1.6 GB)", "ollama pull gemma2:2b"],
+              ["Pull gemma2:9b (~5.4 GB)", "ollama pull gemma2:9b"],
+              ["Pull phi4 (~9.1 GB)", "ollama pull phi4"],
+              ["Pull phi3.5:3.8b (~2.2 GB)", "ollama pull phi3.5:3.8b"],
+              ["Pull phi3:medium (~7.9 GB)", "ollama pull phi3:medium"],
+              ["Pull command-r7b (~5.1 GB)", "ollama pull command-r7b"],
             ],
           },
           {
             label: "🖼️ Imagem / Multimodal",
             cmds: [
-              ["Pull llava (análise de imagem)", "ollama pull llava"],
-              ["Pull llama3.2-vision", "ollama pull llama3.2-vision"],
-              ["Pull granite3.2-vision", "ollama pull granite3.2-vision"],
-              ["Pull llava-llama3", "ollama pull llava-llama3"],
+              ["Pull llava (~4.7 GB)", "ollama pull llava"],
+              ["Pull llama3.2-vision (~7.8 GB)", "ollama pull llama3.2-vision"],
+              ["Pull granite3.2-vision (~2.4 GB)", "ollama pull granite3.2-vision"],
+              ["Pull llava-llama3 (~5.5 GB)", "ollama pull llava-llama3"],
             ],
           },
           {
             label: "🛠️ Ferramentas",
             cmds: [
-              ["Pull llama3.2 (tools)", "ollama pull llama3.2"],
-              ["Pull qwen2.5 (tools)", "ollama pull qwen2.5"],
-              ["Pull mistral (tools)", "ollama pull mistral"],
-              ["Pull command-r7b (tools)", "ollama pull command-r7b"],
-              ["Pull athene-v2:agent", "ollama pull athene-v2:agent"],
-              ["Pull qwen2.5:14b (tools)", "ollama pull qwen2.5:14b"],
+              ["Pull llama3.2 (tools ~2.0 GB)", "ollama pull llama3.2"],
+              ["Pull llama3.1:8b (tools ~4.9 GB)", "ollama pull llama3.1:8b"],
+              ["Pull qwen2.5 (tools ~4.7 GB)", "ollama pull qwen2.5"],
+              ["Pull qwen2.5:14b (tools ~9.0 GB)", "ollama pull qwen2.5:14b"],
+              ["Pull mistral (tools ~4.4 GB)", "ollama pull mistral"],
+              ["Pull command-r7b (tools ~5.1 GB)", "ollama pull command-r7b"],
+              ["Pull athene-v2:latest (~47 GB — grande!)", "ollama pull athene-v2:latest"],
+              ["Pull nemotron-mini:4b (~2.7 GB)", "ollama pull nemotron-mini:4b"],
+              ["Pull hermes3 (~4.7 GB)", "ollama pull hermes3"],
             ],
           },
           {
             label: "🎓 Aprendizagem / Leve",
             cmds: [
-              ["Pull tinyllama", "ollama pull tinyllama"],
-              ["Pull qwen2.5:0.5b", "ollama pull qwen2.5:0.5b"],
-              ["Pull phi3", "ollama pull phi3"],
-              ["Pull gemma2:2b-instruct", "ollama pull gemma2:2b-instruct"],
-              ["Pull smollm2:135m", "ollama pull smollm2:135m"],
-              ["Pull qwen2.5:1.5b", "ollama pull qwen2.5:1.5b"],
+              ["Pull tinyllama (~0.6 GB)", "ollama pull tinyllama"],
+              ["Pull qwen2.5:0.5b (~0.4 GB)", "ollama pull qwen2.5:0.5b"],
+              ["Pull qwen2.5:1.5b (~1.0 GB)", "ollama pull qwen2.5:1.5b"],
+              ["Pull qwen2.5:3b (~1.9 GB)", "ollama pull qwen2.5:3b"],
+              ["Pull phi3 (~2.2 GB)", "ollama pull phi3"],
+              ["Pull phi3.5:3.8b (~2.2 GB)", "ollama pull phi3.5:3.8b"],
+              ["Pull gemma2:2b-instruct-q4_0 (~1.6 GB)", "ollama pull gemma2:2b-instruct-q4_0"],
+              ["Pull smollm2:135m (~0.3 GB)", "ollama pull smollm2:135m"],
             ],
           },
           {
@@ -1844,7 +1890,7 @@
         const deadline = Date.now() + 15 * 60 * 1000;
         while (Date.now() < deadline) {
           let d;
-          try { d = await (await fetch(API + "/run-status?id=" + encodeURIComponent(jobId), { signal: AbortSignal.timeout(5000) })).json(); }
+          try { d = await (await fetch(API + "/run-status?id=" + encodeURIComponent(jobId), { headers: PRIVILEGED_HEADERS, signal: AbortSignal.timeout(5000) })).json(); }
           catch { await sleep(1500); continue; }
           if (typeof onProgress === "function") onProgress(d);
           if (d.state === "running") { await sleep(1200); continue; }
@@ -1920,7 +1966,7 @@
         NOME_GRUPO: { title: "👥 Grupo", desc: "Informe o grupo:", placeholder: "ex: Administradores", validate: /^[a-zA-Z0-9._-]{1,64}$/ },
         NOME_USUARIO: { title: "👤 Usuário", desc: "Informe o nome do usuário:", placeholder: "ex: Jeanc", validate: /^[a-zA-Z0-9._-]{1,64}$/ },
         NIVEL_PERMISSAO: { title: "🔑 Permissão", desc: "F=Total, R=Leitura, W=Escrita, X=Execução:", placeholder: "ex: F", validate: /^[FRWMX]$/i },
-        URL_TESTE: { title: "🔗 URL", desc: "Informe a URL completa (com https://):", placeholder: "ex: https://google.com", validate: /^https:\/\/[a-zA-Z0-9.-]{1,253}(?:\/[a-zA-Z0-9\-._~:/?#[\]@!$&'()*+,;=%]{0,500})?$/ },
+        URL_TESTE: { title: "🔗 URL", desc: "Informe a URL completa (com https://):", placeholder: "ex: https://google.com", validate: /^https:\/\/[a-zA-Z0-9.-]{1,253}(?::\d{1,5})?(?:[/?#][a-zA-Z0-9\-._~:/?#[\]@!&'()*+,;=%]{0,500})?$/ },
       };
       // Encontra, em ordem de aparição, todos os tokens §TOKEN§ presentes no comando.
       function findTokens(code) {
@@ -1986,8 +2032,14 @@
         t.style.background = color || "var(--accent2)";
         t.style.color = color === "#f85149" ? "#fff" : "#000";
         t.style.display = "flex";
+        t.style.animation = "none";
+        t.offsetHeight; // força reflow para reiniciar a animação
+        t.style.animation = "fadeInScale 0.3s ease-out";
         clearTimeout(t._tid);
-        t._tid = setTimeout(() => (t.style.display = "none"), 2500);
+        t._tid = setTimeout(() => {
+          t.style.animation = "fadeInScale 0.3s ease-out reverse";
+          setTimeout(() => { t.style.display = "none"; }, 300);
+        }, 2500);
       }
       // ===== checkServer() (padrão V7) + dashboard + MCP + Ollama =====
       async function checkServer() {
@@ -2042,7 +2094,7 @@
         const pollIntervalMs = options.pollIntervalMs || 1200;
         const deadline = Date.now() + timeoutMs;
         while (Date.now() < deadline) {
-          const statusRes = await fetch(API + "/run-status?id=" + encodeURIComponent(submitData.jobId), { signal: AbortSignal.timeout(5000) });
+          const statusRes = await fetch(API + "/run-status?id=" + encodeURIComponent(submitData.jobId), { headers: PRIVILEGED_HEADERS, signal: AbortSignal.timeout(5000) });
           const statusData = await statusRes.json();
           if (statusRes.ok === false) throw new Error(statusData.output || "Falha ao consultar o status do comando.");
           if (typeof options.onProgress === "function") options.onProgress(statusData);
@@ -2734,24 +2786,6 @@
         header.style.transition = 'all 0.3s ease';
       });
 
-      // ===== ANIMAÇÕES: Toast slide-in =====
-      const originalShowToast = showToast;
-      window.showToast = function(msg, color) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.style.background = color || 'var(--accent2)';
-        t.style.color = color === '#f85149' ? '#fff' : '#000';
-        t.style.display = 'flex';
-        t.style.animation = 'none';
-        t.offsetHeight; // Trigger reflow
-        t.style.animation = 'fadeInScale 0.3s ease-out';
-        clearTimeout(t._tid);
-        t._tid = setTimeout(() => {
-          t.style.animation = 'fadeInScale 0.3s ease-out reverse';
-          setTimeout(() => { t.style.display = 'none'; }, 300);
-        }, 2500);
-      };
-
       // ===== ANIMAÇÕES: Metric values com countUp effect =====
       const metricObserver = new MutationObserver((mutations) => {
         mutations.forEach(mutation => {
@@ -2777,13 +2811,21 @@
       import { initChat } from "/chat/chat-module.js";
       const launcherUrl = window.location.protocol.startsWith("http") ? window.location.origin : "http://127.0.0.1:7777";
       const TOAST_COLORS = { error: "#f85149", warning: "#f0a800", info: "var(--accent2)" };
-      window.mestreChat = initChat({
-        rootSelector: "#chat-root",
-        launcherUrl,
-        clientHeader: "v10-web",
-        onToast: (msg, type) => window.showToast(msg, TOAST_COLORS[type] || TOAST_COLORS.info),
-        onOutput: (cmd, output, success) => addOutputEntry(cmd, output, success),
-      });
+      try {
+        window.mestreChat = initChat({
+          rootSelector: "#chat-root",
+          launcherUrl,
+          clientHeader: "v10-web",
+          onToast: (msg, type) => window.showToast(msg, TOAST_COLORS[type] || TOAST_COLORS.info),
+          onOutput: (cmd, output, success) => addOutputEntry(cmd, output, success),
+        });
+      } catch (err) {
+        console.error("Falha ao inicializar o chat IA:", err);
+        window.mestreChat = {
+          open: () => window.showToast("🤖 Chat IA indisponível no momento.", "#f0a800"),
+          close: () => {},
+        };
+      }
     </script>
     <!-- Módulo de Diagnóstico de Rede (Casa5G Dashboard integrado) -->
     <script src="rede-dashboard.js" defer></script>
