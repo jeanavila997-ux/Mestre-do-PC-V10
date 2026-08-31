@@ -37,7 +37,7 @@ async function getMysqlPool() {
   if (mysqlPool) return mysqlPool;
 
   try {
-    const mysql = await import("mysql2/promise.js");
+    const mysql = await import("mysql2/promise");
     mysqlPool = mysql.createPool({
       host: mysqlConfig.host,
       port: mysqlConfig.port,

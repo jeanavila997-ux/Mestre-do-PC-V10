@@ -437,11 +437,12 @@
             </select>
 
             <div class="export-options">
+                <button class="btn btn-outline" onclick="exportMemories('txt')">📝 TXT</button>
                 <button class="btn btn-outline" onclick="exportMemories('csv')">📊 CSV</button>
                 <button class="btn btn-outline" onclick="exportMemories('xlsx')">📈 Excel</button>
                 <button class="btn btn-outline" onclick="exportMemories('json')">📄 JSON</button>
                 <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📥 Importar</button>
-                <input type="file" id="importFile" accept=".json,.csv,.xml,.xlsx" style="display:none" onchange="importMemories(this)">
+                <input type="file" id="importFile" accept=".json,.csv,.xml,.xlsx,.txt" style="display:none" onchange="importMemories(this)">
             </div>
         </div>
 
@@ -728,7 +729,8 @@
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    const format = file.name.endsWith('.csv') ? 'csv' : 
+                    const format = file.name.endsWith('.csv') ? 'csv' :
+                                  file.name.endsWith('.txt') ? 'txt' :
                                   file.name.endsWith('.xml') || file.name.endsWith('.xlsx') ? 'xml' : 'json';
                     
                     const res = await fetch(`${API}/memories/import`, {

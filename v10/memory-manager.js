@@ -283,6 +283,35 @@ export function memoriesToCSV(memories) {
 }
 
 /**
+ * Converte memórias para texto simples (.txt)
+ * @param {Array} memories - Lista de memórias
+ * @returns {string} Conteúdo em texto plano
+ */
+export function memoriesToTXT(memories) {
+  return memories.map((m, index) => {
+    const createdAt = new Date(m.metadata.createdAt).toLocaleString("pt-BR");
+    const updatedAt = new Date(m.metadata.updatedAt).toLocaleString("pt-BR");
+    const tags = Array.isArray(m.metadata.tags) && m.metadata.tags.length > 0 ? `Tags: ${m.metadata.tags.join(", ")}` : "Tags: -";
+    const context = m.metadata.context ? `Contexto: ${m.metadata.context}` : "Contexto: -";
+
+    return [
+      `Memória ${index + 1}`,
+      `ID: ${m.id}`,
+      `Tipo: ${m.type}`,
+      `Título: ${m.title}`,
+      `Conteúdo:\n${m.content}`,
+      `Criação: ${createdAt}`,
+      `Atualização: ${updatedAt}`,
+      `Fonte: ${m.metadata.source || "-"}`,
+      tags,
+      `Importância: ${m.metadata.importance || 1}`,
+      context,
+      "-".repeat(60),
+    ].join("\n");
+  }).join("\n\n");
+}
+
+/**
  * Converte memórias para formato Excel XML (XLSX simplificado)
  * @param {Array} memories - Lista de memórias
  * @returns {string} Conteúdo XML para Excel
@@ -367,7 +396,7 @@ function escapeXML(str) {
 
 /**
  * Exporta memórias para arquivo
- * @param {string} format - "json", "csv", ou "xlsx"
+ * @param {string} format - "json", "csv", "txt" ou "xlsx"
  * @param {object} filters - Filtros para seleção de memórias
  * @returns {object} { filename, content, mimeType }
  */
@@ -380,6 +409,14 @@ export async function exportMemories(format = "csv", filters = {}) {
       filename: `mestre-memories-${timestamp}.json`,
       content: JSON.stringify({ memories, version: "1.0", exportedAt: new Date().toISOString() }, null, 2),
       mimeType: "application/json",
+    };
+  }
+
+  if (format === "txt") {
+    return {
+      filename: `mestre-memories-${timestamp}.txt`,
+      content: memoriesToTXT(memories),
+      mimeType: "text/plain;charset=utf-8",
     };
   }
   
@@ -416,6 +453,10 @@ export async function importMemories(content, format = "json") {
     
     if (format === "csv") {
       memories = parseCSV(content);
+    }
+
+    if (format === "txt") {
+      memories = parseTextFile(content);
     }
     
     if (format === "xlsx" || format === "xml") {
@@ -531,6 +572,62 @@ function parseCSVLine(line) {
   cols.push(current);
   
   return cols;
+}
+
+/**
+ * Parse de texto simples (.txt) para memórias
+ */
+function parseTextFile(content) {
+  const chunks = content.split(/\n-{10,}\n|\nMemória\s+\d+\n/gi).filter(Boolean);
+  const memories = [];
+
+  for (const chunk of chunks) {
+    const lines = chunk.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    if (lines.length === 0) continue;
+
+    let title = "Memória importada";
+    let type = "note";
+    let content = "";
+    const metadata = { tags: [], source: "import" };
+
+    for (const line of lines) {
+      if (line.startsWith("Tipo:")) {
+        type = line.replace(/^Tipo:\s*/i, "").trim() || type;
+      } else if (line.startsWith("Título:")) {
+        title = line.replace(/^Título:\s*/i, "").trim() || title;
+      } else if (line.startsWith("Conteúdo:")) {
+        const rest = line.replace(/^Conteúdo:\s*/i, "").trim();
+        content = rest || "";
+      } else if (line.startsWith("Tags:")) {
+        const tagsValue = line.replace(/^Tags:\s*/i, "").trim();
+        metadata.tags = tagsValue && tagsValue !== "-" ? tagsValue.split(",").map(v => v.trim()).filter(Boolean) : [];
+      } else if (line.startsWith("Importância:")) {
+        metadata.importance = parseInt(line.replace(/^Importância:\s*/i, "").trim(), 10) || 1;
+      } else if (line.startsWith("Contexto:")) {
+        metadata.context = line.replace(/^Contexto:\s*/i, "").trim();
+      } else if (line.startsWith("Fonte:")) {
+        metadata.source = line.replace(/^Fonte:\s*/i, "").trim() || "import";
+      } else if (!line.startsWith("ID:") && !line.startsWith("Criação:") && !line.startsWith("Atualização:") && !/^Memória\s+\d+/i.test(line)) {
+        content += (content ? "\n" : "") + line;
+      }
+    }
+
+    if (!content.trim()) continue;
+
+    memories.push({
+      id: generateMemoryId(),
+      type,
+      title,
+      content: content.trim(),
+      metadata: {
+        ...metadata,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+  }
+
+  return memories;
 }
 
 /**
