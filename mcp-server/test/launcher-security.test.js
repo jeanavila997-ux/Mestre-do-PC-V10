@@ -141,3 +141,67 @@ test("/run-status exige o mesmo cliente autorizado que inicia jobs", async (t) =
   });
   assert.equal(mcp.status, 404);
 });
+
+test("v10-web rejeita origins que só contêm localhost no texto", async (t) => {
+  const port = await reservePort();
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, [join(root, "v10", "launcher.js")], {
+    cwd: join(root, "v10"),
+    env: { ...process.env, MPC_PORT: String(port) },
+    windowsHide: true,
+    stdio: "ignore",
+  });
+  t.after(() => child.kill());
+
+  await waitForServer(base);
+
+  const spoofed = await fetch(base + "/run", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Origin": "https://localhost.evil.example",
+      "X-Mestre-Client": "v10-web",
+    },
+    body: JSON.stringify({ id: "ver_uso_ram" }),
+  });
+  assert.equal(spoofed.status, 403);
+});
+
+test("Modo Livre expira e bloqueia comandos destrutivos críticos", async (t) => {
+  const port = await reservePort();
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, [join(root, "v10", "launcher.js")], {
+    cwd: join(root, "v10"),
+    env: { ...process.env, MPC_PORT: String(port), MESTRE_MODO_LIVRE_TTL_MS: "50" },
+    windowsHide: true,
+    stdio: "ignore",
+  });
+  t.after(() => child.kill());
+
+  await waitForServer(base);
+
+  const headers = { "Content-Type": "application/json", "X-Mestre-Client": "v10-web", "Origin": base };
+  const enabled = await fetch(base + "/modo-livre", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ enabled: true }),
+  });
+  assert.equal(enabled.status, 200);
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const state = await (await fetch(base + "/modo-livre", { headers })).json();
+  assert.equal(state.enabled, false);
+
+  await fetch(base + "/modo-livre", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ enabled: true }),
+  });
+  const blocked = await fetch(base + "/run-free", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ cmd: "Remove-Item C:\\ -Recurse -Force" }),
+  });
+  assert.equal(blocked.status, 400);
+  assert.match((await blocked.json()).output, /bloqueado/i);
+});

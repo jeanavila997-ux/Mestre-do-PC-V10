@@ -14,7 +14,8 @@
     },
     "scripts": {
         "start": "node index.js",
-        "test": "node --test --test-concurrency=1"
+        "test": "node --test --test-concurrency=1",
+        "validate": "node validate-mcp.js"
     },
     "keywords": [
         "mcp",

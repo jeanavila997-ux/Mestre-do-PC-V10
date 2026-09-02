@@ -99,7 +99,8 @@ obj/
 .prettiercache
 .stylelintcache
 
-# Pasta de backups locais
+# Pastas/artefatos locais pesados de pesquisa e backups
+archive/
 backups/*.zip
 backups/*.tar.gz
 

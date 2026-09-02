@@ -1,0 +1,42 @@
+<evaluation>
+  <qa_pair>
+    <question>O usuário quer verificar se o modelo Ollama configurado está disponível e, se não estiver, baixar automaticamente. Após verificar, ele também quer listar todos os perfis de modelo disponíveis para automação. Qual ferramenta deve ser usada primeiro e qual informação o perfil ativo retorna?</question>
+    <answer>A ferramenta 'verificar_modelo_ollama' deve ser usada primeiro. O perfil ativo retorna o nome do modelo (ex: qwen2.5-coder:3b-instruct), o label do perfil, descrição, modelo fallback e RAM mínima recomendada.</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Um administrador precisa monitorar CPU, RAM e disco do sistema e enviar alertas automáticos para um webhook do Discord quando os limites forem ultrapassados. Quais são os valores padrão de limite para CPU, RAM e disco, e qual ferramenta deve ser usada?</question>
+    <answer>Os valores padrão são: CPU 80%, RAM 80%, Disco 90%. A ferramenta 'monitorar_e_notificar' deve ser usada com o parâmetro webhook_url obrigatório.</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Você precisa analisar um script PowerShell suspeito antes de executá-lo. Qual ferramenta verifica se o prompt contém injection malicioso, e qual ferramenta analisa o código PowerShell fornecendo explicação, melhorias e notas de segurança?</question>
+    <answer>'verificar_prompt' analisa se o texto contém prompt injection (retornando classificação: malicioso, suspeito ou seguro com score). 'analisar_codigo_powershell' fornece explicação do código, sugestões de melhoria e notas de segurança.</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>O usuário quer executar um comando PowerShell que não está na whitelist de allowed-operations.json. Quais são os dois passos necessários para permitir isso, e qual ferramenta executa o comando após a configuração?</question>
+    <answer>1) Usar 'definir_modo_livre' com ativar=true para ligar o Modo Livre. 2) Usar 'executar_comando_livre' com o parâmetro 'comando' contendo o PowerShell completo. O Modo Livre deve estar ativo ou o comando falhará com erro 403.</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Você precisa extrair dados de uma tabela em um site do governo brasileiro sobre preços agrícolas. Qual ferramenta garante que apenas domínios governamentais (.gov.br, .usp.br, .embrapa.br) sejam acessados, e qual o parâmetro obrigatório?</question>
+    <answer>A ferramenta 'consultar_fonte_oficial_gov' valida que o domínio seja .gov.br, .usp.br, .embrapa.br, .in.gov.br ou .datasus.gov.br antes de fazer a requisição. O parâmetro obrigatório é 'url_alvo'.</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Um pesquisador precisa buscar menções a "prevenção de febre aftosa" dentro de um PDF oficial cadastrado no projeto Mestre. Qual ferramenta deve ser usada, quais são os parâmetros obrigatórios, e qual arquivo CSV é consultado para validar o caminho do PDF?</question>
+    <answer>A ferramenta 'extrair_evidencia_de_pdf_local' requer 'id_fonte' (ex: FON-0012) e 'termo_de_busca' como parâmetros obrigatórios. O arquivo 'fontes_mestre.csv' em 06_REFERENCIAS é consultado para validar o caminho do PDF.</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Você quer simular o impacto econômico de uma doença animal com as seguintes premissas: rebanho de 10000 animais, 5.5% de prevalência, perda de 2.3 arrobas por animal, preço de R$ 280 por arroba. Qual ferramenta calcula isso e qual é a fórmula matemática aplicada?</question>
+    <answer>A ferramenta 'simular_cenario_economico' calcula: impacto = tamanho_rebanho × (prevalencia_pct/100) × perda_arroba_por_animal × preco_arroba_brl. No exemplo: 10000 × 0.055 × 2.3 × 280 = R$ 354.200 de prejuízo.</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Após uma análise crítica, você precisa congelar uma tabela CSV final para impedir edições acidentais. Qual ferramenta faz isso, qual parâmetro de segurança é necessário, e onde as aprovações são armazenadas?</question>
+    <answer>A ferramenta 'congelar_tabela_final' altera permissões do SO para 'Somente Leitura'. Requer 'approval_id' (token de aprovação humano). As aprovações são armazenadas em logs/audit/approvals.json.</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Você precisa comparar respostas de três modelos diferentes (qwen2.5-coder:3b, llama3.1:8b, mistral:7b) para a mesma pergunta sobre otimização de RAM. Qual ferramenta faz isso e qual é o formato esperado do parâmetro 'modelos'?</question>
+    <answer>A ferramenta 'comparar_modelos_ia' compara respostas de múltiplos modelos. O parâmetro 'modelos' é uma string separada por vírgulas: "qwen2.5-coder:3b,llama3.1:8b,mistral:7b".</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Um desenvolvedor quer gerar um commit automatizado registrando um marco do projeto na fase F3. Qual ferramenta faz isso, quais são os parâmetros obrigatórios e opcionais, e qual comando Git é executado internamente?</question>
+    <answer>A ferramenta 'gerar_snapshot_git' requer 'mensagem_commit' (obrigatório) e tem 'fase_cronograma' como opcional. Internamente executa: git add . && git commit -m "[F3] mensagem_commit".</answer>
+  </qa_pair>
+</evaluation>

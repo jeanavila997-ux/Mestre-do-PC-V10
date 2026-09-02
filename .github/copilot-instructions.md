@@ -179,6 +179,7 @@ PowerShell                    ← only whitelisted commands execute
 | `MESTRE_EXTENSION_ORIGINS` | *(empty)* | Comma-separated allowed extension origins |
 | `MESTRE_NPP_TOKEN` | *(empty)* | Auth token for Notepad++ integration; `/npp` returns 501 until this is set |
 | `MESTRE_MODO_LIVRE` | *(empty)* | Set to `1` to enable Modo Livre on startup (persisted in `logs/config/modo-livre.json`) |
+| `MESTRE_SOUL_DIR` | *(empty)* | Base directory for agent persona files served by `/soul*` (used by tests to isolate writes; defaults: `v10/chat/Soul.md` and `%USERPROFILE%/SOUL.md`) |
 | `MESTRE_LOCAL_MCP_TOKEN` | *(empty)* | Enables local MySQL/MariaDB MCP tools in `mcp-server/db/mcp-db-tools.js`; database tools stay disabled when unset |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama API base URL. Switches to `https://ollama.com/api` automatically when `OLLAMA_API_KEY` is set |
 | `OLLAMA_API_KEY` | *(empty)* | API key for Ollama Cloud; activates cloud mode and adds an auth header |
