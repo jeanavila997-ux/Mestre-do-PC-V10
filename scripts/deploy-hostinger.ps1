@@ -9,6 +9,10 @@ $RemotePort = "65002"
 $DistPath = Join-Path $PSScriptRoot "..\dist"
 $SitePath = Join-Path $DistPath "site"
 
+# Caminho de destino remoto: raiz de public_html por padrão
+$DefaultTargetFolder = "~/public_html/"
+$TargetFolder = if ($TargetFolder -eq "~/public_html/") { $DefaultTargetFolder } else { $TargetFolder }
+
 Write-Host "===================================================" -ForegroundColor Cyan
 Write-Host "  MESTRE DO PC - DEPLOY PARA HOSPEDAGEM HOSTINGER" -ForegroundColor Cyan
 Write-Host "===================================================" -ForegroundColor Cyan
@@ -33,7 +37,11 @@ Write-Host "Se você não configurou chave SSH sem senha, digite a sua senha SSH
 Write-Host ""
 
 # Enviar todos os arquivos de dist/site (index.html, icon.ico, ClientePackage.zip) para ~/public_html/
-scp -P $RemotePort -r "$SitePath\*" "${RemoteUser}@${RemoteHost}:${TargetFolder}"
+# Usar caminho absoluto do PowerShell para evitar problemas de wildcard no MSYS/scp.
+# Enviamos o CONTEÚDO de $SitePath, não a pasta em si.
+$SitePathResolved = Resolve-Path $SitePath | Select-Object -ExpandProperty Path
+$ParentFolder = Split-Path -Parent $SitePathResolved
+scp -P $RemotePort -r "${SitePathResolved}\*" "${RemoteUser}@${RemoteHost}:${TargetFolder}"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
@@ -48,4 +56,4 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "===================================================" -ForegroundColor Red
 }
 
-pause
+# pause

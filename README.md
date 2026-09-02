@@ -1,6 +1,7 @@
 # Mestre do PC V10
 
 [![Website](https://img.shields.io/badge/Website-Live%20Demo-00d4ff?style=for-the-badge&logo=googlechrome)](https://jeanavila997-ux.github.io/Mestre-do-PC-V10/index.html)
+[![Hostinger](https://img.shields.io/badge/Hostinger-avilamix.shop-FFD700?style=for-the-badge&logo=cloudflarepages)](https://avilamix.shop)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/jeanavila997-ux/Mestre-do-PC-V10)
 [![Git Clone](https://img.shields.io/badge/Git-Clone%20HTTPS-1081C2?style=for-the-badge&logo=git)](https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git)
 [![Issues](https://img.shields.io/github/issues/jeanavila997-ux/Mestre-do-PC-V10?style=for-the-badge)](https://github.com/jeanavila997-ux/Mestre-do-PC-V10/issues)
@@ -13,7 +14,8 @@ Aplicativo local de diagnóstico, manutenção e automação do Windows com inte
 
 ## 🔗 Links Oficiais do Projeto
 
-- 🌍 **Website Oficial:** [https://jeanavila997-ux.github.io/Mestre-do-PC-V10/index.html](https://jeanavila997-ux.github.io/Mestre-do-PC-V10/index.html)
+- 🌍 **Website Oficial (GitHub Pages):** [https://jeanavila997-ux.github.io/Mestre-do-PC-V10/index.html](https://jeanavila997-ux.github.io/Mestre-do-PC-V10/index.html)
+- 🌟 **Mirror Hostinger:** [https://avilamix.shop](https://avilamix.shop)
 - 🌐 **Repositório GitHub:** [https://github.com/jeanavila997-ux/Mestre-do-PC-V10](https://github.com/jeanavila997-ux/Mestre-do-PC-V10)
 - 📦 **Clone URL:** `https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git`
 - 🐛 **Reportar Problemas / Issues:** [https://github.com/jeanavila997-ux/Mestre-do-PC-V10/issues](https://github.com/jeanavila997-ux/Mestre-do-PC-V10/issues)
