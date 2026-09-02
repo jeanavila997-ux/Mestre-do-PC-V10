@@ -57,16 +57,35 @@ if (Test-Path -LiteralPath $MODO_LIVRE_CONFIG_FILE) {
     try {
         $savedState = Get-Content -LiteralPath $MODO_LIVRE_CONFIG_FILE -Raw -Encoding UTF8 | ConvertFrom-Json
         $script:ModoLivreEnabled = [bool]$savedState.enabled
+        # Verificar expiração
+        if ($script:ModoLivreEnabled -and $savedState.expiresAt) {
+            $expiresAt = [DateTime]::Parse($savedState.expiresAt)
+            if ((Get-Date) -gt $expiresAt) {
+                Write-Host "[MODO-LIVRE] TTL expirado (${expiresAt}). Desativando automaticamente." -ForegroundColor Yellow
+                $script:ModoLivreEnabled = $false
+                Set-ModoLivre -Enabled $false
+            }
+        }
     } catch { $script:ModoLivreEnabled = $false }
 }
 
 function Set-ModoLivre {
-    param([bool] $Enabled)
+    param(
+        [bool] $Enabled,
+        [int] $TtlMs = 300000  # Default 5 minutos
+    )
     $script:ModoLivreEnabled = $Enabled
     try {
         $dir = Split-Path -Parent $MODO_LIVRE_CONFIG_FILE
         if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-        $payload = @{ enabled = $Enabled; updatedAt = (Get-Date).ToString("o") } | ConvertTo-Json
+        $now = Get-Date
+        $expiresAt = $Enabled ? $now.AddMilliseconds($TtlMs) : $null
+        $payload = @{
+            enabled = $Enabled
+            ttlMs = $TtlMs
+            updatedAt = $now.ToString("o")
+            expiresAt = if ($expiresAt) { $expiresAt.ToString("o") } else { $null }
+        } | ConvertTo-Json
         Set-Content -LiteralPath $MODO_LIVRE_CONFIG_FILE -Value $payload -Encoding UTF8
     } catch {
         Write-Host "[MODO-LIVRE] Falha ao persistir estado: $($_.Exception.Message)" -ForegroundColor Yellow
@@ -950,7 +969,24 @@ try {
                 Write-JsonResponse -Response $res -Payload @{ enabled = $false; reason = "Cliente nao autorizado." } -StatusCode 403
                 continue
             }
-            Write-JsonResponse -Response $res -Payload @{ enabled = $script:ModoLivreEnabled }
+            # Verificar expiração no GET também
+            if ($script:ModoLivreEnabled) {
+                $savedState = Get-Content -LiteralPath $MODO_LIVRE_CONFIG_FILE -Raw -Encoding UTF8 | ConvertFrom-Json
+                if ($savedState.expiresAt) {
+                    $expiresAt = [DateTime]::Parse($savedState.expiresAt)
+                    if ((Get-Date) -gt $expiresAt) {
+                        Write-Host "[MODO-LIVRE] TTL expirado (${expiresAt}). Desativando automaticamente." -ForegroundColor Yellow
+                        $script:ModoLivreEnabled = $false
+                        Set-ModoLivre -Enabled $false
+                    }
+                }
+            }
+            Write-JsonResponse -Response $res -Payload @{
+                enabled = $script:ModoLivreEnabled
+                expiresAt = if ($savedState.expiresAt) { $savedState.expiresAt } else { $null }
+                ttlMs = if ($savedState.ttlMs) { $savedState.ttlMs } else { 300000 }
+                updatedAt = if ($savedState.updatedAt) { $savedState.updatedAt } else { $null }
+            }
             continue
         }
         if ($req.Url.AbsolutePath -eq "/modo-livre" -and $req.HttpMethod -eq "POST") {
@@ -961,9 +997,10 @@ try {
             try {
                 $rawBody = Read-LimitedRequestBody -Request $req -MaxChars 1024
                 $data = $rawBody | ConvertFrom-Json
-                $enabled = Set-ModoLivre -Enabled ([bool]$data.enabled)
-                Write-AuditLog -Level "SECURITY" -Action "modo_livre_toggle" -Details @{ enabled = $enabled }
-                Write-JsonResponse -Response $res -Payload @{ success = $true; enabled = $enabled }
+                $ttlMs = if ($data.ttlMs -and [int]::TryParse($data.ttlMs, [ref]$null)) { [int]$data.ttlMs } else { 300000 }
+                $enabled = Set-ModoLivre -Enabled ([bool]$data.enabled) -TtlMs $ttlMs
+                Write-AuditLog -Level "SECURITY" -Action "modo_livre_toggle" -Details @{ enabled = $enabled; ttlMs = $ttlMs }
+                Write-JsonResponse -Response $res -Payload @{ success = $true; enabled = $enabled; ttlMs = $ttlMs }
             } catch {
                 Write-JsonResponse -Response $res -Payload @{ success = $false; reason = "Erro interno: $($_.Exception.Message)" } -StatusCode 500
             }
