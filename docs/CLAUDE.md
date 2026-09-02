@@ -122,6 +122,7 @@ Key flows:
 - The launcher supports two invocation shapes: `{id}` for parameterless operations, and `{id, params}` for templated operations where `{{PLACEHOLDER}}` tokens are substituted after per-parameter regex validation.
 - Ollama is called directly by the MCP server and by the launcher for AI tools; the launcher proxies chat streaming.
 - `v10/launcher.js` also exposes an optional `/npp` endpoint for the Notepad++ integration (`docs/notepad-plus-plus-integration.md`), gated by `X-Mestre-Client: notepad-plus-plus` + `X-Mestre-Npp-Token`, disabled (501) unless `MESTRE_NPP_TOKEN` is set.
+- `v10/soul-routes.js` serves the `/soul*` routes behind the same client authorization, letting `/gerenciar-comandos.html` (tab "Perfil do Agente") read and edit the agent persona files (`v10/chat/Soul.md` and the workspace `SOUL.md`). Only the fixed profile IDs `chat` and `workspace` are accepted — never an arbitrary path. Writes are capped at 256 KB, save the previous file as `.bak`, and are audited at `SECURITY` level.
 - The launcher caps concurrency at 3 simultaneous jobs, enforces a 15-minute timeout per job, and retains jobs for 30 minutes.
 - All HTTP responses include `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`; the UI's CSP sets `frame-ancestors 'none'`.
 
@@ -153,6 +154,7 @@ Key flows:
 | `MESTRE_EXTENSION_ORIGINS` | *(empty)* | Comma-separated allowed origins for the browser extension |
 | `MESTRE_NPP_TOKEN` | *(empty)* | Auth token for the Notepad++ integration; `/npp` returns 501 until this is set |
 | `MESTRE_MODO_LIVRE` | *(empty)* | Set to `1` to enable Modo Livre on startup (persisted in `logs/config/modo-livre.json`) |
+| `MESTRE_SOUL_DIR` | *(empty)* | Base directory for agent persona files served by `/soul*` (used by tests to isolate writes; defaults: `v10/chat/Soul.md` and `%USERPROFILE%/SOUL.md`) |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama API base (auto-switches to `https://ollama.com/api` when `OLLAMA_API_KEY` is set) |
 | `OLLAMA_API_KEY` | *(empty)* | Enables Ollama Cloud mode + auth header |
 | `OLLAMA_MODEL` | `qwen2.5-coder:1.5b` | Default model |

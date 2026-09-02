@@ -82,6 +82,15 @@ h1{font-size:22px;background:linear-gradient(135deg,var(--accent),var(--accent2)
 .perfil-card .p-name{font-weight:600;font-size:13px;color:var(--text)}
 .perfil-card .p-desc{color:var(--text-muted);font-size:11px;margin-top:4px}
 .perfil-card .p-model{font-size:11px;color:var(--accent2);font-family:Consolas,monospace;margin-top:6px;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;display:inline-block}
+/* Editor do Perfil do Agente (Soul.md) */
+.soul-profiles{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.soul-btn{background:var(--card);border:1px solid var(--border);color:var(--text-muted);padding:8px 14px;border-radius:var(--radius);cursor:pointer;font-size:13px;transition:all .2s}
+.soul-btn:hover{border-color:var(--accent);color:var(--accent)}
+.soul-btn.selected{border-color:var(--accent2);color:var(--accent2);background:rgba(0,255,136,.08)}
+.soul-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.soul-meta{font-size:12px;color:var(--text-muted);flex:1;min-width:200px}
+.soul-editor{width:100%;min-height:420px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:14px;font-family:Consolas,monospace;font-size:13px;line-height:1.55;outline:none;resize:vertical;white-space:pre-wrap}
+.soul-editor:focus{border-color:var(--accent)}
 @media(max-width:600px){.row{flex-direction:column;align-items:stretch}.actions{justify-content:flex-end}}
 </style>
 </head>
@@ -100,6 +109,7 @@ h1{font-size:22px;background:linear-gradient(135deg,var(--accent),var(--accent2)
   <div class="tabs">
     <div class="tab active" data-tab="comandos" onclick="switchTab('comandos')">🛠️ Comandos</div>
     <div class="tab" data-tab="ferramentas" onclick="switchTab('ferramentas')">🔧 Ferramentas do Chat</div>
+    <div class="tab" data-tab="perfil" onclick="switchTab('perfil')">🧠 Perfil do Agente</div>
   </div>
 
   <!-- Aba Comandos -->
@@ -121,6 +131,18 @@ h1{font-size:22px;background:linear-gradient(135deg,var(--accent),var(--accent2)
   <div id="tab-ferramentas" style="display:none">
     <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Ative/desative as ferramentas do Chat Integrado. Desativadas somem do painel e não podem ser executadas.</p>
     <div class="tools-grid" id="toolsGrid"></div>
+  </div>
+
+  <!-- Aba Perfil do Agente -->
+  <div id="tab-perfil" style="display:none">
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Edite os arquivos de perfil do agente (Soul.md) — a persona do chat e a memória de interação do workspace. Toda gravação gera um backup <code>.bak</code> do arquivo anterior.</p>
+    <div class="soul-profiles" id="soulProfiles"></div>
+    <div class="soul-toolbar">
+      <span class="soul-meta" id="soulMeta">Carregando...</span>
+      <button class="btn" onclick="loadSoulCurrent()" title="Descartar edições e recarregar do disco">↻ Recarregar</button>
+      <button class="btn primary" onclick="saveSoulProfile()">💾 Salvar Perfil</button>
+    </div>
+    <textarea class="soul-editor" id="soulEditor" spellcheck="false" placeholder="Selecione um perfil acima..."></textarea>
   </div>
 </div>
 
@@ -196,7 +218,9 @@ function switchTab(tab) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
   document.getElementById("tab-comandos").style.display = tab === "comandos" ? "" : "none";
   document.getElementById("tab-ferramentas").style.display = tab === "ferramentas" ? "" : "none";
+  document.getElementById("tab-perfil").style.display = tab === "perfil" ? "" : "none";
   if (tab === "ferramentas") loadTools();
+  if (tab === "perfil") loadSoulProfiles();
 }
 
 function debouncedLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadComandos, 250); }
@@ -368,6 +392,86 @@ async function toggleTool(name) {
     if (!d.success) throw new Error(d.error);
     toast(d.ativa ? "🟢 Ferramenta ativada" : "⏸ Ferramenta desativada", d.ativa ? "" : "warn");
     loadTools();
+  } catch (e) { toast("❌ " + e.message, "err"); }
+}
+
+// ── Perfil do Agente (Soul.md) ─────────────────────────────────────────
+let soulCurrent = null;   // id do perfil selecionado
+let soulOriginal = "";   // conteúdo carregado do disco
+let soulList = [];        // perfis listados pelo GET /soul
+
+async function loadSoulProfiles(keepCurrent) {
+  try {
+    const r = await fetch(API + "/soul", { headers: H });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    soulList = d.profiles || [];
+    if (!keepCurrent || !soulList.some((p) => p.id === soulCurrent)) {
+      soulCurrent = soulList.length ? soulList[0].id : null;
+    }
+    renderSoulProfiles(soulList);
+    if (soulCurrent) await loadSoulProfile(soulCurrent);
+    else document.getElementById("soulMeta").textContent = "Nenhum perfil disponível.";
+  } catch (e) {
+    document.getElementById("soulMeta").textContent = "";
+    document.getElementById("soulProfiles").innerHTML = `<div class="empty">❌ Falha ao carregar perfis: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderSoulProfiles(list) {
+  const box = document.getElementById("soulProfiles");
+  if (!list.length) { box.innerHTML = `<div class="empty">Nenhum perfil disponível.</div>`; return; }
+  box.innerHTML = list.map((p) => `
+    <button class="soul-btn ${p.id === soulCurrent ? "selected" : ""}" onclick="loadSoulProfile('${escapeHtml(p.id)}')" title="${escapeHtml(p.path)}">
+      ${p.exists ? "🧠" : "🆕"} ${escapeHtml(p.title)}
+    </button>`).join("");
+}
+
+async function loadSoulProfile(id) {
+  const dirty = document.getElementById("soulEditor").value !== soulOriginal;
+  if (dirty && !confirm("Descartar as alterações não salvas e carregar outro perfil?")) return;
+  soulCurrent = id;
+  try {
+    const r = await fetch(API + "/soul/" + encodeURIComponent(id), { headers: H });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    const p = d.profile;
+    soulOriginal = p.content || "";
+    document.getElementById("soulEditor").value = soulOriginal;
+    document.getElementById("soulEditor").disabled = false;
+    const mod = p.modified ? new Date(p.modified).toLocaleString("pt-BR") : "novo arquivo";
+    document.getElementById("soulMeta").textContent = `📄 ${p.path} — editado: ${mod}`;
+    renderSoulProfiles(soulList);
+  } catch (e) { toast("❌ " + e.message, "err"); }
+}
+
+async function loadSoulCurrent() {
+  if (!soulCurrent) return;
+  if (!confirm("Descartar as alterações não salvas e recarregar do disco?")) return;
+  try {
+    const r = await fetch(API + "/soul/" + encodeURIComponent(soulCurrent), { headers: H });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    soulOriginal = d.profile.content || "";
+    document.getElementById("soulEditor").value = soulOriginal;
+    toast("↻ Perfil recarregado");
+  } catch (e) { toast("❌ " + e.message, "err"); }
+}
+
+async function saveSoulProfile() {
+  if (!soulCurrent) { toast("⚠️ Selecione um perfil", "warn"); return; }
+  const content = document.getElementById("soulEditor").value;
+  if (content === soulOriginal) { toast("ℹ️ Nenhuma alteração para salvar", "warn"); return; }
+  if (!confirm("Salvar o perfil do agente?\n\nUma cópia do arquivo atual será guardada como .bak antes de gravar.")) return;
+  try {
+    const r = await fetch(API + "/soul/" + encodeURIComponent(soulCurrent), { method: "PUT", headers: H, body: JSON.stringify({ content }) });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error);
+    soulOriginal = content;
+    const mod = d.modified ? new Date(d.modified).toLocaleString("pt-BR") : "";
+    document.getElementById("soulMeta").textContent = `✅ Salvo — ${mod}`;
+    toast("🧠 Perfil do agente salvo (backup .bak criado)");
+    loadSoulProfiles(true);
   } catch (e) { toast("❌ " + e.message, "err"); }
 }
 

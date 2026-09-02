@@ -17,6 +17,8 @@ import { handleApiRoute } from "./chat-integrado/api-routes.js";
 import { loadOperationRegistry, clearOperationRegistryCache } from "./operation-registry.js";
 import { handleMemoryRoutes } from "./memory-routes.js";
 import { handleOperationRoutes } from "./operation-routes.js";
+import { handleSoulRoutes } from "./soul-routes.js";
+import { isAllowedWebOrigin, isNppOrigin } from "./security/origin-policy.js";
 import { 
   createMemory, 
   listMemories, 
@@ -54,23 +56,45 @@ const MAX_CMD_LENGTH = 32768;
 // qualquer comando PowerShell (sem checar allowed-operations.json) e o chat
 // pula o modal de confirmação. Cada execução é logada em nível SECURITY.
 const MODO_LIVRE_CONFIG_FILE = join(__dirname, "..", "logs", "config", "modo-livre.json");
+const MODO_LIVRE_TTL_MS = Math.min(
+  Math.max(Number(process.env.MESTRE_MODO_LIVRE_TTL_MS || 5 * 60 * 1000), 1),
+  30 * 60 * 1000,
+);
 let modoLivreEnabled = process.env.MESTRE_MODO_LIVRE === "1";
+let modoLivreExpiresAt = modoLivreEnabled ? Date.now() + MODO_LIVRE_TTL_MS : 0;
 try {
   if (existsSync(MODO_LIVRE_CONFIG_FILE)) {
     const saved = JSON.parse(readFileSync(MODO_LIVRE_CONFIG_FILE, "utf8"));
     if (typeof saved.enabled === "boolean") modoLivreEnabled = saved.enabled;
+    if (saved.expiresAt) modoLivreExpiresAt = Date.parse(saved.expiresAt) || 0;
   }
 } catch { /* usa o valor da env var / padrão (desligado) */ }
 
+function isModoLivreActive() {
+  if (!modoLivreEnabled) return false;
+  if (modoLivreExpiresAt && Date.now() > modoLivreExpiresAt) {
+    modoLivreEnabled = false;
+    modoLivreExpiresAt = 0;
+    return false;
+  }
+  return true;
+}
+
 async function setModoLivre(enabled) {
   modoLivreEnabled = !!enabled;
+  modoLivreExpiresAt = modoLivreEnabled ? Date.now() + MODO_LIVRE_TTL_MS : 0;
+  const expiresAt = modoLivreExpiresAt ? new Date(modoLivreExpiresAt).toISOString() : null;
   try {
     await mkdir(dirname(MODO_LIVRE_CONFIG_FILE), { recursive: true });
-    await writeFile(MODO_LIVRE_CONFIG_FILE, JSON.stringify({ enabled: modoLivreEnabled, updatedAt: new Date().toISOString() }, null, 2), "utf8");
+    await writeFile(MODO_LIVRE_CONFIG_FILE, JSON.stringify({ enabled: modoLivreEnabled, expiresAt, ttlMs: MODO_LIVRE_TTL_MS, updatedAt: new Date().toISOString() }, null, 2), "utf8");
   } catch (e) {
     console.error(`[MODO-LIVRE] Falha ao persistir estado: ${e.message}`);
   }
-  return modoLivreEnabled;
+  return { enabled: modoLivreEnabled, expiresAt, ttlMs: MODO_LIVRE_TTL_MS };
+}
+
+function isCriticalFreeCommand(cmd) {
+  return /\b(Remove-Item|rm|rmdir|del|Format-Volume|Clear-Disk|Remove-Partition|Stop-Computer|Restart-Computer|shutdown|bcdedit|cipher)\b/i.test(cmd);
 }
 
 // Constrói environment limpo para spawn do PowerShell 5.1, removendo caminhos
@@ -130,37 +154,13 @@ function isExtensionOrigin(origin) {
   return EXTENSION_ORIGINS.some((allowed) => allowed === origin || (allowed.endsWith("/*") && origin.startsWith(allowed.slice(0, -1))));
 }
 
-function isNppOrigin(origin) {
-  // PythonScript/WinInet pode enviar origin vazio ou 127.0.0.1 com porta dinâmica.
-  if (!origin) return true;
-  try {
-    const parsed = new URL(origin);
-    return parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
-  } catch {
-    return origin.startsWith("http://127.0.0.1") || origin.startsWith("http://localhost");
-  }
-}
-
 function isAuthorized(req) {
   const origin = req.headers.origin || "";
   const client = req.headers["x-mestre-client"] || "";
   
-  // v10-web tem permissão total quando vem de localhost
+  // v10-web tem permissão total apenas quando vem do próprio launcher.
   if (client === "v10-web") {
-    // Aceita origin do próprio launcher ou origin ausente (caso de algumas configurações de browser)
-    if (origin === BASE_URL || origin === "" || origin.includes("127.0.0.1") || origin.includes("localhost")) {
-      return true;
-    }
-    // Se tiver um origin válido mas diferente, verifica se é local
-    try {
-      const parsedOrigin = new URL(origin);
-      if (parsedOrigin.hostname === "127.0.0.1" || parsedOrigin.hostname === "localhost") {
-        return true;
-      }
-    } catch {
-      // Se não conseguir parsear, permite se o client for v10-web
-      return true;
-    }
+    return isAllowedWebOrigin(origin, BASE_URL);
   }
   
   // MCP sem origin é permitido
@@ -185,7 +185,7 @@ function getRunningJobCount() {
 
 function getAllowedOrigin(req) {
   const origin = req.headers.origin || "";
-  if (origin === BASE_URL) return BASE_URL;
+  if (isAllowedWebOrigin(origin, BASE_URL)) return origin || BASE_URL;
   if (isExtensionOrigin(origin)) return origin;
   if (isNppOrigin(origin)) return origin || BASE_URL;
   return BASE_URL;
@@ -558,6 +558,12 @@ const server = http.createServer(async (req, res) => {
       if (handled) return;
     }
 
+    // ── Perfil do Agente: leitura/edição dos Soul.md ────────────────
+    if (path === "/soul" || path.startsWith("/soul/")) {
+      const handled = await handleSoulRoutes(req, res, url, { isAuthorized, allowedOrigin });
+      if (handled) return;
+    }
+
     if (path === "/ping") {
       return sendJson(res, 200, {
         status: "ok",
@@ -614,14 +620,14 @@ const server = http.createServer(async (req, res) => {
     // Estado do Modo Livre (ligado/desligado). GET consulta, POST alterna.
     if (path === "/modo-livre" && req.method === "GET") {
       if (!isAuthorized(req)) return sendJson(res, 403, { enabled: false, reason: "Cliente não autorizado." }, allowedOrigin);
-      return sendJson(res, 200, { enabled: modoLivreEnabled }, allowedOrigin);
+      return sendJson(res, 200, { enabled: isModoLivreActive(), expiresAt: modoLivreExpiresAt ? new Date(modoLivreExpiresAt).toISOString() : null }, allowedOrigin);
     }
     if (path === "/modo-livre" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { success: false, reason: "Cliente não autorizado." }, allowedOrigin);
       const body = await readBody(req, 1024);
-      const enabled = await setModoLivre(body.enabled);
-      await auditLog(AuditLevel.SECURITY, "modo_livre_toggle", { enabled }, req.headers["x-mestre-client"] || "unknown");
-      return sendJson(res, 200, { success: true, enabled }, allowedOrigin);
+      const state = await setModoLivre(body.enabled);
+      await auditLog(AuditLevel.SECURITY, "modo_livre_toggle", state, req.headers["x-mestre-client"] || "unknown");
+      return sendJson(res, 200, { success: true, ...state }, allowedOrigin);
     }
 
     // Modo Livre: executa QUALQUER comando PowerShell, sem checar a whitelist
@@ -631,8 +637,8 @@ const server = http.createServer(async (req, res) => {
     // a rede de segurança aqui.
     if (path === "/run-free" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado.", state: "forbidden" }, allowedOrigin);
-      if (!modoLivreEnabled) {
-        return sendJson(res, 403, { success: false, output: "Modo Livre está desligado. Ative em /modo-livre antes de executar comandos fora da whitelist.", state: "forbidden" }, allowedOrigin);
+      if (!isModoLivreActive()) {
+        return sendJson(res, 403, { success: false, output: "Modo Livre está desligado ou expirou. Ative em /modo-livre antes de executar comandos fora da whitelist.", state: "forbidden" }, allowedOrigin);
       }
       if (getRunningJobCount() >= MAX_CONCURRENT_JOBS) {
         return sendJson(res, 429, { success: false, output: "Limite de comandos simultâneos atingido.", state: "busy" }, allowedOrigin);
@@ -642,7 +648,11 @@ const server = http.createServer(async (req, res) => {
       if (!cmd || cmd.length > MAX_CMD_LENGTH) {
         return sendJson(res, 400, { success: false, output: "Comando ausente ou excede o limite de tamanho." }, allowedOrigin);
       }
-      await auditLog(AuditLevel.SECURITY, "run_free_command", { cmd }, req.headers["x-mestre-client"] || "unknown");
+      if (isCriticalFreeCommand(cmd)) {
+        await auditLog(AuditLevel.SECURITY, "run_free_blocked_critical", { cmd }, req.headers["x-mestre-client"] || "unknown");
+        return sendJson(res, 400, { success: false, output: "Comando bloqueado: operação crítica demais para o Modo Livre. Cadastre uma operação na whitelist com confirmação explícita.", state: "blocked" }, allowedOrigin);
+      }
+      await auditLog(AuditLevel.SECURITY, "run_free_command", { cmd, expiresAt: modoLivreExpiresAt ? new Date(modoLivreExpiresAt).toISOString() : null }, req.headers["x-mestre-client"] || "unknown");
       const id = runPowerShell(cmd, { id: "livre", destructive: true });
       return sendJson(res, 202, {
         success: true,
