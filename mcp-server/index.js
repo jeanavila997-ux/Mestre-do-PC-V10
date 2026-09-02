@@ -1106,11 +1106,12 @@ const EXTRA_TOOLS = [
   },
   {
     name: "definir_modo_livre",
-    description: "Liga ou desliga o Modo Livre no Launcher. Com o Modo Livre ligado, 'executar_comando_livre' passa a rodar qualquer comando PowerShell, fora da whitelist de allowed-operations.json. Desligado por padrão.",
+    description: "Liga ou desliga o Modo Livre no Launcher. Com o Modo Livre ligado, 'executar_comando_livre' passa a rodar qualquer comando PowerShell, fora da whitelist de allowed-operations.json. Desligado por padrão. Opcionalmente aceita TTL em ms para desativação automática.",
     inputSchema: {
       type: "object",
       properties: {
         ativar: { type: "boolean", description: "true para ligar o Modo Livre, false para desligar." },
+        ttlMs: { type: "number", description: "Tempo em milissegundos até desativação automática (padrão: 300000 = 5 min)." },
       },
       required: ["ativar"],
     },
@@ -1152,6 +1153,15 @@ const EXTRA_TOOLS = [
   {
     name: "consultar_status_launcher",
     description: "Consulta a saúde do launcher Mestre do PC (CPU, RAM, disco, estado dos jobs). Use para verificar se o backend está no ar antes de operações.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "consultar_modo_livre",
+    description: "Consulta o estado atual do Modo Livre no Launcher (ativo/inativo, TTL, expiração). Útil para verificar antes de executar comandos livres.",
     inputSchema: {
       type: "object",
       properties: {},
@@ -1805,17 +1815,21 @@ Responda apenas com o comando PowerShell, nada mais.`,
   if (name === "definir_modo_livre") {
     try {
       const ativar = !!args?.ativar;
+      const ttlMs = args?.ttlMs ? Number(args.ttlMs) : 300000;
       const res = await fetch(MESTRE_MODO_LIVRE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
-        body: JSON.stringify({ enabled: ativar }),
+        body: JSON.stringify({ enabled: ativar, ttlMs }),
         signal: AbortSignal.timeout(5000),
       });
       const data = await res.json();
       if (!res.ok || data.success !== true) {
         return { isError: true, content: [{ type: "text", text: `Falha ao alterar o Modo Livre: ${data.reason || "erro desconhecido"}` }] };
       }
-      return { content: [{ type: "text", text: data.enabled ? "🔓 Modo Livre ativado. Comandos fora da whitelist podem ser executados via 'executar_comando_livre'." : "🔒 Modo Livre desativado." }] };
+      const msg = data.enabled
+        ? `🔓 Modo Livre ativado (TTL: ${ttlMs}ms). Comandos fora da whitelist podem ser executados via 'executar_comando_livre'.`
+        : "🔒 Modo Livre desativado.";
+      return { content: [{ type: "text", text: msg }] };
     } catch (e) {
       return { isError: true, content: [{ type: "text", text: `Falha ao falar com o Launcher: ${e.message}` }] };
     }
