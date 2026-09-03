@@ -1,4 +1,4 @@
-# Validar JSON — usa caminho relativo ao diretório do projeto
+﻿# Validar JSON — usa caminho relativo ao diretório do projeto
 $projectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $opsFile = Join-Path $projectDir 'v10\allowed-operations.json'
 try {

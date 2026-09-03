@@ -1,4 +1,4 @@
-# Script para salvar contexto da sessão no sistema de memórias
+﻿# Script para salvar contexto da sessão no sistema de memórias
 
 $contextData = @{
     type = "context"

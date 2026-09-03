@@ -1,4 +1,4 @@
-# ================================================================
+﻿# ================================================================
 # Compatibilidade: o launcher PowerShell foi substituído por v10\launcher.js.
 # Mantido apenas para instalações antigas que ainda chamam este arquivo.
 # ================================================================

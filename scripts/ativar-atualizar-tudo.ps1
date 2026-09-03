@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Ativa e atualiza todos os componentes do Mestre do PC V10/V11.
 

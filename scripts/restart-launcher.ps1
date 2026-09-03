@@ -1,4 +1,4 @@
-# Script de Reinício do Launcher - Mestre do PC V10/V11
+﻿# Script de Reinício do Launcher - Mestre do PC V10/V11
 # Para as instâncias antigas e inicia uma nova
 
 Write-Host "🔄 Reiniciando o Launcher do Mestre do PC..." -ForegroundColor Cyan

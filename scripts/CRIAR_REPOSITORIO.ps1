@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 $Repo = "jeanavila997-ux/Mestre-do-PC-V10"
 
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {

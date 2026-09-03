@@ -1,4 +1,4 @@
-# Script para push das alterações para o GitHub
+﻿# Script para push das alterações para o GitHub
 # Requer credenciais do GitHub configuradas
 
 Write-Host "🚀 Enviando alterações para o GitHub..." -ForegroundColor Cyan

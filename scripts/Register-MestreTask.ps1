@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string] $InstallDir = $PSScriptRoot,
     [string] $TaskName  = "MestreDoPC_Admin_Launcher",
     [switch] $Quiet

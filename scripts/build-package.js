@@ -51,7 +51,12 @@ if %errorlevel% neq 0 (
 )
 
 cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\\scripts\\instalar.ps1"
+where pwsh >nul 2>&1
+if %errorlevel% equ 0 (
+    pwsh -NoProfile -ExecutionPolicy Bypass -File ".\\scripts\\instalar.ps1"
+) else (
+    powershell -NoProfile -ExecutionPolicy Bypass -File ".\\scripts\\instalar.ps1"
+)
 
 echo.
 echo ===================================================
@@ -82,7 +87,12 @@ if %errorlevel% neq 0 (
 )
 
 cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File ".\\scripts\\desinstalar.ps1"
+where pwsh >nul 2>&1
+if %errorlevel% equ 0 (
+    pwsh -NoProfile -ExecutionPolicy Bypass -File ".\\scripts\\desinstalar.ps1"
+) else (
+    powershell -NoProfile -ExecutionPolicy Bypass -File ".\\scripts\\desinstalar.ps1"
+)
 
 echo.
 echo ===================================================

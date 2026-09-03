@@ -1,4 +1,4 @@
-cd C:\Users\Jeanc\Mestre-do-PC-V10-clean\v10
+﻿cd C:\Users\Jeanc\Mestre-do-PC-V10-clean\v10
 $lines = Get-Content index.html
 
 # Encontrar inicio e fim do CSS do chat

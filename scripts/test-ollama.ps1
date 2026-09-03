@@ -1,4 +1,4 @@
-# Teste do Ollama - Chat IA
+﻿# Teste do Ollama - Chat IA
 $uri = "http://localhost:11434/api/generate"
 $body = @{
     model = "qwen2.5-coder:3b-instruct"
