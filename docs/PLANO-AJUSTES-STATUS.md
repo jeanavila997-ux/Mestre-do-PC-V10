@@ -11,9 +11,12 @@ Este documento consolida o que já foi implementado, o que ficou pendente, e os 
 ## 1. O que já está implementado e testado
 
 ### 1.1 Modo Livre (execução sem whitelist, opt-in)
-- Implementado em **duas** implementações paralelas do launcher:
-  - `v10/launcher.js` (Node.js) — rotas `/modo-livre` (GET/POST) e `/run-free` (POST).
-  - `MestreDoPC-Launcher.ps1` (PowerShell) — **esta é a que roda de fato na porta 7777** neste ambiente (confirmado via `Get-NetTCPConnection -LocalPort 7777`).
+- Implementado em `v10/launcher.js` (Node.js) — rotas `/modo-livre` (GET/POST) e `/run-free` (POST).
+
+> **Desatualizado desde o ADR-001.** Este item descrevia **duas** implementações paralelas do
+> launcher, e afirmava que `MestreDoPC-Launcher.ps1` era "a que roda de fato na porta 7777".
+> Isso não vale mais: o launcher Node é o único oficial e o PS1 virou apenas um redirecionador
+> de compatibilidade. Ver `docs/adr/ADR-001-launcher-unico-node.md`.
 - Toggle na UI do chat (`v10/chat/chat-module.js`): botão `🔓 Modo Livre`, com `confirm()` de segurança ao ligar.
 - Auditoria: toda execução em Modo Livre é logada em nível `SECURITY` (`Write-AuditLog` no PS, `AuditLevel.SECURITY` no Node).
 - Ferramentas MCP novas: `definir_modo_livre`, `executar_comando_livre` (`mcp-server/index.js`).

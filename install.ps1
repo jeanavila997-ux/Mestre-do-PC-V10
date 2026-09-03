@@ -46,7 +46,7 @@ Write-Step "Diretorio de instalacao: $InstallDir"
 # ---------------------------------------------------------------
 $required = @(
     "v10\launcher.js",
-    "Register-MestreTask.ps1",
+    "scripts\Register-MestreTask.ps1",
     "start-mestre.bat",
     "v10\start-v10.bat",
     "v10\index.html",
@@ -130,7 +130,7 @@ if ($ollama) {
 # 4a. Tarefa agendada do Launcher (Admin, AtLogon)
 # ---------------------------------------------------------------
 Write-Step "Registrando tarefa do Launcher (AtLogon, Admin)..."
-$registerScript = Join-Path $InstallDir "Register-MestreTask.ps1"
+$registerScript = Join-Path $InstallDir "scripts\Register-MestreTask.ps1"
 & $registerScript -InstallDir $InstallDir -Quiet
 if ($LASTEXITCODE -ne 0) { throw "Falha ao registrar tarefa do launcher." }
 Write-Ok "Tarefa 'MestreDoPC_Admin_Launcher' registrada com trigger AtLogon."

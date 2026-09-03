@@ -68,10 +68,10 @@ Nenhum desses itens é opcional se o Modo Livre for vendido. Todos são dispens�
 O equivalente da "Fase 0" deste plano: não construir o próximo antes de fechar o atual.
 
 - [ ] Rodar `cd mcp-server && npm test` e registrar o resultado. Nenhuma suíte foi executada desde o refactor do `operation-registry.js`.
-- [ ] Resolver a inconsistência de qual launcher é o principal. Hoje o `CLAUDE.md` diz `v10/launcher.js` (Node), mas quem escuta na porta 7777 é o `MestreDoPC-Launcher.ps1`. **Duas implementações do mesmo servidor em paridade manual é o maior gerador de bug latente do projeto.**
-  - Opção 1: assumir o PS1 como oficial, marcar o Node como legado.
-  - Opção 2: migrar de fato para Node e aposentar o PS1.
-  - Opção 3 (atual, pior): manter as duas e sincronizar na mão.
+- [x] ~~Resolver a inconsistência de qual launcher é o principal.~~ **Resolvido pelo
+  [ADR-001](adr/ADR-001-launcher-unico-node.md):** `v10/launcher.js` (Node) é o único launcher
+  oficial (Opção 2). `MestreDoPC-Launcher.ps1` foi reduzido a um redirecionador de
+  compatibilidade e sua implementação legada foi removida.
 - [ ] Fechar o code-review pendente do commit `37844d7` (Modo Livre) — interrompido por limite de gasto da API.
 - [ ] Abrir PR do commit `c5e7913` (painel de output) ou consolidar a branch.
 
