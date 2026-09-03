@@ -22,6 +22,14 @@ if (fs.existsSync(path.join(baseDir, 'install.ps1'))) {
 if (fs.existsSync(path.join(baseDir, 'uninstall.ps1'))) {
   fs.copyFileSync(path.join(baseDir, 'uninstall.ps1'), path.join(scriptsDir, 'desinstalar.ps1'));
 }
+// install.ps1 invoca este script no passo 4a para criar a tarefa agendada que dá
+// elevação ao launcher. Sem ele a instalação aborta e o launcher sobe sem Admin.
+if (fs.existsSync(path.join(baseDir, 'scripts', 'Register-MestreTask.ps1'))) {
+  fs.copyFileSync(
+    path.join(baseDir, 'scripts', 'Register-MestreTask.ps1'),
+    path.join(scriptsDir, 'Register-MestreTask.ps1')
+  );
+}
 
 // Criar 'Instalar Mestre do PC.bat'
 const installerBat = `@echo off
