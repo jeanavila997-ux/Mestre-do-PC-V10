@@ -1,4 +1,4 @@
-# Script para push com token do GitHub
+﻿# Script para push com token do GitHub
 # Defina o token antes de rodar: $env:GITHUB_TOKEN = "seu_token_aqui"
 $token = $env:GITHUB_TOKEN
 if (-not $token) {

@@ -1,4 +1,4 @@
-$opsPath = Join-Path $PSScriptRoot 'allowed-operations.json'
+﻿$opsPath = Join-Path $PSScriptRoot 'allowed-operations.json'
 $data = Get-Content $opsPath -Raw | ConvertFrom-Json
 
 # Reverter: desinstalar_atualizacao_especifica deve ser destructive

@@ -1,4 +1,4 @@
-# Raiz do projeto = pai da pasta mcp-server
+﻿# Raiz do projeto = pai da pasta mcp-server
 $projPath = Split-Path -Parent $PSScriptRoot
 
 # Configura para a sessão atual

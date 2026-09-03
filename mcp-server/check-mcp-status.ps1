@@ -1,4 +1,4 @@
-$root = Split-Path -Parent $PSScriptRoot
+﻿$root = Split-Path -Parent $PSScriptRoot
 $conn = Get-NetTCPConnection -LocalPort 7777 -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($conn) {
   Write-Output '✅ Launcher está rodando na porta 7777'

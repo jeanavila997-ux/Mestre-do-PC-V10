@@ -1,4 +1,4 @@
-# Launcher primário do V10 é o Node.js (v10\launcher.js), não o PowerShell legado.
+﻿# Launcher primário do V10 é o Node.js (v10\launcher.js), não o PowerShell legado.
 $launcherPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'v10\launcher.js'
 
 if (-not (Test-Path $launcherPath)) {

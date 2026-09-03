@@ -1,4 +1,4 @@
-# ================================================================
+﻿# ================================================================
 # Mestre do PC V10 - Instalador Automatizado
 # ================================================================
 # Instala Node.js (se ausente), dependencias do MCP, tarefa agendada,
@@ -34,7 +34,13 @@ $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
     [Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-Warn2 "Reiniciando como Administrador..."
-    $psExe = Join-Path $env:WINDIR "System32\WindowsPowerShell\v1.0\powershell.exe"
+    # Prefere pwsh 7 (mesmo runtime documentado no cabecalho deste arquivo). O
+    # Windows PowerShell 5.1 so le este script corretamente por causa do BOM UTF-8;
+    # mantemos o fallback para maquinas que nao tenham pwsh instalado.
+    $psExe = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+    if (-not $psExe) {
+        $psExe = Join-Path $env:WINDIR "System32\WindowsPowerShell\v1.0\powershell.exe"
+    }
     Start-Process $psExe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
     exit
 }

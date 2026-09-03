@@ -1,4 +1,4 @@
-$allowedOpsPath = Join-Path $PSScriptRoot '..\v10\allowed-operations.json'
+﻿$allowedOpsPath = Join-Path $PSScriptRoot '..\v10\allowed-operations.json'
 $outputPath = Join-Path $PSScriptRoot 'mcp-skills.json'
 
 $data = Get-Content $allowedOpsPath | ConvertFrom-Json
