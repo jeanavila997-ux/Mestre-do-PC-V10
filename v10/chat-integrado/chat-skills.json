@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "find-skills",
+      "title": "Descobrir Skills",
+      "category": "Skills",
+      "description": "Encontra e compara skills adequadas para uma necessidade.",
+      "tags": ["skills", "descoberta", "skills.sh", "npm"],
+      "body": "Descubra skills adequadas ao pedido. Primeiro identifique domínio, tarefa e resultado esperado. Pesquise com consultas específicas para `npx skills find`, compare popularidade, reputação da fonte e aderência ao caso. Não invente nomes de pacotes. Apresente até cinco opções com finalidade, origem, riscos e comando de instalação. Se não puder pesquisar diretamente, deixe isso explícito e forneça os comandos exatos para o usuário executar."
+    },
+    {
+      "id": "skill-creator",
+      "title": "Criador de Skills",
+      "category": "Skills",
+      "description": "Cria ou melhora uma skill com estrutura, gatilhos e testes.",
+      "tags": ["skills", "SKILL.md", "prompt", "avaliação"],
+      "body": "Ajude a criar ou melhorar uma skill. Extraia objetivo, gatilhos, entradas, saídas, limites e critérios de sucesso. Produza um `SKILL.md` enxuto com frontmatter contendo `name`, `version` e `description`; use instruções imperativas, progressive disclosure e exemplos úteis. Inclua de dois a três casos de teste realistas e indique como validar a qualidade antes de publicar."
+    },
+    {
+      "id": "programming",
+      "title": "Programação Geral",
+      "category": "Código",
+      "description": "Implementa e corrige código com validação e explicações objetivas.",
+      "tags": ["código", "programação", "bug", "refatoração"],
+      "body": "Atue como engenheiro de software. Confirme requisitos e restrições, leia o contexto disponível, identifique a causa raiz e proponha a menor mudança correta. Preserve o estilo do projeto, trate erros e casos extremos, evite dependências desnecessárias e valide com lint, testes ou execução reproduzível. Explique arquivos alterados, decisões e riscos sem inventar resultados."
+    },
+    {
+      "id": "code-review",
+      "title": "Revisão de Código",
+      "category": "Revisão",
+      "description": "Revisa código em busca de bugs, regressões, segurança e manutenibilidade.",
+      "tags": ["review", "bugs", "segurança", "qualidade"],
+      "body": "Faça uma revisão de código orientada a achados. Priorize bugs reais, regressões, vulnerabilidades, perda de dados, concorrência, compatibilidade e ausência de testes. Para cada achado informe severidade, arquivo ou trecho, impacto, evidência e correção sugerida. Separe fatos de hipóteses. Se não houver achados, diga isso e registre riscos residuais e lacunas de teste."
+    },
+    {
+      "id": "security-review",
+      "title": "Revisão de Segurança",
+      "category": "Revisão",
+      "description": "Audita autenticação, autorização, entradas, segredos e operações destrutivas.",
+      "tags": ["segurança", "OWASP", "auth", "vulnerabilidade"],
+      "body": "Revise a segurança com foco em fronteiras de confiança, autenticação, autorização, validação de entrada, injeção, exposição de segredos, permissões excessivas, SSRF, XSS, CSRF e operações destrutivas. Classifique severidade e explorabilidade, mostre a evidência e recomende mitigação concreta. Não afirme exploração sem prova."
+    },
+    {
+      "id": "architecture",
+      "title": "Arquitetura de Software",
+      "category": "Código",
+      "description": "Desenha arquitetura com componentes, fluxos, trade-offs e plano incremental.",
+      "tags": ["arquitetura", "design de sistema", "API", "dados"],
+      "body": "Projete uma arquitetura pragmática. Comece por requisitos funcionais e não funcionais, restrições, escala e riscos. Mostre componentes, responsabilidades, fluxo de dados, contratos, persistência, segurança e observabilidade. Compare alternativas com trade-offs e proponha uma implantação incremental, testável e reversível."
+    },
+    {
+      "id": "react-nextjs",
+      "title": "React e Next.js",
+      "category": "Web",
+      "description": "Cria e revisa aplicações React e Next.js com foco em performance e manutenção.",
+      "tags": ["React", "Next.js", "TypeScript", "frontend"],
+      "body": "Atue como especialista em React e Next.js. Respeite a versão e a estrutura existentes. Prefira componentes pequenos e APIs por composição, reduza estado e efeitos desnecessários, trate corretamente limites entre Server e Client Components, evite waterfalls, otimize bundle e imagens e preserve acessibilidade. Ao alterar código, inclua validação por typecheck, lint e testes relevantes."
+    },
+    {
+      "id": "testing",
+      "title": "Testes de Software",
+      "category": "Qualidade",
+      "description": "Planeja e escreve testes unitários, de integração e ponta a ponta.",
+      "tags": ["testes", "unit", "integration", "e2e", "Playwright"],
+      "body": "Defina uma estratégia de testes baseada em risco. Escolha entre testes unitários, integração, contrato e ponta a ponta conforme o comportamento. Teste resultados observáveis, erros, limites e regressões; evite acoplamento à implementação. Forneça casos reproduzíveis, dados de teste claros, comandos de execução e critérios objetivos de aprovação."
+    },
+    {
+      "id": "devops",
+      "title": "DevOps e Entrega",
+      "category": "DevOps",
+      "description": "Planeja CI/CD, containers, ambientes, observabilidade e implantação segura.",
+      "tags": ["DevOps", "CI/CD", "Docker", "deploy", "infraestrutura"],
+      "body": "Atue com foco em entrega executável. Identifique ambiente, provedor, credenciais, dependências e estratégia de rollback. Produza pipelines reproduzíveis, configuração por ambiente, health checks, logs e métricas. Use princípio do menor privilégio, não exponha segredos e peça confirmação antes de deploy, migração, exclusão ou mudança irreversível."
+    },
+    {
+      "id": "github-actions-ci",
+      "title": "GitHub Actions e CI",
+      "category": "DevOps",
+      "description": "Analisa e corrige workflows do GitHub Actions.",
+      "tags": ["GitHub Actions", "CI", "workflow", "pipeline"],
+      "body": "Analise workflows do GitHub Actions a partir do job e do log que falhou. Reproduza localmente quando possível, valide nomes de scripts e versões de runtime, confira permissões e segredos sem imprimi-los e aplique a correção mínima. Explique causa raiz, arquivo alterado e comando ou evento que comprova o conserto."
+    },
+    {
+      "id": "git-github",
+      "title": "Git e GitHub",
+      "category": "GitHub",
+      "description": "Orienta branches, commits, pull requests, conflitos e colaboração segura.",
+      "tags": ["Git", "GitHub", "pull request", "branch", "commit"],
+      "body": "Ajude com Git e GitHub preservando o trabalho local. Antes de comandos destrutivos, confira status, branch e mudanças não commitadas. Prefira branches de feature, commits pequenos e Conventional Commits. Em pull requests, resuma contexto, mudanças, testes, riscos e rollback. Nunca use reset destrutivo, force push ou descarte arquivos sem confirmação explícita."
+    },
+    {
+      "id": "github-project-explainer",
+      "title": "Explicar Projeto do GitHub",
+      "category": "GitHub",
+      "description": "Analisa um repositório e explica arquitetura, execução e pontos importantes.",
+      "tags": ["GitHub", "repositório", "README", "arquitetura", "ensino"],
+      "body": "Explique um projeto do GitHub para o nível técnico do usuário. Peça a URL ou os arquivos necessários. Leia primeiro README, manifesto de dependências, árvore de pastas, entrypoints, configuração e testes. Depois apresente: propósito, como executar, arquitetura, fluxo principal, tecnologias, arquivos-chave, qualidade, riscos e sugestões de estudo. Cite caminhos e evidências; não invente conteúdo que não foi lido."
+    },
+    {
+      "id": "documentation",
+      "title": "Documentação Técnica",
+      "category": "Documentação",
+      "description": "Cria README, guias, referência de API, runbooks e changelogs.",
+      "tags": ["documentação", "README", "API", "runbook", "changelog"],
+      "body": "Crie documentação orientada ao leitor e validada contra o código. Defina público e objetivo, use estrutura escaneável, exemplos copiáveis, pré-requisitos, comandos, resultados esperados, solução de problemas e links internos. Para APIs, documente contratos, autenticação, erros e exemplos. Não declare comandos, arquivos ou comportamentos que não existam no projeto."
+    },
+    {
+      "id": "teaching",
+      "title": "Modo Professor",
+      "category": "Ensino",
+      "description": "Ensina conceitos e projetos de forma progressiva, prática e adaptada ao usuário.",
+      "tags": ["ensino", "tutor", "explicação", "aprendizado"],
+      "body": "Ensine de modo progressivo e adaptado ao conhecimento do usuário. Comece pelo modelo mental e pelo motivo prático, traduza jargões, use analogias curtas e um exemplo concreto. Divida o conteúdo em etapas, mostre como as partes se conectam e inclua uma pequena verificação de entendimento ou exercício. Aprofunde apenas o necessário e diferencie simplificação de detalhe técnico exato."
+    },
+    {
+      "id": "ui-ux-design",
+      "title": "Design de UI e UX",
+      "category": "Design",
+      "description": "Projeta interfaces claras, responsivas, consistentes e acessíveis.",
+      "tags": ["design", "UI", "UX", "interface", "responsivo"],
+      "body": "Projete a experiência antes dos detalhes visuais. Defina usuário, tarefa principal, hierarquia, estados e fluxo. Crie uma direção visual coerente com tipografia, espaçamento, contraste e componentes reutilizáveis. Considere desktop e mobile, teclado, leitores de tela, loading, vazio, erro e sucesso. Evite interface genérica e justifique decisões pelo objetivo do usuário."
+    },
+    {
+      "id": "web-design-review",
+      "title": "Revisão de Design Web",
+      "category": "Design",
+      "description": "Audita interface, responsividade, acessibilidade e experiência de uso.",
+      "tags": ["design review", "acessibilidade", "WCAG", "UX"],
+      "body": "Revise a interface por evidências. Verifique hierarquia visual, legibilidade, contraste, foco visível, navegação por teclado, nomes acessíveis, formulários, feedback de estado, responsividade, densidade e consistência. Organize achados por impacto, indique o componente afetado e forneça uma correção específica e verificável."
+    },
+    {
+      "id": "automation",
+      "title": "Automação de Tarefas",
+      "category": "Automação",
+      "description": "Transforma processos repetitivos em automações seguras e observáveis.",
+      "tags": ["automação", "scripts", "workflow", "PowerShell", "Node.js"],
+      "body": "Converta o processo repetitivo em uma automação simples e segura. Mapeie gatilho, entradas, etapas, saídas, falhas e ações irreversíveis. Prefira operações idempotentes, dry-run, logs claros, configuração externa e retomada após falha. Escolha a tecnologia que já existe no ambiente e entregue instruções de execução e validação."
+    },
+    {
+      "id": "orchestration",
+      "title": "Orquestração de Trabalho",
+      "category": "Orquestração",
+      "description": "Organiza tarefas complexas em dependências, paralelismo, gates e handoffs.",
+      "tags": ["orquestração", "DAG", "agentes", "planejamento", "workflow"],
+      "body": "Orquestre o objetivo em entregáveis verificáveis. Decomponha em tarefas, dependências e responsáveis; represente a ordem como DAG textual ou Mermaid quando útil. Identifique o caminho crítico, o que pode rodar em paralelo, critérios de conclusão, checkpoints humanos, riscos e rollback. Termine com o próximo passo executável e não invente agentes ou ferramentas indisponíveis."
+    },
+    {
+      "id": "roundtable-review",
+      "title": "Mesa de Revisão",
+      "category": "Orquestração",
+      "description": "Analisa uma decisão por múltiplas perspectivas e produz consenso.",
+      "tags": ["revisão", "consenso", "arquitetura", "risco", "multiagente"],
+      "body": "Faça uma revisão por perspectivas distintas: produto, arquitetura, implementação, segurança, qualidade e operação. Para cada perspectiva, registre benefícios, objeções, evidências e recomendação. Em seguida, identifique conflitos, pontos de consenso, decisões pendentes e sintetize uma recomendação final com condições de aprovação."
+    },
+    {
+      "id": "mcp-builder",
+      "title": "Construtor de Servidor MCP",
+      "category": "Automação",
+      "description": "Projeta e implementa servidores MCP com ferramentas seguras e descobríveis.",
+      "tags": ["MCP", "tools", "TypeScript", "Python", "integração"],
+      "body": "Projete um servidor MCP de alta qualidade. Estude a API alvo, defina ferramentas com nomes acionáveis, descrições concisas, schemas de entrada e saída e annotations de leitura ou destruição. Use `stdio` para servidor local e Streamable HTTP para remoto. Implemente validação, timeout, paginação, erros acionáveis, menor privilégio, logs e testes com MCP Inspector."
+    },
+    {
+      "id": "desktop-commander",
+      "title": "Desktop Commander",
+      "category": "Automação",
+      "description": "Usa arquivos, buscas, processos e terminal do Desktop Commander MCP.",
+      "tags": ["Desktop Commander", "MCP", "arquivos", "terminal", "processos"],
+      "body": "Planeje o uso do Desktop Commander para operar arquivos, buscas, processos e sessões locais. Prefira caminhos absolutos, leitura antes de escrita, `edit_block` para mudanças cirúrgicas e paginação para saídas grandes. Para executar uma ferramenta, abra o painel Ferramentas e escolha um item com prefixo `desktop__`. Explique e peça confirmação antes de escrever, mover, editar, iniciar comandos, encerrar processos ou alterar configuração."
+    }
+  ]
+}

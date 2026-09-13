@@ -5,6 +5,7 @@
  * /api/*. Mantém o launcher limpo e separa responsabilidades.
  *
  * Endpoints:
+ *   GET  /api/skills              — lista skills para o atalho /
  *   GET  /api/tools              — lista ferramentas disponíveis
  *   POST /api/tools/:name        — executa uma ferramenta
  *   GET  /api/profiles           — lista perfis de modelo
@@ -12,6 +13,7 @@
  *   GET  /api/conversas          — lista conversas
  *   POST /api/conversas          — cria conversa
  *   GET  /api/conversas/:id      — detalhe + mensagens
+ *   POST /api/conversas/:id/clear — limpa mensagens sem remover conversa
  *   DELETE /api/conversas/:id    — deleta conversa
  *   POST /api/conversas/:id/msg  — adiciona mensagem
  *   GET  /api/memorias           — lista memórias
@@ -26,13 +28,81 @@
  *   PUT  /api/config             — atualiza configuração
  */
 
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { TOOL_NAMES, executarTool, listProfiles, getProfileModel, getProfileOptions, getBestAvailableModel, getBestLocalModel, refreshAvailableModels, availableModels } from "./tools-api.js";
 import { searchWeb, fetchWebPage } from "./web-search.js";
 import * as db from "./db.js";
 import { sincronizarAgora, getStatus as getSyncStatus, iniciarSyncAutomatico } from "./mysql-sync.js";
 import { auditLog, AuditLevel } from "../../mcp-server/audit-logger.js";
+import { loadOperationRegistry } from "../operation-registry.js";
+import {
+  callDesktopCommanderTool,
+  getDesktopCommanderStatus,
+  isDesktopCommanderTool,
+  listDesktopCommanderTools,
+} from "./desktop-commander-client.js";
 
 let syncStarted = false;
+let skillsCache = null;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const MCP_SKILLS_FILE = join(__dirname, "../../mcp-server/mcp-skills.json");
+const CHAT_SKILLS_FILE = join(__dirname, "chat-skills.json");
+
+async function loadSkills() {
+  if (skillsCache) return skillsCache;
+
+  let importedSkills = [];
+  try {
+    const data = JSON.parse(await readFile(MCP_SKILLS_FILE, "utf8"));
+    importedSkills = (data.items || []).map((skill) => ({
+      id: String(skill.id),
+      title: skill.title || skill.id,
+      category: skill.category || "skill",
+      body: skill.body || "",
+      description: skill.description || "",
+      tags: Array.isArray(skill.tags) ? skill.tags : [],
+      kind: "knowledge",
+    }));
+  } catch (err) {
+    console.warn(`[api-routes] Não foi possível carregar mcp-skills.json: ${err.message}`);
+  }
+
+  let curatedSkills = [];
+  try {
+    const data = JSON.parse(await readFile(CHAT_SKILLS_FILE, "utf8"));
+    curatedSkills = (data.items || []).map((skill) => ({
+      id: String(skill.id),
+      title: skill.title || skill.id,
+      category: skill.category || "skill",
+      body: skill.body || "",
+      description: skill.description || "",
+      tags: Array.isArray(skill.tags) ? skill.tags : [],
+      kind: skill.kind || "knowledge",
+      source: "chat-integrado",
+    }));
+  } catch (err) {
+    console.warn(`[api-routes] Não foi possível carregar chat-skills.json: ${err.message}`);
+  }
+
+  const registry = await loadOperationRegistry();
+  const operationSkills = [...registry.exactEntries, ...registry.parametrizedTemplates]
+    .filter((operation) => operation.enabled !== false)
+    .map((operation) => ({
+      id: `mcp__${operation.id}`,
+      title: `MCP: ${operation.title || operation.description || operation.id}`,
+      category: operation.category || "mcp",
+      body: `Ferramenta MCP: ${operation.title || operation.id}\n\n${operation.description || ""}`.trim(),
+      description: operation.description || "",
+      tags: ["mcp", "mestre-do-pc", operation.category || "mcp"],
+      kind: "tool",
+    }));
+
+  const byId = new Map([...importedSkills, ...curatedSkills, ...operationSkills].map((skill) => [skill.id, skill]));
+  skillsCache = [...byId.values()];
+  return skillsCache;
+}
 
 /** Ferramentas desativadas pelo usuário (config tool_disabled:<nome> = "1"). */
 function getDisabledTools() {
@@ -41,6 +111,28 @@ function getDisabledTools() {
       .filter((r) => r.chave.startsWith("tool_disabled:") && r.valor === "1")
       .map((r) => r.chave.slice("tool_disabled:".length))
   );
+}
+
+async function getToolCatalog() {
+  let desktopTools = [];
+  let desktopError = "";
+  try {
+    desktopTools = await listDesktopCommanderTools();
+  } catch (err) {
+    desktopError = err.message || String(err);
+  }
+
+  const desktopStatus = await getDesktopCommanderStatus();
+  const metadata = Object.fromEntries(desktopTools.map((tool) => [tool.id, tool]));
+  return {
+    names: [...TOOL_NAMES, ...desktopTools.map((tool) => tool.id)],
+    metadata,
+    desktopCommander: {
+      ...desktopStatus,
+      tools: desktopTools.length,
+      error: desktopError || desktopStatus.lastError || "",
+    },
+  };
 }
 
 /**
@@ -129,18 +221,37 @@ export async function handleApiRoute(req, res, url, ctx) {
 
   const auth = isAuthorized(req);
 
+  // ── Skills acionáveis pelo atalho / ───────────────────────────────
+
+  if (path === "/api/skills" && method === "GET") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    const skills = await loadSkills();
+    ok(res, { skills, total: skills.length }, allowedOrigin);
+    return true;
+  }
+
   // ── Tools ─────────────────────────────────────────────────────────
 
   if (path === "/api/tools" && method === "GET") {
     if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
     const disabled = getDisabledTools();
-    const enabledTools = TOOL_NAMES.filter((t) => !disabled.has(t));
+    const catalog = await getToolCatalog();
+    const enabledTools = catalog.names.filter((toolName) => !disabled.has(toolName));
     ok(res, {
       tools: enabledTools,
       total: enabledTools.length,
-      totalTodas: TOOL_NAMES.length,
-      desativadas: TOOL_NAMES.filter((t) => disabled.has(t)),
+      totalTodas: catalog.names.length,
+      desativadas: catalog.names.filter((toolName) => disabled.has(toolName)),
+      metadata: catalog.metadata,
+      desktopCommander: catalog.desktopCommander,
     }, allowedOrigin);
+    return true;
+  }
+
+  if (path === "/api/desktop-commander/status" && method === "GET") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    const catalog = await getToolCatalog();
+    ok(res, catalog.desktopCommander, allowedOrigin);
     return true;
   }
 
@@ -148,7 +259,8 @@ export async function handleApiRoute(req, res, url, ctx) {
   if (parts[2] === "tools" && parts[3] && parts[4] === "toggle" && method === "POST") {
     if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
     const toolName = parts[3];
-    if (!TOOL_NAMES.includes(toolName)) {
+    const catalog = await getToolCatalog();
+    if (!catalog.names.includes(toolName)) {
       fail(res, 404, { error: `Ferramenta "${toolName}" não existe` }, allowedOrigin);
       return true;
     }
@@ -164,7 +276,8 @@ export async function handleApiRoute(req, res, url, ctx) {
   if (parts[2] === "tools" && parts[3] && !parts[4] && method === "POST") {
     if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
     const toolName = parts[3];
-    if (!TOOL_NAMES.includes(toolName)) {
+    const catalog = await getToolCatalog();
+    if (!catalog.names.includes(toolName)) {
       fail(res, 404, { error: `Ferramenta "${toolName}" não existe` }, allowedOrigin);
       return true;
     }
@@ -181,7 +294,9 @@ export async function handleApiRoute(req, res, url, ctx) {
       return true;
     }
     try {
-      const result = await executarTool(toolName, body);
+      const result = isDesktopCommanderTool(toolName)
+        ? await callDesktopCommanderTool(toolName, body)
+        : await executarTool(toolName, body);
       ok(res, { success: true, result }, allowedOrigin);
     } catch (err) {
       auditLog(AuditLevel.ERROR, "tool_error", { tool: toolName, error: err.message });
@@ -320,6 +435,15 @@ export async function handleApiRoute(req, res, url, ctx) {
     if (!conv) { fail(res, 404, { error: "Conversa não encontrada" }, allowedOrigin); return true; }
     const msgs = db.getMensagens(parts[3]);
     ok(res, { conversa: conv, mensagens: msgs }, allowedOrigin);
+    return true;
+  }
+
+  if (parts[2] === "conversas" && parts[3] && parts[4] === "clear" && method === "POST") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    const conversa = db.getConversa(parts[3]);
+    if (!conversa) return fail(res, 404, { error: "Conversa não encontrada" }, allowedOrigin), true;
+    const removed = db.limparMensagens(parts[3]);
+    ok(res, { success: true, removed }, allowedOrigin);
     return true;
   }
 

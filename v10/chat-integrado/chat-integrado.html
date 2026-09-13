@@ -17,6 +17,7 @@
     <div class="nav-item active" id="btnNewChat"><span class="nav-icon">＋</span><span>Novo chat</span></div>
     <div class="nav-item" id="btnMemories"><span class="nav-icon">🧠</span><span>Memórias</span></div>
     <div class="nav-item" id="btnToolsNav"><span class="nav-icon">🛠️</span><span>Ferramentas</span></div>
+    <div class="nav-item" id="btnSkillsNav"><span class="nav-icon">SK</span><span>Skills</span></div>
     <div class="nav-item" onclick="location.href='/gerenciar-comandos.html'"><span class="nav-icon">⚙️</span><span>Gerenciar</span></div>
   </div>
   <div class="nav-group">
@@ -30,11 +31,11 @@
   </div>
   <div class="section-title"><span>Conversas</span><span id="syncBadge" class="sync-badge">Sync: --</span></div>
   <div class="chat-list" id="chatHistory"></div>
-  <div class="user-profile">
-    <div class="user-avatar">JA</div>
+  <div class="user-profile" id="userProfile" title="Sair da sessão">
+    <div class="user-avatar" id="userAvatar">JA</div>
     <div class="user-info">
-      <div class="user-name">JEAN AVILA</div>
-      <div class="user-email">jeanavila997@gmail.com</div>
+      <div class="user-name" id="userName">JEAN AVILA</div>
+      <div class="user-email" id="userEmail">Sessão local</div>
     </div>
     <span style="color:var(--text-muted)">⌄</span>
   </div>
@@ -57,10 +58,21 @@
 
     <!-- Tools panel (popup) -->
     <div class="tools-panel" id="toolsPanel">
-      <div style="font-size:12px;color:var(--text-muted);padding:4px 8px 8px;font-weight:600">
-        🔧 Ferramentas MCP disponíveis
+      <div style="font-size:12px;color:var(--text-muted);padding:4px 8px 8px;font-weight:600;display:flex;justify-content:space-between;gap:12px">
+        <span>🔧 Ferramentas MCP disponíveis</span>
+        <span class="sync-badge" id="desktopCommanderBadge">Desktop Commander: verificando</span>
       </div>
       <div class="tools-grid"></div>
+    </div>
+
+    <!-- Skills panel (popup) -->
+    <div class="skills-library-panel" id="skillsLibraryPanel">
+      <div class="skills-library-header">
+        <span>Skills disponíveis</span>
+        <span class="sync-badge" id="skillsCount">0</span>
+      </div>
+      <input type="search" id="skillsSearch" class="skills-search" placeholder="Buscar por nome, categoria ou tecnologia..." autocomplete="off" />
+      <div class="skills-library-grid" id="skillsLibraryGrid"></div>
     </div>
 
     <!-- Memories panel (popup) -->
@@ -77,11 +89,15 @@
 
     <div class="composer-box">
       <div class="active-memories" id="activeMemories"></div>
-      <textarea class="composer-input" id="promptInput" placeholder="Pergunte qualquer coisa ou use 🔧 para ferramentas..."></textarea>
+      <textarea class="composer-input" id="promptInput" placeholder="Pergunte qualquer coisa, use / para uma skill ou 🔧 para ferramentas..."></textarea>
+      <input type="file" id="fileInput" multiple hidden accept=".txt,.md,.markdown,.csv,.json,.xml,.yaml,.yml,.ini,.conf,.env,.log,.ps1,.bat,.cmd,.html,.css,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.h,.hpp,.sql,.sh,.toml,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" />
+      <div class="attachments-list" id="attachmentsList" aria-live="polite"></div>
+      <div class="skills-menu" id="skillsMenu" role="listbox" aria-label="Skills disponíveis"></div>
       <div class="composer-toolbar">
         <div class="toolbar-left">
           <button class="icon-circle-btn" id="btnPlus" title="Opções">＋</button>
           <div class="action-pill" id="btnConnectors"><span>🔧 Ferramentas (0)</span></div>
+          <div class="action-pill" id="btnSkills"><span>Skills (0)</span></div>
           <div class="action-pill" id="btnModelSelect"><span>🔀 Auto</span></div>
         </div>
         <div class="toolbar-right">
@@ -92,7 +108,9 @@
       </div>
 
       <div class="popup-menu" id="plusMenu" style="bottom:60px;left:16px">
+        <div class="menu-item" id="itemImport"><span>📎 Importar arquivos</span><small>Ctrl+O</small></div>
         <div class="menu-item" id="itemTools"><span>🛠️ Ferramentas</span></div>
+        <div class="menu-item" id="itemSkills"><span>Skills</span></div>
         <div class="menu-item" id="itemMemories"><span>🧠 Memórias</span></div>
         <div class="menu-item" id="itemSync"><span>📡 Status Sync</span></div>
         <div class="menu-item" id="itemAudit"><span>📝 Auditoria</span></div>
@@ -118,6 +136,11 @@ document.getElementById("btnNewChatTop").addEventListener("click", () => {
 document.getElementById("itemTools").addEventListener("click", () => {
   document.getElementById("plusMenu").classList.remove("show");
   document.getElementById("btnConnectors").click();
+});
+
+document.getElementById("itemSkills").addEventListener("click", () => {
+  document.getElementById("plusMenu").classList.remove("show");
+  document.getElementById("btnSkills").click();
 });
 
 document.getElementById("itemMemories").addEventListener("click", () => {
@@ -146,12 +169,7 @@ document.getElementById("itemAudit").addEventListener("click", async () => {
 
 document.getElementById("itemClear").addEventListener("click", () => {
   document.getElementById("plusMenu").classList.remove("show");
-  if (confirm("Limpar todo o chat atual?")) {
-    document.getElementById("messagesContainer").innerHTML = "";
-    document.getElementById("heroHeading").style.display = "flex";
-    document.getElementById("quickCategories").style.display = "flex";
-    document.getElementById("messagesContainer").style.display = "none";
-  }
+  document.getElementById("btnClearNav").click();
 });
 
 // Check launcher status
