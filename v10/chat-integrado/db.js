@@ -135,6 +135,12 @@ export function deletarConversa(id) {
   db.prepare("DELETE FROM conversas WHERE id = ?").run(id);
 }
 
+export function limparMensagens(conversaId) {
+  const result = db.prepare("DELETE FROM mensagens WHERE conversa_id = ?").run(conversaId);
+  db.prepare("UPDATE conversas SET atualizada_em = datetime('now') WHERE id = ?").run(conversaId);
+  return result.changes;
+}
+
 // ── Mensagens ───────────────────────────────────────────────────────
 
 export function addMensagem(conversaId, role, content, toolName = null, toolResult = null) {

@@ -745,6 +745,21 @@ const server = http.createServer(async (req, res) => {
     }
 
     // Servir frontend estático
+    // Login local compartilhado com o site público.
+    if (path === "/login.html") {
+      try {
+        const html = await readFile(join(PROJECT_DIR, "dist", "site", "login.html"), "utf8");
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "Cache-Control": "no-store",
+        });
+        return res.end(html);
+      } catch { return sendJson(res, 404, { error: "login.html não encontrado" }); }
+    }
+
     if (path === "/" || path === "/index.html") {
       try {
         const html = await readFile(join(__dirname, "index.html"), "utf8");
