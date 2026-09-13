@@ -6,6 +6,19 @@
     <title>Mestre do PC V11 - Ultimate Plus</title>
     <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
     <link rel="stylesheet" href="/chat/chat-styles.css" />
+    <script>
+      (() => {
+        try {
+          const session = JSON.parse(localStorage.getItem("mestre-site-session") || "null");
+          if (!session || session.expiresAt <= Date.now()) {
+            const next = `${location.pathname}${location.search}`;
+            location.replace(`/login.html?next=${encodeURIComponent(next)}`);
+          }
+        } catch {
+          location.replace(`/login.html?next=${encodeURIComponent(location.pathname)}`);
+        }
+      })();
+    </script>
     <style>
       /* ===== ANIMAÇÕES AVANÇADAS (inspirado Hyperframes) ===== */
       @keyframes fadeInUp {
@@ -2808,26 +2821,22 @@
 
       console.log('🎬 Mestre do PC V10 - Animações carregadas!');
     </script>
-    <!-- Chat IA modular (v10/chat/chat-module.js) -->
     <script type="module">
       import { initChat } from "/chat/chat-module.js";
-      const launcherUrl = window.location.protocol.startsWith("http") ? window.location.origin : "http://127.0.0.1:7777";
-      const TOAST_COLORS = { error: "#f85149", warning: "#f0a800", info: "var(--accent2)" };
-      try {
-        window.mestreChat = initChat({
-          rootSelector: "#chat-root",
-          launcherUrl,
-          clientHeader: "v10-web",
-          onToast: (msg, type) => window.showToast(msg, TOAST_COLORS[type] || TOAST_COLORS.info),
-          onOutput: (cmd, output, success) => addOutputEntry(cmd, output, success),
-        });
-      } catch (err) {
-        console.error("Falha ao inicializar o chat IA:", err);
-        window.mestreChat = {
-          open: () => window.showToast("🤖 Chat IA indisponível no momento.", "#f0a800"),
-          close: () => {},
-        };
-      }
+
+      initChat({
+        rootSelector: "#chat-root",
+        clientHeader: "v10-web",
+      });
+    </script>
+    <!-- Chat IA integrado -->
+    <script>
+      window.mestreChat = {
+        open: () => { window.location.href = "/chat-integrado/chat-integrado.html"; },
+        close: () => {},
+        attachContext: () => {},
+        addMemory: async () => {},
+      };
     </script>
     <!-- Módulo de Diagnóstico de Rede (Casa5G Dashboard integrado) -->
     <script src="rede-dashboard.js" defer></script>
