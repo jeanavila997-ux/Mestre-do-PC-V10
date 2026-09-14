@@ -1,144 +1,86 @@
-// Mestre do PC V11 - Computer Use Client
-// Wrapper em torno do @qwen-code/cua-sdk para controle de UI via acessibilidade Windows
-// Similar ao desktop-commander-client.js, mas focado em automação de interface
+// Mestre do PC V10 - Computer Use Client
+// Wrapper para interagir com o Computer Use via @qwen-code/cua-sdk
+// Mantém compatibilidade com a interface anterior baseada em child process
+// mas usa instancia direta para evitar overhead e problemas de JSON
 
-import { execSync, spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
-import { existsSync } from "node:fs";
+import { ComputerUse } from '@qwen-code/cua-sdk/computer-use';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_DIR = join(__dirname, "..");
-const NODE_REPL_SCRIPT = join(PROJECT_DIR, "scripts", "computer-use-repl.js");
-
-// Estado da conexão
-let sessionState = {
-  connected: false,
-  pid: null,
-  windowId: null,
-  lastObservation: null,
-  elements: [],
+let computer = null;
+let initializing = false;
+let initError = null;
+const sessionState = {
   error: null,
+  lastInitialized: null
 };
 
-// Cache de aplicativos
+const PROJECT_DIR = process.cwd();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 let appsCache = [];
 let appsCacheTime = 0;
-const CACHE_TTL_MS = 30000;
 
 /**
- * Inicializa o Computer Use via Node REPL
- * Retorna true se sucesso, false se falha
+ * Inicializa a instância do Computer Use (se ainda não inicializada)
+ * @returns {Promise<boolean>} true se inicializado com sucesso
  */
 export async function initializeComputerUse() {
+  if (computer) return true;
+  if (initializing) {
+    // Aguarda a inicialização em curso
+    while (initializing) {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    return !!computer;
+  }
+
+  initializing = true;
   try {
-    // Verifica se o SDK está instalado
-    const sdkPath = join(PROJECT_DIR, "node_modules", "@qwen-code", "cua-sdk");
-    if (!existsSync(sdkPath)) {
-      throw new Error(
-        "@qwen-code/cua-sdk não está instalado. Execute: npm install @qwen-code/cua-sdk@0.20.4"
-      );
-    }
-
-    // Script de inicialização do Computer Use
-    const initScript = `
-      globalThis.computer = await (
-        await import('@qwen-code/cua-sdk/computer-use')
-      ).ComputerUse.create();
-      JSON.stringify({ status: 'ready', pid: process.pid })
-    `;
-
-    // Executa via node_repl ou diretamente
-    const result = await executeInRepl(initScript, []);
-    const parsed = JSON.parse(result);
-
-    if (parsed.status === "ready") {
-      sessionState.connected = true;
-      sessionState.pid = parsed.pid;
-      sessionState.error = null;
-      return true;
-    }
-
-    return false;
+    computer = await ComputerUse.create();
+    initError = null;
+    sessionState.error = null;
+    sessionState.lastInitialized = Date.now();
+    return true;
   } catch (error) {
+    initError = error;
     sessionState.error = error.message || String(error);
+    computer = null;
     return false;
+  } finally {
+    initializing = false;
   }
 }
 
 /**
- * Executa script no Node REPL
- * @param {string} script - Script JavaScript para executar com node -e
- * @param {string[]} args - Argumentos a serem passados para o script (process.argv.slice(2))
+ * Retorna o status atual da instancia do Computer Use
+ * @returns {{ initialized: boolean, error: string|null, lastInitialized: number|null }}
  */
-async function executeInRepl(script, args = []) {
-  return new Promise((resolve, reject) => {
-    try {
-      const nodeProcess = spawn("node", ["-e", script, ...args], {
-        cwd: PROJECT_DIR,
-        stdio: ["pipe", "pipe", "pipe"],
-        env: { ...process.env }
-      });
-
-      let output = "";
-      let errorOutput = "";
-
-      nodeProcess.stdout.on("data", (data) => {
-        output += String(data);
-      });
-
-      nodeProcess.stderr.on("data", (data) => {
-        errorOutput += String(data);
-      });
-
-      nodeProcess.on("close", (code) => {
-        if (code === 0) {
-          resolve(output.trim());
-        } else {
-          reject(new Error(errorOutput.trim() || `Exit code ${code}`));
-        }
-      });
-
-      nodeProcess.on("error", (err) => {
-        reject(err);
-      });
-
-      // Timeout de 30 segundos
-      setTimeout(() => {
-        nodeProcess.kill();
-        reject(new Error("Timeout ao executar no REPL"));
-      }, 30000);
-    } catch (error) {
-      reject(error);
-    }
-  });
+export function getStatus() {
+  return {
+    initialized: !!computer,
+    error: sessionState.error,
+    lastInitialized: sessionState.lastInitialized
+  };
 }
 
 /**
  * Lista aplicativos disponíveis
+ * @param {{ refresh?: boolean }} opts
+ * @returns {Promise<Array>} lista de aplicativos
  */
 export async function listApps({ refresh = false } = {}) {
   const now = Date.now();
-  if (appsCache.length > 0 && now - appsCacheTime < CACHE_TTL_MS && !refresh) {
+  if (!refresh && appsCache.length > 0 && now - appsCacheTime < CACHE_TTL_MS) {
     return appsCache;
   }
 
   try {
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const apps = await globalThis.computer.listApps();
-      JSON.stringify(apps)
-    `;
-
-    const result = await executeInRepl(script, []);
-    appsCache = JSON.parse(result);
+    await initializeComputerUse();
+    if (!computer) {
+      throw new Error(sessionState.error || 'Falha ao inicializar Computer Use');
+    }
+    const apps = await computer.listApps();
+    appsCache = apps;
     appsCacheTime = now;
-
-    return appsCache;
+    return apps;
   } catch (error) {
     sessionState.error = error.message || String(error);
     throw error;
@@ -147,27 +89,25 @@ export async function listApps({ refresh = false } = {}) {
 
 /**
  * Lista janelas de um aplicativo
+ * @param {number|string} pid - ID do processo
+ * @returns {Promise<Array>} lista de janelas
  */
 export async function listWindows(pid) {
   if (!pid) {
-    throw new Error("PID é obrigatório para listWindows");
+    throw new Error('PID é obrigatório para listWindows');
+  }
+  const pidNum = Number(pid);
+  if (isNaN(pidNum)) {
+    throw new Error('PID deve ser um número válido');
   }
 
   try {
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windows = await globalThis.computer.listWindows({ pid });
-      JSON.stringify(windows)
-    `;
-
-    const result = await executeInRepl(script, [String(pid)]);
-    return JSON.parse(result);
+    await initializeComputerUse();
+    if (!computer) {
+      throw new Error(sessionState.error || 'Falha ao inicializar Computer Use');
+    }
+    const windows = await computer.listWindows({ pid: pidNum });
+    return windows;
   } catch (error) {
     sessionState.error = error.message || String(error);
     throw error;
@@ -175,62 +115,17 @@ export async function listWindows(pid) {
 }
 
 /**
- * Observa estado de uma janela (árvore de acessibilidade)
+ * Realiza um clique em um elemento ou coordenada
+ * @param {{ element?: number, coordinate?: [number, number], button?: 'left'|'right'|'middle', modifiers?: string[] }} opts
+ * @returns {Promise<Object>} resultado da ação
  */
-export async function observeWindow({ pid, windowId, includeScreenshot = false, disableDiff = false } = {}) {
-  if (!pid) {
-    throw new Error("PID é obrigatório para observeWindow");
-  }
-
+export async function click(opts = {}) {
   try {
-    const screenshotOpt = includeScreenshot ? "true" : "false";
-    const diffOpt = disableDiff ? "true" : "false";
-
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr, windowIdStr, screenshotOptStr, disableDiffOptStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windowId = windowIdStr === "undefined" ? undefined : windowIdStr;
-      const includeScreenshot = screenshotOptStr === "true";
-      const disableDiff = disableDiffOptStr === "true";
-      const state = await globalThis.computer.observeWindow({
-        pid,
-        windowId,
-        includeScreenshot,
-        disableDiff
-      });
-      // Filtra campos não serializáveis
-      JSON.stringify({
-        pid: state.pid,
-        windowId: state.windowId,
-        mode: state.mode,
-        text: state.text,
-        elements: state.elements || [],
-        screenshot: state.screenshot ? {
-          images: state.screenshot.images.map(img => ({
-            mimeType: img.mimeType,
-            dataBase64: img.dataBase64.substring(0, 1000) + '...[truncated]'
-          }))
-        } : null
-      })
-    `;
-
-    const result = await executeInRepl(script, [
-      String(pid),
-      windowId ?? "undefined",
-      screenshotOpt,
-      diffOpt
-    ]);
-    const state = JSON.parse(result);
-
-    sessionState.lastObservation = state;
-    sessionState.elements = state.elements || [];
-
-    return state;
+    await initializeComputerUse();
+    if (!computer) {
+      throw new Error(sessionState.error || 'Falha ao inicializar Computer Use');
+    }
+    return await computer.click(opts);
   } catch (error) {
     sessionState.error = error.message || String(error);
     throw error;
@@ -238,45 +133,17 @@ export async function observeWindow({ pid, windowId, includeScreenshot = false, 
 }
 
 /**
- * Executa clique em elemento ou coordenada
+ * Digita texto
+ * @param {{ text: string, modifiers?: string[] }} opts
+ * @returns {Promise<Object>} resultado da ação
  */
-export async function click({ pid, windowId, elementToken, x, y, button = "left", count = 1 } = {}) {
-  if (!pid) {
-    throw new Error("PID é obrigatório para click");
-  }
-
+export async function type(opts = {}) {
   try {
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr, windowIdStr, elementTokenStr, xStr, yStr, buttonStr, countStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windowId = windowIdStr === "undefined" ? undefined : windowIdStr;
-      const elementToken = elementTokenStr === "undefined" ? undefined : elementTokenStr;
-      const x = xStr === "undefined" ? undefined : Number(xStr);
-      const y = yStr === "undefined" ? undefined : Number(yStr);
-      const button = buttonStr;
-      const count = Number(countStr);
-      const target = elementToken 
-        ? { pid, windowId: windowId || undefined, elementToken }
-        : { pid, windowId: windowId || undefined, x, y };
-      const result = await globalThis.computer.click(target, { button, count });
-      JSON.stringify(result)
-    `;
-
-    const result = await executeInRepl(script, [
-      String(pid),
-      windowId ?? "undefined",
-      elementToken ?? "undefined",
-      x ?? "undefined",
-      y ?? "undefined",
-      button,
-      String(count)
-    ]);
-    return JSON.parse(result);
+    await initializeComputerUse();
+    if (!computer) {
+      throw new Error(sessionState.error || 'Falha ao inicializar Computer Use');
+    }
+    return await computer.type(opts);
   } catch (error) {
     sessionState.error = error.message || String(error);
     throw error;
@@ -284,41 +151,17 @@ export async function click({ pid, windowId, elementToken, x, y, button = "left"
 }
 
 /**
- * Digita texto em elemento ou janela
+ * Pressiona uma tecla ou combinação
+ * @param {{ keys: string, modifiers?: string[] }} opts
+ * @returns {Promise<Object>} resultado da ação
  */
-export async function typeText({ pid, windowId, elementToken, text } = {}) {
-  if (!pid) {
-    throw new Error("PID é obrigatório para typeText");
-  }
-  if (!text) {
-    throw new Error("Texto é obrigatório para typeText");
-  }
-
+export async function key(opts = {}) {
   try {
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr, windowIdStr, elementTokenStr, textStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windowId = windowIdStr === "undefined" ? undefined : windowIdStr;
-      const elementToken = elementTokenStr === "undefined" ? undefined : elementTokenStr;
-      const target = elementToken 
-        ? { pid, windowId: windowId || undefined, elementToken }
-        : { pid, windowId: windowId || undefined };
-      const result = await globalThis.computer.typeText(target, { text: textStr });
-      JSON.stringify(result)
-    `;
-
-    const result = await executeInRepl(script, [
-      String(pid),
-      windowId ?? "undefined",
-      elementToken ?? "undefined",
-      text
-    ]);
-    return JSON.parse(result);
+    await initializeComputerUse();
+    if (!computer) {
+      throw new Error(sessionState.error || 'Falha ao inicializar Computer Use');
+    }
+    return await computer.key(opts);
   } catch (error) {
     sessionState.error = error.message || String(error);
     throw error;
@@ -326,46 +169,17 @@ export async function typeText({ pid, windowId, elementToken, text } = {}) {
 }
 
 /**
- * Pressiona uma tecla
+ * Captura a tela
+ * @param {{ mode?: 'som'|'vision'|'ax', app?: string }} opts
+ * @returns {Promise<Object>} resultado da captura (imagem base64 ou AX tree)
  */
-export async function pressKey({ pid, windowId, elementToken, key, modifiers = [] } = {}) {
-  if (!pid) {
-    throw new Error("PID é obrigatório para pressKey");
-  }
-  if (!key) {
-    throw new Error("Tecla é obrigatória para pressKey");
-  }
-
+export async function capture(opts = {}) {
   try {
-    const modifiersStr = JSON.stringify(modifiers);
-
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr, windowIdStr, elementTokenStr, keyStr, modifiersStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windowId = windowIdStr === "undefined" ? undefined : windowIdStr;
-      const elementToken = elementTokenStr === "undefined" ? undefined : elementTokenStr;
-      const key = keyStr;
-      const modifiers = JSON.parse(modifiersStr);
-      const target = elementToken 
-        ? { pid, windowId: windowId || undefined, elementToken }
-        : { pid, windowId: windowId || undefined };
-      const result = await globalThis.computer.pressKey(target, { key, modifiers });
-      JSON.stringify(result)
-    `;
-
-    const result = await executeInRepl(script, [
-      String(pid),
-      windowId ?? "undefined",
-      elementToken ?? "undefined",
-      key,
-      modifiersStr
-    ]);
-    return JSON.parse(result);
+    await initializeComputerUse();
+    if (!computer) {
+      throw new Error(sessionState.error || 'Falha ao inicializar Computer Use');
+    }
+    return await computer.capture(opts);
   } catch (error) {
     sessionState.error = error.message || String(error);
     throw error;
@@ -373,44 +187,17 @@ export async function pressKey({ pid, windowId, elementToken, key, modifiers = [
 }
 
 /**
- * Executa scroll
+ * Aguarda por um determinado número de segundos
+ * @param {{ seconds: number }} opts
+ * @returns {Promise<Object>} resultado da ação
  */
-export async function scroll({ pid, windowId, elementToken, direction, amount = 1 } = {}) {
-  if (!pid) {
-    throw new Error("PID é obrigatório para scroll");
-  }
-  if (!direction || !['up', 'down', 'left', 'right'].includes(direction)) {
-    throw new Error("Direção inválida (use: up, down, left, right)");
-  }
-
+export async function wait(opts = {}) {
   try {
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr, windowIdStr, elementTokenStr, directionStr, amountStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windowId = windowIdStr === "undefined" ? undefined : windowIdStr;
-      const elementToken = elementTokenStr === "undefined" ? undefined : elementTokenStr;
-      const direction = directionStr;
-      const amount = Number(amountStr);
-      const target = elementToken 
-        ? { pid, windowId: windowId || undefined, elementToken }
-        : { pid, windowId: windowId || undefined };
-      const result = await globalThis.computer.scroll(target, { direction, amount });
-      JSON.stringify(result)
-    `;
-
-    const result = await executeInRepl(script, [
-      String(pid),
-      windowId ?? "undefined",
-      elementToken ?? "undefined",
-      direction,
-      String(amount)
-    ]);
-    return JSON.parse(result);
+    await initializeComputerUse();
+    if (!computer) {
+      throw new Error(sessionState.error || 'Falha ao inicializar Computer Use');
+    }
+    return await computer.wait(opts);
   } catch (error) {
     sessionState.error = error.message || String(error);
     throw error;
@@ -418,174 +205,36 @@ export async function scroll({ pid, windowId, elementToken, direction, amount = 
 }
 
 /**
- * Define valor em elemento (input, textarea, etc.)
+ * Lista aplicativos disponíveis (atalho)
+ * @returns {Promise<Array>} lista de aplicativos
  */
-export async function setValue({ pid, windowId, elementToken, value } = {}) {
-  if (!pid) {
-    throw new Error("PID é obrigatório para setValue");
-  }
-  if (!elementToken) {
-    throw new Error("elementToken é obrigatório para setValue");
-  }
-  if (value === undefined) {
-    throw new Error("Valor é obrigatório para setValue");
-  }
+export async function list_apps() {
+  return listApps();
+}
 
+/**
+ * Lista janelas de um aplicativo (atalho)
+ * @param {number|string} pid
+ * @returns {Promise<Array>} lista de janelas
+ */
+export async function list_windows(pid) {
+  return listWindows(pid);
+}
+
+/**
+ * Foca em um aplicativo
+ * @param {{ app: string, raise_window?: boolean }} opts
+ * @returns {Promise<Object>} resultado da ação
+ */
+export async function focus_app(opts = {}) {
   try {
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr, windowIdStr, elementTokenStr, valueStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windowId = windowIdStr === "undefined" ? undefined : windowIdStr;
-      const elementToken = elementTokenStr === "undefined" ? undefined : elementTokenStr;
-      const target = { pid, windowId: windowId || undefined, elementToken };
-      const result = await globalThis.computer.setValue(target, { value: valueStr });
-      JSON.stringify(result)
-    `;
-
-    const result = await executeInRepl(script, [
-      String(pid),
-      windowId ?? "undefined",
-      elementToken ?? "undefined",
-      String(value)
-    ]);
-    return JSON.parse(result);
+    await initializeComputerUse();
+    if (!computer) {
+      throw new Error(sessionState.error || 'Falha ao inicializar Computer Use');
+    }
+    return await computer.focus_app(opts);
   } catch (error) {
     sessionState.error = error.message || String(error);
     throw error;
   }
-}
-
-/**
- * Executa ação secundária (menu, expandir, etc.)
- */
-export async function performSecondaryAction({ pid, windowId, elementToken, action } = {}) {
-  if (!pid) {
-    throw new Error("PID é obrigatório para performSecondaryAction");
-  }
-  if (!elementToken) {
-    throw new Error("elementToken é obrigatório para performSecondaryAction");
-  }
-  if (!action) {
-    throw new Error("Ação é obrigatória para performSecondaryAction");
-  }
-
-  try {
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr, windowIdStr, elementTokenStr, actionStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windowId = windowIdStr === "undefined" ? undefined : windowIdStr;
-      const elementToken = elementTokenStr === "undefined" ? undefined : elementTokenStr;
-      const target = { pid, windowId: windowId || undefined, elementToken };
-      const result = await globalThis.computer.performSecondaryAction(target, { action: actionStr });
-      JSON.stringify(result)
-    `;
-
-    const result = await executeInRepl(script, [
-      String(pid),
-      windowId ?? "undefined",
-      elementToken ?? "undefined",
-      action.replace(/\"/g, '\\\\"')
-    ]);
-    return JSON.parse(result);
-  } catch (error) {
-    sessionState.error = error.message || String(error);
-    throw error;
-  }
-}
-
-/**
- * Executa hotkey (combinação de teclas)
- */
-export async function hotkey({ pid, windowId, elementToken, keys = [] } = {}) {
-  if (!pid) {
-    throw new Error("PID é obrigatório para hotkey");
-  }
-  if (!keys || keys.length === 0) {
-    throw new Error("Teclas são obrigatórias para hotkey");
-  }
-
-  try {
-    const keysStr = JSON.stringify(keys);
-
-    const script = `
-      if (!globalThis.computer) {
-        globalThis.computer = await (
-          await import('@qwen-code/cua-sdk/computer-use')
-        ).ComputerUse.create();
-      }
-      const [pidStr, windowIdStr, elementTokenStr, keysStr] = process.argv.slice(2);
-      const pid = Number(pidStr);
-      const windowId = windowIdStr === "undefined" ? undefined : windowIdStr;
-      const elementToken = elementTokenStr === "undefined" ? undefined : elementTokenStr;
-      const target = elementToken 
-        ? { pid, windowId: windowId || undefined, elementToken }
-        : { pid, windowId: windowId || undefined };
-      const result = await globalThis.computer.hotkey(target, { keys: JSON.parse(keysStr) });
-      JSON.stringify(result)
-    `;
-
-    const result = await executeInRepl(script, [
-      String(pid),
-      windowId ?? "undefined",
-      elementToken ?? "undefined",
-      keysStr
-    ]);
-    return JSON.parse(result);
-  } catch (error) {
-    sessionState.error = error.message || String(error);
-    throw error;
-  }
-}
-
-/**
- * Fecha a sessão do Computer Use
- */
-export async function closeComputerUse() {
-  try {
-    const script = `
-      if (globalThis.computer) {
-        await globalThis.computer.close();
-        globalThis.computer = undefined;
-      }
-      JSON.stringify({ status: 'closed' })
-    `;
-
-    await executeInRepl(script, []);
-    sessionState = {
-      connected: false,
-      pid: null,
-      windowId: null,
-      lastObservation: null,
-      elements: [],
-      error: null,
-    };
-    appsCache = [];
-    appsCacheTime = 0;
-
-    return { status: "closed" };
-  } catch (error) {
-    sessionState.error = error.message || String(error);
-    throw error;
-  }
-}
-
-/**
- * Retorna status do Computer Use
- */
-export function getStatus() {
-  return {
-    ...sessionState,
-    appsCount: appsCache.length,
-    appsCached: appsCacheTime > 0,
-  };
 }
