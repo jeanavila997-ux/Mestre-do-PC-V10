@@ -1,0 +1,42 @@
+{
+  "name": "mestre-do-pc-v10",
+  "version": "10.0.0",
+  "description": "Mestre do PC V10 - Sistema de automação e manutenção de computadores Windows",
+  "main": "mcp-server/index.js",
+  "scripts": {
+    "postinstall": "npm --prefix mcp-server install --no-audit --no-fund",
+    "start": "cd mcp-server && node index.js",
+    "dev": "cd mcp-server && npm start",
+    "test": "cd mcp-server && npm test",
+    "validate": "cd mcp-server && npm run validate",
+    "deploy:hostinger": "pwsh scripts/deploy-hostinger.ps1",
+    "build:package": "node scripts/build-package.cjs",
+    "install:computer-use": "node scripts/install-computer-use.js"
+  },
+  "keywords": [
+    "mcp",
+    "mestre-do-pc",
+    "windows-automation",
+    "ollama",
+    "system-tools",
+    "ai-agent"
+  ],
+  "author": "Jean Carlos de Avila",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@qwen-code/cua-sdk": "^0.20.4"
+  },
+  "homepage": "https://github.com/jeanavila997-ux/Mestre-do-PC-V10#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jeanavila997-ux/Mestre-do-PC-V10/issues"
+  }
+}

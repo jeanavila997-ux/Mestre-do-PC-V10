@@ -869,6 +869,18 @@
           <div class="term-body" id="termBody">[aguardando output...]</div>
         </div>
       </div>
+      <!-- NOVO: Modal de Observação Computer Use -->
+      <div class="term-overlay" id="cuObserveOverlay" style="display:none">
+        <div class="term-modal" style="max-width:900px;height:75vh">
+          <div class="term-head">
+            <h3 id="cuObserveTitle">👁️ Observar Janela</h3>
+            <button class="term-close" onclick="closeObserveModal()">✕</button>
+          </div>
+          <div class="term-body" id="cuObserveTree" style="max-height:none">
+            [aguardando observação...]
+          </div>
+        </div>
+      </div>
       <div id="categories"></div>
     </div>
     <!-- Confirmação de comando (destrutivo ou fora da whitelist) -->
@@ -1547,6 +1559,25 @@
           ["Consultar Fonte Oficial .gov.br", "__WEB_GOV__"],
         ],
       },
+      {
+        id: "cat_computer_use",
+        label: "🖱️ Computer Use",
+        isNew: true,
+        cmds: [
+          ["📋 Listar Aplicativos", "__CU_LIST_APPS__"],
+          ["🪟 Listar Janelas (por PID)", "__CU_LIST_WINDOWS__"],
+          ["👁️ Observar Janela (Árvore UX)", "__CU_OBSERVE__"],
+          ["🖱️ Clicar (Elemento/Coordenada)", "__CU_CLICK__"],
+          ["⌨️ Digitar Texto", "__CU_TYPE__"],
+          ["🔘 Pressionar Tecla", "__CU_PRESS_KEY__"],
+          ["📜 Scroll (Cima/Baixo)", "__CU_SCROLL__"],
+          ["📝 Definir Valor (Input)", "__CU_SET_VALUE__"],
+          ["🎯 Ação Secundária (Menu)", "__CU_SECONDARY_ACTION__"],
+          ["⚡ Hotkey (Atalho)", "__CU_HOTKEY__"],
+          ["🔒 Fechar Computer Use", "__CU_CLOSE__"],
+          ["📊 Status do Computer Use", "__CU_STATUS__"],
+        ],
+      },
 
       ];
       // Render navigation
@@ -1716,7 +1747,7 @@
         });
         return cards;
       }
-      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web"];
+      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web", "cat_computer_use"];
       CATS.forEach((c) => {
         const div = document.createElement("div");
         div.className = "category";
@@ -2121,7 +2152,15 @@
       function copyById(uid) { const text = document.getElementById(uid).innerText.trim(); navigator.clipboard.writeText(text).then(() => showToast("📋 Copiado!")); }
       // ===== runCmd() (padrão V7) =====
       async function runCmd(uid) {
-        const code = document.getElementById(uid).innerText.trim();
+        const codeEl = document.getElementById(uid);
+        const code = codeEl.innerText.trim();
+
+        // Detecta comandos Computer Use
+        if (code.startsWith("__CU_")) {
+          await handleCUCommand(code);
+          return;
+        }
+
         const tokens = findTokens(code);
         if (tokens.length > 0) {
           _pendingCmd = code;
@@ -2254,6 +2293,384 @@
         }
       }
 
+      // ===== COMPUTER USE FUNCTIONS =====
+      const CU_API = `${API}/computer-use`;
+      let cuCurrentPid = null;
+      let cuCurrentWindowId = null;
+      let cuCurrentElementToken = null;
+
+      // Overlay de observação de janela
+      function showObserveModal() {
+        const overlay = document.getElementById("cuObserveOverlay");
+        if (!overlay) return;
+        overlay.style.display = "flex";
+        document.getElementById("cuObserveTree").textContent = "[aguardando observação...]";
+      }
+
+      function closeObserveModal() {
+        document.getElementById("cuObserveOverlay").style.display = "none";
+      }
+
+      function renderElementTree(elements, pid, windowId) {
+        const container = document.getElementById("cuObserveTree");
+        container.replaceChildren();
+        if (!Array.isArray(elements) || elements.length === 0) {
+          const empty = document.createElement("p");
+          empty.style.color = "#8b949e";
+          empty.textContent = "Nenhum elemento encontrado";
+          container.append(empty);
+          return;
+        }
+
+        const buttons = elements.filter(e => e.role === "button" || e.role === "splitbutton").length;
+        const inputs = elements.filter(e => ["edit", "combobox", "textbox"].includes(e.role)).length;
+        const menus = elements.filter(e => ["menu", "menuitem", "menubar"].includes(e.role)).length;
+        const sidebar = document.createElement("div");
+        sidebar.style.cssText = "position:absolute;top:0;left:0;width:180px;height:100%;background:rgba(0,0,0,0.4);border-right:1px solid var(--border);padding:12px;overflow-y:auto;font-size:0.75rem";
+        const summary = [
+          "📊 Resumo",
+          `🔘 Botões: ${buttons}`,
+          `📝 Inputs: ${inputs}`,
+          `🎯 Menus: ${menus}`,
+          `📦 Outros: ${elements.length - buttons - inputs - menus}`,
+          `Total: ${elements.length}`,
+          "💡 Dica: Passe o mouse sobre os elementos para ver detalhes",
+        ];
+        summary.forEach((text, index) => {
+          const line = document.createElement(index === 0 ? "strong" : "div");
+          line.style.cssText = "display:block;margin-bottom:8px";
+          line.textContent = text;
+          sidebar.append(line);
+        });
+
+        const elementList = document.createElement("div");
+        elementList.style.cssText = "margin-left:180px;padding:12px;max-height:calc(70vh - 60px);overflow-y:auto";
+        elements.forEach((el, idx) => {
+          const rawToken = typeof el.element_token === "string" ? el.element_token : "";
+          const token = rawToken || `element_${idx}`;
+          const role = String(el.role || "unknown");
+          const label = String(el.label || "");
+          const value = el.value == null ? "" : String(el.value);
+          const actions = Array.isArray(el.actions) ? el.actions.map(String) : [];
+          const card = document.createElement("div");
+          card.style.cssText = "padding:10px;margin:6px 0;background:rgba(255,255,255,0.03);border:1px solid rgba(0,212,255,0.15);border-radius:8px;transition:0.2s";
+          card.addEventListener("mouseenter", () => { card.style.borderColor = "var(--accent)"; });
+          card.addEventListener("mouseleave", () => { card.style.borderColor = "rgba(0,212,255,0.15)"; });
+
+          const heading = document.createElement("strong");
+          heading.style.color = "var(--accent)";
+          heading.textContent = `[${role.toUpperCase()}] ${token}`;
+          card.append(heading);
+          if (label) {
+            const labelNode = document.createElement("div");
+            labelNode.textContent = `📌 ${label}`;
+            card.append(labelNode);
+          }
+          if (value) {
+            const valueNode = document.createElement("div");
+            valueNode.style.color = "var(--accent2)";
+            valueNode.textContent = `💬 Value: ${value.slice(0, 100)}${value.length > 100 ? "..." : ""}`;
+            card.append(valueNode);
+          }
+
+          if (rawToken) {
+            const controls = document.createElement("div");
+            controls.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin-top:8px";
+            const addActionButton = (text, handler) => {
+              const button = document.createElement("button");
+              button.className = "btn";
+              button.type = "button";
+              button.textContent = text;
+              button.addEventListener("click", handler);
+              controls.append(button);
+            };
+            addActionButton("🖱️ Click", () => cuClickByToken(pid, windowId, rawToken));
+            addActionButton("⌨️ Type", () => cuTypeByToken(pid, windowId, rawToken));
+            actions.forEach(action => addActionButton(action, () => cuSecondaryAction(pid, windowId, rawToken, action)));
+            card.append(controls);
+          }
+          elementList.append(card);
+        });
+
+        container.replaceChildren(sidebar, elementList);
+      }
+
+      async function runCUListApps() {
+        const panel = document.getElementById("outputPanel");
+        const content = document.getElementById("outputContent");
+        panel.style.display = "block";
+        content.textContent = "⏳ Listando aplicativos...";
+
+        try {
+          const res = await fetch(`${CU_API}/apps?refresh=true`, { headers: PRIVILEGED_HEADERS });
+          const apps = await res.json();
+
+          if (!res.ok) throw new Error(apps.error || "Falha ao listar apps");
+
+          let out = `📋 APLICATIVOS DISPONÍVEIS (${apps.length})\n\n`;
+          apps.forEach((app, i) => {
+            out += `${i + 1}. ${app.name || "Sem nome"} (PID: ${app.pid})\n`;
+            out += `   Bundle: ${app.bundle_id || "N/A"}\n`;
+            out += `   Running: ${app.running ? "✅ Sim" : "❌ Não"}\n`;
+            if (app.launch_path) out += `   Path: ${app.launch_path}\n`;
+            out += `\n`;
+          });
+
+          content.textContent = out;
+          addOutputEntry("[CU] List Apps", out, true);
+          showToast("✅ Apps listados", "var(--accent2)");
+        } catch (err) {
+          content.textContent = "Erro: " + err.message;
+          addOutputEntry("[CU] List Apps", "Erro: " + err.message, false);
+          showToast("❌ Falha ao listar apps", "#f85149");
+        }
+      }
+
+      async function runCUListWindows() {
+        const pid = prompt("Informe o PID do aplicativo:");
+        if (!pid) return;
+
+        const panel = document.getElementById("outputPanel");
+        const content = document.getElementById("outputContent");
+        panel.style.display = "block";
+        content.textContent = "⏳ Listando janelas...";
+
+        try {
+          const res = await fetch(`${CU_API}/windows`, {
+            method: "POST",
+            headers: PRIVILEGED_HEADERS,
+            body: JSON.stringify({ pid: parseInt(pid) })
+          });
+          const windows = await res.json();
+
+          if (!res.ok) throw new Error(windows.error || "Falha ao listar janelas");
+
+          let out = `🪟 JANELAS (PID: ${pid})\n\n`;
+          windows.forEach((win, i) => {
+            out += `${i + 1}. Window ID: ${win.window_id}\n`;
+            out += `   Título: ${win.title || "Sem título"}\n`;
+            out += `   Na tela: ${win.is_on_screen ? "✅ Sim" : "❌ Não"}\n`;
+            out += `   Espaço atual: ${win.on_current_space ? "✅ Sim" : "❌ Não"}\n\n`;
+          });
+
+          cuCurrentPid = parseInt(pid);
+          if (windows.length > 0) {
+            cuCurrentWindowId = windows[0].window_id;
+            out += `\n💡 Dica: Use "Observar Janela" para ver elementos interativos`;
+          }
+
+          content.textContent = out;
+          addOutputEntry(`[CU] List Windows (PID: ${pid})`, out, true);
+          showToast("✅ Janelas listadas", "var(--accent2)");
+        } catch (err) {
+          content.textContent = "Erro: " + err.message;
+          addOutputEntry(`[CU] List Windows (PID: ${pid})`, "Erro: " + err.message, false);
+          showToast("❌ Falha ao listar janelas", "#f85149");
+        }
+      }
+
+      async function runCUObserve() {
+        const pid = prompt("Informe o PID do aplicativo:");
+        if (!pid) return;
+
+        const windowId = prompt("Informe o Window ID:");
+        if (!windowId) return;
+
+        showObserveModal();
+
+        try {
+          const res = await fetch(`${CU_API}/observe`, {
+            method: "POST",
+            headers: PRIVILEGED_HEADERS,
+            body: JSON.stringify({
+              pid: parseInt(pid),
+              windowId: parseInt(windowId),
+              includeScreenshot: false,
+              disableDiff: true
+            })
+          });
+          const state = await res.json();
+
+          if (!res.ok) throw new Error(state.error || "Falha ao observar janela");
+
+          cuCurrentPid = parseInt(pid);
+          cuCurrentWindowId = state.windowId;
+
+          document.getElementById("cuObserveTitle").textContent = `👁️ ${state.text?.substring(0, 100) || "Janela observada"}...`;
+          renderElementTree(state.elements, cuCurrentPid, cuCurrentWindowId);
+
+          showToast("✅ Janela observada", "var(--accent2)");
+        } catch (err) {
+          const tree = document.getElementById("cuObserveTree");
+          tree.style.color = "var(--danger)";
+          tree.textContent = `Erro: ${err.message}`;
+          showToast("❌ Falha ao observar", "#f85149");
+        }
+      }
+
+      async function cuClickByToken(pid, windowId, elementToken) {
+        try {
+          const res = await fetch(`${CU_API}/click`, {
+            method: "POST",
+            headers: PRIVILEGED_HEADERS,
+            body: JSON.stringify({ pid: parseInt(pid), windowId: parseInt(windowId), elementToken })
+          });
+          const result = await res.json();
+
+          if (!res.ok) throw new Error(result.error || "Falha ao clicar");
+
+          showToast("✅ Clique executado", "var(--accent2)");
+          closeObserveModal();
+        } catch (err) {
+          showToast("❌ Falha no clique: " + err.message, "#f85149");
+        }
+      }
+
+      async function cuTypeByToken(pid, windowId, elementToken) {
+        const text = prompt("Digite o texto a ser inserido:");
+        if (!text) return;
+
+        try {
+          const res = await fetch(`${CU_API}/type`, {
+            method: "POST",
+            headers: PRIVILEGED_HEADERS,
+            body: JSON.stringify({ pid: parseInt(pid), windowId: parseInt(windowId), elementToken, text })
+          });
+          const result = await res.json();
+
+          if (!res.ok) throw new Error(result.error || "Falha ao digitar");
+
+          showToast("✅ Texto digitado", "var(--accent2)");
+          closeObserveModal();
+        } catch (err) {
+          showToast("❌ Falha ao digitar: " + err.message, "#f85149");
+        }
+      }
+
+      async function cuSecondaryAction(pid, windowId, elementToken, action) {
+        try {
+          const res = await fetch(`${CU_API}/secondary-action`, {
+            method: "POST",
+            headers: PRIVILEGED_HEADERS,
+            body: JSON.stringify({ pid: parseInt(pid), windowId: parseInt(windowId), elementToken, action })
+          });
+          const result = await res.json();
+
+          if (!res.ok) throw new Error(result.error || "Falha na ação secundária");
+
+          showToast(`✅ Ação "${action}" executada`, "var(--accent2)");
+          closeObserveModal();
+        } catch (err) {
+          showToast("❌ Falha na ação: " + err.message, "#f85149");
+        }
+      }
+
+      async function requestComputerUse(path, options = {}) {
+        const res = await fetch(`${CU_API}${path}`, { headers: PRIVILEGED_HEADERS, ...options });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Falha no Computer Use");
+        return data;
+      }
+
+      // Handler unificado para comandos Computer Use
+      async function handleCUCommand(cmd) {
+        try {
+          switch(cmd) {
+            case "__CU_LIST_APPS__": return await runCUListApps();
+            case "__CU_LIST_WINDOWS__": return await runCUListWindows();
+            case "__CU_OBSERVE__": return await runCUObserve();
+            case "__CU_CLICK__": {
+              const pid = prompt("PID:");
+              const windowId = prompt("Window ID:");
+              const x = prompt("X:");
+              const y = prompt("Y:");
+              if (pid && windowId && x !== null && y !== null) {
+                await requestComputerUse("/click", {
+                  method: "POST",
+                  body: JSON.stringify({ pid: parseInt(pid), windowId: parseInt(windowId), x: Number(x), y: Number(y) })
+                });
+              }
+              break;
+            }
+            case "__CU_TYPE__": {
+              const pid = prompt("PID:");
+              const windowId = prompt("Window ID:");
+              const text = prompt("Texto:");
+              if (pid && windowId && text !== null) {
+                await requestComputerUse("/type", { method: "POST", body: JSON.stringify({ pid: parseInt(pid), windowId: parseInt(windowId), text }) });
+              }
+              break;
+            }
+            case "__CU_PRESS_KEY__": {
+              const pid = prompt("PID:");
+              const windowId = prompt("Window ID:");
+              const key = prompt("Tecla (ex: Enter, Tab, Escape):");
+              if (pid && windowId && key) {
+                await requestComputerUse("/press-key", { method: "POST", body: JSON.stringify({ pid: parseInt(pid), windowId: parseInt(windowId), key }) });
+              }
+              break;
+            }
+            case "__CU_SCROLL__": {
+              const pid = prompt("PID:");
+              const elementToken = prompt("Element Token:");
+              const direction = prompt("Direção (up/down/left/right):");
+              if (pid && elementToken && direction) {
+                await requestComputerUse("/scroll", { method: "POST", body: JSON.stringify({ pid: parseInt(pid), elementToken, direction }) });
+              }
+              break;
+            }
+            case "__CU_SET_VALUE__": {
+              const pid = prompt("PID:");
+              const elementToken = prompt("Element Token:");
+              const value = prompt("Valor:");
+              if (pid && elementToken && value !== null) {
+                await requestComputerUse("/set-value", { method: "POST", body: JSON.stringify({ pid: parseInt(pid), elementToken, value }) });
+              }
+              break;
+            }
+            case "__CU_SECONDARY_ACTION__": {
+              const pid = prompt("PID:");
+              const elementToken = prompt("Element Token:");
+              const action = prompt("Ação (ex: Show Menu, Expand):");
+              if (pid && elementToken && action) {
+                await requestComputerUse("/secondary-action", { method: "POST", body: JSON.stringify({ pid: parseInt(pid), elementToken, action }) });
+              }
+              break;
+            }
+            case "__CU_HOTKEY__": {
+              const pid = prompt("PID:");
+              const windowId = prompt("Window ID:");
+              const keys = prompt("Teclas (separadas por vírgula, ex: Ctrl,C):");
+              if (pid && windowId && keys) {
+                await requestComputerUse("/hotkey", {
+                  method: "POST",
+                  body: JSON.stringify({ pid: parseInt(pid), windowId: parseInt(windowId), keys: keys.split(",").map(key => key.trim()).filter(Boolean) })
+                });
+              }
+              break;
+            }
+            case "__CU_CLOSE__":
+              await requestComputerUse("/close", { method: "POST" });
+              showToast("🔒 Computer Use fechado", "#00d4ff");
+              break;
+            case "__CU_STATUS__": {
+              const status = await requestComputerUse("/status");
+              let out = `📊 STATUS DO COMPUTER USE\n\n`;
+              out += `Conectado: ${status.connected ? "✅ Sim" : "❌ Não"}\n`;
+              out += `Apps em cache: ${status.appsCount || 0}\n`;
+              out += `Último erro: ${status.error || "Nenhum"}\n`;
+              document.getElementById("outputContent").textContent = out;
+              document.getElementById("outputPanel").style.display = "block";
+              break;
+            }
+            default:
+              console.warn("Comando Computer Use desconhecido:", cmd);
+          }
+        } catch (err) {
+          showToast("❌ Falha no Computer Use: " + err.message, "#f85149");
+        }
+      }
+
       async function openPS() {
         if (serverOnline === false) { showToast("ℹ️ Execute o Launcher como Administrador primeiro.", "#00d4ff"); checkServer(); return; }
         showToast("⚡ Abrindo PowerShell admin...", "#00d4ff");
@@ -2344,13 +2761,13 @@
         if (!confirm(aviso)) return;
         showToast("⏻ Encerrando launcher...", "#f85149");
         try {
-          const res = await fetch(API + "/shutdown", { 
-            method: "POST", 
-            headers: { 
+          const res = await fetch(API + "/shutdown", {
+            method: "POST",
+            headers: {
               "X-Mestre-Client": "v10-web",
               "Origin": API
-            }, 
-            signal: AbortSignal.timeout(10000) 
+            },
+            signal: AbortSignal.timeout(10000)
           });
           const data = await res.json();
           if (res.ok === false || data.success !== true) throw new Error(data.output || "Falha ao encerrar.");
