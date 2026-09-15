@@ -39,6 +39,10 @@ Normalmente o Claude Desktop ou Codex inicia `index.js`; não é necessário man
   sistema, RAM, disco, locais comuns e projetos relevantes), com sugestões de
   melhoria opcionais via IA. Usa `MESTRE_BASE_URL`, então funciona remotamente
   se o launcher estiver acessível.
+- `mestre_diagnosticar_saude_sistema` ⭐ **NOVO** — diagnóstico abrangente de
+  saúde do sistema: coleta CPU, RAM, disco, verifica serviços críticos e
+  S.M.A.R.T., identifica issues (críticos/atenção) e retorna ações recomendadas.
+  Suporta `response_format: "json"` para integração com SIEM/ITSM.
 
 > **Nota:** os tools `consultar_fonte_oficial_gov`, `extrair_evidencia_de_pdf_local`,
 > `simular_cenario_economico`, `congelar_tabela_final` e `gerar_snapshot_git` são
@@ -117,3 +121,75 @@ ainda não declara compatível; por isso ela não foi aplicada automaticamente.
 A ferramenta `buscar_na_web` usa o front-end HTML do DuckDuckGo
 (`html.duckduckgo.com`). Não exige API key. Os resultados incluem título,
 URL decodificada e trecho da página.
+
+## Exemplos de uso: mestre_diagnosticar_saude_sistema
+
+### Diagnóstico rápido (Markdown)
+
+```json
+{
+  "name": "mestre_diagnosticar_saude_sistema",
+  "arguments": {
+    "incluir_historico": false,
+    "verificar_smart": true,
+    "response_format": "markdown"
+  }
+}
+```
+
+**Retorno esperado:**
+```markdown
+# ✅ Diagnóstico de Saúde do Sistema
+**Computador:** PC-ADMIN
+**Status geral:** HEALTHY
+
+## 📊 Métricas
+- **CPU:** 23%
+- **RAM:** 65% usada (6GB livres de 16GB)
+- **Disco:** 45% usado (275GB livres de 500GB)
+- **S.M.A.R.T.:** ✅ Saudável
+```
+
+### Diagnóstico para integração (JSON)
+
+```json
+{
+  "name": "mestre_diagnosticar_saude_sistema",
+  "arguments": {
+    "response_format": "json"
+  }
+}
+```
+
+**Retorno esperado (JSON):**
+```json
+{
+  "status": "warning",
+  "timestamp": "2026-09-10T14:30:00Z",
+  "metrics": {
+    "cpu_percent": 45,
+    "ram": { "used_percent": 78, "free_gb": 4, "total_gb": 16 },
+    "disk": { "used_percent": 85, "free_gb": 75, "total_gb": 500 }
+  },
+  "issues": [
+    { "severity": "warning", "component": "ram", "message": "RAM elevada: 78% usada" }
+  ],
+  "actions_recommended": [
+    { "operation_id": "liberar_memoria_ram_imediatamente", "reason": "Liberar RAM" }
+  ]
+}
+```
+
+### Com histórico de eventos críticos
+
+```json
+{
+  "name": "mestre_diagnosticar_saude_sistema",
+  "arguments": {
+    "incluir_historico": true,
+    "verificar_smart": true
+  }
+}
+```
+
+Útil para troubleshooting de problemas intermitentes ou pós-falha.

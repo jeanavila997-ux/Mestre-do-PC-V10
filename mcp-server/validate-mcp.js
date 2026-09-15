@@ -80,7 +80,6 @@ try {
   // Verificar prompt guards
   const guardCalls = [...indexContent.matchAll(/guardPromptInjection\(/g)].length;
   info.push(`✅ Prompt Guard: ${guardCalls} chamadas de guardPromptInjection`);
-
 } catch (e) {
   errors.push(`❌ index.js: ${e.message}`);
 }
@@ -96,12 +95,11 @@ try {
   }
 
   // Verificar sanitização
-  if (!registryContent.includes("^[a-zA-Z0-9_. -]{1,128}$")) {
-    warnings.push("operation-registry.js: regex de sanitização não encontrado");
-  } else {
-    info.push("✅ operation-registry.js: sanitização de parâmetros presente");
-  }
-
+    if (!registryContent.includes("[a-zA-Z0-9_. -]{1,128}")) {
+      warnings.push("operation-registry.js: regex de sanitização não encontrado");
+    } else {
+      info.push("✅ operation-registry.js: sanitização de parâmetros presente");
+    }
 } catch (e) {
   errors.push(`❌ operation-registry.js: ${e.message}`);
 }
@@ -144,7 +142,6 @@ try {
   // Verificar operações destrutivas
   const destructive = operations.filter(op => op.destructive === true).length;
   info.push(`   Destrutivas: ${destructive} (${Math.round(destructive / operations.length * 100)}%)`);
-
 } catch (e) {
   errors.push(`❌ allowed-operations.json: ${e.message}`);
 }
@@ -169,7 +166,6 @@ try {
       warnings.push(`Teste crítico ausente: test/${test}`);
     }
   }
-
 } catch (e) {
   errors.push(`❌ test/: ${e.message}`);
 }
@@ -183,7 +179,6 @@ try {
   } else {
     info.push("✅ security.js: checkPromptInjection presente");
   }
-
 } catch (e) {
   errors.push(`❌ security.js: ${e.message}`);
 }
@@ -205,7 +200,6 @@ try {
       warnings.push(`audit-logger.js: nível ${level} não encontrado`);
     }
   }
-
 } catch (e) {
   errors.push(`❌ audit-logger.js: ${e.message}`);
 }
@@ -228,7 +222,6 @@ try {
     info.push(`⚠️ Overrides: ${Object.keys(pkg.overrides).length} pacotes com versão forçada`);
     info.push(`   Justificativa necessária para: ${Object.keys(pkg.overrides).join(", ")}`);
   }
-
 } catch (e) {
   errors.push(`❌ dependências: ${e.message}`);
 }

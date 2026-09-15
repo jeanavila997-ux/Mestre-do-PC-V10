@@ -18,6 +18,7 @@ import { loadOperationRegistry, clearOperationRegistryCache } from "./operation-
 import { handleMemoryRoutes } from "./memory-routes.js";
 import { handleOperationRoutes } from "./operation-routes.js";
 import { handleSoulRoutes } from "./soul-routes.js";
+import { handleComputerUseRoutes } from "./computer-use-routes.js";
 import { isAllowedWebOrigin, isNppOrigin } from "./security/origin-policy.js";
 import { 
   createMemory, 
@@ -561,6 +562,12 @@ const server = http.createServer(async (req, res) => {
     // ── Perfil do Agente: leitura/edição dos Soul.md ────────────────
     if (path === "/soul" || path.startsWith("/soul/")) {
       const handled = await handleSoulRoutes(req, res, url, { isAuthorized, allowedOrigin });
+      if (handled) return;
+    }
+
+    // ── Computer Use: rotas /computer-use/* ─────────────────────────
+    if (path === "/computer-use" || path.startsWith("/computer-use/")) {
+      const handled = await handleComputerUseRoutes(req, res, url, { isAuthorized, allowedOrigin });
       if (handled) return;
     }
 

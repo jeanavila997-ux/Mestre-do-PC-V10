@@ -18,10 +18,10 @@
             --border: #2a3548;
         }
         * { box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-deep); 
-            color: #e8edf2; 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e8edf2;
             overflow-x: hidden;
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
@@ -41,7 +41,7 @@
 
         /* Grid decorativo de fundo */
         .grid-bg {
-            background-image: 
+            background-image:
                 linear-gradient(rgba(42, 53, 72, 0.3) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(42, 53, 72, 0.3) 1px, transparent 1px);
             background-size: 60px 60px;
@@ -144,10 +144,10 @@
             justify-content: center;
             gap: 10px;
         }
-        .btn-login:hover:not(:disabled) { 
-            background: #00b8dd; 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3); 
+        .btn-login:hover:not(:disabled) {
+            background: #00b8dd;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
         }
         .btn-login:active:not(:disabled) { transform: translateY(0) scale(0.98); }
         .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -172,7 +172,7 @@
                     Bem-vindo ao <span class="gradient-text">painel local</span>
                 </h1>
                 <p class="text-slate-400 text-lg leading-relaxed max-w-md mb-10">
-                    Entre com suas credenciais locais para acessar o painel de diagnóstico, 
+                    Entre com suas credenciais locais para acessar o painel de diagnóstico,
                     automação e IA do Mestre do PC em <code class="text-[#00d4ff] font-mono text-sm">127.0.0.1:7777</code>.
                 </p>
                 <div class="space-y-3 max-w-md">
@@ -290,7 +290,7 @@
                 </div>
 
                 <p class="text-center text-slate-600 text-xs mt-6 leading-relaxed">
-                    🔒 Autenticação local de conveniência. A segurança real do app é feita pela 
+                    🔒 Autenticação local de conveniência. A segurança real do app é feita pela
                     whitelist de operações e tokens do launcher (MESTRE_*_TOKEN).
                 </p>
             </div>
@@ -306,9 +306,13 @@
            texto puro no armazenamento local.
            ===================================================================== */
 
-        const APP_URL = 'http://127.0.0.1:7777';
+        const APP_URL = ['127.0.0.1', 'localhost'].includes(location.hostname)
+            ? location.origin
+            : 'http://127.0.0.1:7777';
         const LS_ACCOUNT = 'mestre-site-account';   // {user, hash}
         const LS_SESSION = 'mestre-site-session';    // {user, expiresAt}
+        const requestedNext = new URLSearchParams(location.search).get('next');
+        const NEXT_PATH = requestedNext && /^\/(?!\/)/.test(requestedNext) ? requestedNext : '/';
 
         // Hash simples (djb2) — apenas para não guardar a senha literal
         function simpleHash(str) {
@@ -483,7 +487,7 @@
 
         function redirectToApp() {
             showSuccess('✅ Painel detectado! Redirecionando em instantes...');
-            setTimeout(() => { window.location.href = APP_URL; }, 900);
+            setTimeout(() => { window.location.href = APP_URL + NEXT_PATH; }, 900);
         }
 
         function showOfflineHelp() {

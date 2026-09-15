@@ -1192,6 +1192,19 @@ const EXTRA_TOOLS = [
       required: [],
     },
   },
+  {
+    name: "mestre_diagnosticar_saude_sistema",
+    description: "Diagnóstico abrangente de saúde do sistema: coleta métricas de CPU, RAM, disco, serviços críticos, eventos do sistema e gera resumo executivo com ações recomendadas. Use para identificar gargalos de performance, serviços falhando, discos com problemas S.M.A.R.T., ou antes de ações de manutenção.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        incluir_historico: { type: "boolean", description: "Incluir histórico recente de erros do Event Viewer", default: false },
+        verificar_smart: { type: "boolean", description: "Verificar saúde do disco via S.M.A.R.T.", default: true },
+        response_format: { type: "string", enum: ["markdown", "json"], description: "Formato da resposta", default: "markdown" },
+      },
+      required: [],
+    },
+  },
 ];
 
 const TOOLS = operationRegistry.buildMcpToolSchemas(EXTRA_TOOLS);
@@ -1404,7 +1417,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "resolver_problema_passo_a_passo") {
     const problema = args?.problema;
     if (!problema) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'problema' obrigatório.");
-    
+
     try {
       const result = await chainOfThought(problema);
       const lines = [
@@ -1427,14 +1440,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "comparar_modelos_ia") {
     const pergunta = args?.pergunta;
     if (!pergunta) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'pergunta' obrigatório.");
-    
+
     const modelosStr = args?.modelos || "qwen2.5-coder:3b-instruct,llama3.1:8b,mistral:7b";
     const modelos = modelosStr.split(",").map(m => m.trim()).filter(m => m);
-    
+
     try {
       const results = await compareModels(pergunta, modelos);
       const lines = [`📊 **Comparação de Modelos**`, ``, `*Pergunta:* ${pergunta}`, ``];
-      
+
       for (const [model, result] of Object.entries(results)) {
         lines.push(`---`);
         lines.push(`🤖 **${model}**`);
@@ -1445,7 +1458,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         lines.push(``);
       }
-      
+
       return { content: [{ type: "text", text: lines.join("\n") }] };
     } catch (error) {
       return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
@@ -1455,7 +1468,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "analisar_codigo_powershell") {
     const codigo = args?.codigo;
     if (!codigo) throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'codigo' obrigatório.");
-    
+
     try {
       const result = await analyzePowerShellCode(codigo);
       const lines = ["🔍 **Análise de Código PowerShell**", "", result.analysis];
@@ -1479,7 +1492,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         messages: [{
           role: "user",
           content: `Descreva APENAS o comando PowerShell exato para esta tarefa (sem explicações, apenas o comando):
-          
+
 Tarefa: ${tarefa}
 
 Responda apenas com o comando PowerShell, nada mais.`,
@@ -1487,7 +1500,7 @@ Responda apenas com o comando PowerShell, nada mais.`,
         system: "Você é um especialista em PowerShell. Responda APENAS com o comando, sem explicações.",
         timeoutMs: 60000,
       });
-      
+
       const comando = result.content.trim();
       // A sugestão é classificada contra a whitelist do launcher: só operações
       // cadastradas são executáveis, e as destrutivas exigem confirmação.
@@ -1533,7 +1546,7 @@ Responda apenas com o comando PowerShell, nada mais.`,
     if (!webhook_url || !mensagem) {
       throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'webhook_url' e 'mensagem' obrigatórios.");
     }
-    
+
     try {
       const result = await sendDiscordWebhook(webhook_url, args?.titulo, mensagem, args?.cor);
       return { content: [{ type: "text", text: `✅ ${result.message}` }] };
@@ -1548,7 +1561,7 @@ Responda apenas com o comando PowerShell, nada mais.`,
     if (!webhook_url || !mensagem) {
       throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'webhook_url' e 'mensagem' obrigatórios.");
     }
-    
+
     try {
       const result = await sendTeamsWebhook(webhook_url, args?.titulo, mensagem, args?.tema);
       return { content: [{ type: "text", text: `✅ ${result.message}` }] };
@@ -1563,7 +1576,7 @@ Responda apenas com o comando PowerShell, nada mais.`,
     if (!webhook_url || !mensagem) {
       throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'webhook_url' e 'mensagem' obrigatórios.");
     }
-    
+
     try {
       const result = await sendSlackWebhook(webhook_url, mensagem, args?.canal, args?.emoji);
       return { content: [{ type: "text", text: `✅ ${result.message}` }] };
@@ -1577,7 +1590,7 @@ Responda apenas com o comando PowerShell, nada mais.`,
     if (!webhook_url) {
       throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'webhook_url' obrigatório.");
     }
-    
+
     try {
       const result = await monitorAndAlert(
         webhook_url,
@@ -1601,11 +1614,11 @@ Responda apenas com o comando PowerShell, nada mais.`,
         action: args?.action,
         limit: args?.limit || 50,
       });
-      
+
       if (entries.length === 0) {
         return { content: [{ type: "text", text: "📝 Nenhum log de auditoria encontrado." }] };
       }
-      
+
       const lines = [`📋 **Logs de Auditoria** (${entries.length} entradas)`, ""];
       for (const entry of entries) {
         const icon = entry.level === AuditLevel.ERROR ? "🔴" :
@@ -1616,7 +1629,7 @@ Responda apenas com o comando PowerShell, nada mais.`,
         lines.push(`   👤 Usuário: ${entry.userId}`);
         lines.push("");
       }
-      
+
       return { content: [{ type: "text", text: lines.join("\n") }] };
     } catch (error) {
       return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
@@ -1631,7 +1644,7 @@ Responda apenas com o comando PowerShell, nada mais.`,
         endDate: args?.end_date,
         limit: args?.limit || 100,
       });
-      
+
       return { content: [{ type: "text", text: report }] };
     } catch (error) {
       return { isError: true, content: [{ type: "text", text: `Falha: ${error.message}` }] };
@@ -2029,6 +2042,178 @@ Responda apenas com o comando PowerShell, nada mais.`,
 
     await auditLog(AuditLevel.INFO, "relatorio_completo_pc", { secoes: sections.length, erros: errors.length });
     return { content: [{ type: "text", text: report }] };
+  }
+
+  // ===== NOVO TOOL: mestre_diagnosticar_saude_sistema =====
+  if (name === "mestre_diagnosticar_saude_sistema") {
+    const { incluir_historico = false, verificar_smart = true, response_format = "markdown" } = args || {};
+    const issues = [];
+    const actionsRecommended = [];
+    const metrics = { smart_status: verificar_smart ? "unknown" : "not_checked" };
+    const servicosCritical = ["wuauserv", "AudioSrv", "LanmanServer", "BITS"];
+    let servicosFalhando = [];
+    let criticalEvents = [];
+
+    try {
+      const statusRes = await fetch(MESTRE_BASE_URL + "/status", { signal: AbortSignal.timeout(5000) });
+      if (!statusRes.ok) throw new Error(`Launcher respondeu HTTP ${statusRes.status}`);
+      const statusData = await statusRes.json();
+      metrics.cpu = Number.isFinite(Number(statusData.cpu)) ? Number(statusData.cpu) : 0;
+
+      const ramTotal = Number(statusData.ramTotal);
+      const ramFree = Number(statusData.ramFree);
+      if (Number.isFinite(ramTotal) && ramTotal > 0 && Number.isFinite(ramFree)) {
+        metrics.ram = {
+          total_gb: ramTotal,
+          free_gb: ramFree,
+          used_percent: Math.round((1 - ramFree / ramTotal) * 100),
+        };
+      }
+
+      const diskUsed = Number(statusData.diskUsed);
+      const diskFree = Number(statusData.diskFree);
+      const diskTotal = diskUsed + diskFree;
+      if (Number.isFinite(diskUsed) && Number.isFinite(diskFree) && diskTotal > 0) {
+        metrics.disk = {
+          total_gb: diskTotal,
+          free_gb: diskFree,
+          used_percent: Math.round(diskUsed / diskTotal * 100),
+        };
+      }
+
+      if (metrics.ram?.used_percent > 90) {
+        issues.push({ severity: "critical", component: "ram", message: `RAM crítica: ${metrics.ram.used_percent}% usada`, recommended_action: "listar_processos_por_uso_de_ram" });
+        actionsRecommended.push({ operation_id: "listar_processos_por_uso_de_ram", reason: "Identificar processos consumindo RAM" });
+      } else if (metrics.ram?.used_percent > 75) {
+        issues.push({ severity: "warning", component: "ram", message: `RAM elevada: ${metrics.ram.used_percent}% usada`, recommended_action: "liberar_memoria_ram_imediatamente" });
+        actionsRecommended.push({ operation_id: "liberar_memoria_ram_imediatamente", reason: "Liberar RAM imediatamente" });
+      }
+
+      if (metrics.disk?.used_percent > 90) {
+        issues.push({ severity: "critical", component: "disk", message: `Disco crítico: ${metrics.disk.used_percent}% usado`, recommended_action: "encontrar_pastas_gigantes_c" });
+        actionsRecommended.push({ operation_id: "encontrar_pastas_gigantes_c", reason: "Identificar pastas grandes" });
+      } else if (metrics.disk?.used_percent > 80) {
+        issues.push({ severity: "warning", component: "disk", message: `Disco atenção: ${metrics.disk.used_percent}% usado`, recommended_action: "limpar_temp_usuario" });
+        actionsRecommended.push({ operation_id: "limpar_temp_usuario", reason: "Limpar arquivos temporários" });
+      }
+
+      try {
+        const serviceResult = await executeLauncherCommand({ id: "listar_servicos_em_execucao" }, { timeoutMs: 60000 });
+        if (!serviceResult.success) throw new Error(serviceResult.output || "consulta falhou");
+        const runningServices = serviceResult.output || "";
+        servicosFalhando = servicosCritical.filter((service) => !new RegExp(`\\b${service}\\b`, "i").test(runningServices));
+        if (servicosFalhando.length > 0) {
+          issues.push({ severity: "warning", component: "services", message: `Serviços críticos parados: ${servicosFalhando.join(", ")}` });
+        }
+      } catch (error) {
+        issues.push({ severity: "warning", component: "services", message: `Não foi possível verificar serviços críticos: ${error.message}` });
+      }
+
+      if (verificar_smart) {
+        try {
+          const smartResult = await executeLauncherCommand({ id: "verificar_saude_do_disco_smart" }, { timeoutMs: 60000 });
+          if (!smartResult.success) throw new Error(smartResult.output || "consulta falhou");
+          metrics.smart_status = /\bTrue\b/i.test(smartResult.output || "") ? "warning" : "healthy";
+          if (metrics.smart_status === "warning") {
+            issues.push({ severity: "critical", component: "disk", message: "S.M.A.R.T. prevê falha em pelo menos um disco" });
+          }
+        } catch (error) {
+          metrics.smart_status = "unknown";
+          issues.push({ severity: "warning", component: "disk", message: `Não foi possível verificar S.M.A.R.T.: ${error.message}` });
+        }
+      }
+
+      if (incluir_historico) {
+        try {
+          const eventsResult = await executeLauncherCommand({ id: "historico_de_erros_do_sistema" }, { timeoutMs: 60000 });
+          if (!eventsResult.success) throw new Error(eventsResult.output || "consulta falhou");
+          criticalEvents = (eventsResult.output || "").split(/\r?\n/).filter((line) => {
+            const value = line.trim();
+            return value && !/^TimeGenerated\b/i.test(value) && !/^-+(\s+-+)+$/.test(value);
+          });
+        } catch (error) {
+          issues.push({ severity: "warning", component: "events", message: `Não foi possível consultar o histórico de erros: ${error.message}` });
+        }
+      }
+
+      const hasCritical = issues.some(i => i.severity === "critical");
+      const hasWarning = issues.some(i => i.severity === "warning");
+      const overallStatus = hasCritical ? "critical" : hasWarning ? "warning" : "healthy";
+      await auditLog(AuditLevel.INFO, "mestre_diagnosticar_saude_sistema", { status: overallStatus, issues_count: issues.length });
+
+      if (response_format === "json") {
+        return {
+          content: [{ type: "text", text: JSON.stringify({
+            status: overallStatus,
+            timestamp: new Date().toISOString(),
+            computer_name: process.env.COMPUTERNAME || "unknown",
+            metrics: {
+              cpu_percent: metrics.cpu,
+              ram: metrics.ram || {},
+              disk: metrics.disk || {},
+              smart_status: metrics.smart_status,
+            },
+            issues,
+            actions_recommended: actionsRecommended,
+            services_failing: servicosFalhando,
+            critical_events_count: criticalEvents.length,
+          }, null, 2) }],
+        };
+      }
+
+      const icon = overallStatus === "critical" ? "❌" : overallStatus === "warning" ? "⚠️" : "✅";
+      const ramText = metrics.ram
+        ? `${metrics.ram.used_percent}% usada (${metrics.ram.free_gb}GB livres de ${metrics.ram.total_gb}GB)`
+        : "indisponível";
+      const diskText = metrics.disk
+        ? `${metrics.disk.used_percent}% usado (${metrics.disk.free_gb}GB livres de ${metrics.disk.total_gb}GB)`
+        : "indisponível";
+      const smartText = metrics.smart_status === "healthy" ? "✅ Saudável"
+        : metrics.smart_status === "warning" ? "⚠️ Problema detectado" : "❓ Não verificado";
+      const lines = [
+        `# ${icon} Diagnóstico de Saúde do Sistema`,
+        `**Computador:** ${process.env.COMPUTERNAME || "desconhecido"}`,
+        `**Gerado em:** ${new Date().toLocaleString("pt-BR")}`,
+        `**Status geral:** ${overallStatus.toUpperCase()}`,
+        "",
+        "## 📊 Métricas",
+        `- **CPU:** ${metrics.cpu}%`,
+        `- **RAM:** ${ramText}`,
+        `- **Disco:** ${diskText}`,
+        `- **S.M.A.R.T.:** ${smartText}`,
+        "",
+      ];
+
+      if (issues.length > 0) {
+        lines.push("## ⚠️ Issues Identificados");
+        for (const issue of issues) {
+          const issueIcon = issue.severity === "critical" ? "❌" : "⚠️";
+          lines.push(`${issueIcon} **${issue.component.toUpperCase()}:** ${issue.message}`);
+        }
+        lines.push("");
+      }
+      if (actionsRecommended.length > 0) {
+        lines.push("## 🛠️ Ações Recomendadas");
+        for (let i = 0; i < actionsRecommended.length; i++) {
+          lines.push(`${i + 1}. **${actionsRecommended[i].operation_id}** — ${actionsRecommended[i].reason}`);
+        }
+        lines.push("");
+      }
+      if (servicosFalhando.length > 0) {
+        lines.push("## 🔧 Serviços Críticos", `Serviços parados: ${servicosFalhando.join(", ")}`, "");
+      }
+      if (incluir_historico) {
+        lines.push("## 📜 Histórico de Erros", `${criticalEvents.length} evento(s) retornado(s).`, "");
+      }
+      lines.push("---", "*Use `relatorio_completo_pc` para detalhes completos.*");
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (error) {
+      await auditLog(AuditLevel.ERROR, "mestre_diagnosticar_saude_sistema_failed", { error: error.message });
+      return {
+        isError: true,
+        content: [{ type: "text", text: `❌ Falha no diagnóstico: ${error.message}\n\nVerifique se o launcher está rodando em ${MESTRE_BASE_URL}.` }]
+      };
+    }
   }
 
   // ===== FIM NOVOS TOOLS V11.2 =====

@@ -522,11 +522,11 @@ export const TOOLS_API = {
     const projectPath = process.env.MESTRE_PROJETO_PATH;
     if (!projectPath) return { error: "MESTRE_PROJETO_PATH não configurado" };
     const msg = fase ? `snapshot: ${fase}` : "snapshot do projeto";
-    const { execSync } = await import("node:child_process");
+    const { execFileSync } = await import("node:child_process");
     try {
-      execSync("git add -A", { cwd: projectPath });
-      execSync(`git commit -m "${msg}"`, { cwd: projectPath });
-      const status = execSync("git log -1 --oneline", { cwd: projectPath }).toString().trim();
+      execFileSync("git", ["add", "-A"], { cwd: projectPath });
+      execFileSync("git", ["commit", "-m", msg], { cwd: projectPath });
+      const status = execFileSync("git", ["log", "-1", "--oneline"], { cwd: projectPath }).toString().trim();
       return { success: true, commit: status };
     } catch (err) {
       return { success: false, error: err.message };

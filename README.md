@@ -1,7 +1,7 @@
 # Mestre do PC V10
 
 [![Website](https://img.shields.io/badge/Website-Live%20Demo-00d4ff?style=for-the-badge&logo=googlechrome)](https://jeanavila997-ux.github.io/Mestre-do-PC-V10/index.html)
-[![Hostinger](https://img.shields.io/badge/Hostinger-avilamix.shop-FFD700?style=for-the-badge&logo=cloudflarepages)](https://avilamix.shop)
+[![Hostinger](https://img.shields.io/badge/Hostinger-vitrinedeapps.cloud-FFD700?style=for-the-badge&logo=cloudflarepages)](https://vitrinedeapps.cloud)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/jeanavila997-ux/Mestre-do-PC-V10)
 [![Git Clone](https://img.shields.io/badge/Git-Clone%20HTTPS-1081C2?style=for-the-badge&logo=git)](https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git)
 [![Issues](https://img.shields.io/github/issues/jeanavila997-ux/Mestre-do-PC-V10?style=for-the-badge)](https://github.com/jeanavila997-ux/Mestre-do-PC-V10/issues)
