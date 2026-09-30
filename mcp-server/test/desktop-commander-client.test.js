@@ -8,11 +8,14 @@ import {
   listDesktopCommanderTools,
 } from "../../v10/chat-integrado/desktop-commander-client.js";
 
+const { installed } = await getDesktopCommanderStatus();
+const maybeTest = installed ? test : test.skip;
+
 after(async () => {
   await closeDesktopCommander();
 });
 
-test("descobre as ferramentas do Desktop Commander", async () => {
+maybeTest("descobre as ferramentas do Desktop Commander", async () => {
   const tools = await listDesktopCommanderTools({ refresh: true });
   const readFile = tools.find((tool) => tool.name === "read_file");
   const writeFile = tools.find((tool) => tool.name === "write_file");
@@ -24,7 +27,7 @@ test("descobre as ferramentas do Desktop Commander", async () => {
   assert.equal(isDesktopCommanderTool("desktop__list_directory"), true);
 });
 
-test("executa uma ferramenta somente leitura", async () => {
+maybeTest("executa uma ferramenta somente leitura", async () => {
   const result = await callDesktopCommanderTool("desktop__get_config", {});
 
   assert.equal(result.provider, "desktop-commander");
@@ -33,7 +36,7 @@ test("executa uma ferramenta somente leitura", async () => {
   assert.ok(result.content.some((item) => item.type === "text"));
 });
 
-test("bloqueia ferramenta destrutiva sem confirmação", async () => {
+maybeTest("bloqueia ferramenta destrutiva sem confirmação", async () => {
   await assert.rejects(
     callDesktopCommanderTool("desktop__write_file", {
       path: "C:\\arquivo-nao-deve-ser-criado.txt",
@@ -43,7 +46,7 @@ test("bloqueia ferramenta destrutiva sem confirmação", async () => {
   );
 });
 
-test("informa status e versão instalada", async () => {
+maybeTest("informa status e versão instalada", async () => {
   const status = await getDesktopCommanderStatus();
 
   assert.equal(status.installed, true);
