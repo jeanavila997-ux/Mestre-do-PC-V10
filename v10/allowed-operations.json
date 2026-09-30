@@ -62,7 +62,7 @@
       "category": "Outros",
       "destructive": true,
       "command": "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Temp\\*\" -Recurse -Force -EA 0; Clear-RecycleBin -Force -EA 0; Write-Host \"✅ Limpeza concluída!\" -ForegroundColor Green",
-      "description": ""
+      "description": "Executa uma limpeza rápida completa no sistema: esvazia a lixeira e limpa pastas temporárias."
     },
     {
       "id": "limpar_temp_usuario",
@@ -70,7 +70,7 @@
       "category": "Limpeza",
       "destructive": true,
       "command": "Remove-Item -Path \"$env:TEMP\\*\" -Recurse -Force -ErrorAction SilentlyContinue",
-      "description": ""
+      "description": "Limpa TEMP Usuário."
     },
     {
       "id": "limpar_temp_do_windows",
@@ -78,7 +78,7 @@
       "category": "Limpeza",
       "destructive": true,
       "command": "Remove-Item -Path \"C:\\Windows\\Temp\\*\" -Recurse -Force -ErrorAction SilentlyContinue",
-      "description": ""
+      "description": "Limpa TEMP do Windows."
     },
     {
       "id": "esvaziar_lixeira",
@@ -86,7 +86,7 @@
       "category": "Limpeza",
       "destructive": true,
       "command": "Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Host \"✅ Lixeira esvaziada!\" -ForegroundColor Green",
-      "description": ""
+      "description": "Esvazia silenciosamente a lixeira do Windows."
     },
     {
       "id": "limpar_cache_do_windows_update",
@@ -150,7 +150,7 @@
       "category": "Limpeza",
       "destructive": true,
       "command": "Get-ChildItem \"$env:USERPROFILE\\Downloads\" -File | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item -Force -EA 0; Write-Host \"✅ Downloads antigos removidos!\" -ForegroundColor Green",
-      "description": ""
+      "description": "Limpa Arquivos Antigos do Downloads."
     },
     {
       "id": "limpar_cache_de_fontes",
@@ -214,7 +214,7 @@
       "category": "Limpeza",
       "destructive": true,
       "command": "ie4uinit.exe -show; Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*\" -Force -EA 0; Write-Host \"✅ Thumbnail cache limpo!\" -ForegroundColor Green",
-      "description": ""
+      "description": "Limpa o cache de miniaturas (thumbnails) do Windows."
     },
     {
       "id": "compactar_winsxs_dism",
@@ -254,7 +254,7 @@
       "category": "Limpeza",
       "destructive": true,
       "command": "Get-ChildItem C:\\ -Recurse -Filter *.tmp -EA 0 | Where-Object { !$_.PSIsContainer } | Remove-Item -Force -EA 0; Write-Host \"✅ Arquivos .tmp removidos!\" -ForegroundColor Green",
-      "description": ""
+      "description": "Remove Arquivos .tmp do Sistema."
     },
     {
       "id": "liberar_memoria_ram_imediatamente",
@@ -886,7 +886,7 @@
       "category": "Git",
       "destructive": true,
       "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git add -A; git commit -m \"feat: atualização automática $(Get-Date -Format dd/MM/yyyy)\"; git push; Write-Host \"✅ Push realizado!\" -ForegroundColor Green",
-      "description": ""
+      "description": "Git Add + Commit + Push."
     },
     {
       "id": "git_pull_atualizar_local",
@@ -2318,7 +2318,7 @@
       "category": "Python",
       "destructive": true,
       "command": "pip cache purge; Write-Host \"✅ Cache do Pip limpo!\" -ForegroundColor Green",
-      "description": ""
+      "description": "Limpa o cache de download do Pip."
     },
     {
       "id": "instalar_pacote_pip_interativo",
@@ -2422,7 +2422,7 @@
       "category": "Segurança",
       "destructive": true,
       "command": "Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green",
-      "description": ""
+      "description": "Ativar Bloqueio de Script Powershell."
     },
     {
       "id": "velocidade_de_download_teste_rapido",
