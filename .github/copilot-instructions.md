@@ -24,6 +24,22 @@ Or run the automated installer as Administrator:
 pwsh -ExecutionPolicy Bypass -File install.ps1
 ```
 
+> **Environment validated on Windows 11 (14/10/2026)** — Node **v24.21.0**, npm **11.19.0**,
+> Ollama **0.40.2**, pwsh **7.6.6**. Node ≥ 22.13.0 is required by `engines`. MySQL/MariaDB is
+> optional; without it the local DB tools stay disabled.
+
+> **npm 11 blocks postinstall scripts** (`install-scripts` gate). Three packages are affected
+> and none of them break the test suite: `@wonderwhy-er/desktop-commander` (only checks for
+> `ripgrep`), `puppeteer` (Chromium download, used only by `md-to-pdf`) and `sharp` (the
+> `@img/sharp-win32-x64` prebuilt is already shipped). Manage with
+> `npm install-scripts ls | approve <pkg> | deny <pkg>`.
+
+> **Always use `127.0.0.1`, never `localhost`, for the Ollama endpoint.** On Windows
+> `localhost` resolves to `::1` (IPv6) first while Ollama listens on IPv4 only, so
+> `Invoke-RestMethod`/`Invoke-WebRequest` hit their `-TimeoutSec` instead of failing fast —
+> that made the desktop shortcut take ~100 s to open (fixed in `start-mestre-v10.ps1`,
+> now 10.8 s).
+
 ### Manual activation after opening the shortcut
 
 The desktop shortcut **only opens the app**. After opening the shortcut, activation is performed manually by the user.
@@ -99,6 +115,14 @@ The MCP test suite lives in `mcp-server/test/` and is organized by concern:
 - `project-smoke.test.js` — project structure smoke tests
 
 Run one file with `node --test test/<file>.js`. CI (`.github/workflows/ci.yml`) runs on Windows with Node 22.x and 24.x, executing `npm ci && npm test` in `mcp-server/` plus `node --check` on `v10/launcher.js`, `mcp-server/index.js`, and `mcp-server/security.js`.
+
+> **The test suite does not isolate the machine.** Tests write to the real `logs/audit/`
+> directory (only `diagnosticar-saude.test.js` isolates it via `MESTRE_AUDIT_LOG_DIR`), and
+> several test files spawn their own launcher on a reserved port. **Stop the real launcher
+> before running `npm test`.** Also, `desktop-commander-client.test.js` really runs when the
+> package is installed: the first cold spawn takes ~22 s and exceeds
+> `CONNECT_TIMEOUT_MS = 20000` (warm cache connects in ~1.95 s) — re-run once before
+> investigating a first-run failure. Reference run: 129 tests, 128 pass, 0 fail, 1 skipped.
 
 ## Architecture
 

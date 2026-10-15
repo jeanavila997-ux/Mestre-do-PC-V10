@@ -2,7 +2,7 @@
 # Mestre do PC V10 - Ativador Completo (atalho do Desktop)
 # ================================================================
 # Ao clicar no atalho, este script:
-#   1. Verifica/ativa o Ollama em localhost:11434
+#   1. Verifica/ativa o Ollama em 127.0.0.1:11434
 #   2. Verifica/ativa o Launcher Mestre do PC em 127.0.0.1:7777
 #   3. Abre a interface web no navegador padrao
 # ================================================================
@@ -12,7 +12,11 @@ $ProgressPreference = "SilentlyContinue"
 
 $InstallDir = $PSScriptRoot
 $OllamaExe = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
-$OllamaApi = "http://localhost:11434"
+# 127.0.0.1 em vez de localhost: "localhost" costuma resolver para ::1 (IPv6)
+# primeiro, e o Ollama escuta apenas em IPv4 — o probe estourava o TimeoutSec
+# de 2s e o script esperava ~100s antes de seguir. Mesmo endereco usado pelo
+# launcher (v10\launcher.js) e pelo .env.example.
+$OllamaApi = "http://127.0.0.1:11434"
 $LauncherUrl = "http://127.0.0.1:7777"
 # V10/V11: o launcher primário é o Node.js (v10\launcher.js). O script
 # MestreDoPC-Launcher.ps1 permanece apenas como redirecionador de compatibilidade.

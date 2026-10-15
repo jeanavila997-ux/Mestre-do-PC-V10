@@ -100,7 +100,7 @@ O **Mestre do PC V10** (ou **Oh My Pi**) é um assistente de automação e manut
 
 
 ## Runtime/Tooling Preferences
-- **Runtime**: Node.js (versão 18+ recomendada).
+- **Runtime**: Node.js **≥ 22.13.0** (exigido por `engines` no `package.json`; validado com v24.21.0).
 - **Gerenciador de Pacotes**: npm.
 - **Banco de Dados**: MySQL ou MariaDB (opcional, para ferramentas locais).
 - **Modelos de IA**: Ollama (local ou cloud).
@@ -179,3 +179,44 @@ export async function handleDbTool(name, args) {
   // ...
 }
 ```
+
+
+## Troubleshooting & Notas de Sessão
+
+### Ambiente validado (14/10/2026)
+
+- Instalação verificada com **Node v24.21.0**, **npm 11.19.0**, **Ollama 0.40.2**, **pwsh 7.6.6** (Windows 11). MySQL/MariaDB ausente — as ferramentas locais de banco ficam desabilitadas.
+- Sequência de instalação: `npm ci --ignore-scripts` (raiz) → `npm ci` (`mcp-server/`) → `npm install` (`v10/`). O `v10/package-lock.json` agora é versionado para instalações reproduzíveis.
+- Suíte de referência: **129 testes, 128 pass, 0 fail, 1 skipped** (~17 s).
+
+### ⚠️ `localhost` vs `127.0.0.1` no Windows
+
+`localhost` resolve primeiro para `::1` (IPv6) e o Ollama escuta **apenas IPv4**. Por isso `Invoke-RestMethod` / `Invoke-WebRequest` com `-TimeoutSec N` **estouram o timeout** (≈2 s por tentativa) em vez de falhar rápido — o atalho do desktop demorava **~100 s** para abrir (corrigido em `start-mestre-v10.ps1`, agora **10,8 s**).
+
+**Use sempre `127.0.0.1`** em scripts, whitelist e UI. Ocorrências ainda pendentes:
+
+| Arquivo | Linhas |
+|---|---|
+| `startup/MestreDoPC-Startup.ps1` | 9, **18** |
+| `v10/allowed-operations.json` | **656**, **2440**, 3184, **3187** |
+| `v10/index.html` | 1064, **1191**, **1192** |
+| `scripts/test_ollama.mjs` | 14, **26** |
+| `scripts/test-ollama.ps1`, `scripts/test-chat-ia.ps1` | 2, 6 |
+
+(`scripts/install.sh` é Linux/WSL — lá `localhost` funciona normalmente.)
+
+### ⚠️ npm 11 — gate `install-scripts`
+
+O npm 11.19 **bloqueia postinstall** por padrão. Neste projeto isso atinge `@wonderwhy-er/desktop-commander` (checagem de `ripgrep`), `puppeteer` (download do Chromium) e `sharp` (prebuilt `@img/sharp-win32-x64` já presente). Nenhum deles bloqueia a suíte de testes. Gerenciar com `npm install-scripts ls | approve <pkg> | deny <pkg>`.
+
+### ⚠️ Os testes NÃO isolam o ambiente
+
+- Escrevem no diretório real `logs/audit/` — apenas `diagnosticar-saude.test.js` isola via `MESTRE_AUDIT_LOG_DIR`.
+- Vários arquivos sobem launchers adicionais em portas reservadas.
+- `desktop-commander-client.test.js` roda de verdade quando o pacote está instalado: o **primeiro spawn a frio leva ~22 s** e estoura `CONNECT_TIMEOUT_MS = 20000`; com cache quente conecta em ~1,95 s. Se só o primeiro run falhar, repita antes de investigar.
+- **Pare o launcher antes de rodar `npm test`**, para não misturar jobs reais com jobs de teste nem poluir a auditoria de produção.
+
+### Relatórios de sessão
+
+- `docs/CONTEXTO-SESSAO-2026-10-14-INSTALACAO-ATALHO.md` — instalação, atalho, bug do `localhost`, incidente das operações interrompidas.
+- `docs/CONTEXTO-SESSAO-RESUMO.md` — sessão anterior (17/08/2026).
