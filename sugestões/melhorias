@@ -1,0 +1,122 @@
+Com base na análise dos arquivos públicos do repositório Mestre-do-PC-V10, apresento o relatório de auditoria seguindo a estrutura solicitada. A avaliação foi limitada aos arquivos acessíveis (README, package.json, arquivos de configuração, launcher.js, index.js do MCP server, CI/CD e estrutura de pastas), sem execução local do projeto. Problemas que exigiriam teste dinâmico ou acesso a arquivos não versionados são tratados como suspeitas ou recomendações.
+
+---
+
+RESUMO EXECUTIVO
+
+Nota geral: 6/10
+
+O projeto é funcional, possui CI configurado e uma estrutura modular com separação clara entre launcher, servidor MCP e extensões. Contudo, foram identificados riscos de segurança relevantes, dependências declaradas sem uso aparente e ausência de containerização, o que impacta reprodutibilidade e manutenção.
+
+Principais riscos:
+
+· Execução de comandos PowerShell com validação baseada em whitelist, mas com um "Modo Livre" que permite execução arbitrária (risco de injeção de comandos).
+· Tokens de autenticação (ex.: MESTRE_EXTENSION_TOKEN) são opcionais e podem ficar vazios por padrão, reduzindo a proteção.
+· Dependências como mysql2 e @qwen-code/cua-sdk estão declaradas mas não foram encontradas em uso no código analisado, aumentando a superfície de ataque e o tempo de instalação.
+· Ausência de Dockerfile ou docker-compose, dificultando a reprodução do ambiente de desenvolvimento e deploy.
+
+Principais oportunidades:
+
+· Remoção de dependências não utilizadas reduz o tamanho do projeto e o risco de vulnerabilidades em pacotes transitivos.
+· Reforço da sanitização de comandos no launcher e revisão do "Modo Livre".
+· Containerização para padronizar o ambiente e facilitar testes.
+· Ampliação da cobertura de testes de segurança.
+
+---
+
+DEPENDÊNCIAS FALTANTES
+
+Nenhuma dependência externa ausente foi confirmada. O código utiliza amplamente módulos nativos do Node.js (node:http, node:child_process, node:fs/promises, node:crypto, node:path, node:url) e o SDK do MCP (@modelcontextprotocol/sdk). O uso de fetch nativo (Node 22+) elimina a necessidade de bibliotecas como axios ou node-fetch. Não foram identificadas importações de pacotes que não estejam declarados nos package.json.
+
+Nota: Caso existam arquivos não versionados ou branches não analisadas, esta conclusão pode não se aplicar.
+
+---
+
+DEPENDÊNCIAS NÃO UTILIZADAS
+
+Dependência Local encontrada Recomendação
+mysql2 v10/package.json e mcp-server/package.json Nenhuma importação ou referência a mysql2 foi encontrada nos arquivos analisados. Recomenda-se remover dos dois package.json e regenerar os lockfiles.
+@modelcontextprotocol/server package.json raiz e mcp-server/package.json O código importa de @modelcontextprotocol/sdk, não de @modelcontextprotocol/server. Este pacote parece ser a versão v2 do SDK, possivelmente redundante. Verificar se há uso indireto; caso contrário, remover.
+@qwen-code/cua-sdk package.json raiz Não foi encontrada referência a @qwen-code/cua-sdk nos arquivos analisados. Pode ser usado em scripts não versionados ou em desenvolvimento futuro. Recomenda-se confirmar o uso antes de remover.
+
+Nota: A ausência de referências pode ser devida a código gerado dinamicamente ou a arquivos não incluídos na análise. A remoção deve ser feita após uma busca global (grep -R "mysql2", grep -R "@qwen-code/cua-sdk") para evitar quebras.
+
+---
+
+ERROS CRÍTICOS
+
+Nenhum erro que impeça build ou execução foi confirmado. O workflow de CI (.github/workflows/ci.yml) executa npm ci e testes no mcp-server, além de verificação de sintaxe com node --check nos principais arquivos. Isso indica que, no estado atual do branch main, a compilação e os testes básicos estão passando.
+
+Suspeitas que merecem atenção (não confirmadas como erros de build):
+
+· O "Modo Livre" no launcher permite execução de comandos PowerShell fora da whitelist quando ativado por variável de ambiente (MESTRE_MODO_LIVRE=1). Embora seja opt-in, a lógica de sanitização não foi auditada em detalhe e pode ser insuficiente contra injeção de comandos.
+· Tokens de extensão e NPP são opcionais e podem ser vazios, o que, se não houver outra camada de autorização, expõe endpoints a origens não confiáveis.
+
+---
+
+MELHORIAS RECOMENDADAS
+
+Alta prioridade
+
+1. Remover dependências não utilizadas (mysql2, @modelcontextprotocol/server se confirmada a redundância, @qwen-code/cua-sdk se não usada) e regenerar os lockfiles.
+2. Auditar e reforçar a segurança do launcher:
+   · Revisar a sanitização de parâmetros em comandos PowerShell para prevenir injeção.
+   · Considerar tornar o "Modo Livre" desabilitado por padrão e exigir confirmação explícita adicional.
+   · Validar que MESTRE_EXTENSION_TOKEN e MESTRE_NPP_TOKEN sejam obrigatórios quando os respectivos recursos estiverem habilitados.
+3. Adicionar Dockerfile e docker-compose.yml para padronizar o ambiente de desenvolvimento e facilitar a reprodução do CI.
+
+Média prioridade
+
+1. Ampliar a cobertura de testes de segurança, incluindo testes de injeção de comandos no launcher e de validação de tokens.
+2. Documentar o processo de deploy e CI/CD no README ou em docs/, explicando o fluxo do GitHub Actions e como rodar os testes localmente.
+3. Verificar a compatibilidade de versões entre @modelcontextprotocol/sdk e @modelcontextprotocol/server (caso ambos sejam mantidos) para evitar conflitos de API.
+
+Baixa prioridade
+
+1. Refatorar código duplicado: a função checkPromptInjection é importada tanto pelo mcp-server quanto pelo v10/launcher.js, sugerindo possível duplicação de lógica. Centralizar em um módulo compartilhado.
+2. Melhorar a modularização do launcher: o arquivo launcher.js concentra muitas responsabilidades (HTTP server, execução de comandos, roteamento de memórias, etc.). Considerar extrair handlers para arquivos separados.
+3. Adicionar badges de status do CI no README para visibilidade.
+
+---
+
+PLANO DE CORREÇÃO
+
+Sequência ideal para implementação:
+
+1. Semana 1 – Limpeza de dependências
+   · Executar grep -R "mysql2", grep -R "@modelcontextprotocol/server", grep -R "@qwen-code/cua-sdk" em todo o repositório para confirmar ausência de uso.
+   · Remover as dependências não utilizadas dos respectivos package.json.
+   · Executar npm install em cada subprojeto para atualizar os lockfiles.
+   · Rodar npm test no mcp-server e verificar o CI.
+2. Semana 2 – Reforço de segurança
+   · Revisar o código de sanitização em v10/launcher.js e mcp-server/security.js.
+   · Adicionar testes unitários para cenários de injeção de comandos.
+   · Tornar tokens obrigatórios quando os recursos de extensão/NPP estiverem ativos.
+   · Documentar as diretrizes de segurança no SECURITY.md.
+3. Semana 3 – Containerização e DevOps
+   · Criar Dockerfile para o v10 e mcp-server (multi-stage build se necessário).
+   · Criar docker-compose.yml para orquestrar launcher + MCP server + Ollama (opcional).
+   · Atualizar o CI para também construir a imagem Docker e executar testes dentro do container.
+4. Semana 4 – Refatoração e documentação
+   · Extrair lógica duplicada para um módulo comum.
+   · Refatorar launcher.js em módulos menores (ex.: routes/, handlers/).
+   · Atualizar o README com instruções de Docker e badges de CI.
+
+---
+
+CHECKLIST FINAL DE CORREÇÃO
+
+☐ Confirmar ausência de uso de mysql2 e removê-lo de v10/package.json e mcp-server/package.json.
+☐ Confirmar ausência de uso de @modelcontextprotocol/server e removê-lo se redundante.
+☐ Confirmar uso de @qwen-code/cua-sdk e removê-lo se não referenciado.
+☐ Auditar sanitização de comandos no launcher e adicionar testes de injeção.
+☐ Tornar MESTRE_EXTENSION_TOKEN e MESTRE_NPP_TOKEN obrigatórios quando aplicável.
+☐ Criar Dockerfile e docker-compose.yml.
+☐ Atualizar CI para incluir build Docker e testes de segurança.
+☐ Refatorar código duplicado (checkPromptInjection).
+☐ Modularizar launcher.js em componentes menores.
+☐ Atualizar documentação de DevOps e segurança.
+
+---
+
+Limitações da auditoria: Esta análise baseou-se exclusivamente nos arquivos públicos do repositório. Problemas que exigem execução do código, análise de dependências transitivas ou acesso a arquivos não versionados não foram avaliados. Recomenda-se complementar com ferramentas de análise estática (ex.: npm audit, eslint, sonarqube) e testes de penetração para uma avaliação completa.
