@@ -96,7 +96,7 @@ MCP Client (Claude Desktop / Copilot / other MCP-compatible agent)
     │  stdio (MCP protocol)
     ▼
 mcp-server/index.js              ← non-elevated; calls launcher over HTTP
-    │  POST /run  (X-Mestre-Client: mcp, no Origin header)
+    │  POST /run  (X-Mestre-Client: mcp + X-Mestre-Mcp-Token, no Origin header)
     ▼
 v10/launcher.js                  ← Node.js HTTP backend on 127.0.0.1:7777
     │  validates request against v10/allowed-operations.json
@@ -130,7 +130,7 @@ Key flows:
 
 - **Never** pass user input directly into PowerShell. Every argument goes through `sanitizeToolArgument()` in `mcp-server/security.js`, which rejects anything outside `[a-zA-Z0-9_. -]` (max 128 chars).
 - **Never** add free-form commands to the normal catalog. Every operation must be registered in `v10/allowed-operations.json` with an `id` and `command` (or a `pattern` + `params` for templated ones); AI-suggested or user-typed commands outside that catalog are rejected outright. The separate `/run-free` endpoint (Modo Livre) exists only as an explicit opt-in escape hatch and logs at `SECURITY` level.
-- **Never** re-enable `file://` access to the UI, restore CORS `*`, or remove origin validation on POST endpoints. Requests are authorized by `X-Mestre-Client`: `mcp` (no Origin), `v10-web` (Origin must equal `BASE_URL`), `browser-extension` (+ `X-Mestre-Extension-Token`), or `notepad-plus-plus` (+ `X-Mestre-Npp-Token`).
+- **Never** re-enable `file://` access to the UI, restore CORS `*`, or remove origin validation on POST endpoints. Requests are authorized by `X-Mestre-Client`: `mcp` (no Origin, + `X-Mestre-Mcp-Token` when `MESTRE_LOCAL_MCP_TOKEN` is set; legacy tokenless mode logs a `SECURITY` warning), `v10-web` (Origin must equal `BASE_URL`), `browser-extension` (+ `X-Mestre-Extension-Token`), or `notepad-plus-plus` (+ `X-Mestre-Npp-Token`).
 - Destructive operations (`desativar_servico`, `encerrar_processo`, `limpar_*`, etc.) and any AI-suggested command require explicit user confirmation before execution.
 - `checkPromptInjection()` in `security.js` scores prompts against ~10 pattern categories (ignore-instructions, persona override, system-prompt leak, privilege escalation, etc.) before they reach Ollama; classifies as `benigno` / `suspeito` / `malicioso`.
 - Use `MESTRE_PROJETO_PATH`; never write personal/absolute paths into the HTML or scripts.
@@ -153,6 +153,7 @@ Key flows:
 | `MESTRE_EXTENSION_TOKEN` | *(empty)* | Auth token for the browser extension (`X-Mestre-Client: browser-extension`) |
 | `MESTRE_EXTENSION_ORIGINS` | *(empty)* | Comma-separated allowed origins for the browser extension |
 | `MESTRE_NPP_TOKEN` | *(empty)* | Auth token for the Notepad++ integration; `/npp` returns 501 until this is set |
+| `MESTRE_LOCAL_MCP_TOKEN` | *(empty)* | Auth token for the `mcp` client on the launcher (`X-Mestre-Mcp-Token`) and for local DB tools. Recommended; empty = legacy tokenless mode with a `SECURITY` warning |
 | `MESTRE_MODO_LIVRE` | *(empty)* | Set to `1` to enable Modo Livre on startup (persisted in `logs/config/modo-livre.json`) |
 | `MESTRE_SOUL_DIR` | *(empty)* | Base directory for agent persona files served by `/soul*` (used by tests to isolate writes; defaults: `v10/chat/Soul.md` and `%USERPROFILE%/SOUL.md`) |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama API base (auto-switches to `https://ollama.com/api` when `OLLAMA_API_KEY` is set) |
