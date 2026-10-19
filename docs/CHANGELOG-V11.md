@@ -1,5 +1,39 @@
 # Mestre do PC V11 - Changelog
 
+## Versão 11.2.0 - Novas Sessões de Comandos + Autenticação MCP
+
+### 🎯 Visão Geral
+
+- **4 novas sessões** no catálogo (`v10/allowed-operations.json`): +52 operações/templates.
+- **Segurança**: fechamento do portão de autenticação do cliente `mcp` no launcher.
+
+### 📦 Novas Sessões (52 comandos)
+
+#### 🚀 Velocidade (9)
+`teste_latencia_cloudflare`, `teste_latencia_google`, `teste_download_cloudflare`, `teste_dns_resolucao`, `ip_publico`, `info_adaptadores_rede`, `status_conexao_internet`, `teste_download_customizado` (`{{TAMANHO}}` MB), `ping_host` (`{{HOST}}`).
+
+#### 🔧 Hardware (11)
+`info_cpu`, `info_ram`, `info_gpu`, `info_placa_mae`, `info_bios`, `saude_disco_smart`, `saude_disco_confiabilidade`, `info_bateria`, `relatorio_bateria`, `temperatura_sistema`, `espaco_disco`.
+
+#### ⚙️ Inicialização (8)
+`listar_programas_inicializacao`, `listar_servicos_automaticos`, `tempo_ultimo_boot`, `tarefas_agendadas_logon`, `tempo_inicializacao_boot`, e ações reversíveis: `desabilitar_tarefa_agendada`, `habilitar_tarefa_agendada`, `servico_startup_manual`.
+
+#### 🛡️ Blue Team (24) — diagnóstico e auditoria defensiva
+Monitoramento: `seg_portas_escuta`, `seg_conexoes_estabelecidas`, `seg_processos_top_cpu`, `seg_servicos_ativos`, `seg_tarefas_prontas`, `seg_sessoes_logon`, `seg_arp`, `seg_dns_cache`, `seg_compartilhamentos`. Segurança: `seg_whoami_all`, `seg_logins_falhos` (4625), `seg_logins_sucesso` (4624), `seg_eventos_sistema`, `seg_admins_locais`, `seg_usuarios_locais`, `seg_autoruns_registro`, `seg_firewall_perfis`. Integridade/defesa: `seg_defender_status`, `seg_hotfix`, `seg_execution_policy`. Templates: `seg_hash_arquivo` (`{{CAMINHO}}`), `seg_eventos_por_id` (`{{ID}}`), `seg_testar_porta` (`{{HOST}}`/`{{PORTA}}`), `seg_status_servico` (`{{NOME}}`).
+
+> Varredura de rede (`nmap`) foi deliberadamente **não incluída**: foge do escopo defensivo-local do produto.
+
+### 🔒 Segurança — autenticação do cliente MCP
+
+- `v10/launcher.js`: `isAuthorized()` para `client === "mcp"` agora exige `X-Mestre-Mcp-Token` válido quando `MESTRE_LOCAL_MCP_TOKEN` está configurado (validação timing-safe via `mcp-server/auth/local-token.js`) e nunca aceita origin externa. Sem o token configurado, mantém o modo legado registrando aviso `SECURITY` (fail-closed ao definir a variável).
+- `mcp-server/index.js`: novo helper `mcpHeaders()` injeta o token nos 6 fetches ao launcher (classify, run, run-status, run-free, modo-livre).
+
+### ✅ Testes
+
+- `mcp-server/test/novas-sessoes.test.js`: whitelist-enforcement das 4 sessões, contrato de resolução e rejeição de injeção nos parâmetros.
+
+---
+
 ## Versão 11.0.0 - Atualização Completa
 
 ### 🎯 Visão Geral

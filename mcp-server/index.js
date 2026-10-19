@@ -18,9 +18,21 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, resolve, extname } from "node:path";
 import { spawn } from "node:child_process";
 
+import { isLocalMcpEnabled } from "./auth/local-token.js"; // força carga de .env.local e expõe o token
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MESTRE_BASE_URL = (process.env.MESTRE_BASE_URL || "http://127.0.0.1:7777").replace(/\/+$/, "");
+// Token local enviado ao launcher para autenticar o cliente "mcp".
+const MCP_LOCAL_TOKEN = process.env.MESTRE_LOCAL_MCP_TOKEN || "";
+if (!isLocalMcpEnabled()) {
+  console.warn("[SEGURANÇA] MESTRE_LOCAL_MCP_TOKEN não configurado: o launcher aceitará 'mcp' em modo legado. Configure .env.local para fechar o portão.");
+}
+function mcpHeaders(extra = {}) {
+  const h = { "Content-Type": "application/json", "X-Mestre-Client": "mcp", ...extra };
+  if (MCP_LOCAL_TOKEN) h["X-Mestre-Mcp-Token"] = MCP_LOCAL_TOKEN;
+  return h;
+}
 const MESTRE_RUN_URL = MESTRE_BASE_URL + "/run";
 const MESTRE_RUN_FREE_URL = MESTRE_BASE_URL + "/run-free";
 const MESTRE_STATUS_URL = MESTRE_BASE_URL + "/run-status";
@@ -219,7 +231,7 @@ async function classifyLauncherCommand(cmd) {
   try {
     const res = await fetch(MESTRE_CLASSIFY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+      headers: mcpHeaders(),
       body: JSON.stringify({ cmd }),
       signal: AbortSignal.timeout(5000),
     });
@@ -242,10 +254,7 @@ async function executeLauncherCommand(commandOrPayload, options = {}) {
 
   const submitRes = await fetch(MESTRE_RUN_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Mestre-Client": "mcp",
-    },
+    headers: mcpHeaders(),
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(options.submitTimeoutMs || 10000),
   });
@@ -272,7 +281,7 @@ async function executeLauncherCommand(commandOrPayload, options = {}) {
   while (Date.now() < deadline) {
     const statusRes = await fetch(
       MESTRE_STATUS_URL + "?id=" + encodeURIComponent(submitData.jobId),
-      { headers: { "X-Mestre-Client": "mcp" }, signal: AbortSignal.timeout(statusTimeoutMs) },
+      { headers: mcpHeaders(), signal: AbortSignal.timeout(statusTimeoutMs) },
     );
     const statusData = await statusRes.json();
 
@@ -318,7 +327,7 @@ async function executeFreeCommand(cmd, options = {}) {
 
   const submitRes = await fetch(MESTRE_RUN_FREE_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    headers: mcpHeaders(),
     body: JSON.stringify({ cmd }),
     signal: AbortSignal.timeout(options.submitTimeoutMs || 10000),
   });
@@ -337,7 +346,7 @@ async function executeFreeCommand(cmd, options = {}) {
   while (Date.now() < deadline) {
     const statusRes = await fetch(
       MESTRE_STATUS_URL + "?id=" + encodeURIComponent(submitData.jobId),
-      { headers: { "X-Mestre-Client": "mcp" }, signal: AbortSignal.timeout(statusTimeoutMs) },
+      { headers: mcpHeaders(), signal: AbortSignal.timeout(statusTimeoutMs) },
     );
     const statusData = await statusRes.json();
     if (statusRes.ok === false) {
@@ -1840,7 +1849,7 @@ Responda apenas com o comando PowerShell, nada mais.`,
       const ttlMs = args?.ttlMs ? Number(args.ttlMs) : 300000;
       const res = await fetch(MESTRE_MODO_LIVRE_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+        headers: mcpHeaders(),
         body: JSON.stringify({ enabled: ativar, ttlMs }),
         signal: AbortSignal.timeout(5000),
       });

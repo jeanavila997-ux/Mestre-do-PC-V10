@@ -20,6 +20,7 @@ import { handleOperationRoutes } from "./operation-routes.js";
 import { handleSoulRoutes } from "./soul-routes.js";
 import { handleComputerUseRoutes } from "./computer-use-routes.js";
 import { isAllowedWebOrigin, isNppOrigin } from "./security/origin-policy.js";
+import { isLocalMcpEnabled, validateLocalMcpToken } from "../mcp-server/auth/local-token.js";
 import { 
   createMemory, 
   listMemories, 
@@ -155,18 +156,39 @@ function isExtensionOrigin(origin) {
   return EXTENSION_ORIGINS.some((allowed) => allowed === origin || (allowed.endsWith("/*") && origin.startsWith(allowed.slice(0, -1))));
 }
 
+let _mcpTokenWarned = false;
+function warnMcpSemToken() {
+  if (_mcpTokenWarned) return;
+  _mcpTokenWarned = true;
+  try {
+    auditLog(AuditLevel.SECURITY, "mcp-sem-token", {
+      msg: "Cliente 'mcp' autenticado sem token (modo legado inseguro). Configure MESTRE_LOCAL_MCP_TOKEN em .env.local para fechar o portão.",
+    });
+  } catch { /* auditLog indisponível: segue */ }
+  console.warn("[SEGURANÇA] Cliente 'mcp' aceito sem token. Configure MESTRE_LOCAL_MCP_TOKEN para exigir autenticação.");
+}
+
 function isAuthorized(req) {
   const origin = req.headers.origin || "";
   const client = req.headers["x-mestre-client"] || "";
-  
+
   // v10-web tem permissão total apenas quando vem do próprio launcher.
   if (client === "v10-web") {
     return isAllowedWebOrigin(origin, BASE_URL);
   }
-  
-  // MCP sem origin é permitido
-  if (!origin && client === "mcp") return true;
-  
+
+  // MCP local: exige o token local quando configurado (fail-closed recomendado).
+  // Nunca aceita origin externa; quando o token não está configurado, mantém o
+  // modo legado (permite sem origin) apenas registrando aviso de segurança.
+  if (client === "mcp") {
+    if (origin && !isAllowedWebOrigin(origin, BASE_URL)) return false;
+    if (isLocalMcpEnabled()) {
+      return validateLocalMcpToken(req.headers["x-mestre-mcp-token"]).valid;
+    }
+    warnMcpSemToken();
+    return !origin;
+  }
+
   // Extensão requer token e origem na allowlist
   if (EXTENSION_TOKEN && client === "browser-extension" && req.headers["x-mestre-extension-token"] === EXTENSION_TOKEN) {
     return !origin || isExtensionOrigin(origin);

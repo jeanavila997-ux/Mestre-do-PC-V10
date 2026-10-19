@@ -2447,6 +2447,350 @@
       "destructive": false,
       "command": "MdSched.exe",
       "description": "Teste de Memória RAM."
+    },
+    {
+      "id": "teste_latencia_cloudflare",
+      "title": "Teste de Latência (Cloudflare 1.1.1.1)",
+      "category": "Velocidade",
+      "destructive": false,
+      "command": "Test-Connection -ComputerName 1.1.1.1 -Count 10 | Measure-Object -Property ResponseTime -Average -Maximum -Minimum | Format-List Average,Maximum,Minimum",
+      "description": "Mede a latência (ping) média, máxima e mínima até o DNS da Cloudflare (1.1.1.1)."
+    },
+    {
+      "id": "teste_latencia_google",
+      "title": "Teste de Latência (Google 8.8.8.8)",
+      "category": "Velocidade",
+      "destructive": false,
+      "command": "Test-Connection -ComputerName 8.8.8.8 -Count 10 | Measure-Object -Property ResponseTime -Average -Maximum -Minimum | Format-List Average,Maximum,Minimum",
+      "description": "Mede a latência (ping) média, máxima e mínima até o DNS do Google (8.8.8.8)."
+    },
+    {
+      "id": "teste_download_cloudflare",
+      "title": "Teste de Velocidade de Download (25 MB)",
+      "category": "Velocidade",
+      "destructive": false,
+      "command": "$u='https://speed.cloudflare.com/__down?bytes=26214400'; $f=Join-Path $env:TEMP 'mdpc_speed.bin'; $t=Measure-Command { Invoke-WebRequest -Uri $u -OutFile $f -UseBasicParsing }; $mbps=[math]::Round((25*8)/$t.TotalSeconds,2); Remove-Item $f -Force -EA 0; Write-Host \"Download: $mbps Mbps (25 MB em $([math]::Round($t.TotalSeconds,2))s)\" -ForegroundColor Green",
+      "description": "Baixa 25 MB da Cloudflare e calcula a velocidade de download em Mbps. Arquivo temporário é apagado ao final."
+    },
+    {
+      "id": "teste_dns_resolucao",
+      "title": "Teste de Tempo de Resolução DNS",
+      "category": "Velocidade",
+      "destructive": false,
+      "command": "$t=Measure-Command { Resolve-DnsName -Name google.com -Type A -EA 0 | Out-Null }; Write-Host \"Resolução DNS de google.com: $([math]::Round($t.TotalMilliseconds,1)) ms\" -ForegroundColor Cyan",
+      "description": "Mede quantos milissegundos o DNS atual leva para resolver google.com."
+    },
+    {
+      "id": "ip_publico",
+      "title": "Mostrar IP Público",
+      "category": "Velocidade",
+      "destructive": false,
+      "command": "try { $ip=(Invoke-RestMethod -Uri 'https://api.ipify.org?format=json' -UseBasicParsing -TimeoutSec 10).ip; Write-Host \"IP público: $ip\" -ForegroundColor Green } catch { Write-Host 'Não foi possível obter o IP público.' -ForegroundColor Yellow }",
+      "description": "Consulta e exibe o endereço IP público atual da conexão."
+    },
+    {
+      "id": "info_adaptadores_rede",
+      "title": "Listar Adaptadores de Rede",
+      "category": "Velocidade",
+      "destructive": false,
+      "command": "Get-NetAdapter | Select-Object Name,InterfaceDescription,Status,LinkSpeed | Format-Table -AutoSize",
+      "description": "Lista os adaptadores de rede com status e velocidade de link negociada."
+    },
+    {
+      "id": "status_conexao_internet",
+      "title": "Status da Conexão com a Internet",
+      "category": "Velocidade",
+      "destructive": false,
+      "command": "Test-NetConnection -ComputerName 1.1.1.1 -InformationLevel Detailed",
+      "description": "Testa conectividade com a internet e mostra detalhes da rota e do ping."
+    },
+    {
+      "id": "info_cpu",
+      "title": "Informações do Processador (CPU)",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_Processor | Select-Object Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed,LoadPercentage | Format-List",
+      "description": "Mostra modelo, núcleos, threads, clock máximo e uso atual do processador."
+    },
+    {
+      "id": "info_ram",
+      "title": "Informações da Memória RAM",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_PhysicalMemory | Select-Object Manufacturer,PartNumber,@{N='GB';E={[math]::Round($_.Capacity/1GB,0)}},Speed,DeviceLocator | Format-Table -AutoSize",
+      "description": "Lista os pentes de RAM instalados: fabricante, capacidade (GB), velocidade e slot."
+    },
+    {
+      "id": "info_gpu",
+      "title": "Informações da Placa de Vídeo (GPU)",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,@{N='VRAM_GB';E={[math]::Round($_.AdapterRAM/1GB,1)}},CurrentHorizontalResolution,CurrentVerticalResolution | Format-List",
+      "description": "Mostra modelo, versão do driver, memória e resolução da(s) placa(s) de vídeo."
+    },
+    {
+      "id": "info_placa_mae",
+      "title": "Informações da Placa-Mãe",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_BaseBoard | Select-Object Manufacturer,Product,SerialNumber,Version | Format-List",
+      "description": "Mostra fabricante, modelo e número de série da placa-mãe."
+    },
+    {
+      "id": "info_bios",
+      "title": "Informações da BIOS/UEFI",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_BIOS | Select-Object Manufacturer,SMBIOSBIOSVersion,ReleaseDate,SerialNumber | Format-List",
+      "description": "Mostra fabricante, versão e data de lançamento da BIOS/UEFI."
+    },
+    {
+      "id": "saude_disco_smart",
+      "title": "Saúde dos Discos (SMART)",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-PhysicalDisk | Select-Object FriendlyName,MediaType,@{N='Tamanho_GB';E={[math]::Round($_.Size/1GB,0)}},HealthStatus,OperationalStatus | Format-Table -AutoSize",
+      "description": "Mostra o estado de saúde (SMART) de cada disco físico: HD/SSD, tamanho e status."
+    },
+    {
+      "id": "saude_disco_confiabilidade",
+      "title": "Confiabilidade dos Discos (desgaste SSD)",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-PhysicalDisk | Get-StorageReliabilityCounter | Select-Object DeviceId,Wear,Temperature,ReadErrorsTotal,WriteErrorsTotal,PowerOnHours | Format-Table -AutoSize",
+      "description": "Mostra desgaste (Wear) do SSD, temperatura, erros de leitura/escrita e horas ligado."
+    },
+    {
+      "id": "info_bateria",
+      "title": "Informações da Bateria",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_Battery | Select-Object Name,EstimatedChargeRemaining,BatteryStatus,DesignCapacity,FullChargeCapacity | Format-List",
+      "description": "Mostra carga atual, status e capacidade da bateria (notebooks)."
+    },
+    {
+      "id": "relatorio_bateria",
+      "title": "Gerar Relatório de Bateria (HTML)",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "$out=Join-Path $env:USERPROFILE 'Desktop\\relatorio-bateria.html'; powercfg /batteryreport /output \"$out\"; if (Test-Path $out) { Write-Host \"Relatório salvo em: $out\" -ForegroundColor Green } else { Write-Host 'Não foi possível gerar (sem bateria?).' -ForegroundColor Yellow }",
+      "description": "Gera um relatório completo de saúde da bateria em HTML na Área de Trabalho."
+    },
+    {
+      "id": "temperatura_sistema",
+      "title": "Temperatura do Sistema (se suportado)",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "try { $z=Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature -EA Stop; $z | ForEach-Object { Write-Host (\"Zona: {0:N1} C\" -f (($_.CurrentTemperature/10)-273.15)) -ForegroundColor Cyan } } catch { Write-Host 'Sensor de temperatura não exposto por este hardware/BIOS.' -ForegroundColor Yellow }",
+      "description": "Tenta ler a temperatura via ACPI/WMI. Nem todo hardware expõe esse sensor."
+    },
+    {
+      "id": "espaco_disco",
+      "title": "Espaço Livre nos Discos",
+      "category": "Hardware",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_LogicalDisk -Filter 'DriveType=3' | Select-Object DeviceID,@{N='Total_GB';E={[math]::Round($_.Size/1GB,1)}},@{N='Livre_GB';E={[math]::Round($_.FreeSpace/1GB,1)}},@{N='Livre_%';E={[math]::Round($_.FreeSpace/$_.Size*100,0)}} | Format-Table -AutoSize",
+      "description": "Mostra espaço total, livre e percentual livre de cada disco fixo."
+    },
+    {
+      "id": "listar_programas_inicializacao",
+      "title": "Listar Programas de Inicialização",
+      "category": "Inicialização",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,Location,User | Format-Table -AutoSize",
+      "description": "Lista os programas que iniciam junto com o Windows e de onde são carregados."
+    },
+    {
+      "id": "listar_servicos_automaticos",
+      "title": "Listar Serviços Automáticos",
+      "category": "Inicialização",
+      "destructive": false,
+      "command": "Get-CimInstance Win32_Service -Filter \"StartMode='Auto'\" | Select-Object Name,DisplayName,State | Sort-Object State | Format-Table -AutoSize",
+      "description": "Lista os serviços configurados para iniciar automaticamente e o estado atual."
+    },
+    {
+      "id": "tempo_ultimo_boot",
+      "title": "Data/Hora do Último Boot",
+      "category": "Inicialização",
+      "destructive": false,
+      "command": "$b=(Get-CimInstance Win32_OperatingSystem).LastBootUpTime; $up=(Get-Date)-$b; Write-Host (\"Último boot: {0:dd/MM/yyyy HH:mm} | Ligado há {1}d {2}h {3}m\" -f $b,$up.Days,$up.Hours,$up.Minutes) -ForegroundColor Cyan",
+      "description": "Mostra quando o computador foi ligado pela última vez e há quanto tempo está ligado."
+    },
+    {
+      "id": "tarefas_agendadas_logon",
+      "title": "Tarefas Agendadas no Logon/Boot",
+      "category": "Inicialização",
+      "destructive": false,
+      "command": "Get-ScheduledTask | Where-Object { $_.Triggers.CimClass.CimClassName -match 'Logon|Boot' -and $_.State -ne 'Disabled' } | Select-Object TaskName,TaskPath,State | Format-Table -AutoSize",
+      "description": "Lista tarefas agendadas que disparam no logon ou no boot (fora as já desativadas)."
+    },
+    {
+      "id": "tempo_inicializacao_boot",
+      "title": "Tempo de Inicialização (últimos boots)",
+      "category": "Inicialização",
+      "destructive": false,
+      "command": "Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Diagnostics-Performance/Operational';Id=100} -MaxEvents 5 -EA 0 | ForEach-Object { $x=[xml]$_.ToXml(); $ms=[int]($x.Event.EventData.Data | Where-Object {$_.Name -eq 'BootTime'}).'#text'; Write-Host (\"{0:dd/MM HH:mm} -> {1}s\" -f $_.TimeCreated,[math]::Round($ms/1000,1)) }",
+      "description": "Mostra o tempo de boot (em segundos) dos últimos 5 inícios do Windows."
+    },
+    {
+      "id": "seg_whoami_all",
+      "title": "Identidade, Grupos e Privilégios",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "whoami /all",
+      "description": "Mostra o usuário atual, grupos e privilégios (whoami /all)."
+    },
+    {
+      "id": "seg_portas_escuta",
+      "title": "Portas em Escuta (Listen)",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess,@{N='Processo';E={(Get-Process -Id $_.OwningProcess -EA 0).ProcessName}} | Sort-Object LocalPort | Format-Table -AutoSize",
+      "description": "Lista as portas TCP em escuta e o processo dono de cada uma."
+    },
+    {
+      "id": "seg_conexoes_estabelecidas",
+      "title": "Conexões TCP Estabelecidas",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-NetTCPConnection -State Established | Select-Object LocalPort,RemoteAddress,RemotePort,OwningProcess,@{N='Processo';E={(Get-Process -Id $_.OwningProcess -EA 0).ProcessName}} | Format-Table -AutoSize",
+      "description": "Lista conexões TCP ativas com endereço remoto e processo dono."
+    },
+    {
+      "id": "seg_processos_top_cpu",
+      "title": "Processos que Mais Usam CPU",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Name,Id,CPU,@{N='RAM_MB';E={[math]::Round($_.WS/1MB,1)}} | Format-Table -AutoSize",
+      "description": "Mostra os 10 processos que mais consomem CPU."
+    },
+    {
+      "id": "seg_servicos_ativos",
+      "title": "Serviços em Execução",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-Service | Where-Object Status -eq 'Running' | Select-Object Name,DisplayName | Sort-Object Name | Format-Table -AutoSize",
+      "description": "Lista todos os serviços atualmente em execução."
+    },
+    {
+      "id": "seg_tarefas_prontas",
+      "title": "Tarefas Agendadas Ativas",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-ScheduledTask | Where-Object State -eq 'Ready' | Select-Object TaskName,TaskPath | Format-Table -AutoSize",
+      "description": "Lista as tarefas agendadas prontas para disparar."
+    },
+    {
+      "id": "seg_logins_falhos",
+      "title": "Logins Falhos (Evento 4625)",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='Conta';E={$_.Properties[5].Value}},@{N='Origem';E={$_.Properties[19].Value}} | Format-Table -AutoSize",
+      "description": "Mostra as 20 tentativas de login mal-sucedidas mais recentes (requer admin)."
+    },
+    {
+      "id": "seg_logins_sucesso",
+      "title": "Logins Bem-sucedidos (Evento 4624)",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4624} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='Conta';E={$_.Properties[5].Value}} | Format-Table -AutoSize",
+      "description": "Mostra os 20 logins bem-sucedidos mais recentes (requer admin)."
+    },
+    {
+      "id": "seg_eventos_sistema",
+      "title": "Últimos Eventos do Sistema",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-WinEvent -LogName System -MaxEvents 20 -EA 0 | Select-Object TimeCreated,LevelDisplayName,Id,ProviderName | Format-Table -AutoSize",
+      "description": "Mostra os 20 eventos mais recentes do log do Sistema."
+    },
+    {
+      "id": "seg_admins_locais",
+      "title": "Membros do Grupo Administradores",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-LocalGroupMember -Group Administrators | Select-Object Name,ObjectClass,PrincipalSource | Format-Table -AutoSize",
+      "description": "Lista quem tem privilégio de administrador local na máquina."
+    },
+    {
+      "id": "seg_usuarios_locais",
+      "title": "Contas de Usuário Locais",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-LocalUser | Select-Object Name,Enabled,LastLogon,PasswordRequired,PasswordExpires | Format-Table -AutoSize",
+      "description": "Lista as contas locais, se estão habilitadas e status de senha."
+    },
+    {
+      "id": "seg_execution_policy",
+      "title": "Políticas de Execução do PowerShell",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-ExecutionPolicy -List | Format-Table -AutoSize",
+      "description": "Mostra as políticas de execução do PowerShell por escopo."
+    },
+    {
+      "id": "seg_defender_status",
+      "title": "Status do Microsoft Defender",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-MpComputerStatus | Select-Object AMRunningMode,RealTimeProtectionEnabled,AntivirusEnabled,AntivirusSignatureLastUpdated,QuickScanEndTime | Format-List",
+      "description": "Mostra se o Defender está ativo, com proteção em tempo real e assinaturas atualizadas."
+    },
+    {
+      "id": "seg_hotfix",
+      "title": "Atualizações/Correções Instaladas",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 25 HotFixID,Description,InstalledOn | Format-Table -AutoSize",
+      "description": "Lista as 25 correções (KB) mais recentes instaladas no Windows."
+    },
+    {
+      "id": "seg_firewall_perfis",
+      "title": "Status do Firewall (perfis)",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-NetFirewallProfile | Select-Object Name,Enabled,DefaultInboundAction,DefaultOutboundAction | Format-Table -AutoSize",
+      "description": "Mostra se o firewall está ativo em cada perfil (Domínio, Privado, Público)."
+    },
+    {
+      "id": "seg_compartilhamentos",
+      "title": "Compartilhamentos de Rede",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-SmbShare | Select-Object Name,Path,Description | Format-Table -AutoSize",
+      "description": "Lista as pastas compartilhadas via rede (SMB) nesta máquina."
+    },
+    {
+      "id": "seg_dns_cache",
+      "title": "Cache de DNS do Cliente",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "Get-DnsClientCache | Select-Object Entry,RecordName,Data | Format-Table -AutoSize",
+      "description": "Mostra as entradas de DNS em cache (domínios resolvidos recentemente)."
+    },
+    {
+      "id": "seg_arp",
+      "title": "Tabela ARP (dispositivos na rede)",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "arp -a",
+      "description": "Mostra os dispositivos conhecidos na rede local (tabela ARP)."
+    },
+    {
+      "id": "seg_autoruns_registro",
+      "title": "Programas de Autorun (Registro)",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run','HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' | ForEach-Object { Write-Host \"== $_\" -ForegroundColor Cyan; Get-ItemProperty $_ -EA 0 | Format-List }",
+      "description": "Lista os programas configurados para autostart nas chaves Run do Registro (HKLM e HKCU)."
+    },
+    {
+      "id": "seg_sessoes_logon",
+      "title": "Sessões de Logon Ativas",
+      "category": "Blue Team",
+      "destructive": false,
+      "command": "query user 2>$null; if (-not $?) { Get-CimInstance Win32_LogonSession | Select-Object LogonId,LogonType,StartTime | Format-Table -AutoSize }",
+      "description": "Mostra as sessões de usuário ativas na máquina."
     }
   ],
   "templates": [
@@ -3786,6 +4130,106 @@
         "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
       },
       "description": "Instala um pacote via Chocolatey (requer choco instalado). Informe o parâmetro 'pacote' com o nome do pacote."
+    },
+    {
+      "id": "teste_download_customizado",
+      "title": "Teste de Download (tamanho personalizado)",
+      "category": "Velocidade",
+      "destructive": false,
+      "pattern": "$mb={{TAMANHO}}; $u=\"https://speed.cloudflare.com/__down?bytes=$([int]$mb*1048576)\"; $f=Join-Path $env:TEMP 'mdpc_speed.bin'; $t=Measure-Command { Invoke-WebRequest -Uri $u -OutFile $f -UseBasicParsing }; $mbps=[math]::Round(($mb*8)/$t.TotalSeconds,2); Remove-Item $f -Force -EA 0; Write-Host \"Download: $mbps Mbps ($mb MB em $([math]::Round($t.TotalSeconds,2))s)\" -ForegroundColor Green",
+      "params": {
+        "tamanho": "^[1-9][0-9]{0,3}$"
+      },
+      "description": "Baixa a quantidade de MB informada em 'tamanho' (1 a 9999) e calcula a velocidade em Mbps."
+    },
+    {
+      "id": "ping_host",
+      "title": "Ping para um Host",
+      "category": "Velocidade",
+      "destructive": false,
+      "pattern": "Test-Connection -ComputerName \"{{HOST}}\" -Count 8 | Measure-Object -Property ResponseTime -Average -Maximum -Minimum | Format-List Average,Maximum,Minimum",
+      "params": {
+        "host": "^[A-Za-z0-9.-]{1,253}$"
+      },
+      "description": "Faz ping (8 pacotes) para o host informado em 'host' (domínio ou IP) e mostra a latência."
+    },
+    {
+      "id": "desabilitar_tarefa_agendada",
+      "title": "Desabilitar Tarefa Agendada",
+      "category": "Inicialização",
+      "destructive": true,
+      "pattern": "Disable-ScheduledTask -TaskName \"{{NOME}}\" -EA 0; if ($?) { Write-Host \"✅ Tarefa '{{NOME}}' desabilitada.\" -ForegroundColor Green } else { Write-Host \"⚠️ Tarefa '{{NOME}}' não encontrada.\" -ForegroundColor Yellow }",
+      "params": {
+        "nome": "^[A-Za-z0-9 ._-]{1,128}$"
+      },
+      "description": "Desabilita (reversível) uma tarefa agendada pelo nome. Use 'nome' com o TaskName exato."
+    },
+    {
+      "id": "habilitar_tarefa_agendada",
+      "title": "Habilitar Tarefa Agendada",
+      "category": "Inicialização",
+      "destructive": true,
+      "pattern": "Enable-ScheduledTask -TaskName \"{{NOME}}\" -EA 0; if ($?) { Write-Host \"✅ Tarefa '{{NOME}}' habilitada.\" -ForegroundColor Green } else { Write-Host \"⚠️ Tarefa '{{NOME}}' não encontrada.\" -ForegroundColor Yellow }",
+      "params": {
+        "nome": "^[A-Za-z0-9 ._-]{1,128}$"
+      },
+      "description": "Habilita novamente uma tarefa agendada pelo nome (TaskName exato)."
+    },
+    {
+      "id": "servico_startup_manual",
+      "title": "Mudar Serviço para Início Manual",
+      "category": "Inicialização",
+      "destructive": true,
+      "pattern": "Set-Service -Name \"{{NOME}}\" -StartupType Manual -EA 0; if ($?) { Write-Host \"✅ Serviço '{{NOME}}' agora inicia em modo Manual.\" -ForegroundColor Green } else { Write-Host \"⚠️ Serviço '{{NOME}}' não encontrado ou sem permissão.\" -ForegroundColor Yellow }",
+      "params": {
+        "nome": "^[A-Za-z0-9 ._-]{1,128}$"
+      },
+      "description": "Muda um serviço de Automático para Manual (reversível), reduzindo o peso no boot. Use o Name do serviço."
+    },
+    {
+      "id": "seg_hash_arquivo",
+      "title": "Hash SHA-256 de um Arquivo",
+      "category": "Blue Team",
+      "destructive": false,
+      "pattern": "Get-FileHash -LiteralPath \"{{CAMINHO}}\" -Algorithm SHA256 | Format-List Algorithm,Hash,Path",
+      "params": {
+        "caminho": "^[A-Za-z0-9 :._()\\\\-]{1,260}$"
+      },
+      "description": "Gera o hash SHA-256 de um arquivo. Informe 'caminho' com o caminho completo (ex: C:\\Windows\\System32\\cmd.exe)."
+    },
+    {
+      "id": "seg_eventos_por_id",
+      "title": "Buscar Eventos de Segurança por ID",
+      "category": "Blue Team",
+      "destructive": false,
+      "pattern": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id={{ID}}} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,Id,@{N='Conta';E={$_.Properties[5].Value}} | Format-Table -AutoSize",
+      "params": {
+        "id": "^[0-9]{1,5}$"
+      },
+      "description": "Busca os últimos 20 eventos do log de Segurança com o ID informado (ex: 4625, 4720)."
+    },
+    {
+      "id": "seg_testar_porta",
+      "title": "Testar Porta TCP em um Host",
+      "category": "Blue Team",
+      "destructive": false,
+      "pattern": "Test-NetConnection -ComputerName \"{{HOST}}\" -Port {{PORTA}} -InformationLevel Detailed",
+      "params": {
+        "host": "^[A-Za-z0-9.-]{1,253}$",
+        "porta": "^[0-9]{1,5}$"
+      },
+      "description": "Testa se uma porta TCP está acessível num host. Use 'host' (domínio/IP) e 'porta' (ex: 443)."
+    },
+    {
+      "id": "seg_status_servico",
+      "title": "Status de um Serviço",
+      "category": "Blue Team",
+      "destructive": false,
+      "pattern": "Get-Service -Name \"{{NOME}}\" -EA 0 | Select-Object Name,DisplayName,Status,StartType | Format-List",
+      "params": {
+        "nome": "^[A-Za-z0-9 ._-]{1,128}$"
+      },
+      "description": "Mostra o status e o tipo de início de um serviço. Use 'nome' com o Name do serviço (ex: Spooler)."
     }
   ]
 }
