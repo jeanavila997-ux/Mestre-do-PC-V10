@@ -10,6 +10,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { checkPromptInjection } from "./security.js";
 import { auditLog, AuditLevel, queryAuditLog } from "./audit-logger.js";
+import { nexoBridge } from "./nexo-bridge.js";
 import { loadOperationRegistry } from "../v10/operation-registry.js";
 import { readFile, readdir, access, constants } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -1210,11 +1211,19 @@ const EXTRA_TOOLS = [
 const TOOLS = operationRegistry.buildMcpToolSchemas(EXTRA_TOOLS);
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return { tools: TOOLS };
+  // Concatena dinamicamente as tools da ponte NEXO (sessão nexo_*), quando
+  // disponíveis. Se a ponte não estiver pronta, getToolSchemas() devolve [].
+  return { tools: [...TOOLS, ...nexoBridge.getToolSchemas()] };
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+
+  // Sessão de funções NEXO: encaminha nexo_* para o nexo-core via ponte MCP.
+  // O gate de segurança (confirm/dry_run) é decidido no núcleo do nexo.
+  if (nexoBridge.isNexoTool(name)) {
+    return nexoBridge.callTool(name, args);
+  }
 
   if (name === "verificar_modelo_ollama") {
     try {
@@ -2253,9 +2262,26 @@ Responda apenas com o comando PowerShell, nada mais.`,
 });
 
 async function startServer() {
+  // Inicia a ponte NEXO antes de conectar o transporte, para que as tools
+  // nexo_* já apareçam no primeiro tools/list. Nunca bloqueia o boot: se o
+  // nexo-core não estiver presente/saudável, o Mestre segue vivo sem elas.
+  try {
+    await nexoBridge.start();
+  } catch (e) {
+    console.error(`[nexo-bridge] ignorada por erro inesperado: ${e.message}`);
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Mestre do PC V10 MCP Server iniciado em stdio.");
+}
+
+// Encerra o subprocesso nexo-core junto com o servidor.
+for (const sig of ["SIGINT", "SIGTERM"]) {
+  process.on(sig, () => {
+    try { nexoBridge.stop(); } catch { /* noop */ }
+    process.exit(0);
+  });
 }
 
 startServer().catch((error) => {
