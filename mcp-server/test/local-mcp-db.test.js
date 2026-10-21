@@ -1,3 +1,6 @@
+// Deve vir antes de auth/local-token.js: fixa o cenário "sem token" e impede
+// que o .env.local real (com token gerado pelo launcher) vaze para os testes.
+import "./helpers/no-token-env.js";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { getDbExtraTools, handleDbTool } from "../db/mcp-db-tools.js";

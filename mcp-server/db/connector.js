@@ -3,34 +3,11 @@
 // Pool é criado sob demanda e reutilizado durante a vida do processo.
 
 import { createPool } from "mysql2/promise";
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { dirname, join, resolve } from "node:path";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, "../..");
-
-async function loadEnvLocal() {
-  const envPath = join(PROJECT_ROOT, ".env.local");
-  if (!existsSync(envPath)) return;
-  try {
-    const content = await readFile(envPath, "utf8");
-    for (const line of content.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const eq = trimmed.indexOf("=");
-      if (eq === -1) continue;
-      const key = trimmed.slice(0, eq).trim();
-      const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
-      if (process.env[key] == null) process.env[key] = value;
-    }
-  } catch {
-    // ignore
-  }
-}
-
-await loadEnvLocal();
+// auth/local-token.js já carrega o .env.local na importação, respeitando
+// MESTRE_ENV_LOCAL_PATH (usado pelos testes para isolar o arquivo). Importamos
+// por efeito colateral em vez de duplicar o carregador aqui — a duplicata
+// anterior ignorava MESTRE_ENV_LOCAL_PATH e vazava o .env.local real.
+import "../auth/local-token.js";
 
 function buildConfig() {
   // Suporte a dois modos:
