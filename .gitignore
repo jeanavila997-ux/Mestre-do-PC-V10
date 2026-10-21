@@ -35,7 +35,8 @@ desktop.ini
 
 .vscode/
 .idea/
-.claude/
+.claude/*
+!.claude/commands/
 .codex/
 .agents/
 .cursor/
