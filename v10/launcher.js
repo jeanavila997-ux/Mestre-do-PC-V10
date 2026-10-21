@@ -20,7 +20,7 @@ import { handleOperationRoutes } from "./operation-routes.js";
 import { handleSoulRoutes } from "./soul-routes.js";
 import { handleComputerUseRoutes } from "./computer-use-routes.js";
 import { isAllowedWebOrigin, isNppOrigin } from "./security/origin-policy.js";
-import { isLocalMcpEnabled, validateLocalMcpToken } from "../mcp-server/auth/local-token.js";
+import { isLocalMcpEnabled, validateLocalMcpToken, ensureLocalMcpToken, isLegacyMcpAllowed } from "../mcp-server/auth/local-token.js";
 import { 
   createMemory, 
   listMemories, 
@@ -156,16 +156,32 @@ function isExtensionOrigin(origin) {
   return EXTENSION_ORIGINS.some((allowed) => allowed === origin || (allowed.endsWith("/*") && origin.startsWith(allowed.slice(0, -1))));
 }
 
+// Fail-closed: o cliente "mcp" sempre exige token. Se o .env.local ainda não
+// tem MESTRE_LOCAL_MCP_TOKEN, o launcher gera um na inicialização e grava lá
+// (o MCP server lê o mesmo arquivo). O modo legado sem token só existe com
+// MESTRE_ALLOW_LEGACY_MCP=1, como saída de emergência.
+try {
+  const mcpToken = await ensureLocalMcpToken();
+  if (mcpToken.status === "created") {
+    console.log(`[SEGURANÇA] MESTRE_LOCAL_MCP_TOKEN gerado em ${mcpToken.path}. Reinicie o MCP server para ele usar o token.`);
+    try { auditLog(AuditLevel.SECURITY, "mcp-token-gerado", { path: mcpToken.path }); } catch { /* segue */ }
+  } else if (mcpToken.status === "legacy") {
+    console.warn("[SEGURANÇA] MESTRE_ALLOW_LEGACY_MCP=1: cliente 'mcp' aceito sem token. Use só em emergência.");
+  }
+} catch (e) {
+  console.error(`[SEGURANÇA] Não foi possível gerar MESTRE_LOCAL_MCP_TOKEN (${e.message}). O cliente 'mcp' ficará bloqueado até o token ser configurado.`);
+}
+
 let _mcpTokenWarned = false;
 function warnMcpSemToken() {
   if (_mcpTokenWarned) return;
   _mcpTokenWarned = true;
   try {
     auditLog(AuditLevel.SECURITY, "mcp-sem-token", {
-      msg: "Cliente 'mcp' autenticado sem token (modo legado inseguro). Configure MESTRE_LOCAL_MCP_TOKEN em .env.local para fechar o portão.",
+      msg: "Cliente 'mcp' autenticado sem token via MESTRE_ALLOW_LEGACY_MCP=1 (modo legado inseguro).",
     });
   } catch { /* auditLog indisponível: segue */ }
-  console.warn("[SEGURANÇA] Cliente 'mcp' aceito sem token. Configure MESTRE_LOCAL_MCP_TOKEN para exigir autenticação.");
+  console.warn("[SEGURANÇA] Cliente 'mcp' aceito sem token (MESTRE_ALLOW_LEGACY_MCP=1).");
 }
 
 function isAuthorized(req) {
@@ -177,14 +193,14 @@ function isAuthorized(req) {
     return isAllowedWebOrigin(origin, BASE_URL);
   }
 
-  // MCP local: exige o token local quando configurado (fail-closed recomendado).
-  // Nunca aceita origin externa; quando o token não está configurado, mantém o
-  // modo legado (permite sem origin) apenas registrando aviso de segurança.
+  // MCP local: sempre exige o token (fail-closed). Nunca aceita origin externa.
+  // Sem token configurado, só passa com opt-in explícito do modo legado.
   if (client === "mcp") {
     if (origin && !isAllowedWebOrigin(origin, BASE_URL)) return false;
     if (isLocalMcpEnabled()) {
       return validateLocalMcpToken(req.headers["x-mestre-mcp-token"]).valid;
     }
+    if (!isLegacyMcpAllowed()) return false;
     warnMcpSemToken();
     return !origin;
   }

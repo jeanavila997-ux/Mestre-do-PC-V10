@@ -18,19 +18,23 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, resolve, extname } from "node:path";
 import { spawn } from "node:child_process";
 
-import { isLocalMcpEnabled } from "./auth/local-token.js"; // força carga de .env.local e expõe o token
+import { isLocalMcpEnabled, refreshLocalMcpTokenFromFile } from "./auth/local-token.js"; // força carga de .env.local e expõe o token
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MESTRE_BASE_URL = (process.env.MESTRE_BASE_URL || "http://127.0.0.1:7777").replace(/\/+$/, "");
-// Token local enviado ao launcher para autenticar o cliente "mcp".
-const MCP_LOCAL_TOKEN = process.env.MESTRE_LOCAL_MCP_TOKEN || "";
+// Token local enviado ao launcher para autenticar o cliente "mcp". O launcher
+// é fail-closed: sem token, ele recusa este cliente. Se o .env.local ainda não
+// tem o token, o launcher o gera no boot; por isso relemos o arquivo a cada
+// chamada enquanto o token estiver ausente.
 if (!isLocalMcpEnabled()) {
-  console.warn("[SEGURANÇA] MESTRE_LOCAL_MCP_TOKEN não configurado: o launcher aceitará 'mcp' em modo legado. Configure .env.local para fechar o portão.");
+  console.warn("[SEGURANÇA] MESTRE_LOCAL_MCP_TOKEN não configurado ainda. O launcher o gera em .env.local ao iniciar; até lá, as chamadas ao launcher serão recusadas.");
 }
 function mcpHeaders(extra = {}) {
+  refreshLocalMcpTokenFromFile();
   const h = { "Content-Type": "application/json", "X-Mestre-Client": "mcp", ...extra };
-  if (MCP_LOCAL_TOKEN) h["X-Mestre-Mcp-Token"] = MCP_LOCAL_TOKEN;
+  const token = process.env.MESTRE_LOCAL_MCP_TOKEN || "";
+  if (token) h["X-Mestre-Mcp-Token"] = token;
   return h;
 }
 const MESTRE_RUN_URL = MESTRE_BASE_URL + "/run";

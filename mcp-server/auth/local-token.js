@@ -7,17 +7,25 @@
 // ficam desabilitados por segurança.
 
 import { randomBytes } from "node:crypto";
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
+import { readFile, writeFile, chmod } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, "../..");
+const TOKEN_KEY = "MESTRE_LOCAL_MCP_TOKEN";
+const TOKEN_LINE_RE = /^[ \t]*MESTRE_LOCAL_MCP_TOKEN[ \t]*=.*$/m;
+
+// Caminho do .env.local. MESTRE_ENV_LOCAL_PATH existe para testes isolarem o
+// arquivo; em uso normal é sempre <raiz do projeto>/.env.local.
+export function getEnvLocalPath() {
+  return process.env.MESTRE_ENV_LOCAL_PATH || join(PROJECT_ROOT, ".env.local");
+}
 
 // Carrega .env.local silenciosamente, se existir.
 async function loadEnvLocal() {
-  const envPath = join(PROJECT_ROOT, ".env.local");
+  const envPath = getEnvLocalPath();
   if (!existsSync(envPath)) return;
   try {
     const content = await readFile(envPath, "utf8");
@@ -47,6 +55,56 @@ export function isLocalMcpEnabled() {
 
 export function generateLocalMcpToken() {
   return randomBytes(32).toString("base64url");
+}
+
+// Modo legado (cliente "mcp" sem token) só com opt-in explícito. Existe apenas
+// como saída de emergência; o padrão é fail-closed.
+export function isLegacyMcpAllowed() {
+  return process.env.MESTRE_ALLOW_LEGACY_MCP === "1";
+}
+
+// Relê o token do .env.local quando o processo começou antes de ele existir
+// (ex.: MCP server iniciado antes do launcher gerar o token). Não sobrescreve
+// um valor já presente no ambiente.
+export function refreshLocalMcpTokenFromFile() {
+  if (getExpectedToken()) return true;
+  try {
+    const envPath = getEnvLocalPath();
+    if (!existsSync(envPath)) return false;
+    const match = readFileSync(envPath, "utf8").match(TOKEN_LINE_RE);
+    if (!match) return false;
+    const value = match[0].slice(match[0].indexOf("=") + 1).trim().replace(/^["']|["']$/g, "");
+    if (!value) return false;
+    process.env[TOKEN_KEY] = value;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Garante que exista um token antes de o launcher aceitar o cliente "mcp".
+// Idempotente: se o token já está configurado (env ou .env.local), não faz nada.
+// Se faltar, gera um token novo, grava no .env.local (substituindo uma linha
+// vazia vinda do .env.example, ou acrescentando) e o aplica a este processo.
+// Retorna { status: "configured" | "created" | "legacy", path? }.
+export async function ensureLocalMcpToken() {
+  if (refreshLocalMcpTokenFromFile()) return { status: "configured" };
+  if (isLegacyMcpAllowed()) return { status: "legacy" };
+
+  const envPath = getEnvLocalPath();
+  const token = generateLocalMcpToken();
+  const line = `${TOKEN_KEY}=${token}`;
+  let content = existsSync(envPath) ? await readFile(envPath, "utf8") : "";
+  if (TOKEN_LINE_RE.test(content)) {
+    content = content.replace(TOKEN_LINE_RE, line);
+  } else {
+    const header = content ? "" : "# Gerado automaticamente pelo launcher do Mestre do PC. NUNCA commite este arquivo.\n";
+    content = `${content}${content && !content.endsWith("\n") ? "\n" : ""}${header}${line}\n`;
+  }
+  await writeFile(envPath, content, { encoding: "utf8", mode: 0o600 });
+  try { await chmod(envPath, 0o600); } catch { /* Windows ignora modos POSIX */ }
+  process.env[TOKEN_KEY] = token;
+  return { status: "created", path: envPath };
 }
 
 export function validateLocalMcpToken(token) {

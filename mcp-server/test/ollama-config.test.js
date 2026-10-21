@@ -1,4 +1,5 @@
 import test from "node:test";
+import "./helpers/launcher-test-env.js"; // token de teste + .env.local isolado
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";

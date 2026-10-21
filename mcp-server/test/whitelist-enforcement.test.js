@@ -1,4 +1,5 @@
 import test from "node:test";
+import { TEST_MCP_TOKEN } from "./helpers/launcher-test-env.js";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
@@ -49,7 +50,7 @@ async function startLauncher(t) {
 function classify(base, body) {
   return fetch(base + "/classify", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN },
     body: JSON.stringify(body),
   });
 }

@@ -1,5 +1,19 @@
 # Mestre do PC V11 - Changelog
 
+## Versão 11.2.1 - Cliente MCP fail-closed
+
+### 🔒 Segurança
+
+- `v10/launcher.js`: o cliente `mcp` agora **sempre** exige `X-Mestre-Mcp-Token`. Antes, sem `MESTRE_LOCAL_MCP_TOKEN` configurado, qualquer processo local que enviasse `X-Mestre-Client: mcp` sem `Origin` era aceito e podia acionar `/run`, `/run-status`, `/classify` e as demais rotas protegidas.
+- Bootstrap automático: se o token não existir, o launcher gera um (256 bits) na inicialização e grava no `.env.local`, substituindo a linha vazia herdada do `.env.example` sem duplicá-la. O MCP server relê o arquivo enquanto o token estiver ausente.
+- Modo legado só com opt-in explícito `MESTRE_ALLOW_LEGACY_MCP=1`, com aviso `SECURITY` no log. Origin externa continua recusada mesmo nesse modo.
+- `v10/chat-integrado/tools-api.js`: passa a enviar o token nas chamadas ao launcher (antes ia sem token e quebraria assim que o token fosse exigido).
+
+### ✅ Testes
+
+- `mcp-server/test/helpers/launcher-test-env.js`: os testes que sobem o launcher usam token próprio e `.env.local` temporário (`MESTRE_ENV_LOCAL_PATH`), sem tocar o `.env.local` real.
+- `launcher-security.test.js`: +3 testes — token ausente ou errado recusado, geração do token sem duplicar a linha, modo legado só com opt-in.
+
 ## Versão 11.2.0 - Novas Sessões de Comandos + Autenticação MCP
 
 ### 🎯 Visão Geral

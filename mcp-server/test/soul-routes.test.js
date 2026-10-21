@@ -1,4 +1,5 @@
 import test from "node:test";
+import { TEST_MCP_TOKEN } from "./helpers/launcher-test-env.js";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
@@ -31,7 +32,7 @@ async function waitForServer(url) {
   throw new Error("Launcher Node não iniciou no prazo.");
 }
 
-const JSONH = { "Content-Type": "application/json", "X-Mestre-Client": "mcp" };
+const JSONH = { "Content-Type": "application/json", "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN };
 
 test("rotas /soul: lista perfis, exige autorização e rejeita IDs fora da whitelist", async (t) => {
   // Pasta temporária isolada: nada escreve nos Soul.md reais do usuário.

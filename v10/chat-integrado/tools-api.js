@@ -12,6 +12,7 @@
 import { checkPromptInjection, sanitizeToolArgument } from "../../mcp-server/security.js";
 import { auditLog, queryAuditLog, exportAuditReport, AuditLevel } from "../../mcp-server/audit-logger.js";
 import { searchWeb, fetchWebPage, isGovBrDomain } from "./web-search.js";
+import { refreshLocalMcpTokenFromFile } from "../../mcp-server/auth/local-token.js";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -196,8 +197,19 @@ async function ollamaChat({ messages, system, timeoutMs = 60000, think }) {
 
 // ── Launcher (executar comandos whitelisted) ────────────────────────
 
+// O launcher exige token para o cliente "mcp" (fail-closed). Este módulo roda
+// dentro do processo do launcher, que garante o token no boot; lemos a cada
+// chamada para pegar o valor mesmo se ele foi gerado depois do import.
+function launcherMcpHeaders() {
+  refreshLocalMcpTokenFromFile();
+  const h = { "Content-Type": "application/json", "X-Mestre-Client": "mcp" };
+  const token = process.env.MESTRE_LOCAL_MCP_TOKEN || "";
+  if (token) h["X-Mestre-Mcp-Token"] = token;
+  return h;
+}
+
 async function executeLauncherCommand(payload, options = {}) {
-  const headers = { "Content-Type": "application/json", "X-Mestre-Client": "mcp" };
+  const headers = launcherMcpHeaders();
   const resp = await fetch(`${MESTRE_BASE_URL}/run`, {
     method: "POST",
     headers,
@@ -236,7 +248,7 @@ async function executeLauncherCommand(payload, options = {}) {
 async function classifyLauncherCommand(cmd) {
   const resp = await fetch(`${MESTRE_BASE_URL}/classify`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    headers: launcherMcpHeaders(),
     body: JSON.stringify({ cmd }),
   });
   return resp.json();

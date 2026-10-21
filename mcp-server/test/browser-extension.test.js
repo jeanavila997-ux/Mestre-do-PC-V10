@@ -1,4 +1,5 @@
 import test from "node:test";
+import "./helpers/launcher-test-env.js"; // token de teste + .env.local isolado
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";

@@ -1,9 +1,12 @@
 import test from "node:test";
+import { TEST_MCP_TOKEN } from "./helpers/launcher-test-env.js";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -88,7 +91,7 @@ test("launcher Node aceita id+params e rejeita comandos não cadastrados", async
 
   const pingJob = await fetch(base + "/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN },
     body: JSON.stringify({ id: "ver_uso_ram" }),
   });
   assert.equal(pingJob.status, 202);
@@ -98,7 +101,7 @@ test("launcher Node aceita id+params e rejeita comandos não cadastrados", async
 
   const tpl = await fetch(base + "/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN },
     body: JSON.stringify({ id: "encerrar_processo", params: { nome: "notepad" } }),
   });
   assert.equal(tpl.status, 202);
@@ -107,14 +110,14 @@ test("launcher Node aceita id+params e rejeita comandos não cadastrados", async
 
   const bad = await fetch(base + "/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN },
     body: JSON.stringify({ id: "encerrar_processo", params: { nome: "notepad; Stop-Computer" } }),
   });
   assert.equal(bad.status, 403);
 
   const free = await fetch(base + "/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp" },
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN },
     body: JSON.stringify({ cmd: "Write-Host LIVRE" }),
   });
   assert.equal(free.status, 403);
@@ -137,7 +140,7 @@ test("/run-status exige o mesmo cliente autorizado que inicia jobs", async (t) =
   assert.equal(anonymous.status, 403);
 
   const mcp = await fetch(base + "/run-status?id=unknown", {
-    headers: { "X-Mestre-Client": "mcp" },
+    headers: { "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN },
   });
   assert.equal(mcp.status, 404);
 });
@@ -204,4 +207,82 @@ test("Modo Livre expira e bloqueia comandos destrutivos críticos", async (t) =>
   });
   assert.equal(blocked.status, 400);
   assert.match((await blocked.json()).output, /bloqueado/i);
+});
+
+// ── P0: cliente "mcp" fail-closed ─────────────────────────────────────
+
+async function startLauncherWith(t, extraEnv) {
+  const port = await reservePort();
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, [join(root, "v10", "launcher.js")], {
+    cwd: join(root, "v10"),
+    env: { ...process.env, MPC_PORT: String(port), ...extraEnv },
+    windowsHide: true,
+    stdio: "ignore",
+  });
+  t.after(() => child.kill());
+  await waitForServer(base);
+  return base;
+}
+
+test("cliente mcp sem token ou com token errado é recusado", async (t) => {
+  const base = await startLauncherWith(t, {});
+
+  const semToken = await fetch(base + "/run-status?id=unknown", { headers: { "X-Mestre-Client": "mcp" } });
+  assert.equal(semToken.status, 403);
+
+  const tokenErrado = await fetch(base + "/run-status?id=unknown", {
+    headers: { "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN + "x" },
+  });
+  assert.equal(tokenErrado.status, 403);
+
+  const comToken = await fetch(base + "/run-status?id=unknown", {
+    headers: { "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": TEST_MCP_TOKEN },
+  });
+  assert.equal(comToken.status, 404);
+});
+
+test("sem token configurado o launcher gera um no .env.local e continua fail-closed", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "mestre-envlocal-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const envPath = join(dir, ".env.local");
+  // Simula o .env.local copiado do .env.example, com a linha vazia.
+  await writeFile(envPath, "MESTRE_BASE_URL=http://127.0.0.1:7777\nMESTRE_LOCAL_MCP_TOKEN=\n", "utf8");
+
+  const base = await startLauncherWith(t, { MESTRE_LOCAL_MCP_TOKEN: "", MESTRE_ENV_LOCAL_PATH: envPath });
+
+  const semToken = await fetch(base + "/run-status?id=unknown", { headers: { "X-Mestre-Client": "mcp" } });
+  assert.equal(semToken.status, 403);
+
+  const conteudo = await readFile(envPath, "utf8");
+  const linhas = conteudo.split(/\r?\n/).filter((l) => l.startsWith("MESTRE_LOCAL_MCP_TOKEN="));
+  assert.equal(linhas.length, 1, "deve substituir a linha vazia, não duplicar");
+  const gerado = linhas[0].split("=")[1];
+  assert.ok(gerado.length >= 40, "token gerado deve ter 256 bits");
+  assert.match(conteudo, /^MESTRE_BASE_URL=/m, "demais variáveis preservadas");
+
+  const comToken = await fetch(base + "/run-status?id=unknown", {
+    headers: { "X-Mestre-Client": "mcp", "X-Mestre-Mcp-Token": gerado },
+  });
+  assert.equal(comToken.status, 404);
+});
+
+test("modo legado sem token só funciona com MESTRE_ALLOW_LEGACY_MCP=1", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "mestre-envlocal-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const envPath = join(dir, ".env.local");
+
+  const base = await startLauncherWith(t, {
+    MESTRE_LOCAL_MCP_TOKEN: "",
+    MESTRE_ENV_LOCAL_PATH: envPath,
+    MESTRE_ALLOW_LEGACY_MCP: "1",
+  });
+
+  const semToken = await fetch(base + "/run-status?id=unknown", { headers: { "X-Mestre-Client": "mcp" } });
+  assert.equal(semToken.status, 404);
+
+  const origemExterna = await fetch(base + "/run-status?id=unknown", {
+    headers: { "X-Mestre-Client": "mcp", "Origin": "https://example.com" },
+  });
+  assert.equal(origemExterna.status, 403);
 });
