@@ -1219,6 +1219,30 @@ const EXTRA_TOOLS = [
       required: [],
     },
   },
+  {
+    name: "analisar_print",
+    description: "Analisa um print/screenshot do Windows via TypeSafe Jev (System One) e classifica o tipo de erro visível (BSOD, driver, instalador, Windows Update, diálogo, outro). Retorna Choice tipado + Noul 'há diálogo aberto?'. Requer TYPESAFE_API_KEY configurada.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        image_path: { type: "string", description: "Caminho absoluto do arquivo de imagem (PNG/JPEG)." },
+        contexto: { type: "string", description: "Contexto opcional (ex: 'usuário tentou instalar driver NVIDIA')." },
+      },
+      required: ["image_path"],
+    },
+  },
+  {
+    name: "localizar_acão",
+    description: "Usa TypeSafe Jev Box para localizar um elemento visual na imagem (botão, campo, ícone) e retorna bounding box normalizado 0-1 (top/bottom/left/right + confidence). Requer TYPESAFE_API_KEY.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        image_path: { type: "string", description: "Caminho absoluto do arquivo de imagem (PNG/JPEG)." },
+        instrucao: { type: "string", description: "O que localizar (ex: 'botão Iniciar', 'campo de senha', 'ícone de erro')." },
+      },
+      required: ["image_path", "instrucao"],
+    },
+  },
 ];
 
 const TOOLS = operationRegistry.buildMcpToolSchemas(EXTRA_TOOLS);
@@ -2064,6 +2088,194 @@ Responda apenas com o comando PowerShell, nada mais.`,
 
     await auditLog(AuditLevel.INFO, "relatorio_completo_pc", { secoes: sections.length, erros: errors.length });
     return { content: [{ type: "text", text: report }] };
+  }
+
+  // ===== NOVAS FERRAMENTAS TYPESAFE VISUAL (Jev System One) =====
+
+  if (name === "analisar_print") {
+    const imagePath = args?.image_path;
+    const contexto = args?.contexto || "";
+    if (!imagePath || typeof imagePath !== "string") {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetro 'image_path' obrigatório.");
+    }
+    try {
+      const { spawn } = await import("node:child_process");
+      const pythonScript = `
+import sys, os, json, winreg
+# Read API key from registry (setx)
+try:
+    k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Environment")
+    key = winreg.QueryValueEx(k, "TYPESAFE_API_KEY")[0]
+    os.environ["TYPESAFE_API_KEY"] = key
+except:
+    pass
+
+from PIL import Image as PILImage
+from typesafe_sdk import Choice, Noul, Image, TypeSafeClient
+
+img_path = sys.argv[1]
+img = PILImage.open(img_path)
+w, h = img.size
+if min(w, h) < 280:
+    canvas = PILImage.new("RGB", (512, 512), (255, 255, 255))
+    img = img.convert("RGBA")
+    canvas.paste(img, ((512 - w) // 2, (512 - h) // 2), img)
+    img = canvas
+
+with TypeSafeClient(
+    model="jev-1.14.0",
+    headers={"TypeSafe-Danger-Zone-Images": "true"},
+    timeout=60,
+    retry=None,
+) as client:
+    questions = {
+        "categoria": Choice(
+            instructions="Classifique o erro visível na imagem \`print\`. Considere o contexto: ${contexto}",
+            criteria={
+                "bsod": "Tela azul da morte (BSOD) com código de parada.",
+                "driver": "Erro de driver de vídeo/Geforce/NVIDIA/AMD.",
+                "instalador": "Assistente de instalação (wizard, próximo, concluir).",
+                "update": "Tela de Windows Update (baixando, instalando, reiniciar).",
+                "dialogo": "Diálogo de erro/confirmação/permissão (UAC, app crash).",
+                "outro": "Nenhum dos acima (desktop normal, app rodando, etc.)."
+            },
+        ),
+        "dialogo_aberto": Noul(
+            instructions="Há um diálogo de erro, confirmação ou UAC aberto na imagem \`print\`?"
+        ),
+    }
+    resp = client.system_one(
+        state={"print": Image(img)},
+        questions=questions,
+    )
+
+choice = resp.choices.get("categoria")
+noul = resp.nouls.get("dialogo_aberto")
+result = {
+    "categoria": choice.choice if choice else "erro",
+    "confianca_categoria": choice.confidence if choice else 0,
+    "probabilidades": choice.probabilities if choice else {},
+    "dialogo_aberto": noul.noul if noul else None,
+    "usage": {"input": resp.usage.input_tokens, "output": resp.usage.output_tokens}
+}
+print(json.dumps(result, ensure_ascii=False))
+`
+      const result = await new Promise((resolve, reject) => {
+        const proc = spawn("C:/Program Files/Python313/python.exe", ["-c", pythonScript, imagePath], {
+          timeout: 90000,
+        });
+        let stdout = "", stderr = "";
+        proc.stdout.on("data", d => stdout += d.toString());
+        proc.stderr.on("data", d => stderr += d.toString());
+        proc.on("close", code => {
+          if (code === 0) {
+            try { resolve(JSON.parse(stdout.trim())); } catch { reject(new Error("JSON inválido: " + stdout)); }
+          } else {
+            reject(new Error(`Python exit ${code}: ${stderr}`));
+          }
+        });
+        proc.on("error", reject);
+      });
+
+      const lines = [
+        "🖼️ **Análise Visual via TypeSafe Jev (System One)**",
+        "",
+        `**Categoria do erro:** ${result.categoria} (confiança: ${(result.confianca_categoria * 100).toFixed(0)}%)`,
+        `**Probabilidades:** ${JSON.stringify(result.probabilidades, null, 2)}`,
+        `**Diálogo aberto:** ${result.dialogo_aberto !== null ? (result.dialogo_aberto > 0.5 ? "✅ Sim" : "❌ Não") + ` (p=${result.dialogo_aberto.toFixed(2)}` : "Indisponível"}`,
+        "",
+        `📊 Tokens: ${result.usage.input} in / ${result.usage.output} out`,
+      ];
+      if (contexto) lines.splice(2, 0, `**Contexto:** ${contexto}`, "");
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha na análise visual: ${e.message}` }] };
+    }
+  }
+
+  if (name === "localizar_acão") {
+    const imagePath = args?.image_path;
+    const instrucao = args?.instrucao;
+    if (!imagePath || !instrucao) {
+      throw new McpError(ErrorCode.InvalidParams, "Parâmetros 'image_path' e 'instrucao' obrigatórios.");
+    }
+    try {
+      const { spawn } = await import("node:child_process");
+      const pythonScript = `
+import sys, os, json, winreg
+try:
+    k = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Environment")
+    key = winreg.QueryValueEx(k, "TYPESAFE_API_KEY")[0]
+    os.environ["TYPESAFE_API_KEY"] = key
+except:
+    pass
+
+from PIL import Image as PILImage
+from typesafe_sdk import Box, Image, TypeSafeClient
+
+img_path = sys.argv[1]
+instrucao = sys.argv[2]
+img = PILImage.open(img_path)
+w, h = img.size
+if min(w, h) < 280:
+    canvas = PILImage.new("RGB", (512, 512), (255, 255, 255))
+    img = img.convert("RGBA")
+    canvas.paste(img, ((512 - w) // 2, (512 - h) // 2), img)
+    img = canvas
+
+with TypeSafeClient(
+    model="jev-1.14.0",
+    headers={"TypeSafe-Danger-Zone-Images": "true"},
+    timeout=60,
+    retry=None,
+) as client:
+    resp = client.system_one(
+        state={"print": Image(img)},
+        questions={"alvo": Box(instructions=instrucao)},
+    )
+
+box = resp.boxes.get("alvo")
+result = {
+    "encontrado": !!box,
+    "bbox": {"top": box.top, "bottom": box.bottom, "left": box.left, "right": box.right} if box else None,
+    "confidence": box.confidence if box else 0,
+    "usage": {"input": resp.usage.input_tokens, "output": resp.usage.output_tokens}
+}
+print(json.dumps(result, ensure_ascii=False))
+`
+      const result = await new Promise((resolve, reject) => {
+        const proc = spawn("C:/Program Files/Python313/python.exe", ["-c", pythonScript, imagePath, instrucao], {
+          timeout: 90000,
+        });
+        let stdout = "", stderr = "";
+        proc.stdout.on("data", d => stdout += d.toString());
+        proc.stderr.on("data", d => stderr += d.toString());
+        proc.on("close", code => {
+          if (code === 0) {
+            try { resolve(JSON.parse(stdout.trim())); } catch { reject(new Error("JSON inválido: " + stdout)); }
+          } else {
+            reject(new Error(`Python exit ${code}: ${stderr}`));
+          }
+        });
+        proc.on("error", reject);
+      });
+
+      if (!result.encontrado) {
+        return { content: [{ type: "text", text: `🔍 **Box (TypeSafe Jev)**\n\nElemento não localizado com confiança suficiente.\n\n📊 Tokens: ${result.usage.input} in / ${result.usage.output} out` }] };
+      }
+      const lines = [
+        "🎯 **Localização via TypeSafe Jev Box**",
+        "",
+        `**Instrução:** ${instrucao}`,
+        `**Bounding Box (0-1):** top=${result.bbox.top.toFixed(3)} bottom=${result.bbox.bottom.toFixed(3)} left=${result.bbox.left.toFixed(3)} right=${result.bbox.right.toFixed(3)}`,
+        `**Confiança:** ${(result.confidence * 100).toFixed(0)}%`,
+        "",
+        `📊 Tokens: ${result.usage.input} in / ${result.usage.output} out`,
+      ];
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    } catch (e) {
+      return { isError: true, content: [{ type: "text", text: `Falha no Box: ${e.message}` }] };
+    }
   }
 
   // ===== NOVO TOOL: mestre_diagnosticar_saude_sistema =====
