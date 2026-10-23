@@ -49,6 +49,25 @@ body.light {
 
 * { box-sizing: border-box; margin: 0; padding: 0 }
 
+/* Controles que eram divs clicáveis agora são <button>: reset + foco visível */
+.nav-item, .collapse-btn, .top-btn, .chat-item, .cat-capsule, .user-profile {
+  font: inherit;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.nav-item:focus-visible,
+.collapse-btn:focus-visible,
+.top-btn:focus-visible,
+.chat-item:focus-visible,
+.cat-capsule:focus-visible,
+.user-profile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 body {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   background: var(--bg);
@@ -608,6 +627,20 @@ body {
 .msg-body code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 13px; color: var(--accent2) }
 .msg-body pre { background: rgba(0, 0, 0, 0.4); padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--border) }
 .msg-body pre code { background: transparent; padding: 0; border-radius: 0 }
+.msg-body pre { position: relative; }
+.msg-body .run-cmd {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.msg-body .run-cmd:hover { border-color: var(--accent, #00d4ff); }
 
 .msg-body.tool-result {
   background: rgba(240, 168, 0, 0.08);
@@ -952,4 +985,14 @@ body.sidebar-collapsed .main { margin-left: 0 }
   .skills-library-panel,
   .tools-panel { width: calc(100% - 24px) }
   .skills-library-grid { grid-template-columns: 1fr }
+}
+
+/* Acessibilidade de movimento: reduzir/parar animações quando o usuário pede */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

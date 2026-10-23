@@ -11,40 +11,40 @@
 <aside class="sidebar">
   <div class="sidebar-header">
     <div class="brand"><div class="brand-logo">M</div><span>Mestre do PC</span></div>
-    <div class="collapse-btn" id="collapseBtn" title="Recolher menu">◧</div>
+    <button type="button" class="collapse-btn" id="collapseBtn" title="Recolher menu">◧</button>
   </div>
   <div class="nav-group">
-    <div class="nav-item active" id="btnNewChat"><span class="nav-icon">＋</span><span>Novo chat</span></div>
-    <div class="nav-item" id="btnMemories"><span class="nav-icon">🧠</span><span>Memórias</span></div>
-    <div class="nav-item" id="btnToolsNav"><span class="nav-icon">🛠️</span><span>Ferramentas</span></div>
-    <div class="nav-item" id="btnSkillsNav"><span class="nav-icon">SK</span><span>Skills</span></div>
-    <div class="nav-item" onclick="location.href='/gerenciar-comandos.html'"><span class="nav-icon">⚙️</span><span>Gerenciar</span></div>
+    <button type="button" class="nav-item active" id="btnNewChat"><span class="nav-icon">＋</span><span>Novo chat</span></button>
+    <button type="button" class="nav-item" id="btnMemories"><span class="nav-icon">🧠</span><span>Memórias</span></button>
+    <button type="button" class="nav-item" id="btnToolsNav"><span class="nav-icon">🛠️</span><span>Ferramentas</span></button>
+    <button type="button" class="nav-item" id="btnSkillsNav"><span class="nav-icon">SK</span><span>Skills</span></button>
+    <button type="button" class="nav-item" onclick="location.href='/gerenciar-comandos.html'"><span class="nav-icon">⚙️</span><span>Gerenciar</span></button>
   </div>
   <div class="nav-group">
-    <div class="nav-item"><span class="nav-icon">🔧</span><span>Diagnóstico IA</span></div>
-    <div class="nav-item"><span class="nav-icon">🛠️</span><span>Manutenção</span></div>
-    <div class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+    <button type="button" class="nav-item" id="btnDiagnosticoNav"><span class="nav-icon">🔧</span><span>Diagnóstico IA</span></button>
+    <button type="button" class="nav-item" id="btnManutencaoNav"><span class="nav-icon">🛠️</span><span>Manutenção</span></button>
+    <button type="button" class="nav-item" id="btnDashboardNav"><span class="nav-icon">📊</span><span>Dashboard</span></button>
   </div>
   <div class="nav-group">
-    <div class="nav-item" id="btnThemeNav"><span class="nav-icon">◐</span><span>Tema</span></div>
-    <div class="nav-item" id="btnClearNav"><span class="nav-icon">🗑️</span><span>Limpar chat</span></div>
+    <button type="button" class="nav-item" id="btnThemeNav"><span class="nav-icon">◐</span><span>Tema</span></button>
+    <button type="button" class="nav-item" id="btnClearNav"><span class="nav-icon">🗑️</span><span>Limpar chat</span></button>
   </div>
   <div class="section-title"><span>Conversas</span><span id="syncBadge" class="sync-badge">Sync: --</span></div>
   <div class="chat-list" id="chatHistory"></div>
-  <div class="user-profile" id="userProfile" title="Sair da sessão">
+  <button type="button" class="user-profile" id="userProfile" title="Sair da sessão">
     <div class="user-avatar" id="userAvatar">JA</div>
     <div class="user-info">
       <div class="user-name" id="userName">JEAN AVILA</div>
       <div class="user-email" id="userEmail">Sessão local</div>
     </div>
     <span style="color:var(--text-muted)">⌄</span>
-  </div>
+  </button>
 </aside>
 
 <main class="main">
   <div class="top-bar">
-    <div class="top-btn" title="Novo chat" id="btnNewChatTop">＋</div>
-    <div class="top-btn" id="btnTheme" title="Alternar tema">◐</div>
+    <button type="button" class="top-btn" title="Novo chat" id="btnNewChatTop">＋</button>
+    <button type="button" class="top-btn" id="btnTheme" title="Alternar tema">◐</button>
     <div class="credits-badge" id="statusBadge"><span>🟢</span><span>Online</span></div>
   </div>
 
@@ -180,7 +180,13 @@ async function checkStatus() {
       const data = await resp.json();
       const badge = document.getElementById("statusBadge");
       badge.classList.remove("offline");
-      badge.innerHTML = `<span>🟢</span><span>${data.admin ? "Admin" : "Online"}</span>`;
+      const modelo = document.body.dataset.modelo || "";
+      badge.replaceChildren();
+      const dot = document.createElement("span");
+      dot.textContent = "🟢";
+      const label = document.createElement("span");
+      label.textContent = (data.admin ? "Admin" : "Online") + (modelo ? " · " + modelo : "");
+      badge.append(dot, label);
     }
   } catch {
     const badge = document.getElementById("statusBadge");

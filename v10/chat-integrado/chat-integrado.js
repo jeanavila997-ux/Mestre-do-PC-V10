@@ -328,7 +328,9 @@ function escapeHtml(text) {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function renderMarkdown(text) {
@@ -405,7 +407,10 @@ function renderMarkdown(text) {
   html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (m, label, url) => {
+    const hrefUrl = url.replace(/"/g, "%22").replace(/'/g, "%27");
+    return `<a href="${hrefUrl}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  });
 
   // 9. Restaura blocos de código
   html = html.replace(/\u0000CODE(\d+)\u0000/g, (m, i) => codeBlocks[Number(i)] || "");
@@ -429,6 +434,7 @@ function addMessage(text, role, extra = {}) {
 
   if (role === "ai" || extra.toolResult) {
     body.innerHTML = renderMarkdown(text);
+    attachRunButtons(body);
   } else {
     body.textContent = text;
   }
@@ -436,7 +442,7 @@ function addMessage(text, role, extra = {}) {
   if (extra.toolName) {
     const meta = document.createElement("div");
     meta.className = "msg-meta";
-    meta.innerHTML = `<span class="sync-badge">🔧 ${extra.toolName}</span>`;
+    meta.innerHTML = `<span class="sync-badge">🔧 ${escapeHtml(extra.toolName)}</span>`;
     body.appendChild(meta);
   }
 
@@ -528,7 +534,7 @@ async function streamOllamaReply(userText) {
   ];
 
   const body = {
-    model: state.modeloAtivo || undefined,
+    model: state.modeloAtivo || "qwen2.5-coder:3b-instruct",
     messages,
     stream: true,
     options: state.profileOptions || undefined,
@@ -594,29 +600,122 @@ function stopStreaming() {
 }
 
 let streamingBodyEl = null;
+let pendingStreamText = null;
+let streamRafId = 0;
 
 function updateStreamingMessage(text) {
-  if (!streamingBodyEl) {
-    removeTyping();
+  pendingStreamText = text;
+  if (streamRafId) return;
+  streamRafId = requestAnimationFrame(() => {
+    streamRafId = 0;
     const container = $("messagesContainer");
-    const row = document.createElement("div");
-    row.className = "msg-row";
-    const avatar = document.createElement("div");
-    avatar.className = "msg-avatar ai";
-    avatar.textContent = "M";
-    streamingBodyEl = document.createElement("div");
-    streamingBodyEl.className = "msg-body";
-    row.appendChild(avatar);
-    row.appendChild(streamingBodyEl);
-    container.appendChild(row);
-    container.scrollTop = container.scrollHeight;
+    let forcarScroll = false;
+    if (!streamingBodyEl) {
+      removeTyping();
+      const row = document.createElement("div");
+      row.className = "msg-row";
+      const avatar = document.createElement("div");
+      avatar.className = "msg-avatar ai";
+      avatar.textContent = "M";
+      streamingBodyEl = document.createElement("div");
+      streamingBodyEl.className = "msg-body";
+      row.appendChild(avatar);
+      row.appendChild(streamingBodyEl);
+      container.appendChild(row);
+      forcarScroll = true;
+    }
+    const estavaNoFim = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+    streamingBodyEl.innerHTML = renderMarkdown(pendingStreamText);
+    if (forcarScroll || estavaNoFim) container.scrollTop = container.scrollHeight;
+  });
+}
+
+function commandFromFence(text) {
+  return String(text || "").replace(/^(powershell|pwsh|ps1)\s*\n/i, "").trim();
+}
+
+function attachRunButtons(container) {
+  if (!container) return;
+  container.querySelectorAll("pre").forEach((pre) => {
+    if (pre.querySelector(".run-cmd")) return;
+    const cmd = commandFromFence(pre.querySelector("code")?.textContent || pre.textContent);
+    if (!cmd) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "run-cmd";
+    btn.textContent = "Executar na whitelist";
+    btn.addEventListener("click", () => {
+      runSuggestedCommand(cmd).catch((err) => addMessage("❌ " + err.message, "ai"));
+    });
+    pre.appendChild(btn);
+  });
+}
+
+async function runSuggestedCommand(cmd) {
+  const classified = await fetch("/classify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+    body: JSON.stringify({ cmd }),
+  });
+  const verdict = await classified.json().catch(() => ({}));
+  if (!classified.ok || !verdict.allowed) {
+    addMessage("Esse comando não está na whitelist do Mestre. " + (verdict.reason || "Nada foi executado."), "ai");
+    return;
   }
-  streamingBodyEl.innerHTML = renderMarkdown(text);
-  $("messagesContainer").scrollTop = $("messagesContainer").scrollHeight;
+  const aviso = verdict.destructive
+    ? "Operação destrutiva da whitelist. Revise antes de autorizar.\n\n"
+    : "Comando da whitelist. Confirme antes de executar.\n\n";
+  const titulo = [verdict.title, verdict.category].filter(Boolean).join(" · ");
+  if (!confirm(aviso + (titulo ? titulo + "\n\n" : "") + cmd)) return;
+
+  addMessage("Executando: " + (verdict.title || verdict.id || "comando"), "ai");
+  const submitRes = await fetch("/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+    body: JSON.stringify({ cmd }),
+  });
+  const submit = await submitRes.json().catch(() => ({}));
+  if (!submitRes.ok || !submit.jobId) {
+    addMessage("❌ " + (submit.output || "O launcher recusou o comando."), "ai");
+    return;
+  }
+
+  const deadline = Date.now() + 120000;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 800));
+    const statusRes = await fetch("/run-status?id=" + encodeURIComponent(submit.jobId), {
+      headers: { "X-Mestre-Client": "v10-web" },
+    });
+    const status = await statusRes.json().catch(() => ({}));
+    if (status.state === "running") continue;
+    const saida = status.output || "(sem saída)";
+    addMessage((status.success ? "Concluído" : "Falhou") + "\n\n```\n" + saida.slice(0, 4000) + "\n```", "ai");
+    return;
+  }
+  addMessage("O comando ainda está rodando. Acompanhe pelo job " + submit.jobId + ".", "ai");
 }
 
 function finalizeStreamingMessage() {
+  if (streamRafId) {
+    cancelAnimationFrame(streamRafId);
+    streamRafId = 0;
+  }
+  if (streamingBodyEl && pendingStreamText != null) {
+    streamingBodyEl.innerHTML = renderMarkdown(pendingStreamText);
+  }
+  pendingStreamText = null;
+  attachRunButtons(streamingBodyEl);
   streamingBodyEl = null;
+}
+
+async function ensureModel() {
+  if (state.modeloAtivo) return;
+  try {
+    const data = await apiGet("/ollama/tags");
+    const names = (data.models || []).map((m) => m.name || m.model).filter(Boolean);
+    state.modeloAtivo = names.find((n) => n === "qwen2.5-coder:3b-instruct") || names[0] || "";
+    document.body.dataset.modelo = state.modeloAtivo;
+  } catch { /* o status do topo mostra o launcher mesmo sem modelo */ }
 }
 
 // ── Tool execution ──────────────────────────────────────────────────
@@ -881,7 +980,8 @@ function renderConversas() {
   list.innerHTML = "";
 
   for (const conv of state.conversas) {
-    const item = document.createElement("div");
+    const item = document.createElement("button");
+    item.type = "button";
     item.className = "chat-item" + (conv.id === state.conversaId ? " active" : "");
     item.textContent = conv.titulo || "Nova conversa";
     item.title = conv.titulo || "";
@@ -1022,6 +1122,7 @@ async function loadProfiles() {
     state.profileOptions = data.opcoes || {};
     renderProfilesMenu();
     updateModelBadge();
+    await ensureModel();
   } catch { /* launcher pode estar reiniciando */ }
 }
 
@@ -1062,9 +1163,12 @@ function updateModelBadge() {
   if (state.perfilAtivo && state.perfis.length) {
     const p = state.perfis.find(x => x.id === state.perfilAtivo);
     span.textContent = `🔀 ${p?.label || state.perfilAtivo}`;
+  } else if (state.modeloAtivo) {
+    span.textContent = `🔀 ${state.modeloAtivo}`;
   } else {
     span.textContent = "🔀 Auto";
   }
+  document.body.dataset.modelo = state.modeloAtivo || "";
 }
 
 // ── Tools list ──────────────────────────────────────────────────────
@@ -1170,6 +1274,8 @@ async function sendMessage() {
     }
   } catch (err) {
     removeTyping();
+    if (streamRafId) { cancelAnimationFrame(streamRafId); streamRafId = 0; }
+    pendingStreamText = null;
     streamingBodyEl = null;
     if (err.message !== "Geração interrompida pelo usuário.") {
       addMessage(`❌ Erro: ${err.message}`, "ai");
@@ -1202,7 +1308,8 @@ function renderQuickCategories() {
   const container = $("quickCategories");
   container.innerHTML = "";
   for (const cat of QUICK_CATEGORIES) {
-    const el = document.createElement("div");
+    const el = document.createElement("button");
+    el.type = "button";
     el.className = "cat-capsule";
     el.textContent = cat.label;
     el.addEventListener("click", () => {
@@ -1268,6 +1375,18 @@ export async function initChatIntegrado() {
   // Nav: Tema
   $("btnThemeNav").addEventListener("click", () => {
     $("btnTheme").click();
+  });
+
+  $("btnDiagnosticoNav").addEventListener("click", () => {
+    $("promptInput").value = "Faz um diagnóstico completo do meu PC e sugere no máximo 3 ações.";
+    sendMessage();
+  });
+  $("btnManutencaoNav").addEventListener("click", () => {
+    $("promptInput").value = "Quero uma manutenção segura: temporários, lixeira e o que mais a whitelist permitir.";
+    sendMessage();
+  });
+  $("btnDashboardNav").addEventListener("click", () => {
+    location.href = "/";
   });
 
   // Nav: Limpar chat
