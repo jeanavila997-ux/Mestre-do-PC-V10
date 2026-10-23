@@ -1,0 +1,11 @@
+{
+  "name": "@mestre/security",
+  "version": "1.1.1",
+  "private": true,
+  "type": "module",
+  "description": "Camada de segurança executável do Mestre do PC. Staging: copiar para mcp-server/security/.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 test/"
+  }
+}
