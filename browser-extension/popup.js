@@ -125,11 +125,16 @@ async function runLauncherCommand(id, settings) {
 }
 
 async function sendPageToAI(settings) {
+  if (!settings.extensionToken) {
+    showMessage("Configure o token de extensão nas opções.", "error");
+    return;
+  }
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) {
     showMessage("Nenhuma aba ativa.", "error");
     return;
   }
+  UI.btnEnviarPagina.disabled = true;
   try {
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -156,13 +161,34 @@ async function sendPageToAI(settings) {
         stream: false,
         keep_alive: "5m",
       }),
-    });
+    }, 90000);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    showMessage(data.message?.content?.slice(0, 120) + "..." || "Resposta recebida.", "success");
+    const resposta = data.message?.content || "Resposta recebida, sem texto.";
+    showMessage(resposta.slice(0, 500), "success");
   } catch (e) {
     showMessage("Falha ao enviar página: " + e.message, "error");
+  } finally {
+    UI.btnEnviarPagina.disabled = false;
   }
+}
+
+function wireActions() {
+  if (wireActions.done) return;
+  wireActions.done = true;
+  UI.btnDiagnostico.addEventListener("click", async () => runLauncherCommand("diagnostico_completo", await getSettings()));
+  UI.btnLimpeza.addEventListener("click", async () => runLauncherCommand("limpeza_rapida_completa", await getSettings()));
+  UI.btnEnviarPagina.addEventListener("click", async () => sendPageToAI(await getSettings()));
+  UI.btnOptions.addEventListener("click", () => chrome.runtime.openOptionsPage());
+  UI.linkOpenApp.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const settings = await getSettings();
+    chrome.tabs.create({ url: settings.launcherUrl + "/chat-integrado/chat-integrado.html" });
+  });
+  UI.linkRefresh.addEventListener("click", (e) => {
+    e.preventDefault();
+    init();
+  });
 }
 
 async function init() {
@@ -170,19 +196,7 @@ async function init() {
   await checkLauncher(settings);
   await checkOllama(settings);
   await checkChatHub(settings);
-
-  UI.btnDiagnostico.addEventListener("click", () => runLauncherCommand("diagnostico_completo", settings));
-  UI.btnLimpeza.addEventListener("click", () => runLauncherCommand("limpeza_rapida_completa", settings));
-  UI.btnEnviarPagina.addEventListener("click", () => sendPageToAI(settings));
-  UI.btnOptions.addEventListener("click", () => chrome.runtime.openOptionsPage());
-  UI.linkOpenApp.addEventListener("click", (e) => {
-    e.preventDefault();
-    chrome.tabs.create({ url: settings.launcherUrl });
-  });
-  UI.linkRefresh.addEventListener("click", (e) => {
-    e.preventDefault();
-    init();
-  });
+  wireActions();
 }
 
 document.addEventListener("DOMContentLoaded", init);
