@@ -38,5 +38,8 @@
   },
   "bugs": {
     "url": "https://github.com/jeanavila997-ux/Mestre-do-PC-V10/issues"
+  },
+  "allowScripts": {
+    "@qwen-code/cua-sdk@0.20.11": true
   }
 }
