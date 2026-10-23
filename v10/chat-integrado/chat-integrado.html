@@ -54,7 +54,7 @@
       <h1 class="hero-title">Chat Integrado Mestre do PC</h1>
     </div>
 
-    <div class="messages-container" id="messagesContainer" style="display:none"></div>
+    <div class="messages-container" id="messagesContainer" role="region" aria-live="polite" aria-label="Mensagens da conversa" style="display:none"></div>
 
     <!-- Tools panel (popup) -->
     <div class="tools-panel" id="toolsPanel">
@@ -89,21 +89,21 @@
 
     <div class="composer-box">
       <div class="active-memories" id="activeMemories"></div>
-      <textarea class="composer-input" id="promptInput" placeholder="Pergunte qualquer coisa, use / para uma skill ou 🔧 para ferramentas..."></textarea>
+      <textarea class="composer-input" id="promptInput" placeholder="Pergunte qualquer coisa, use / para uma skill ou 🔧 para ferramentas..." aria-label="Mensagem"></textarea>
       <input type="file" id="fileInput" multiple hidden accept=".txt,.md,.markdown,.csv,.json,.xml,.yaml,.yml,.ini,.conf,.env,.log,.ps1,.bat,.cmd,.html,.css,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.h,.hpp,.sql,.sh,.toml,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" />
       <div class="attachments-list" id="attachmentsList" aria-live="polite"></div>
       <div class="skills-menu" id="skillsMenu" role="listbox" aria-label="Skills disponíveis"></div>
       <div class="composer-toolbar">
         <div class="toolbar-left">
-          <button class="icon-circle-btn" id="btnPlus" title="Opções">＋</button>
-          <div class="action-pill" id="btnConnectors"><span>🔧 Ferramentas (0)</span></div>
-          <div class="action-pill" id="btnSkills"><span>Skills (0)</span></div>
-          <div class="action-pill" id="btnModelSelect"><span>🔀 Auto</span></div>
+          <button class="icon-circle-btn" id="btnPlus" title="Opções" aria-label="Mais opções" aria-haspopup="true" aria-expanded="false">＋</button>
+          <div class="action-pill" id="btnConnectors" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false"><span>🔧 Ferramentas (0)</span></div>
+          <div class="action-pill" id="btnSkills" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false"><span>Skills (0)</span></div>
+          <div class="action-pill" id="btnModelSelect" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false"><span>🔀 Auto</span></div>
         </div>
         <div class="toolbar-right">
-          <button class="icon-circle-btn" id="btnMic" title="Entrada por voz">🎤</button>
-          <button class="icon-circle-btn stop-btn" id="btnStop" title="Parar geração" style="display:none">⏹</button>
-          <button class="icon-circle-btn send-btn" id="btnSend" title="Enviar">➤</button>
+          <button class="icon-circle-btn" id="btnMic" title="Entrada por voz" aria-label="Entrada por voz">🎤</button>
+          <button class="icon-circle-btn stop-btn" id="btnStop" title="Parar geração" aria-label="Parar geração" style="display:none">⏹</button>
+          <button class="icon-circle-btn send-btn" id="btnSend" title="Enviar" aria-label="Enviar mensagem">➤</button>
         </div>
       </div>
 
@@ -121,9 +121,23 @@
       </div>
     </div>
 
-    <div class="quick-categories" id="quickCategories"></div>
+    <div class="quick-categories" id="quickCategories" aria-label="Perguntas e ações rápidas"></div>
   </div>
 </main>
+
+<!-- Modal acessível substituto de alert/confirm/prompt -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
+    <h3 class="modal-title" id="modalTitle"></h3>
+    <div class="modal-body" id="modalBody"></div>
+    <input class="modal-input" id="modalInput" hidden autocomplete="off" aria-label="Valor" />
+    <textarea class="modal-textarea" id="modalTextarea" hidden spellcheck="false" aria-label="Valor"></textarea>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn" id="modalCancel">Cancelar</button>
+      <button type="button" class="modal-btn primary" id="modalOk">OK</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initChatIntegrado } from "/chat-integrado/chat-integrado.js";
@@ -146,25 +160,6 @@ document.getElementById("itemSkills").addEventListener("click", () => {
 document.getElementById("itemMemories").addEventListener("click", () => {
   document.getElementById("plusMenu").classList.remove("show");
   document.getElementById("btnMemories").click();
-});
-
-document.getElementById("itemSync").addEventListener("click", async () => {
-  document.getElementById("plusMenu").classList.remove("show");
-  const status = await fetch("/api/sync/status", { headers: { "X-Mestre-Client": "v10-web" } }).then(r => r.json()).catch(() => null);
-  if (status) {
-    alert(`Sync MySQL:\nConfigurado: ${status.mysqlConfigurado ? "Sim" : "Não"}\nThreshold: ${status.threshold}\nPendentes: ${status.unsynced?.total || 0}\nÚltimo sync: ${status.ultimoSync || "Nunca"}\nTotal sincronizado: ${status.totalSynced || 0}`);
-  }
-});
-
-document.getElementById("itemAudit").addEventListener("click", async () => {
-  document.getElementById("plusMenu").classList.remove("show");
-  const data = await fetch("/api/audit?limit=20", { headers: { "X-Mestre-Client": "v10-web" } }).then(r => r.json()).catch(() => null);
-  if (data?.entries?.length) {
-    const text = data.entries.map(e => `[${e.criada_em}] ${e.level}: ${e.action}`).join("\n");
-    alert(`Últimas ${data.entries.length} entradas de auditoria:\n\n${text}`);
-  } else {
-    alert("Nenhuma entrada de auditoria encontrada.");
-  }
 });
 
 document.getElementById("itemClear").addEventListener("click", () => {

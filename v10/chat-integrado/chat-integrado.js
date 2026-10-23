@@ -120,6 +120,87 @@ async function apiDelete(path) {
 function $(id) { return document.getElementById(id); }
 function $$(sel) { return document.querySelectorAll(sel); }
 
+// ── Modal próprio (substituto acessível de alert/confirm/prompt) ────
+
+let modalResolve = null;
+let modalMode = "confirm";
+
+function initModal() {
+  const overlay = $("modalOverlay");
+  if (!overlay) return;
+
+  $("modalOk").addEventListener("click", () => resolveModal(true));
+  $("modalCancel").addEventListener("click", () => resolveModal(false));
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) resolveModal(false);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (overlay.hidden) return;
+    if (e.key === "Escape") {
+      e.preventDefault();
+      resolveModal(false);
+    } else if (e.key === "Enter" && !e.ctrlKey && !e.shiftKey && document.activeElement !== $("modalTextarea")) {
+      e.preventDefault();
+      resolveModal(true);
+    } else if (e.key === "Tab") {
+      const itens = [...overlay.querySelectorAll("button, input, textarea")].filter((el) => !el.hidden);
+      if (!itens.length) return;
+      const idx = itens.indexOf(document.activeElement);
+      const next = idx === -1 ? 0 : e.shiftKey ? (idx - 1 + itens.length) % itens.length : (idx + 1) % itens.length;
+      itens[next].focus();
+      e.preventDefault();
+    }
+  });
+}
+
+function resolveModal(aceito) {
+  const overlay = $("modalOverlay");
+  if (overlay.hidden || !modalResolve) return;
+  const resolver = modalResolve;
+  modalResolve = null;
+  overlay.hidden = true;
+  if (modalMode === "prompt") {
+    modalMode = "confirm";
+    const usaTextarea = !$("modalTextarea").hidden;
+    const el = usaTextarea ? $("modalTextarea") : $("modalInput");
+    resolver(aceito ? el.value : null);
+  } else {
+    resolver(!!aceito);
+  }
+}
+
+function openModal({ title, body, okText = "OK", cancelText = "Cancelar", mode = "confirm", value = "", useTextarea = false }) {
+  const overlay = $("modalOverlay");
+  if (!overlay.hidden) resolveModal(false);
+
+  modalMode = mode;
+  const titleEl = $("modalTitle");
+  titleEl.textContent = title || "";
+  titleEl.hidden = !title;
+
+  const bodyEl = $("modalBody");
+  bodyEl.textContent = String(body || "");
+  bodyEl.hidden = !bodyEl.textContent;
+
+  const inputEl = $("modalInput");
+  const textareaEl = $("modalTextarea");
+  const usaTextarea = mode === "prompt" && useTextarea;
+  inputEl.hidden = mode !== "prompt" || usaTextarea;
+  textareaEl.hidden = !usaTextarea;
+  inputEl.value = textareaEl.value = String(value);
+
+  const okBtn = $("modalOk");
+  okBtn.textContent = okText;
+  const cancelBtn = $("modalCancel");
+  cancelBtn.textContent = cancelText;
+  cancelBtn.hidden = !cancelText;
+
+  overlay.hidden = false;
+  (usaTextarea ? textareaEl : inputEl.hidden ? okBtn : inputEl).focus();
+  return new Promise((resolve) => { modalResolve = resolve; });
+}
+
 function getLocalSession() {
   try {
     const session = JSON.parse(localStorage.getItem(LS_SESSION) || "null");
@@ -188,7 +269,7 @@ async function importFiles(fileList) {
   let currentTotal = state.attachments.reduce((total, item) => total + item.size, 0);
   for (const file of files) {
     if (currentTotal + file.size > MAX_TOTAL_ATTACHMENT_BYTES) {
-      alert(`Limite total de anexos: ${formatBytes(MAX_TOTAL_ATTACHMENT_BYTES)}.`);
+      await openModal({ title: "Limite de anexos", body: `Limite total de anexos: ${formatBytes(MAX_TOTAL_ATTACHMENT_BYTES)}.`, cancelText: "", okText: "Entendi" });
       break;
     }
 
@@ -196,7 +277,7 @@ async function importFiles(fileList) {
       const extension = fileExtension(file.name);
       if (file.type.startsWith("image/")) {
         if (file.size > MAX_TEXT_FILE_BYTES * 2) {
-          alert(`${file.name} excede o limite de imagem de ${formatBytes(MAX_TEXT_FILE_BYTES * 2)}.`);
+          await openModal({ title: "Arquivo excedido", body: `${file.name} excede o limite de imagem de ${formatBytes(MAX_TEXT_FILE_BYTES * 2)}.`, cancelText: "", okText: "Entendi" });
           continue;
         }
         const dataUrl = await readDataUrl(file);
@@ -210,7 +291,7 @@ async function importFiles(fileList) {
         });
       } else if (TEXT_EXTENSIONS.has(extension) || file.type.startsWith("text/")) {
         if (file.size > MAX_TEXT_FILE_BYTES) {
-          alert(`${file.name} excede o limite de texto de ${formatBytes(MAX_TEXT_FILE_BYTES)}.`);
+          await openModal({ title: "Arquivo excedido", body: `${file.name} excede o limite de texto de ${formatBytes(MAX_TEXT_FILE_BYTES)}.`, cancelText: "", okText: "Entendi" });
           continue;
         }
         const content = (await file.text()).slice(0, 12000);
@@ -220,7 +301,7 @@ async function importFiles(fileList) {
       }
       currentTotal += file.size;
     } catch (err) {
-      alert(err.message || `Falha ao importar ${file.name}.`);
+      await openModal({ title: `Falha ao importar ${file.name}`, body: String(err.message || "erro desconhecido"), cancelText: "", okText: "Entendi" });
     }
   }
   renderAttachments();
@@ -277,8 +358,30 @@ function renderSkillsLibrary() {
 function showSkillsLibrary() {
   renderSkillsLibrary();
   $("skillsLibraryPanel").classList.toggle("show");
+  refreshAria();
   if ($("skillsLibraryPanel").classList.contains("show")) {
     $("skillsSearch").focus();
+  }
+}
+
+// Sincroniza aria-expanded dos gatilhos com o estado visível dos painéis
+function refreshAria() {
+  const pares = [
+    ["btnPlus", "plusMenu"],
+    ["btnConnectors", "toolsPanel"],
+    ["btnSkills", "skillsLibraryPanel"],
+    ["btnModelSelect", "modelsMenu"],
+    ["btnMemories", "memoriesPanel"],
+    ["btnToolsNav", "toolsPanel"],
+    ["btnSkillsNav", "skillsLibraryPanel"],
+  ];
+  for (const [triggerId, painelId] of pares) {
+    const trigger = $(triggerId);
+    const painel = $(painelId);
+    if (!trigger || !painel) continue;
+    const aberto = painel.classList.contains("show");
+    trigger.setAttribute("aria-expanded", String(aberto));
+    painel.setAttribute("aria-hidden", String(!aberto));
   }
 }
 
@@ -663,10 +766,15 @@ async function runSuggestedCommand(cmd) {
     return;
   }
   const aviso = verdict.destructive
-    ? "Operação destrutiva da whitelist. Revise antes de autorizar.\n\n"
-    : "Comando da whitelist. Confirme antes de executar.\n\n";
+    ? "Operação destrutiva da whitelist. Revise antes de autorizar."
+    : "Comando da whitelist. Confirme antes de executar.";
   const titulo = [verdict.title, verdict.category].filter(Boolean).join(" · ");
-  if (!confirm(aviso + (titulo ? titulo + "\n\n" : "") + cmd)) return;
+  const aprovado = await openModal({
+    title: titulo || "Comando da whitelist",
+    body: `${aviso}\n\n${cmd}`,
+    okText: "Executar",
+  });
+  if (!aprovado) return;
 
   addMessage("Executando: " + (verdict.title || verdict.id || "comando"), "ai");
   const submitRes = await fetch("/run", {
@@ -766,13 +874,14 @@ async function toggleTool(toolName) {
     await loadTools();
     renderToolsGrid();
   } catch (err) {
-    alert("Falha ao alternar ferramenta: " + (err.message || "erro"));
+    await openModal({ title: "Falha ao alternar ferramenta", body: String(err.message || "erro"), cancelText: "", okText: "Entendi" });
   }
 }
 
 function showToolsPanel() {
   renderToolsGrid();
   $("toolsPanel").classList.toggle("show");
+  refreshAria();
 }
 
 function defaultValueForToolProperty(name, schema = {}) {
@@ -790,7 +899,7 @@ function defaultValueForToolProperty(name, schema = {}) {
 async function handleDesktopCommanderToolClick(toolName) {
   const metadata = state.toolMetadata[toolName];
   if (!metadata) {
-    alert("Metadados da ferramenta Desktop Commander não estão disponíveis.");
+    await openModal({ title: "Ferramenta indisponível", body: "Metadados da ferramenta Desktop Commander não estão disponíveis.", cancelText: "", okText: "Entendi" });
     return;
   }
 
@@ -800,10 +909,14 @@ async function handleDesktopCommanderToolClick(toolName) {
   let args = {};
 
   if (required.length) {
-    const raw = prompt(
-      `Argumentos JSON para ${metadata.title || metadata.name}:`,
-      JSON.stringify(template, null, 2),
-    );
+    const raw = await openModal({
+      mode: "prompt",
+      title: `Argumentos JSON para ${metadata.title || metadata.name}`,
+      body: "Preencha os campos obrigatórios em JSON:",
+      value: JSON.stringify(template, null, 2),
+      useTextarea: true,
+      okText: "Executar",
+    });
     if (raw == null) return;
     try {
       args = JSON.parse(raw);
@@ -811,15 +924,17 @@ async function handleDesktopCommanderToolClick(toolName) {
         throw new Error("Use um objeto JSON.");
       }
     } catch (err) {
-      alert(`JSON inválido: ${err.message}`);
+      await openModal({ title: "JSON inválido", body: String(err.message || err), cancelText: "", okText: "Entendi" });
       return;
     }
   }
 
   if (metadata.requiresConfirmation) {
-    const accepted = confirm(
-      `A ferramenta ${metadata.name} pode alterar arquivos, processos ou configurações. Confirma a execução?`,
-    );
+    const accepted = await openModal({
+      title: `Executar ${metadata.title || metadata.name}?`,
+      body: "A ferramenta pode alterar arquivos, processos ou configurações. Confirma a execução?",
+      okText: "Executar",
+    });
     if (!accepted) return;
     args.__confirm = true;
   }
@@ -900,8 +1015,8 @@ async function handleToolClick(toolName) {
   };
 
   const promptText = promptMap[toolName] || `Argumentos para ${toolName}:`;
-  const input = prompt(promptText);
-  if (!input) return;
+  const input = await openModal({ mode: "prompt", title: promptText, okText: "Executar", value: "" });
+  if (input == null || !input.trim()) return;
 
   $("heroHeading").style.display = "none";
   $("quickCategories").style.display = "none";
@@ -916,12 +1031,12 @@ async function handleToolClick(toolName) {
       case "perguntar_ia": args = { pergunta: input }; break;
       case "buscar_na_web": args = { query: input }; break;
       case "buscar_e_resumir_pagina": {
-        const pergunta = prompt("Pergunta sobre a página (opcional):") || "";
+        const pergunta = (await openModal({ mode: "prompt", title: "Pergunta sobre a página (opcional):", okText: "Continuar" })) || "";
         args = { query: input, pergunta };
         break;
       }
       case "ler_pagina_web": {
-        const pergunta = prompt("Pergunta sobre a página (opcional):") || "";
+        const pergunta = (await openModal({ mode: "prompt", title: "Pergunta sobre a página (opcional):", okText: "Continuar" })) || "";
         args = { url: input, pergunta };
         break;
       }
@@ -931,23 +1046,23 @@ async function handleToolClick(toolName) {
       case "analisar_codigo_powershell": args = { codigo: input }; break;
       case "ia_comando_sugerir": args = { descricao: input }; break;
       case "enviar_webhook_discord": {
-        const msg = prompt("Digite a mensagem:") || "";
+        const msg = (await openModal({ mode: "prompt", title: "Digite a mensagem:", okText: "Enviar" })) || "";
         args = { webhook_url: input, titulo: "Mestre do PC", mensagem: msg };
         break;
       }
       case "enviar_webhook_teams": {
-        const msg = prompt("Digite a mensagem:") || "";
+        const msg = (await openModal({ mode: "prompt", title: "Digite a mensagem:", okText: "Enviar" })) || "";
         args = { webhook_url: input, titulo: "Mestre do PC", mensagem: msg };
         break;
       }
       case "enviar_webhook_slack": {
-        const msg = prompt("Digite a mensagem:") || "";
+        const msg = (await openModal({ mode: "prompt", title: "Digite a mensagem:", okText: "Enviar" })) || "";
         args = { webhook_url: input, mensagem: msg };
         break;
       }
       case "monitorar_e_notificar": args = { webhook_url: input }; break;
       case "consultar_fonte_oficial_gov": {
-        const termo = prompt("Termo de busca (opcional):") || "";
+        const termo = (await openModal({ mode: "prompt", title: "Termo de busca (opcional):", okText: "Continuar" })) || "";
         args = { url: input, termo };
         break;
       }
@@ -991,7 +1106,8 @@ function renderConversas() {
     del.textContent = "✕";
     del.addEventListener("click", async (e) => {
       e.stopPropagation();
-      if (!confirm("Deletar esta conversa?")) return;
+      const ok = await openModal({ title: "Deletar conversa", body: "Deletar esta conversa? A ação não pode ser desfeita.", okText: "Deletar" });
+      if (!ok) return;
       await apiDelete(`/api/conversas/${conv.id}`);
       if (state.conversaId === conv.id) {
         state.conversaId = null;
@@ -1048,7 +1164,8 @@ function resetChatView() {
 }
 
 async function clearCurrentChat() {
-  if (!confirm("Limpar as mensagens da conversa atual? A conversa será mantida no histórico.")) return;
+  const ok = await openModal({ title: "Limpar chat", body: "Limpar as mensagens da conversa atual? A conversa será mantida no histórico.", okText: "Limpar" });
+  if (!ok) return;
   if (state.conversaId) {
     const result = await apiPost(`/api/conversas/${state.conversaId}/clear`, {});
     if (!result?.success) throw new Error(result?.error || "Não foi possível limpar a conversa.");
@@ -1090,7 +1207,8 @@ function renderMemorias() {
       loadMemorias();
     });
     item.querySelector(".del").addEventListener("click", async () => {
-      if (!confirm("Deletar esta memória?")) return;
+      const ok = await openModal({ title: "Deletar memória", body: "Deletar esta memória? A ação não pode ser desfeita.", okText: "Deletar" });
+      if (!ok) return;
       await apiDelete(`/api/memorias/${mem.id}`);
       loadMemorias();
     });
@@ -1336,6 +1454,9 @@ function renderQuickCategories() {
 export async function initChatIntegrado() {
   if (!ensureLocalSession()) return;
 
+  // Modal próprio (substituto acessível de alert/confirm/prompt)
+  initModal();
+
   // Theme toggle
   $("btnTheme").addEventListener("click", () => {
     document.body.classList.toggle("light");
@@ -1391,8 +1512,8 @@ export async function initChatIntegrado() {
 
   // Nav: Limpar chat
   $("btnClearNav").addEventListener("click", () => {
-    clearCurrentChat().catch((err) => {
-      alert("Falha ao limpar o chat: " + (err.message || "erro desconhecido"));
+    clearCurrentChat().catch(async (err) => {
+      await openModal({ title: "Falha ao limpar o chat", body: String(err.message || "erro desconhecido"), cancelText: "", okText: "Entendi" });
     });
   });
 
@@ -1449,11 +1570,11 @@ export async function initChatIntegrado() {
     }
   });
 
-  $("userProfile").addEventListener("click", () => {
-    if (confirm("Sair da sessão local?")) {
-      localStorage.removeItem(LS_SESSION);
-      location.href = "/login.html";
-    }
+  $("userProfile").addEventListener("click", async () => {
+    const ok = await openModal({ title: "Sair da sessão", body: "Sair da sessão local?", okText: "Sair" });
+    if (!ok) return;
+    localStorage.removeItem(LS_SESSION);
+    location.href = "/login.html";
   });
 
   // Popup menus
@@ -1463,6 +1584,7 @@ export async function initChatIntegrado() {
     $("skillsLibraryPanel").classList.remove("show");
     $("memoriesPanel").classList.remove("show");
     hideSkillsMenu();
+    refreshAria();
   }
 
   $("btnPlus").addEventListener("click", (e) => {
@@ -1471,6 +1593,7 @@ export async function initChatIntegrado() {
     const isShow = menu.classList.contains("show");
     closeAllMenus();
     if (!isShow) menu.classList.add("show");
+    refreshAria();
   });
 
   $("btnConnectors").addEventListener("click", (e) => {
@@ -1495,6 +1618,7 @@ export async function initChatIntegrado() {
     const isShow = menu.classList.contains("show");
     closeAllMenus();
     if (!isShow) menu.classList.add("show");
+    refreshAria();
   });
 
   $("btnMemories").addEventListener("click", (e) => {
@@ -1506,6 +1630,7 @@ export async function initChatIntegrado() {
       panel.classList.add("show");
       loadMemorias();
     }
+    refreshAria();
   });
 
   document.addEventListener("click", () => closeAllMenus());
@@ -1522,6 +1647,38 @@ export async function initChatIntegrado() {
   $("memAddBtn").addEventListener("click", () => addMemoria());
   $("memInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); addMemoria(); }
+  });
+
+  // Status sync e auditoria (migrados do HTML → modal próprio)
+  $("itemSync").addEventListener("click", async () => {
+    closeAllMenus();
+    const status = await apiGet("/api/sync/status").catch(() => null);
+    if (status) {
+      await openModal({
+        title: "Status de sincronização MySQL",
+        body: `Configurado: ${status.mysqlConfigurado ? "Sim" : "Não"}\nThreshold: ${status.threshold}\nPendentes: ${status.unsynced?.total || 0}\nÚltimo sync: ${status.ultimoSync || "Nunca"}\nTotal sincronizado: ${status.totalSynced || 0}`,
+        cancelText: "",
+        okText: "Entendi",
+      });
+    } else {
+      await openModal({ title: "Sync MySQL", body: "Não foi possível obter o status do launcher.", cancelText: "", okText: "Entendi" });
+    }
+  });
+
+  $("itemAudit").addEventListener("click", async () => {
+    closeAllMenus();
+    const data = await apiGet("/api/audit?limit=20").catch(() => null);
+    if (data?.entries?.length) {
+      const texto = data.entries.map(e => `[${e.criada_em}] ${e.level}: ${e.action}`).join("\n");
+      await openModal({
+        title: `Auditoria — últimas ${data.entries.length} entradas`,
+        body: texto,
+        cancelText: "",
+        okText: "Entendi",
+      });
+    } else {
+      await openModal({ title: "Auditoria", body: "Nenhuma entrada de auditoria encontrada.", cancelText: "", okText: "Entendi" });
+    }
   });
 
   // Toggle switches (connectors visual)
