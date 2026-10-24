@@ -36,6 +36,8 @@ O **Mestre do PC V10** (ou **Oh My Pi**) é um assistente de automação e manut
 |---------------------------------------|-----------------------------------------------------------------------------------------------|
 | `mcp-server/`                         | Núcleo do projeto. Contém lógica principal, ferramentas, autenticação e integrações.         |
 | `mcp-server/index.js`                 | Arquivo principal. Configura o servidor, ferramentas e handlers de requisições.              |
+| `mcp-server/nexo-bridge.js`           | Ponte MCP (stdio) para o nexo-core. Re-expoe as tools do nexo como `nexo_*`.                 |
+| `mcp-server/chrome-devtools-bridge.js`| Ponte MCP (stdio) para o chrome-devtools-mcp. Re-expoe as tools de browser como `chrome_*`.   |
 | `mcp-server/auth/`                    | Autenticação local para ferramentas sensíveis (ex.: banco de dados).                          |
 | `mcp-server/db/`                      | Ferramentas de banco de dados (MySQL/MariaDB) e migrações.                                    |
 | `mcp-server/db/migrations/`           | Migrações para criação e atualização do schema do banco de dados.                             |
@@ -215,6 +217,41 @@ O npm 11.19 **bloqueia postinstall** por padrão. Neste projeto isso atinge `@wo
 - Vários arquivos sobem launchers adicionais em portas reservadas.
 - `desktop-commander-client.test.js` roda de verdade quando o pacote está instalado: o **primeiro spawn a frio leva ~22 s** e estoura `CONNECT_TIMEOUT_MS = 20000`; com cache quente conecta em ~1,95 s. Se só o primeiro run falhar, repita antes de investigar.
 - **Pare o launcher antes de rodar `npm test`**, para não misturar jobs reais com jobs de teste nem poluir a auditoria de produção.
+
+### 🔧 Ponte Chrome DevTools (tools `chrome_*`)
+
+O MCP Server do Mestre do PC também expõe as ferramentas de debugging de browser do
+**chrome-devtools-mcp** (Google), re-expostas com o prefixo `chrome_`. O padrão é
+idêntico ao da ponte NEXO: subprocesso local via **stdio**, zero portas de rede,
+degradação graciosa (sem o pacote instalado, o Mestre segue vivo sem as tools).
+
+| Item | Valor |
+|---|---|
+| Pacote | `chrome-devtools-mcp@1.12.0` (instalado em `mcp-server/node_modules`) |
+| Ponte | `mcp-server/chrome-devtools-bridge.js` |
+| Prefixo | `chrome_` (ex.: `chrome_take_snapshot`, `chrome_evaluate_script`) |
+| Modo padrão | headless (`CHROME_DEVTOOLS_HEADLESS=1`) — não abre janela |
+| Tools | 32 (navegação, snapshot, DOM, console, network, performance, Lighthouse) |
+
+**Instalação** — pelo comando na UI do Mestre ("Instalar Chrome DevTools MCP" /
+"Verificar Chrome DevTools MCP", categoria 📚 Bibliotecas → 🟩 Node.js) ou manual:
+```bash
+cd mcp-server && npm install chrome-devtools-mcp@1.12.0
+```
+
+**Ponto de atenção — capability `roots`:** o chrome-devtools-mcp restringe escrita
+de arquivos (screenshots, traces) à pasta temporária do SO **a menos que o cliente
+negocie `roots`**. A ponte implementa o handshake `roots/list` e libera a raiz do
+projeto + `CHROME_DEVTOOLS_WORKSPACE`. Sem isso, `chrome_take_screenshot` com
+`filePath` falha com *"Access denied: path ... is not within any of the configured
+workspace roots"*.
+
+**Ponto de atenção — `pageId` é 1-based:** o primeiro `pageId` é `1`, não `0`.
+`chrome_take_snapshot` com `pageId: 0` devolve *"Error: No page found"*. Use
+`chrome_list_pages` para descobrir os IDs válidos.
+
+**Reinício obrigatório:** as tools `chrome_*` só aparecem no `tools/list` depois
+de reiniciar o MCP Server (a ponte sobe no boot, em `startServer()`).
 
 ### Relatórios de sessão
 

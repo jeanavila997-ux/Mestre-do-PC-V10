@@ -2791,6 +2791,22 @@
       "destructive": false,
       "command": "query user 2>$null; if (-not $?) { Get-CimInstance Win32_LogonSession | Select-Object LogonId,LogonType,StartTime | Format-Table -AutoSize }",
       "description": "Mostra as sessões de usuário ativas na máquina."
+    },
+    {
+      "id": "instalar_chrome_devtools_mcp",
+      "title": "Instalar Chrome DevTools MCP",
+      "category": "Bibliotecas",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; $pasta = Join-Path $env:MESTRE_PROJETO_PATH 'mcp-server'; Set-Location -LiteralPath $pasta; npm install chrome-devtools-mcp@1.12.0 --no-audit --no-fund; if ($LASTEXITCODE -eq 0) { Write-Host \"✅ Chrome DevTools MCP instalado em $pasta!\" -ForegroundColor Green; Write-Host \"ℹ️ Reinicie o MCP Server para ativar as tools chrome_*.\" -ForegroundColor Cyan } else { Write-Host \"❌ Falha ao instalar o Chrome DevTools MCP.\" -ForegroundColor Red }",
+      "description": "Instala o pacote chrome-devtools-mcp (Chrome DevTools Protocol) na pasta mcp-server do projeto. Habilita as tools chrome_* (list_pages, take_snapshot, evaluate_script, take_screenshot, lighthouse_audit, performance_start_trace) no MCP Server. Reinicie o MCP Server após instalar."
+    },
+    {
+      "id": "verificar_chrome_devtools_mcp",
+      "title": "Verificar Chrome DevTools MCP",
+      "category": "Bibliotecas",
+      "destructive": false,
+      "command": "$pasta = Join-Path $env:MESTRE_PROJETO_PATH 'mcp-server'; $pkg = Join-Path $pasta 'node_modules\\chrome-devtools-mcp\\package.json'; if (Test-Path $pkg) { $v = (Get-Content $pkg -Raw | ConvertFrom-Json).version; Write-Host \"✅ Chrome DevTools MCP instalado — versão $v\" -ForegroundColor Green; Write-Host \"ℹ️ Para as tools chrome_*: reinicie o MCP Server.\" -ForegroundColor Cyan } else { Write-Host \"⚠️ Chrome DevTools MCP não encontrado em $pasta. Use o comando de instalação.\" -ForegroundColor Yellow }",
+      "description": "Mostra a versão do chrome-devtools-mcp instalada na pasta mcp-server do projeto e avisa se o MCP Server precisa ser reiniciado para ativar as tools chrome_*."
     }
   ],
   "templates": [

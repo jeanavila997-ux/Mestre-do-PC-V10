@@ -11,6 +11,7 @@ import {
 import { checkPromptInjection } from "./security.js";
 import { auditLog, AuditLevel, queryAuditLog } from "./audit-logger.js";
 import { nexoBridge } from "./nexo-bridge.js";
+import { chromeDevToolsBridge } from "./chrome-devtools-bridge.js";
 import { loadOperationRegistry } from "../v10/operation-registry.js";
 import { readFile, readdir, access, constants } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -1248,9 +1249,16 @@ const EXTRA_TOOLS = [
 const TOOLS = operationRegistry.buildMcpToolSchemas(EXTRA_TOOLS);
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  // Concatena dinamicamente as tools da ponte NEXO (sessão nexo_*), quando
-  // disponíveis. Se a ponte não estiver pronta, getToolSchemas() devolve [].
-  return { tools: [...TOOLS, ...nexoBridge.getToolSchemas()] };
+  // Concatena dinamicamente as tools das pontes MCP (sessões nexo_* e
+  // chrome_*), quando disponíveis. Se a ponte não estiver pronta,
+  // getToolSchemas() devolve [].
+  return {
+    tools: [
+      ...TOOLS,
+      ...nexoBridge.getToolSchemas(),
+      ...chromeDevToolsBridge.getToolSchemas(),
+    ],
+  };
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -1260,6 +1268,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   // O gate de segurança (confirm/dry_run) é decidido no núcleo do nexo.
   if (nexoBridge.isNexoTool(name)) {
     return nexoBridge.callTool(name, args);
+  }
+
+  // Sessão de funções Chrome DevTools: encaminha chrome_* para o
+  // chrome-devtools-mcp via ponte MCP (stdio, sem porta de rede).
+  if (chromeDevToolsBridge.isBridgeTool(name)) {
+    return chromeDevToolsBridge.callTool(name, args);
   }
 
   if (name === "verificar_modelo_ollama") {
@@ -2161,7 +2175,7 @@ result = {
 print(json.dumps(result, ensure_ascii=False))
 `
       const result = await new Promise((resolve, reject) => {
-        const proc = spawn("C:/Program Files/Python313/python.exe", ["-c", pythonScript, imagePath], {
+        const proc = spawn("C:/Users/Jean/AppData/Local/Programs/Python/Python313/python.exe", ["-c", pythonScript, imagePath], {
           timeout: 90000,
         });
         let stdout = "", stderr = "";
@@ -2244,7 +2258,7 @@ result = {
 print(json.dumps(result, ensure_ascii=False))
 `
       const result = await new Promise((resolve, reject) => {
-        const proc = spawn("C:/Program Files/Python313/python.exe", ["-c", pythonScript, imagePath, instrucao], {
+        const proc = spawn("C:/Users/Jean/AppData/Local/Programs/Python/Python313/python.exe", ["-c", pythonScript, imagePath, instrucao], {
           timeout: 90000,
         });
         let stdout = "", stderr = "";
@@ -2496,15 +2510,24 @@ async function startServer() {
     console.error(`[nexo-bridge] ignorada por erro inesperado: ${e.message}`);
   }
 
+  // Mesma politica para a ponte Chrome DevTools (tools chrome_*). Nunca
+  // bloqueia o boot: sem o pacote instalado, o Mestre segue vivo sem elas.
+  try {
+    await chromeDevToolsBridge.start();
+  } catch (e) {
+    console.error(`[chrome-devtools-bridge] ignorada por erro inesperado: ${e.message}`);
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Mestre do PC V10 MCP Server iniciado em stdio.");
 }
 
-// Encerra o subprocesso nexo-core junto com o servidor.
+// Encerra os subprocessos das pontes junto com o servidor.
 for (const sig of ["SIGINT", "SIGTERM"]) {
   process.on(sig, () => {
     try { nexoBridge.stop(); } catch { /* noop */ }
+    try { chromeDevToolsBridge.stop(); } catch { /* noop */ }
     process.exit(0);
   });
 }

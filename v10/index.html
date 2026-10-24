@@ -960,6 +960,8 @@
               ["npm install -g @nestjs/cli", "npm install -g @nestjs/cli; Write-Host \"✅ NestJS CLI instalado globalmente!\" -ForegroundColor Green"],
               ["npm install -g eslint + prettier", "npm install -g eslint prettier; Write-Host \"✅ eslint e prettier instalados globalmente!\" -ForegroundColor Green"],
               ["npm install -g pm2", "npm install -g pm2; Write-Host \"✅ pm2 instalado globalmente!\" -ForegroundColor Green"],
+              ["Instalar Chrome DevTools MCP", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; $pasta = Join-Path $env:MESTRE_PROJETO_PATH 'mcp-server'; Set-Location -LiteralPath $pasta; npm install chrome-devtools-mcp@1.12.0 --no-audit --no-fund; if ($LASTEXITCODE -eq 0) { Write-Host \"✅ Chrome DevTools MCP instalado em $pasta!\" -ForegroundColor Green; Write-Host \"ℹ️ Reinicie o MCP Server para ativar as tools chrome_*.\" -ForegroundColor Cyan } else { Write-Host \"❌ Falha ao instalar o Chrome DevTools MCP.\" -ForegroundColor Red }"],
+              ["Verificar Chrome DevTools MCP", "$pasta = Join-Path $env:MESTRE_PROJETO_PATH 'mcp-server'; $pkg = Join-Path $pasta 'node_modules\\chrome-devtools-mcp\\package.json'; if (Test-Path $pkg) { $v = (Get-Content $pkg -Raw | ConvertFrom-Json).version; Write-Host \"✅ Chrome DevTools MCP instalado — versão $v\" -ForegroundColor Green; Write-Host \"ℹ️ Para as tools chrome_*: reinicie o MCP Server.\" -ForegroundColor Cyan } else { Write-Host \"⚠️ Chrome DevTools MCP não encontrado em $pasta. Use o comando de instalação.\" -ForegroundColor Yellow }"],
             ],
           },
           {
