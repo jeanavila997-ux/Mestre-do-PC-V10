@@ -3,24 +3,7 @@
  * Manages context menus and relays secure messages to the local launcher.
  */
 
-const DEFAULT_LAUNCHER_URL = "http://127.0.0.1:7777";
-
-async function getSettings() {
-  return chrome.storage.sync.get({
-    launcherUrl: DEFAULT_LAUNCHER_URL,
-    extensionToken: "",
-  });
-}
-
-async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
+import { getSettings, fetchLocal as fetchWithTimeout } from "./settings.js";
 
 async function sendToLauncher(id, params = {}) {
   const settings = await getSettings();
@@ -45,6 +28,9 @@ async function sendToLauncher(id, params = {}) {
 
 async function sendSelectionToAI(text, pageUrl, pageTitle) {
   const settings = await getSettings();
+  if (settings.allowPageAnalysis !== true) {
+    throw new Error("Autorize o envio de titulo, URL e selecao para IA nas configuracoes.");
+  }
   if (!settings.extensionToken) {
     throw new Error("Token de extensão não configurado.");
   }
@@ -62,7 +48,7 @@ async function sendSelectionToAI(text, pageUrl, pageTitle) {
       stream: false,
       keep_alive: "5m",
     }),
-  });
+  }, 90000);
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
   return data.message?.content || "Sem resposta.";

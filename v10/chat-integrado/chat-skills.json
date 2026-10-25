@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "items": [
     {
       "id": "find-skills",
@@ -31,7 +31,7 @@
       "category": "Revisão",
       "description": "Revisa código em busca de bugs, regressões, segurança e manutenibilidade.",
       "tags": ["review", "bugs", "segurança", "qualidade"],
-      "body": "Faça uma revisão de código orientada a achados. Priorize bugs reais, regressões, vulnerabilidades, perda de dados, concorrência, compatibilidade e ausência de testes. Para cada achado informe severidade, arquivo ou trecho, impacto, evidência e correção sugerida. Separe fatos de hipóteses. Se não houver achados, diga isso e registre riscos residuais e lacunas de teste."
+      "body": "Faça uma revisão de código em dois eixos paralelos. Eixo Standards: o código segue as convenções do repositório (AGENTS.md, lints, testes, nomenclatura)? Eixo Spec: o código implementa o pedido original sem scope creep? Priorize bugs reais, regressões, vulnerabilidades, perda de dados, concorrência, compatibilidade e ausência de testes. Para cada achado informe severidade, arquivo ou trecho, impacto, evidência e correção sugerida. Separe fatos de hipóteses. Se não houver achados, diga isso e registre riscos residuais e lacunas de teste. Skill global: mattpocock/skills@code-review."
     },
     {
       "id": "security-review",
@@ -168,6 +168,118 @@
       "description": "Usa arquivos, buscas, processos e terminal do Desktop Commander MCP.",
       "tags": ["Desktop Commander", "MCP", "arquivos", "terminal", "processos"],
       "body": "Planeje o uso do Desktop Commander para operar arquivos, buscas, processos e sessões locais. Prefira caminhos absolutos, leitura antes de escrita, `edit_block` para mudanças cirúrgicas e paginação para saídas grandes. Para executar uma ferramenta, abra o painel Ferramentas e escolha um item com prefixo `desktop__`. Explique e peça confirmação antes de escrever, mover, editar, iniciar comandos, encerrar processos ou alterar configuração."
+    },
+    {
+      "id": "diagnosing-bugs",
+      "title": "Diagnosticar Bugs",
+      "category": "Qualidade",
+      "description": "Diagnostica bugs duros com loop pass/fail antes de qualquer correção.",
+      "tags": ["bugs", "diagnóstico", "debug", "regressão", "mattpocock"],
+      "body": "Diagnostique o bug com disciplina. Primeiro construa um loop de feedback apertado: um sinal que fica vermelho exatamente neste bug (teste, log, reprodução). Redija segredos. Depois bissecte, formule hipóteses e instrumente só o necessário. Não corrija no escuro. Skill global: mattpocock/skills@diagnosing-bugs em ~/.agents/skills/diagnosing-bugs."
+    },
+    {
+      "id": "systematic-debugging",
+      "title": "Debug Sistemático",
+      "category": "Qualidade",
+      "description": "Obriga investigação de causa raiz antes de propor qualquer correção.",
+      "tags": ["debug", "causa raiz", "obra", "superpowers"],
+      "body": "Lei de ferro: não proponha correção sem investigar a causa raiz. Fase 1 coleta evidência, analisa o erro e rastreia o fluxo de dados. Depois teste hipóteses. Se três tentativas falharem, questione a arquitetura em vez de aplicar mais um paliativo. Skill global: obra/superpowers@systematic-debugging em ~/.agents/skills/systematic-debugging."
+    },
+    {
+      "id": "improve-codebase-architecture",
+      "title": "Arquitetura do Codebase",
+      "category": "Código",
+      "description": "Encontra módulos rasos e propõe interfaces profundas e testáveis.",
+      "tags": ["arquitetura", "refatoração", "módulos", "mattpocock"],
+      "body": "Analise atrito arquitetural. Procure módulos rasos, acoplamento e costuras não testáveis. Proponha aprofundar módulos: interface pequena escondendo implementação grande. Gere alternativas (minimalista, flexível, ports e adapters) e recomende a mais forte. Skill global: mattpocock/skills@improve-codebase-architecture."
+    },
+    {
+      "id": "requesting-code-review",
+      "title": "Pedir Revisão de Código",
+      "category": "Revisão",
+      "description": "Dispara um revisor com contexto limpo e severidade Critical/Important/Minor.",
+      "tags": ["review", "subagente", "obra", "qualidade"],
+      "body": "Ao concluir uma tarefa, peça revisão com contexto preciso: SHAs, resumo da implementação, requisitos e intervalo de commits. Classifique feedback em Critical (corrigir agora), Important (antes de seguir) e Minor (anotar). Não envie o histórico da sessão ao revisor. Skill global: obra/superpowers@requesting-code-review."
+    },
+    {
+      "id": "frontend-design",
+      "title": "Design de Frontend Distinto",
+      "category": "Design",
+      "description": "Cria interfaces com identidade visual própria, longe do visual genérico de IA.",
+      "tags": ["frontend", "UI", "tipografia", "anthropic", "dashboard"],
+      "body": "Atue como design lead. Escolha paleta, tipografia e composição a partir do assunto real do produto, não de templates. Evite fontes clichê, gradientes genéricos e três cards iguais. Para o Mini Gestor e o Mestre do PC, trate o painel como ferramenta de trabalho: hierarquia clara, densidade útil, estados vazio/erro/sucesso. Skill global: anthropics/skills@frontend-design."
+    },
+    {
+      "id": "web-design-guidelines",
+      "title": "Diretrizes de Interface Web",
+      "category": "Design",
+      "description": "Audita UI contra as Web Interface Guidelines da Vercel, acessibilidade e UX.",
+      "tags": ["acessibilidade", "WCAG", "Vercel", "auditoria", "UI"],
+      "body": "Revise arquivos de UI contra as Web Interface Guidelines da Vercel. Busque as regras atualizadas, cheque espaçamento, tipografia, foco, teclado, contraste e estados. Entregue achados no formato arquivo:linha. Skill global: vercel-labs/agent-skills@web-design-guidelines. Fonte: https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md"
+    },
+    {
+      "id": "ui-ux-pro-max",
+      "title": "UI UX Pro Max",
+      "category": "Design",
+      "description": "Banco de padrões para dashboards, admin, mobile, paletas, gráficos e stacks.",
+      "tags": ["dashboard", "UX", "paleta", "mobile", "desktop"],
+      "body": "Use inteligência de UI/UX para dashboards e apps. Consulte estilos, paletas, pares de fonte, tipos de gráfico e padrões de produto (SaaS, admin, painel). Priorize acessibilidade, toque, layout responsivo e consistência. Adeque desktop Electron, web e mobile. Skill global: nextlevelbuilder/ui-ux-pro-max-skill@ui-ux-pro-max em ~/.agents/skills/ui-ux-pro-max."
+    },
+    {
+      "id": "design-taste-frontend",
+      "title": "Redesign com Taste Frontend",
+      "category": "Design",
+      "description": "Redesenha telas existentes com direção visual escolhida e checagem no navegador.",
+      "tags": ["redesign", "dashboard", "anti-slop", "taste"],
+      "body": "Ao revisar telas já existentes, não reescreva do zero. Audite no navegador, preserve conteúdo e comportamento, escolha uma direção visual e reconstrua o visual. Evite estética de template de IA. Esta skill substitui redesign-existing-projects. Skill global: leonxlnx/taste-skill@design-taste-frontend."
+    },
+    {
+      "id": "security-and-hardening",
+      "title": "Segurança e Hardening",
+      "category": "Revisão",
+      "description": "Endurece autenticação, entradas, segredos e integrações com threat model primeiro.",
+      "tags": ["segurança", "OWASP", "hardening", "addyosmani"],
+      "body": "Trate toda entrada externa como hostil, todo segredo como sagrado e toda checagem de autorização como obrigatória. Antes de endurecer, faça um threat model de cinco minutos. Cubra XSS, CSRF, SSRF, injeção, upload, webhooks e PII. No Electron, exija contextIsolation, nodeIntegration false e preload com canais IPC allowlistados. Skill global: addyosmani/agent-skills@security-and-hardening."
+    },
+    {
+      "id": "supply-chain-risk-auditor",
+      "title": "Auditor de Supply Chain",
+      "category": "Revisão",
+      "description": "Audita dependências npm, lockfile, CVEs, maintainers e scripts de install.",
+      "tags": ["npm", "dependências", "CVE", "trailofbits", "lockfile"],
+      "body": "Audite a cadeia de suprimentos do projeto. Use os scripts da skill para medir, não chute números. Cubra dependências diretas, árvore do lockfile, advisories, pacotes abandonados, concentração de publishers e scripts de install. Aplique em MiniGestor (electron, electron-builder) e no Mestre do PC. Skill global: trailofbits/skills@supply-chain-risk-auditor."
+    },
+    {
+      "id": "supabase-postgres-best-practices",
+      "title": "Postgres Best Practices",
+      "category": "Código",
+      "description": "Otimiza schema, queries, pooling, RLS e índices no PostgreSQL.",
+      "tags": ["postgres", "sql", "índice", "RLS", "supabase"],
+      "body": "Antes de criar ou alterar tabelas, colunas, índices, RLS, funções ou migrations no Postgres, aplique as regras da Supabase: performance de query, pooling de conexões, segurança RLS, schema, concorrência e monitoramento. Mostre exemplos SQL corretos versus incorretos quando útil. Skill global: supabase/agent-skills@supabase-postgres-best-practices. Útil no backend Axum+SQLx do Mini Gestor."
+    },
+    {
+      "id": "electron-development",
+      "title": "Electron Desktop",
+      "category": "Automação",
+      "description": "Constrói, empacota e endurece apps desktop Electron com IPC e instalador.",
+      "tags": ["electron", "desktop", "preload", "electron-builder", "NSIS"],
+      "body": "Construa o app desktop com Electron de forma segura. Separe main, preload e renderer. Use contextIsolation true, nodeIntegration false, contextBridge e canais IPC allowlistados. Empacote com electron-builder (NSIS no Windows), atalho, desinstalador e ícone. No Mini Gestor, o URL remoto vai em config.json após o setup.html; nunca habilite node no renderer. Skill global: mindrally/skills@electron-development."
+    },
+    {
+      "id": "vercel-react-native-skills",
+      "title": "React Native e Expo",
+      "category": "Web",
+      "description": "Boas práticas de React Native e Expo para listas, animação, navegação e nativo.",
+      "tags": ["react-native", "expo", "mobile", "performance", "vercel"],
+      "body": "Ao criar ou otimizar app mobile com React Native ou Expo, aplique as regras da Vercel: listas virtualizadas, imagens, animações em transform/opacity, stack nativo, Pressable, safe area e módulos nativos. O Mini Gestor atual é Electron, não mobile; use esta skill só quando o alvo for app nativo. Skill global: vercel-labs/agent-skills@vercel-react-native-skills."
+    },
+    {
+      "id": "cloudflare",
+      "title": "Cloudflare Tunnel e Plataforma",
+      "category": "DevOps",
+      "description": "Escolhe produtos Cloudflare e publica link HTTPS ativo via Tunnel para acesso remoto.",
+      "tags": ["cloudflare", "tunnel", "vps", "remoto", "https"],
+      "body": "Para acesso remoto com link ativo, prefira Cloudflare Tunnel em vez de abrir porta na VPS. O Tunnel publica HTTPS no hostname escolhido e aponta para 127.0.0.1 na origem. No Mini Gestor, esse hostname é o endereço colado no setup.html. Consulte a documentação viva da Cloudflare para Workers, WAF e Tunnel; não invente flags. Skill global: cloudflare/skills@cloudflare. Não use skills de VPS Docker com poucas instalações."
     }
   ]
 }

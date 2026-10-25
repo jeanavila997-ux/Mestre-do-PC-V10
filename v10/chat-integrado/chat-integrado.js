@@ -390,11 +390,23 @@ function hideSkillsMenu() {
   state.selectedSkillIndex = 0;
 }
 
+async function ensureSkillBody(skill) {
+  if (!skill || skill.body) return skill;
+  try {
+    const full = await apiGet(`/api/skills/${encodeURIComponent(skill.id)}`);
+    if (full?.skill?.body) skill.body = full.skill.body;
+  } catch {
+    /* description permanece como fallback */
+  }
+  return skill;
+}
+
 function chooseSkill(skill) {
   $("promptInput").value = `/${skill.id} `;
   hideSkillsMenu();
   $("skillsLibraryPanel").classList.remove("show");
   $("promptInput").focus();
+  void ensureSkillBody(skill);
 }
 
 function renderSkillsMenu() {
@@ -746,61 +758,153 @@ function attachRunButtons(container) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "run-cmd";
-    btn.textContent = "Executar na whitelist";
+    btn.innerHTML = "<span class=\"run-cmd-icon\">▶</span><span>Executar na whitelist</span>";
     btn.addEventListener("click", () => {
-      runSuggestedCommand(cmd).catch((err) => addMessage("❌ " + err.message, "ai"));
+      runSuggestedCommand(cmd, btn).catch((err) => addMessage("❌ " + err.message, "ai"));
     });
     pre.appendChild(btn);
   });
 }
 
-async function runSuggestedCommand(cmd) {
-  const classified = await fetch("/classify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
-    body: JSON.stringify({ cmd }),
-  });
-  const verdict = await classified.json().catch(() => ({}));
-  if (!classified.ok || !verdict.allowed) {
-    addMessage("Esse comando não está na whitelist do Mestre. " + (verdict.reason || "Nada foi executado."), "ai");
-    return;
+function setRunStatusMessage(row, text, tone = "info") {
+  if (!row) {
+    addMessage(text, "ai");
+    row = $("messagesContainer")?.lastElementChild || null;
   }
-  const aviso = verdict.destructive
-    ? "Operação destrutiva da whitelist. Revise antes de autorizar."
-    : "Comando da whitelist. Confirme antes de executar.";
-  const titulo = [verdict.title, verdict.category].filter(Boolean).join(" · ");
-  const aprovado = await openModal({
-    title: titulo || "Comando da whitelist",
-    body: `${aviso}\n\n${cmd}`,
-    okText: "Executar",
-  });
-  if (!aprovado) return;
+  const body = row?.querySelector(".msg-body");
+  if (!body) return row;
+  body.classList.remove("run-status-info", "run-status-wait", "run-status-ok", "run-status-fail");
+  body.classList.add("run-status", `run-status-${tone}`);
+  body.innerHTML = renderMarkdown(text);
+  row.scrollIntoView({ behavior: "smooth", block: "end" });
+  return row;
+}
 
-  addMessage("Executando: " + (verdict.title || verdict.id || "comando"), "ai");
-  const submitRes = await fetch("/run", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
-    body: JSON.stringify({ cmd }),
-  });
-  const submit = await submitRes.json().catch(() => ({}));
-  if (!submitRes.ok || !submit.jobId) {
-    addMessage("❌ " + (submit.output || "O launcher recusou o comando."), "ai");
-    return;
+async function runSuggestedCommand(cmd, triggerBtn = null) {
+  if (triggerBtn) {
+    triggerBtn.disabled = true;
+    triggerBtn.classList.add("is-busy");
   }
 
-  const deadline = Date.now() + 120000;
-  while (Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, 800));
-    const statusRes = await fetch("/run-status?id=" + encodeURIComponent(submit.jobId), {
-      headers: { "X-Mestre-Client": "v10-web" },
+  let statusRow = setRunStatusMessage(null, "🔎 **Classificando** comando na whitelist…", "wait");
+
+  try {
+    const classified = await fetch("/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+      body: JSON.stringify({ cmd }),
     });
-    const status = await statusRes.json().catch(() => ({}));
-    if (status.state === "running") continue;
-    const saida = status.output || "(sem saída)";
-    addMessage((status.success ? "Concluído" : "Falhou") + "\n\n```\n" + saida.slice(0, 4000) + "\n```", "ai");
-    return;
+    const verdict = await classified.json().catch(() => ({}));
+    if (!classified.ok || !verdict.allowed) {
+      setRunStatusMessage(
+        statusRow,
+        "🚫 Esse comando **não está na whitelist** do Mestre. " + (verdict.reason || "Nada foi executado."),
+        "fail",
+      );
+      return;
+    }
+
+    const aviso = verdict.destructive
+      ? "Operação destrutiva da whitelist. Revise antes de autorizar."
+      : "Comando da whitelist. Confirme antes de executar.";
+    const titulo = [verdict.title, verdict.category].filter(Boolean).join(" · ");
+    setRunStatusMessage(
+      statusRow,
+      `✅ **Whitelist OK** — ${titulo || verdict.id || "comando"}. Aguardando confirmação…`,
+      "info",
+    );
+
+    const aprovado = await openModal({
+      title: titulo || "Comando da whitelist",
+      body: `${aviso}\n\n${cmd}`,
+      okText: "Executar",
+    });
+    if (!aprovado) {
+      setRunStatusMessage(statusRow, "⏹️ Execução cancelada.", "info");
+      return;
+    }
+
+    setRunStatusMessage(
+      statusRow,
+      `⚙️ **Executando:** ${verdict.title || verdict.id || "comando"}…`,
+      "wait",
+    );
+
+    const submitRes = await fetch("/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+      body: JSON.stringify({ cmd }),
+    });
+    const submit = await submitRes.json().catch(() => ({}));
+    if (!submitRes.ok || !submit.jobId) {
+      setRunStatusMessage(
+        statusRow,
+        "❌ " + (submit.output || "O launcher recusou o comando."),
+        "fail",
+      );
+      return;
+    }
+
+    const deadline = Date.now() + 120000;
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 800));
+      const statusRes = await fetch("/run-status?id=" + encodeURIComponent(submit.jobId), {
+        headers: { "X-Mestre-Client": "v10-web" },
+      });
+      const status = await statusRes.json().catch(() => ({}));
+      if (status.state === "running") {
+        setRunStatusMessage(
+          statusRow,
+          `⚙️ **Executando:** ${verdict.title || verdict.id || "comando"}…\n\n_Job \`${submit.jobId.slice(0, 8)}\`_`,
+          "wait",
+        );
+        continue;
+      }
+      const saida = status.output || "(sem saída)";
+      const ok = !!status.success;
+      setRunStatusMessage(
+        statusRow,
+        (ok ? "✅ **Concluído**" : "❌ **Falhou**") + "\n\n```\n" + saida.slice(0, 4000) + "\n```",
+        ok ? "ok" : "fail",
+      );
+      return;
+    }
+    setRunStatusMessage(
+      statusRow,
+      `⏳ O comando ainda está rodando. Acompanhe pelo job \`${submit.jobId}\`.`,
+      "wait",
+    );
+  } finally {
+    if (triggerBtn) {
+      triggerBtn.disabled = false;
+      triggerBtn.classList.remove("is-busy");
+    }
   }
-  addMessage("O comando ainda está rodando. Acompanhe pelo job " + submit.jobId + ".", "ai");
+}
+
+/** Reinicia a thread local (mesmo efeito do botão Novo chat). */
+function startFreshChat() {
+  state.conversaId = null;
+  state.messages = [];
+  if (state.abortController) {
+    try { state.abortController.abort(); } catch { /* ignore */ }
+  }
+  resetChatView();
+}
+
+const WHITELIST_DEMO_RAM =
+  "Get-CimInstance Win32_PhysicalMemory | Select-Object Manufacturer,PartNumber,@{N='GB';E={[math]::Round($_.Capacity/1GB,0)}},Speed,DeviceLocator | Format-Table -AutoSize";
+
+/** Injeta um fence pronto da whitelist para o usuário clicar em Executar. */
+function suggestWhitelistDemo(cmd = WHITELIST_DEMO_RAM, title = "Informações da Memória RAM") {
+  startFreshChat();
+  $("heroHeading").style.display = "none";
+  $("quickCategories").style.display = "none";
+  $("messagesContainer").style.display = "flex";
+  addMessage(
+    `Atalho de teste da whitelist — **${title}**.\n\nClique em **Executar na whitelist** no bloco abaixo (o Mestre vai classificar e pedir confirmação).\n\n\`\`\`powershell\n${cmd}\n\`\`\``,
+    "ai",
+  );
 }
 
 function finalizeStreamingMessage() {
@@ -1336,6 +1440,12 @@ async function sendMessage() {
   const attachments = state.attachments.map((attachment) => ({ ...attachment }));
   if (!typedMessage && !attachments.length) return;
 
+  const shortcutMatch = typedMessage.match(/^\/([^\s]+)/);
+  if (shortcutMatch) {
+    const shortcut = shortcutMatch[1].toLowerCase();
+    const listed = state.skills.find((item) => String(item.id).toLowerCase() === shortcut);
+    if (listed) await ensureSkillBody(listed);
+  }
   const skillResult = applySkillShortcut(typedMessage, state.skills);
   const prompt = skillResult.matched ? skillResult.text : typedMessage;
   const attachmentContext = buildAttachmentContext(prompt || "Analise os arquivos anexados.", attachments);
@@ -1410,10 +1520,11 @@ async function sendMessage() {
 // ── Quick categories ────────────────────────────────────────────────
 
 const QUICK_CATEGORIES = [
-  { label: "💻 Diagnóstico do PC", msg: "Faz um diagnóstico completo do meu PC" },
-  { label: "🧹 Limpeza", msg: "Quero limpar arquivos temporários do meu PC" },
+  { label: "💻 Diagnóstico do PC", msg: "Faz um diagnóstico completo do meu PC", fresh: true },
+  { label: "🧹 Limpeza", msg: "Quero limpar arquivos temporários do meu PC", fresh: true },
   { label: "⚡ Performance", msg: "Como posso melhorar a performance do meu PC?" },
   { label: "📊 Status do sistema", msg: "Mostre o status atual do sistema" },
+  { label: "✅ Testar whitelist (RAM)", action: "whitelistRam" },
   { label: "🔍 Buscar na web", msg: "", tool: "buscar_na_web" },
   { label: "Skills", msg: "", action: "showSkills" },
   { label: "Revisar código", msg: "", skill: "code-review" },
@@ -1428,19 +1539,22 @@ function renderQuickCategories() {
   for (const cat of QUICK_CATEGORIES) {
     const el = document.createElement("button");
     el.type = "button";
-    el.className = "cat-capsule";
+    el.className = "cat-capsule" + (cat.action === "whitelistRam" ? " cat-capsule-accent" : "");
     el.textContent = cat.label;
     el.addEventListener("click", () => {
       if (cat.action === "showTools") {
         showToolsPanel();
       } else if (cat.action === "showSkills") {
         showSkillsLibrary();
+      } else if (cat.action === "whitelistRam") {
+        suggestWhitelistDemo();
       } else if (cat.skill) {
         const skill = state.skills.find((item) => item.id === cat.skill);
         if (skill) chooseSkill(skill);
       } else if (cat.tool) {
         handleToolClick(cat.tool);
       } else if (cat.msg) {
+        if (cat.fresh) startFreshChat();
         $("promptInput").value = cat.msg;
         sendMessage();
       }
@@ -1457,16 +1571,21 @@ export async function initChatIntegrado() {
   // Modal próprio (substituto acessível de alert/confirm/prompt)
   initModal();
 
-  // Theme toggle
+  // Theme toggle (+ color-scheme para controles/scrollbar nativos seguirem o tema)
+  const aplicarColorScheme = () => {
+    document.documentElement.style.colorScheme = document.body.classList.contains("light") ? "light" : "dark";
+  };
   $("btnTheme").addEventListener("click", () => {
     document.body.classList.toggle("light");
     localStorage.setItem("mestre-theme", document.body.classList.contains("light") ? "light" : "dark");
+    aplicarColorScheme();
   });
 
   // Restore theme
   if (localStorage.getItem("mestre-theme") === "light") {
     document.body.classList.add("light");
   }
+  aplicarColorScheme();
 
   // Collapse sidebar
   $("collapseBtn").addEventListener("click", () => {
@@ -1475,9 +1594,10 @@ export async function initChatIntegrado() {
 
   // New chat
   $("btnNewChat").addEventListener("click", () => {
-    state.conversaId = null;
-    state.messages = [];
-    resetChatView();
+    startFreshChat();
+  });
+  $("btnNewChatTop")?.addEventListener("click", () => {
+    startFreshChat();
   });
 
   // Nav: Ferramentas
@@ -1499,15 +1619,21 @@ export async function initChatIntegrado() {
   });
 
   $("btnDiagnosticoNav").addEventListener("click", () => {
+    // Thread limpa evita a IA responder "OK" por causa do histórico anterior.
+    startFreshChat();
     $("promptInput").value = "Faz um diagnóstico completo do meu PC e sugere no máximo 3 ações.";
     sendMessage();
   });
   $("btnManutencaoNav").addEventListener("click", () => {
+    startFreshChat();
     $("promptInput").value = "Quero uma manutenção segura: temporários, lixeira e o que mais a whitelist permitir.";
     sendMessage();
   });
   $("btnDashboardNav").addEventListener("click", () => {
     location.href = "/";
+  });
+  $("btnGerenciarNav").addEventListener("click", () => {
+    location.href = "/gerenciar-comandos.html";
   });
 
   // Nav: Limpar chat

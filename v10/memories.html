@@ -513,12 +513,18 @@
 
     <script>
         const API = 'http://127.0.0.1:7777';
+        const CLIENT_HEADERS = { 'X-Mestre-Client': 'v10-web' };
         let allMemories = [];
+
+        function apiFetch(path, options = {}) {
+            const headers = { ...CLIENT_HEADERS, ...(options.headers || {}) };
+            return fetch(`${API}${path}`, { ...options, headers });
+        }
 
         // Carrega memórias ao iniciar
         async function loadMemories() {
             try {
-                const res = await fetch(`${API}/memories/list?limit=100`);
+                const res = await apiFetch('/memories/list?limit=100');
                 const data = await res.json();
                 if (data.success) {
                     allMemories = data.memories;
@@ -582,7 +588,7 @@
         // Carrega estatísticas
         async function loadStats() {
             try {
-                const res = await fetch(`${API}/memories/stats`);
+                const res = await apiFetch('/memories/stats');
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('statTotal').textContent = data.stats.total;
@@ -662,10 +668,10 @@
             };
 
             try {
-                const url = id ? `${API}/memories/update/${id}` : `${API}/memories/create`;
+                const path = id ? `/memories/update/${id}` : `/memories/create`;
                 const method = id ? 'PUT' : 'POST';
                 
-                const res = await fetch(url, {
+                const res = await apiFetch(path, {
                     method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(memoryData),
@@ -689,7 +695,7 @@
             if (!confirm('Tem certeza que deseja excluir esta memória?')) return;
 
             try {
-                const res = await fetch(`${API}/memories/delete/${id}`, { method: 'DELETE' });
+                const res = await apiFetch(`/memories/delete/${id}`, { method: 'DELETE' });
                 const data = await res.json();
                 if (data.success) {
                     showToast('Memória excluída!', 'success');
@@ -712,13 +718,28 @@
         }
 
         // Exporta memórias
-        function exportMemories(format) {
+        async function exportMemories(format) {
             const type = document.getElementById('typeFilter').value;
-            let url = `${API}/memories/export?format=${format}`;
-            if (type) url += `&type=${type}`;
-            
-            window.open(url, '_blank');
-            showToast(`Exportando em ${format.toUpperCase()}...`, 'success');
+            let path = `/memories/export?format=${encodeURIComponent(format)}`;
+            if (type) path += `&type=${encodeURIComponent(type)}`;
+            try {
+                const res = await apiFetch(path);
+                if (!res.ok) {
+                    showToast('Erro ao exportar memórias', 'error');
+                    return;
+                }
+                const blob = await res.blob();
+                const disposition = res.headers.get('Content-Disposition') || '';
+                const named = disposition.match(/filename="([^"]+)"/);
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = named ? named[1] : `memorias.${format}`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                showToast(`Exportando em ${format.toUpperCase()}...`, 'success');
+            } catch (err) {
+                showToast('Erro ao exportar: ' + err.message, 'error');
+            }
         }
 
         // Importa memórias
@@ -733,7 +754,7 @@
                                   file.name.endsWith('.txt') ? 'txt' :
                                   file.name.endsWith('.xml') || file.name.endsWith('.xlsx') ? 'xml' : 'json';
                     
-                    const res = await fetch(`${API}/memories/import`, {
+                    const res = await apiFetch('/memories/import', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

@@ -30,6 +30,20 @@ test("catálogo inclui as áreas solicitadas", async () => {
     "teaching",
     "orchestration",
     "desktop-commander",
+    "diagnosing-bugs",
+    "systematic-debugging",
+    "improve-codebase-architecture",
+    "requesting-code-review",
+    "frontend-design",
+    "web-design-guidelines",
+    "ui-ux-pro-max",
+    "design-taste-frontend",
+    "security-and-hardening",
+    "supply-chain-risk-auditor",
+    "supabase-postgres-best-practices",
+    "electron-development",
+    "vercel-react-native-skills",
+    "cloudflare",
   ];
 
   for (const id of required) assert.ok(ids.has(id), `Skill ausente: ${id}`);

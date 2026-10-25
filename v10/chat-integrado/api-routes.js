@@ -5,7 +5,8 @@
  * /api/*. Mantém o launcher limpo e separa responsabilidades.
  *
  * Endpoints:
- *   GET  /api/skills              — lista skills para o atalho /
+ *   GET  /api/skills              — lista skills para o atalho / (sem body)
+ *   GET  /api/skills/:id          — detalhe com body completo
  *   GET  /api/tools              — lista ferramentas disponíveis
  *   POST /api/tools/:name        — executa uma ferramenta
  *   GET  /api/profiles           — lista perfis de modelo
@@ -28,7 +29,7 @@
  *   PUT  /api/config             — atualiza configuração
  */
 
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { TOOL_NAMES, executarTool, listProfiles, getProfileModel, getProfileOptions, getBestAvailableModel, getBestLocalModel, refreshAvailableModels, availableModels } from "./tools-api.js";
@@ -46,12 +47,28 @@ import {
 
 let syncStarted = false;
 let skillsCache = null;
+let skillsCacheStamp = "";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MCP_SKILLS_FILE = join(__dirname, "../../mcp-server/mcp-skills.json");
 const CHAT_SKILLS_FILE = join(__dirname, "chat-skills.json");
+const OPERATIONS_FILE = join(__dirname, "../allowed-operations.json");
+
+async function skillsCatalogStamp() {
+  const parts = [];
+  for (const file of [MCP_SKILLS_FILE, CHAT_SKILLS_FILE, OPERATIONS_FILE]) {
+    try {
+      const info = await stat(file);
+      parts.push(`${file}:${info.mtimeMs}:${info.size}`);
+    } catch {
+      parts.push(`${file}:missing`);
+    }
+  }
+  return parts.join("|");
+}
 
 async function loadSkills() {
-  if (skillsCache) return skillsCache;
+  const stamp = await skillsCatalogStamp();
+  if (skillsCache && skillsCacheStamp === stamp) return skillsCache;
 
   let importedSkills = [];
   try {
@@ -101,6 +118,7 @@ async function loadSkills() {
 
   const byId = new Map([...importedSkills, ...curatedSkills, ...operationSkills].map((skill) => [skill.id, skill]));
   skillsCache = [...byId.values()];
+  skillsCacheStamp = stamp;
   return skillsCache;
 }
 
@@ -226,7 +244,26 @@ export async function handleApiRoute(req, res, url, ctx) {
   if (path === "/api/skills" && method === "GET") {
     if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
     const skills = await loadSkills();
-    ok(res, { skills, total: skills.length }, allowedOrigin);
+    // Lista leve: bodies podem somar ~180 KB; o corpo vem por /api/skills/:id
+    const leves = skills.map(({ body, ...resto }) => ({ ...resto, hasBody: body.length > 0 }));
+    ok(res, { skills: leves, total: leves.length }, allowedOrigin);
+    return true;
+  }
+
+  if (path.startsWith("/api/skills/") && method === "GET") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    let id;
+    try {
+      id = decodeURIComponent(path.slice("/api/skills/".length));
+    } catch {
+      return fail(res, 400, { error: "id inválido" }, allowedOrigin), true;
+    }
+    if (!id || id.includes("/")) {
+      return fail(res, 400, { error: "id inválido" }, allowedOrigin), true;
+    }
+    const skill = (await loadSkills()).find((s) => s.id === id);
+    if (!skill) return fail(res, 404, { error: `skill não encontrada: ${id}` }, allowedOrigin), true;
+    ok(res, { skill }, allowedOrigin);
     return true;
   }
 

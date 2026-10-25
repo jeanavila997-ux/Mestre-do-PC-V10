@@ -627,20 +627,70 @@ body {
 .msg-body code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; font-family: "Cascadia Mono", Consolas, monospace; font-size: 13px; color: var(--accent2) }
 .msg-body pre { background: rgba(0, 0, 0, 0.4); padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; border: 1px solid var(--border) }
 .msg-body pre code { background: transparent; padding: 0; border-radius: 0 }
-.msg-body pre { position: relative; }
+.msg-body pre { position: relative; padding-bottom: 44px; }
 .msg-body .run-cmd {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
   display: inline-flex;
-  margin-top: 8px;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+  padding: 7px 12px;
+  border: 1px solid rgba(0, 212, 255, 0.45);
   border-radius: 999px;
-  background: transparent;
-  color: var(--text);
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.18), rgba(0, 212, 255, 0.05));
+  color: var(--accent, #00d4ff);
   cursor: pointer;
   font: inherit;
   font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 212, 255, 0.12);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
 }
-.msg-body .run-cmd:hover { border-color: var(--accent, #00d4ff); }
+.msg-body .run-cmd .run-cmd-icon {
+  display: inline-flex;
+  width: 1.1em;
+  justify-content: center;
+  font-size: 11px;
+}
+.msg-body .run-cmd:hover {
+  border-color: var(--accent, #00d4ff);
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.28), rgba(0, 212, 255, 0.1));
+  transform: translateY(-1px);
+}
+.msg-body .run-cmd:disabled,
+.msg-body .run-cmd.is-busy {
+  opacity: 0.55;
+  cursor: wait;
+  transform: none;
+}
+
+.msg-body.run-status { font-size: 14px; }
+.msg-body.run-status-wait {
+  border-color: rgba(0, 212, 255, 0.35);
+  background: rgba(0, 212, 255, 0.06);
+}
+.msg-body.run-status-ok {
+  border-color: rgba(46, 204, 113, 0.45);
+  background: rgba(46, 204, 113, 0.08);
+}
+.msg-body.run-status-fail {
+  border-color: rgba(231, 76, 60, 0.45);
+  background: rgba(231, 76, 60, 0.08);
+}
+.msg-body.run-status-info {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.cat-capsule.cat-capsule-accent {
+  color: var(--accent, #00d4ff);
+  border-color: rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.08);
+}
+.cat-capsule.cat-capsule-accent:hover {
+  background: rgba(0, 212, 255, 0.16);
+}
 
 .msg-body.tool-result {
   background: rgba(240, 168, 0, 0.08);

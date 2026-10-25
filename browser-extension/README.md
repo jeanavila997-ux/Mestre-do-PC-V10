@@ -19,6 +19,11 @@ A extensão só consegue falar com o launcher se:
 
 Nunca compartilhe o token. Ele é a única credencial da extensão.
 
+Token e configurações ficam em `chrome.storage.local`, sem sincronização entre
+dispositivos. Dados de versões anteriores são copiados para armazenamento local
+antes de serem removidos de `storage.sync`. Armazenamento local não é cofre criptografado.
+Somente URLs HTTP em `127.0.0.1` são aceitas; redirecionamentos são bloqueados.
+
 ## Instalação
 
 ### 1. Configurar o Launcher
@@ -28,7 +33,7 @@ No PowerShell onde o launcher é iniciado, defina o token e as origens permitida
 ```powershell
 $env:MESTRE_EXTENSION_TOKEN="seu-token-seguro-aqui"
 $env:MESTRE_EXTENSION_ORIGINS="chrome-extension://SEU_ID_AQUI"
-.\MestreDoPC-Launcher.ps1
+node v10/launcher.js
 ```
 
 > Para descobrir o ID da extensão, carregue-a primeiro no modo desenvolvedor (passo 3) e depois copie o ID exibido.
@@ -61,6 +66,11 @@ node browser-extension/icons/build-icons.js
 2. Cole o mesmo token definido no launcher.
 3. (Opcional) Habilite e configure a URL do Chat Hub.
 4. Salve.
+5. Para usar IA, leia o aviso e marque **Autorizar envio para IA**. O envio de título,
+   URL e seleção fica bloqueado até esse consentimento, inclusive no menu de contexto.
+
+Portas locais adicionais exigem permissão opcional do navegador ao salvar.
+HTTP é usado apenas no loopback deste computador; servidores remotos não são aceitos.
 
 ## Integração com Chat Hub
 
@@ -68,10 +78,13 @@ Por padrão a extensão verifica o status de `http://127.0.0.1:3000/ping`. Para 
 
 ## Distribuição
 
-Para gerar um `.zip` pronto para publicação na Chrome Web Store ou para instalação manual:
+Requisitos: Node.js e PowerShell do Windows. A extensão não depende de pacotes npm externos; não precisa de `npm install`.
+
+Para validar e gerar os pacotes:
 
 ```bash
 # Chrome / Edge
+node --test browser-extension/build.test.js browser-extension/settings.test.js
 node browser-extension/build.js chrome
 
 # Firefox
@@ -79,6 +92,43 @@ node browser-extension/build.js firefox
 ```
 
 O arquivo será gerado em `browser-extension/dist/mestre-do-pc-extension-<target>-v<versao>.zip`.
+
+O build valida nome, descrição (até 132 caracteres), versão e presença dos recursos.
+O `manifest.json` fica na raiz do ZIP. Arquivos obrigatórios ausentes interrompem o
+build sem substituir o ZIP anterior. O pacote Firefox recebe seu próprio manifesto.
+
+### Antes de enviar à Chrome Web Store
+
+1. Extraia o ZIP e carregue a pasta extraída em `chrome://extensions/` pelo botão **Carregar sem compactação**.
+2. Configure token e origem no launcher. Confira status, opções, popup, menu de contexto e envio para IA; teste limpeza apenas quando quiser executá-la.
+3. Revise nome, descrição e ícones PNG (16, 32, 48 e 128 pixels). A versão atual é `1.0.2`; cada envio posterior exige uma versão maior nos dois manifestos e em `package.json`.
+4. Prepare descrição da loja, capturas de tela, imagens promocionais, URLs de suporte/privacidade e declarações sobre permissões e dados enviados para IA.
+5. Envie o ZIP pelo painel da conta de desenvolvedor quando todos os testes e materiais estiverem completos.
+
+Como os textos estão diretamente em português e não existe pasta `_locales`, o manifesto não declara `default_locale`.
+O ZIP gerado não comprova aprovação da loja nem substitui teste funcional no navegador.
+
+Referências oficiais: [preparar extensão](https://developer.chrome.com/docs/webstore/prepare),
+[default_locale](https://developer.chrome.com/docs/extensions/reference/manifest/default-locale),
+[página da loja](https://developer.chrome.com/docs/webstore/best_listing).
+
+Texto sugerido, categoria e minuta de privacidade: [STORE-LISTING.md](STORE-LISTING.md).
+
+### Teste no Chrome
+
+```powershell
+npm.cmd --prefix browser-extension run test:e2e
+```
+
+O teste usa Chrome instalado e Puppeteer já incluído no `chrome-devtools-mcp` do
+projeto. Abre perfil temporário, verifica migração do token, consentimento, opções
+e comando com resposta simulada. Não executa manutenção real. `CHROME_PATH` permite
+indicar outro executável do Chrome. Firefox é validado no pacote, não neste teste.
+
+Sem script permanente nas páginas, não há listeners `unload`, WebSockets ou WebRTC
+injetados pela extensão. Botões do popup funcionam enquanto consultas de status
+ocorrem em paralelo. Testes manuais de navegação voltar/avançar, diferentes versões
+do navegador e rede lenta continuam parte da revisão antes da publicação.
 
 ### Firefox
 
@@ -92,14 +142,19 @@ Arquivos principais:
 - `manifest-firefox.json` — configuração da extensão (Firefox).
 - `popup.html` / `popup.js` — interface e ações do popup.
 - `background.js` — service worker, menu de contexto e chamadas ao launcher.
-- `content.js` — script injetado nas páginas.
+- `settings.js` — armazenamento local, migração e acesso ao app local.
 - `options.html` / `options.js` — página de configurações.
 - `build.js` — script de empacotamento.
 
 ## Permissões
 
-- `storage`: salvar token e URLs.
+- `storage`: salvar token, URLs e consentimento neste perfil.
 - `activeTab`: obter a aba ativa para enviar página/selection.
 - `contextMenus`: menu de contexto.
 - `scripting`: extrair seleção da página.
 - `host_permissions`: acesso apenas a `http://127.0.0.1:7777/*` (launcher local).
+- `notifications`: resultados e erros das ações do menu de contexto.
+- `optional_host_permissions`: outras portas de `127.0.0.1`, solicitadas ao configurar apps locais.
+
+Não há `content_scripts` nem recursos públicos em `<all_urls>`. A leitura da página
+usa `activeTab` e `scripting` somente após ação explícita.

@@ -20,10 +20,15 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "@supabase/server": "^1.9.2",
+    "@supabase/supabase-js": "^2.118.0",
     "@wonderwhy-er/desktop-commander": "^0.2.50",
     "mysql2": "^3.11.0"
   },
   "allowScripts": {
     "@wonderwhy-er/desktop-commander@0.2.52": true
+  },
+  "devDependencies": {
+    "supabase": "^2.122.0"
   }
 }

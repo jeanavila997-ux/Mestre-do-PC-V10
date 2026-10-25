@@ -17,7 +17,7 @@
     p { color: #8b949e; margin-top: 0; }
     .form-group { margin-bottom: 18px; }
     label { display: block; margin-bottom: 6px; font-size: 14px; }
-    input[type="text"], input[type="url"] {
+    input[type="text"], input[type="url"], input[type="password"] {
       width: 100%;
       max-width: 420px;
       padding: 10px 12px;
@@ -53,7 +53,7 @@
 
   <div class="form-group">
     <label for="extensionToken">Token de extensão</label>
-    <input type="text" id="extensionToken" placeholder="cole o token configurado no launcher" />
+    <input type="password" id="extensionToken" autocomplete="off" placeholder="cole o token configurado no launcher" />
     <div class="hint">O token é definido pela variável de ambiente MESTRE_EXTENSION_TOKEN no launcher.</div>
   </div>
 
@@ -70,8 +70,13 @@
     <div class="hint">Endpoint local do Chat Hub para verificação de status.</div>
   </div>
 
+  <div class="form-group">
+    <label><input type="checkbox" id="allowPageAnalysis" aria-describedby="privacyNotice" /> Autorizar envio para IA</label>
+    <p id="privacyNotice">Ao clicar em enviar ou analisar, título, URL e texto selecionado serão enviados ao Mestre do PC neste computador. O app encaminha os dados ao Ollama e, conforme sua configuração, pode usar serviços de IA em nuvem. Não envie senhas ou dados sigilosos. Desmarque para impedir novos envios.</p>
+    <p>Token e configurações ficam neste perfil do navegador, sem sincronização. Armazenamento local não é um cofre criptografado. Para apagar o token, esvazie o campo e salve.</p>
+  </div>
   <button id="save">Salvar</button>
-  <div id="status"></div>
+  <div id="status" role="status" aria-live="polite" tabindex="-1"></div>
 
   <script type="module" src="options.js"></script>
 </body>

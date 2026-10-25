@@ -3,8 +3,7 @@
  * Communicates with the local launcher and optional Chat Hub integration.
  */
 
-const DEFAULT_LAUNCHER_URL = "http://127.0.0.1:7777";
-const DEFAULT_CHATHUB_URL = "http://127.0.0.1:3000";
+import { getSettings, localBaseUrl, fetchLocal as fetchWithTimeout } from "./settings.js";
 
 const UI = {
   launcherDot: document.getElementById("launcherDot"),
@@ -22,15 +21,6 @@ const UI = {
   linkRefresh: document.getElementById("linkRefresh"),
 };
 
-async function getSettings() {
-  return chrome.storage.sync.get({
-    launcherUrl: DEFAULT_LAUNCHER_URL,
-    chathubUrl: DEFAULT_CHATHUB_URL,
-    chathubEnabled: false,
-    extensionToken: "",
-  });
-}
-
 function setStatus(dot, text, state, label) {
   dot.className = "status-dot " + state;
   text.textContent = label;
@@ -42,17 +32,6 @@ function showMessage(msg, type = "error") {
   setTimeout(() => {
     UI.message.className = "message";
   }, 4000);
-}
-
-async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    return res;
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 async function checkLauncher(settings) {
@@ -125,6 +104,10 @@ async function runLauncherCommand(id, settings) {
 }
 
 async function sendPageToAI(settings) {
+  if (settings.allowPageAnalysis !== true) {
+    showMessage("Autorize o envio de titulo, URL e selecao para IA nas configuracoes.", "error");
+    return;
+  }
   if (!settings.extensionToken) {
     showMessage("Configure o token de extensão nas opções.", "error");
     return;
@@ -176,14 +159,16 @@ async function sendPageToAI(settings) {
 function wireActions() {
   if (wireActions.done) return;
   wireActions.done = true;
-  UI.btnDiagnostico.addEventListener("click", async () => runLauncherCommand("diagnostico_completo", await getSettings()));
-  UI.btnLimpeza.addEventListener("click", async () => runLauncherCommand("limpeza_rapida_completa", await getSettings()));
-  UI.btnEnviarPagina.addEventListener("click", async () => sendPageToAI(await getSettings()));
+  UI.btnDiagnostico.addEventListener("click", () => getSettings().then(settings => runLauncherCommand("diagnostico_completo", settings)).catch(e => showMessage(e.message)));
+  UI.btnLimpeza.addEventListener("click", () => getSettings().then(settings => runLauncherCommand("limpeza_rapida_completa", settings)).catch(e => showMessage(e.message)));
+  UI.btnEnviarPagina.addEventListener("click", () => getSettings().then(sendPageToAI).catch(e => showMessage(e.message)));
   UI.btnOptions.addEventListener("click", () => chrome.runtime.openOptionsPage());
   UI.linkOpenApp.addEventListener("click", async (e) => {
     e.preventDefault();
-    const settings = await getSettings();
-    chrome.tabs.create({ url: settings.launcherUrl + "/chat-integrado/chat-integrado.html" });
+    try {
+      const settings = await getSettings();
+      await chrome.tabs.create({ url: localBaseUrl(settings.launcherUrl) + "/chat-integrado/chat-integrado.html" });
+    } catch (error) { showMessage(error.message); }
   });
   UI.linkRefresh.addEventListener("click", (e) => {
     e.preventDefault();
@@ -192,11 +177,11 @@ function wireActions() {
 }
 
 async function init() {
-  const settings = await getSettings();
-  await checkLauncher(settings);
-  await checkOllama(settings);
-  await checkChatHub(settings);
   wireActions();
+  try {
+    const settings = await getSettings();
+    await Promise.all([checkLauncher(settings), checkOllama(settings), checkChatHub(settings)]);
+  } catch (error) { showMessage(error.message); }
 }
 
 document.addEventListener("DOMContentLoaded", init);

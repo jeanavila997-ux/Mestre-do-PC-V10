@@ -1,9 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Mestre do PC - Integração",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Integra o navegador com o Mestre do PC V10 e outros apps locais como Chat Hub.",
-  "default_locale": "pt_BR",
   "permissions": [
     "storage",
     "activeTab",
@@ -33,18 +32,8 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }
-  ],
   "options_page": "options.html",
-  "web_accessible_resources": [
-    {
-      "resources": ["icons/*.png"],
-      "matches": ["<all_urls>"]
-    }
+  "optional_host_permissions": [
+    "http://127.0.0.1/*"
   ]
 }
