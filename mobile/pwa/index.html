@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#07111c" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/pwa/styles.css" />
+  <title>Mestre do PC Mobile</title>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar"><div><strong>Mestre do PC</strong><span id="connection">offline</span></div><button id="logout" hidden>Sair</button></header>
+    <section id="login" class="card auth-card">
+      <h1>Acesso mobile</h1><p>Entre para conversar e controlar o PC com segurança.</p>
+      <form id="login-form"><label>Usuário<input id="username" autocomplete="username" required /></label><label>Senha<input id="password" type="password" autocomplete="current-password" required /></label><button>Continuar</button></form>
+      <form id="twofa-form" hidden><label>Código do autenticador<input id="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required /></label><button>Entrar</button></form>
+      <p id="auth-error" class="error" role="alert"></p>
+    </section>
+    <section id="chat" hidden>
+      <div class="quick-actions"><button data-action="status">Status do PC</button><button data-action="health">Diagnóstico de saúde</button><button data-action="tools">Operações disponíveis</button></div>
+      <div id="tool-list" class="tool-list" hidden></div>
+      <div id="messages" class="messages" aria-live="polite"></div>
+      <form id="chat-form" class="composer"><textarea id="prompt" rows="2" placeholder="Digite sua mensagem..." required></textarea><button>Enviar</button></form>
+    </section>
+  </main>
+  <script type="module" src="/pwa/app.js"></script>
+</body>
+</html>

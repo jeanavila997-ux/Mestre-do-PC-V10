@@ -1,103 +1,69 @@
-# Mestre do PC — Versão Mobile (Plano Futuro)
+# Mestre do PC — Chat Mobile Android
 
-> **Status:** planejamento
-> **Objetivo:** levar o Mestre do PC para celulares (Android/iOS) com segurança, controle local e, opcionalmente, acesso remoto.
+O mobile é uma PWA instalável no Chrome Android, servida pelo gateway local
+`mobile/gateway/`. O gateway autentica o usuário com senha + TOTP, cria uma
+sessão curta e encaminha chat, status e ferramentas para o launcher local.
 
----
+## O que está implementado
 
-## 1. Visão
+- `pwa/` — interface de chat responsiva, manifest e service worker.
+- `gateway/server.mjs` — gateway HTTP local com autenticação, sessão e proxy.
+- `gateway/create-user.mjs` — criação interativa do usuário e segredo TOTP.
+- Ações limitadas às APIs e operações existentes do Mestre do PC.
+- PowerShell livre não é exposto pelo gateway.
 
-Uma versão mobile que permita:
+## Configuração no PC Windows
 
-- Monitorar o PC (CPU, RAM, disco, rede, processos).
-- Executar comandos de manutenção previamente aprovados na whitelist.
-- Conversar com o assistente de IA (Ollama) do Mestre do PC.
-- Receber alertas e notificações sobre saúde do sistema.
+1. Inicie o launcher do Mestre do PC na porta `7777`.
+2. Crie o usuário mobile:
 
----
-
-## 2. Opções de Arquitetura
-
-### 2.1 PWA (Progressive Web App) — Recomendado como primeiro passo
-
-- Baseado no site estático em `dist/site/`.
-- Instalável diretamente pelo navegador do celular.
-- Sem necessidade de publicar em lojas.
-- Conecta ao `mcp-server` via HTTP/SSE quando o celular e o PC estiverem na mesma rede.
-
-**Arquivos futuros:**
-- `mobile/pwa/manifest.json`
-- `mobile/pwa/service-worker.js`
-- `mobile/pwa/index.html`
-
-### 2.2 App Híbrido com Capacitor
-
-- Embrulha a interface web em um app Android/iOS nativo.
-- Permite notificações push, acesso offline e melhor integração com o sistema.
-- Pode usar a tela do `v10/` como ponto de partida.
-
-**Arquivos futuros:**
-- `mobile/capacitor/package.json`
-- `mobile/capacitor/android/`
-- `mobile/capacitor/ios/`
-- `mobile/capacitor/capacitor.config.json`
-
-### 2.3 App Nativo (Flutter ou React Native)
-
-- Mais trabalho, mais controle nativo.
-- Melhor para publicação nas lojas e experiência mobile otimizada.
-- Consome a API do `mcp-server` via HTTP/SSE.
-
----
-
-## 3. Conectividade
-
-| Cenário | Como funciona |
-| :--- | :--- |
-| **Local (mesma rede)** | Celular acessa `http://<ip-do-pc>:7778/sse` usando token `MESTRE_LOCAL_MCP_TOKEN`. |
-| **Remoto (internet)** | Requer um gateway seguro (ex.: tunnel, VPS ou servidor intermediário) com TLS e autenticação. |
-| **Termux (Android)** | Opcional para usuários avançados rodarem o servidor MCP diretamente no celular. |
-
----
-
-## 4. Requisitos de Segurança
-
-- Sempre usar token de autenticação (`MESTRE_LOCAL_MCP_TOKEN`).
-- Preferir HTTPS/TLS em qualquer acesso remoto.
-- Nunca expor o `mcp-server` diretamente na internet sem proxy reverso.
-- Manter a whitelist de operações (`v10/allowed-operations.json`) como controle de execução.
-- Registrar todas as ações mobile nos logs de auditoria (`logs/audit/`).
-
----
-
-## 5. Estrutura de Pastas Planejada
-
-```
-mobile/
-├── README.md                 # Este arquivo
-├── pwa/                      # Progressive Web App
-│   ├── manifest.json
-│   ├── service-worker.js
-│   └── index.html
-├── capacitor/                # App híbrido Android/iOS
-│   ├── package.json
-│   ├── capacitor.config.json
-│   ├── android/
-│   └── ios/
-└── native/                   # App nativo futuro (Flutter/React Native)
-    └── (a definir)
+```powershell
+cd mobile\gateway
+npm run setup
 ```
 
----
+Registre a URL `otpauth://` exibida pelo comando em Google Authenticator,
+Microsoft Authenticator ou outro aplicativo TOTP.
 
-## 6. Próximos Passos Sugeridos
+3. Inicie o gateway:
 
-1. Validar o endpoint HTTP/SSE do `mcp-server` a partir de um celular na mesma rede.
-2. Criar uma tela simples de status do PC usando o PWA.
-3. Implementar autenticação por token na interface mobile.
-4. Testar execução de comandos whitelistados via mobile.
-5. Decidir se haverá backend remoto para acesso fora da rede local.
+```powershell
+$env:MOBILE_COOKIE_SECURE="0" # apenas teste HTTP local
+npm start
+```
 
----
+O gateway local ficará em `http://127.0.0.1:8787`.
 
-*Documento de planejamento do Mestre do PC V10.*
+## Acesso Android local e remoto
+
+Instale o Tailscale no PC e no Android e entre na mesma tailnet. Publique o
+gateway somente pela rede privada:
+
+```powershell
+tailscale serve --https=443 http://127.0.0.1:8787
+```
+
+Abra no Chrome Android o endereço HTTPS fornecido pelo Tailscale e selecione
+“Adicionar à tela inicial”. O endereço funciona na mesma rede Wi-Fi e também
+fora dela, desde que ambos estejam conectados ao Tailscale.
+
+Em produção, não defina `MOBILE_COOKIE_SECURE=0`; o padrão usa cookies Secure.
+Não publique diretamente as portas `7777` ou `8787` na internet.
+
+## Permissões
+
+O acesso mobile pode conversar com a IA, consultar status, listar ferramentas e
+encaminhar operações reconhecidas pelo launcher. Operações destrutivas devem ser
+confirmadas na interface. O modo livre continua bloqueado.
+
+## Variáveis úteis
+
+| Variável | Padrão | Uso |
+|---|---|---|
+| `MOBILE_GATEWAY_HOST` | `127.0.0.1` | Interface de escuta local |
+| `MOBILE_GATEWAY_PORT` | `8787` | Porta do gateway |
+| `MOBILE_AUTH_FILE` | `mobile/gateway/data/users.json` | Usuários e hashes locais |
+| `MOBILE_COOKIE_SECURE` | `1` | Cookies Secure; desligue apenas para teste HTTP |
+| `MESTRE_BASE_URL` | `http://127.0.0.1:7777` | Launcher do PC |
+
+O arquivo de usuários está ignorado pelo Git. Nunca publique o segredo TOTP.

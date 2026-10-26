@@ -112,3 +112,6 @@ v10/notepad-plus-plus/chat-agent/profiles/chrome-win/
 
 # Diretório aninhado de trabalho
 Mestre-do-PC-V10/
+
+# Credenciais e estado local do gateway Android
+mobile/gateway/data/

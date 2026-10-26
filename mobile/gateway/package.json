@@ -1,0 +1,7 @@
+{
+  "name": "mestre-do-pc-mobile-gateway",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.13.0" },
+  "scripts": { "start": "node server.mjs", "setup": "node create-user.mjs" }
+}
