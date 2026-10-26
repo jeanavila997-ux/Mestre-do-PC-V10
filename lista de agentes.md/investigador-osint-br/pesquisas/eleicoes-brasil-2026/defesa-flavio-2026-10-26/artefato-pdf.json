@@ -1,0 +1,11 @@
+{
+  "arquivo": "relatorio-defesa-flavio-2026-10-26.pdf",
+  "formato": "PDF 1.5",
+  "paginas": 4,
+  "tamanho_papel": "A4",
+  "sha256": "82b3d28005df79dccf1591de6d0da70acc77d8a319a13450bd352576f63bf900",
+  "gerador": "Pandoc com XeLaTeX",
+  "fonte": "relatorio.md",
+  "data": "2026-10-26",
+  "observacao": "Conteúdo textual e links verificados; primeira e última páginas revisadas visualmente."
+}

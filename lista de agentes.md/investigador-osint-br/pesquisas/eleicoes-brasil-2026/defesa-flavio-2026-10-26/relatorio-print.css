@@ -1,0 +1,121 @@
+@page {
+  size: A4;
+  margin: 20mm 18mm 19mm;
+  @bottom-center {
+    content: "Pesquisa de defesa documental — 26/10/2026  •  Página " counter(page) " de " counter(pages);
+    color: #64748b;
+    font: 8.5pt "DejaVu Sans", sans-serif;
+  }
+}
+
+:root {
+  color-scheme: light;
+  font-family: "DejaVu Sans", Arial, sans-serif;
+  font-size: 10.2pt;
+  line-height: 1.48;
+  color: #172033;
+  background: #fff;
+}
+
+body {
+  margin: 0;
+  max-width: none;
+}
+
+h1, h2, h3 {
+  color: #16324f;
+  line-height: 1.2;
+  page-break-after: avoid;
+}
+
+h1 {
+  margin: 0 0 8mm;
+  padding-bottom: 4mm;
+  border-bottom: 2px solid #1d4ed8;
+  font-size: 21pt;
+}
+
+h2 {
+  margin: 8mm 0 3mm;
+  font-size: 14.5pt;
+}
+
+h3 {
+  margin: 6mm 0 2mm;
+  font-size: 11.5pt;
+}
+
+p {
+  margin: 0 0 3.4mm;
+  orphans: 3;
+  widows: 3;
+}
+
+a {
+  color: #1d4ed8;
+  text-decoration: none;
+}
+
+strong {
+  color: #111827;
+}
+
+table {
+  width: 100%;
+  margin: 4mm 0 6mm;
+  border-collapse: collapse;
+  font-size: 8.4pt;
+  page-break-inside: auto;
+}
+
+thead {
+  display: table-header-group;
+}
+
+tr {
+  page-break-inside: avoid;
+}
+
+th, td {
+  padding: 2.2mm;
+  border: 0.25mm solid #cbd5e1;
+  vertical-align: top;
+}
+
+th {
+  color: #fff;
+  background: #16324f;
+  font-weight: 700;
+  text-align: left;
+}
+
+tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+ol, ul {
+  margin: 2mm 0 4mm 6mm;
+  padding-left: 5mm;
+}
+
+li {
+  margin-bottom: 1.5mm;
+}
+
+blockquote {
+  margin: 4mm 0;
+  padding: 3mm 4mm;
+  border-left: 1.2mm solid #1d4ed8;
+  background: #eff6ff;
+}
+
+code {
+  font-family: "DejaVu Sans Mono", monospace;
+  font-size: 0.9em;
+}
+
+hr {
+  border: 0;
+  border-top: 0.25mm solid #cbd5e1;
+}
+
