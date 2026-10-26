@@ -29,3 +29,7 @@ investigador-osint-br/
 ```
 
 O agente é documental e pode ser executado manualmente por uma IA. Não há processo em segundo plano, coleta de redes sociais ou geração de PDF configurados. O PDF em `referencias/originais/` é o modelo enviado pelo usuário, não o relatório desta pesquisa.
+
+## Pesquisa com o perfil de defesa
+
+Consulte o [relatório de defesa documental de 26/10/2026](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/relatorio.md), a [matriz preenchida](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/matriz-defesa.md) e as [fontes verificadas](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/fontes.json). Esta rodada identifica questões de procedimento sem demonstrar fraude atribuível a Lula.

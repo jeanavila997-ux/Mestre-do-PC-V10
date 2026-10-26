@@ -11,3 +11,5 @@
 - **Pesquisa inicial:** [Eleições presidenciais de 2026](investigador-osint-br/pesquisas/eleicoes-brasil-2026/relatorio-2026-10-26.md).
 - **Base:** três anexos fornecidos pelo usuário, preservados em `referencias/originais/`.
 - **Execução:** carregar o prompt em uma ferramenta de IA com pesquisa web. Sem agendamento ou integração automática ao launcher.
+
+- **Pesquisa de defesa executada:** [Relatório de 26/10/2026](investigador-osint-br/pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/relatorio.md), com documentos, matriz preenchida e limites da coleta.

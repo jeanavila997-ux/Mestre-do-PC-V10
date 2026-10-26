@@ -38,5 +38,10 @@
     "Verificação de vídeos eventualmente apresentados pelo usuário"
   ],
   "coleta_propria_redes_sociais": false,
-  "monitoramento_automatico_ativo": false
+  "monitoramento_automatico_ativo": false,
+  "aprofundamento_defesa": {
+    "data": "2026-10-26",
+    "relatorio": "../defesa-flavio-2026-10-26/relatorio.md",
+    "nota": "Rodada adicional; documentos e limites registrados separadamente."
+  }
 }

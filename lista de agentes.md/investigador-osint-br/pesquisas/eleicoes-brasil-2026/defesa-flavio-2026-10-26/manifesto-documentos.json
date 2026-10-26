@@ -1,0 +1,43 @@
+{
+  "nota": "Hashes dos bytes baixados para conferência local. No GitHub são publicados links, hashes e resumos; estes PDFs não foram incluídos. Hash não valida assinatura nem prova veracidade de uma alegação.",
+  "documentos": [
+    {
+      "id_documento": "stf-liminar-oficial",
+      "url": "https://noticias-stf-wp-prd.s3.sa-east-1.amazonaws.com/wp-content/uploads/wpallimport/uploads/2026/10/25183103/liminar-urgente.pdf",
+      "url_final": "https://noticias-stf-wp-prd.s3.sa-east-1.amazonaws.com/wp-content/uploads/wpallimport/uploads/2026/10/25183103/liminar-urgente.pdf",
+      "bytes": 348045,
+      "sha256": "f1322682ec4cf44504276a6b482364beceb5ae6facd02e7cd9b05b406c79c4ab",
+      "acesso_utc": "2026-10-26T10:28:21+00:00",
+      "texto_extraivel": false,
+      "validacao_criptografica_assinatura": false
+    },
+    {
+      "id_documento": "stf-esclarecimento-oficial",
+      "url": "https://noticias-stf-wp-prd.s3.sa-east-1.amazonaws.com/wp-content/uploads/wpallimport/uploads/2026/10/25183217/esclarecimento.pdf",
+      "url_final": "https://noticias-stf-wp-prd.s3.sa-east-1.amazonaws.com/wp-content/uploads/wpallimport/uploads/2026/10/25183217/esclarecimento.pdf",
+      "bytes": 279566,
+      "sha256": "196b20c7b9592e3557e5f24e53f2d7515156fc5dd0567ac76a294603775015eb",
+      "acesso_utc": "2026-10-26T10:28:23+00:00",
+      "texto_extraivel": false,
+      "validacao_criptografica_assinatura": false
+    },
+    {
+      "id_documento": "pge-parecer-espelho",
+      "url": "https://static.poder360.com.br/uploads/2026/10/PGE-e-contra-horario-de-votacao-ampliado-25-out-2026.pdf",
+      "url_final": "https://static.poder360.com.br/uploads/2026/10/PGE-e-contra-horario-de-votacao-ampliado-25-out-2026.pdf",
+      "bytes": 102350,
+      "sha256": "82e664e57b9dea90fad01c4b154b5001aa6b70ffaddffee2912ad10a2d3ecf12",
+      "acesso_utc": "2026-10-26T10:28:23+00:00",
+      "texto_extraivel": true,
+      "validacao_criptografica_assinatura": false
+    },
+    {
+      "id_documento": "tse-oficio",
+      "url": "https://www.tre-se.jus.br/comunicacao/noticias/arquivos/decisao-tse",
+      "bytes": 104010,
+      "sha256": "fbfac1118b5149f43445b78c4ade6bb6f9835cf65d68dd3b7b7885e037a7d021",
+      "registro_verificacao_utc": "2026-10-26T10:31:34+00:00",
+      "validacao_criptografica_assinatura": false
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "corte": "2026-10-26",
+  "registro_final_coleta_utc": "2026-10-26T10:31:34+00:00",
+  "nota": "Horários preservados conforme as páginas, salvo fuso explícito. Os registros finais não são timestamps individuais de requisição. Textos acessíveis consultados; limitações descritas por fonte.",
+  "fontes": [
+    {
+      "id": "D01",
+      "responsavel": "TSE",
+      "titulo": "Resultado presidencial e balanço do segundo turno",
+      "url": "https://www.tse.jus.br/comunicacao/noticias/2026/Outubro/presidente-do-tse-anuncia-reeleicao-de-lula-e-faz-balanco-do-2o-turno-das-eleicoes-2026",
+      "publicacao_como_exibida": "26/10/2026 00:18; atualizado 00:35",
+      "tipo": "noticia_oficial",
+      "resumo": "Resultado anunciado: Lula 51,79%, Flávio 48,21%.",
+      "limitacoes": "Primeira tentativa de abertura falhou; segunda retornou o texto. Sem recontagem própria.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D02",
+      "responsavel": "STF",
+      "titulo": "STF prorroga votação até as 19h em locais onde urnas permaneceram abertas após as 17h",
+      "url": "https://noticias.stf.jus.br/postsnoticias/stf-prorroga-votacao-ate-as-19h-em-locais-onde-urnas-permaneceram-abertas-apos-as-17h/",
+      "publicacao_como_exibida": "25/10/2026 18:28",
+      "tipo": "noticia_oficial",
+      "resumo": "Identifica a Rcl 101673 e disponibiliza decisão e esclarecimento.",
+      "limitacoes": "Notícia institucional, distinta de andamento processual completo.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D03",
+      "responsavel": "STF / arquivo vinculado pelo portal oficial",
+      "titulo": "Rcl 101673/BA — decisão inicial",
+      "url": "https://noticias-stf-wp-prd.s3.sa-east-1.amazonaws.com/wp-content/uploads/wpallimport/uploads/2026/10/25183103/liminar-urgente.pdf",
+      "publicacao_como_exibida": "25/10/2026",
+      "tipo": "documento_primario",
+      "resumo": "Determina prorrogação nacional até 19h por alegado descumprimento da ADPF 1013.",
+      "limitacoes": "PDF sem texto extraível, lido por capturas das duas páginas. Sem validação criptográfica.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D04",
+      "responsavel": "STF / arquivo vinculado pelo portal oficial",
+      "titulo": "Rcl 101673/BA — esclarecimento",
+      "url": "https://noticias-stf-wp-prd.s3.sa-east-1.amazonaws.com/wp-content/uploads/wpallimport/uploads/2026/10/25183217/esclarecimento.pdf",
+      "publicacao_como_exibida": "25/10/2026",
+      "tipo": "documento_primario",
+      "resumo": "Limita cumprimento às urnas não fechadas; preserva apurações e consequências jurídicas.",
+      "limitacoes": "PDF sem texto extraível, lido por captura. Sem validação criptográfica.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D05",
+      "responsavel": "TSE / hospedagem oficial TRE-SE",
+      "titulo": "Ofício-Circular GAB-PRES 354/2026",
+      "url": "https://www.tre-se.jus.br/comunicacao/noticias/arquivos/decisao-tse",
+      "publicacao_como_exibida": "25/10/2026; assinatura 17:49, Brasília",
+      "tipo": "documento_primario",
+      "resumo": "Orienta seções ainda abertas a continuar até 19h.",
+      "limitacoes": "Assinatura às 17h49 não comprova entrega nesse instante a cada seção. Texto extraído e primeira página visualizada.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D06",
+      "responsavel": "TSE",
+      "titulo": "Esclarecimento sobre prorrogação da votação",
+      "url": "https://www.tse.jus.br/comunicacao/noticias/2026/Outubro/esclarecimento-sobre-prorrogacao-da-votacao",
+      "publicacao_como_exibida": "25/10/2026 18:44; atualizado 19:02",
+      "tipo": "nota_oficial",
+      "resumo": "Votação apenas nos locais não encerrados às 17h; retomada da totalização após 19h.",
+      "limitacoes": "Não oferece inventário de seções e horários.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D07",
+      "responsavel": "Procuradoria-Geral Eleitoral / cópia publicada pelo Poder360",
+      "titulo": "Parecer na PetCiv 0603389-27.2026.6.00.0000",
+      "url": "https://static.poder360.com.br/uploads/2026/10/PGE-e-contra-horario-de-votacao-ampliado-25-out-2026.pdf",
+      "publicacao_como_exibida": "25/10/2026; assinatura 17:01",
+      "tipo": "documento_em_espelho_jornalistico",
+      "resumo": "Defende horário legal e investigação dos fatos de transporte.",
+      "limitacoes": "Hospedado em veículo jornalístico; assinatura não validada no MPF. Parecer não é decisão judicial.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D08",
+      "responsavel": "Poder360",
+      "titulo": "TSE avisou seções sobre prorrogação às 17h49",
+      "url": "https://www.poder360.com.br/poder-eleicoes-2026/tse-avisou-secoes-sobre-prorrogacao-as-17h49/",
+      "publicacao_como_exibida": "25/10/2026 21:09",
+      "tipo": "jornalistica",
+      "resumo": "Relata comunicação e horários diferentes em localidades.",
+      "limitacoes": "Horários de comunicação são apuração jornalística; não foram examinados recibos de todas as seções.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D09",
+      "responsavel": "Poder360",
+      "titulo": "Campanhas de Lula e Flávio pedem mais tempo de votação",
+      "url": "https://www.poder360.com.br/poder-eleicoes-2026/campanhas-de-lula-e-flavio-pedem-mais-tempo-de-votacao/",
+      "publicacao_como_exibida": "25/10/2026 16:54",
+      "tipo": "jornalistica",
+      "resumo": "Relata pedido de Flávio para 19 municípios de SP, PR e SC.",
+      "limitacoes": "Íntegra da petição de Flávio não localizada nesta coleta.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D10",
+      "responsavel": "Justiça Eleitoral / Fato ou Boato",
+      "titulo": "É falso que fiscais do PL foram retirados da sala-cofre do TSE",
+      "url": "https://www.justicaeleitoral.jus.br/fato-ou-boato/checagens/2026/e-falso-que-fiscais-do-pl-foram-retirados-da-sala-cofre-do-tse",
+      "publicacao_como_exibida": "26/10/2026 00:30; atualizado 00:31",
+      "tipo": "resposta_institucional",
+      "resumo": "Nega retirada e informa presença de dois fiscais e existência de registros e filmagem.",
+      "limitacoes": "A resposta é do órgão questionado; filmagens e registros brutos não foram examinados.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D11",
+      "responsavel": "TCU",
+      "titulo": "Eleições 2022: TCU não identifica divergências em boletins de urna",
+      "url": "https://portal.tcu.gov.br/data/pages/8A81881F7FF0EFD2018443FA86343D0B.htm",
+      "publicacao_como_exibida": "Página menciona 02/11; corpo informa publicação em 31/10/2022 19:48",
+      "tipo": "noticia_oficial_historica",
+      "resumo": "Auditoria amostral de BUs sem divergência; 604 boletins no segundo turno.",
+      "limitacoes": "Alcance amostral, não prova sobre todos os aspectos de 2022 ou sobre 2026.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D12",
+      "responsavel": "TSE / legislação anotada",
+      "titulo": "Código Eleitoral — Lei 4737/1965",
+      "url": "https://www.tse.jus.br/legislacao/codigo-eleitoral/codigo-eleitoral-1/codigo-eleitoral-lei-nb0-4.737-de-15-de-julho-de-1965",
+      "publicacao_como_exibida": "Lei de 15/07/1965; consolidação consultada em 26/10/2026",
+      "tipo": "legislacao",
+      "resumo": "Artigos 219, 220 III e 221 II pertinentes à avaliação inicial.",
+      "limitacoes": "Aplicação ao caso depende de atos, fatos, procedimento e jurisprudência; não é julgamento desta controvérsia.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D13",
+      "responsavel": "Rádio Senado",
+      "titulo": "Flávio Bolsonaro contesta resultado da eleição e anuncia pedido de anulação",
+      "url": "https://www12.senado.leg.br/radio/1/noticia/2026/10/25/flavio-bolsonaro-contesta-resultado-da-eleicao-e-anuncia-pedido-de-anulacao",
+      "publicacao_como_exibida": "25/10/2026 22:48; atualizado 23:21 na abertura",
+      "tipo": "registro_institucional_de_declaracao",
+      "resumo": "Registra alegação de quebra de isonomia e anúncio de anulação.",
+      "limitacoes": "Não é certidão de protocolo nem comprovação do conteúdo alegado.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D14",
+      "responsavel": "TRE-SE",
+      "titulo": "Eleições 2026: Nota oficial",
+      "url": "https://www.tre-se.jus.br/comunicacao/noticias/2026/Outubro/eleicoes-2026-nota-oficial-1",
+      "publicacao_como_exibida": "25/10/2026; horário não registrado nesta consulta",
+      "tipo": "nota_oficial",
+      "resumo": "Afirma inviabilidade de reabrir urnas encerradas ou colher votos manuais.",
+      "limitacoes": "Sem dados desagregados por seção.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D15",
+      "responsavel": "TRE-SC",
+      "titulo": "Nota de esclarecimento",
+      "url": "https://www.tre-sc.jus.br/comunicacao/noticias/2026/Outubro/nota-de-esclarecimento",
+      "publicacao_como_exibida": "25/10/2026 19:11; atualizado 19:14",
+      "tipo": "nota_oficial",
+      "resumo": "Orienta extensão nas seções abertas e informa inviabilidade de reabertura.",
+      "limitacoes": "A regularidade afirmada pelo órgão não substitui verificação de cada ocorrência.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D16",
+      "responsavel": "UOL / Cezar Feitoza",
+      "titulo": "Ala do STF descarta anular eleição, enquanto TSE soma votos após 17h",
+      "url": "https://noticias.uol.com.br/colunas/cezar-feitoza/2026/10/26/tse-minimiza-impacto-de-votacao-prorrogada-e-ala-do-stf-descarta-anulacao.htm",
+      "publicacao_como_exibida": "26/10/2026 05:30 conforme indexação",
+      "tipo": "jornalistica",
+      "resumo": "Relata levantamento de impacto solicitado pelo TSE e opiniões de integrantes das cortes.",
+      "limitacoes": "Não disponibiliza resultado final do levantamento; opiniões não são decisão.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D17",
+      "responsavel": "Federação Brasil da Esperança / cópia no Poder360",
+      "titulo": "Petição inicial na PetCiv 0603389-27.2026.6.00.0000",
+      "url": "https://static.poder360.com.br/uploads/2026/10/pedido-PT-TSE-prorrogacao-votacao-2turno-25out2026.pdf",
+      "publicacao_como_exibida": "25/10/2026 13:22 na capa PJe",
+      "tipo": "peticao_em_espelho",
+      "resumo": "Pedido relacionado a transporte em três municípios baianos.",
+      "limitacoes": "Documento de parte; fatos alegados não foram integralmente auditados. Não reproduzido no repositório.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    },
+    {
+      "id": "D18",
+      "responsavel": "Coligação Brasil Pronto Pra Mais / cópia no Poder360",
+      "titulo": "Petição de extensão nacional do horário de votação",
+      "url": "https://static.poder360.com.br/uploads/2026/10/PT-inclui-todos-os-Estado-em-pedido-de-ampliacao-de-hora-25-out-2026.pdf",
+      "publicacao_como_exibida": "25/10/2026; 15:42 informado por D08",
+      "tipo": "peticao_em_espelho",
+      "resumo": "Formula pedido nacional e expõe justificativas de acesso ao voto.",
+      "limitacoes": "Documento de parte; alegações de transporte não equivalem a conclusão pericial. Não reproduzido no repositório.",
+      "registro_coleta_utc": "2026-10-26T10:31:34+00:00"
+    }
+  ]
+}

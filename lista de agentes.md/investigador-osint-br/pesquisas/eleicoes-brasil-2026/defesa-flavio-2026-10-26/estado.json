@@ -1,0 +1,52 @@
+{
+  "corte": "2026-10-26",
+  "registro_final_coleta_utc": "2026-10-26T10:31:34+00:00",
+  "perfil": "defesa documental de Flávio Bolsonaro",
+  "resultado": "Não encontrada evidência suficiente de fraude atribuível a Lula. Questões documentadas sobre horário e execução justificam esclarecimentos, sem demonstrar anulação.",
+  "conclusoes": [
+    {
+      "id": "DEF01",
+      "descricao": "Ordens de extensão e alcance às seções abertas documentados.",
+      "fontes": [
+        "D03",
+        "D04",
+        "D05",
+        "D06"
+      ],
+      "confianca": "alta"
+    },
+    {
+      "id": "DEF02",
+      "descricao": "PGE manifestou-se contra extensão no parecer em espelho examinado.",
+      "fontes": [
+        "D07"
+      ],
+      "confianca": "moderada; sem autenticação independente"
+    },
+    {
+      "id": "DEF03",
+      "descricao": "Retirada indevida de fiscais não comprovada; resposta institucional contrária.",
+      "fontes": [
+        "D10",
+        "D13"
+      ],
+      "confianca": "insuficiente para sustentar a acusação"
+    },
+    {
+      "id": "DEF04",
+      "descricao": "Nenhuma evidência específica de autoria de fraude por Lula localizada.",
+      "fontes": [],
+      "confianca": "conclusão limitada à coleta, não prova universal de inexistência"
+    }
+  ],
+  "pendencias": [
+    "Íntegra do pedido da campanha de Flávio",
+    "Certidão e andamento de eventual ação de anulação",
+    "Dados de comunicação e funcionamento por seção",
+    "Relatórios de impacto da extensão",
+    "Registros brutos de fiscalização"
+  ],
+  "nenhum_contato_ou_protocolo_realizado": true,
+  "fontes": "fontes.json",
+  "relatorio": "relatorio.md"
+}
