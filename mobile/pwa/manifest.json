@@ -1,0 +1,10 @@
+{
+  "name": "Mestre do PC Mobile",
+  "short_name": "Mestre PC",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#07111c",
+  "background_color": "#07111c",
+  "description": "Chat e controle seguro do Mestre do PC.",
+  "icons": []
+}

@@ -123,11 +123,11 @@ export class OperationRegistry {
     const registry = {};
     for (const op of this.exactEntries) {
       if (op.enabled === false) continue;
-      registry[op.id] = { id: op.id, description: op.description || "", command: op.command };
+      registry[op.id] = { id: op.id, description: op.description || "", command: op.command, destructive: !!op.destructive };
     }
     for (const tpl of this.parametrizedTemplates) {
       if (tpl.enabled === false) continue;
-      registry[tpl.id] = { id: tpl.id, description: tpl.description || "", command: tpl.pattern };
+      registry[tpl.id] = { id: tpl.id, description: tpl.description || "", command: tpl.pattern, destructive: !!tpl.destructive };
     }
     return registry;
   }
@@ -149,6 +149,10 @@ export class OperationRegistry {
       return {
         name,
         description: config.description,
+        annotations: {
+          readOnlyHint: !config.destructive,
+          destructiveHint: !!config.destructive,
+        },
         inputSchema: {
           type: "object",
           properties,

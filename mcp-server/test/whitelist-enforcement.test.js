@@ -187,6 +187,17 @@ test("todo id do registry MCP existe em allowed-operations.json", async () => {
   assert.deepEqual(unpublished, [], `operações do catálogo não publicadas como tools MCP: ${unpublished.join(", ")}`);
 });
 
+test("schemas MCP anunciam operações destrutivas para clientes como a Vitrine", async () => {
+  const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
+  const { OperationRegistry } = await import(pathToFileURL(join(root, "v10", "operation-registry.js")).href);
+  const registry = new OperationRegistry(catalog);
+  const schemas = registry.buildMcpToolSchemas();
+  const destructive = catalog.operations.find((op) => op.destructive === true);
+  const safe = catalog.operations.find((op) => op.destructive !== true);
+  assert.equal(schemas.find((tool) => tool.name === destructive.id)?.annotations?.destructiveHint, true);
+  assert.equal(schemas.find((tool) => tool.name === safe.id)?.annotations?.readOnlyHint, true);
+});
+
 test("novas operações de instalação de ferramentas (.NET/Microsoft/DevOps/linguagens/pacotes) estão registradas e exigem confirmação", async (t) => {
   const base = await startLauncher(t);
   const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
