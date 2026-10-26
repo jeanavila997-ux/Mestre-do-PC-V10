@@ -1,0 +1,110 @@
+{
+  "coleta_registrada_em_utc": "2026-10-26T10:17:33+00:00",
+  "nota": "Horário de registro ao final da consulta, não timestamp individual de cada requisição. Sem cópias integrais das páginas.",
+  "fontes": [
+    {
+      "id": "F01",
+      "responsavel": "TSE",
+      "titulo": "Presidente do TSE anuncia reeleição de Lula e faz balanço do 2º turno das Eleições 2026",
+      "url": "https://www.tse.jus.br/comunicacao/noticias/2026/Outubro/presidente-do-tse-anuncia-reeleicao-de-lula-e-faz-balanco-do-2o-turno-das-eleicoes-2026",
+      "publicacao_como_exibida": "26/10/2026 00:18; atualização 00:35",
+      "acessado_em_utc": "2026-10-26T10:17:33+00:00",
+      "tipo": "oficial",
+      "resumo": "Resultado nacional anunciado pelo TSE.",
+      "limitacoes": "Notícia institucional; não foi baixado o conjunto de boletins de urna.",
+      "acesso": "texto acessível consultado via pesquisa web",
+      "fuso_publicacao": "UTC quando explícito; demais horários conforme página"
+    },
+    {
+      "id": "F02",
+      "responsavel": "Agência Câmara",
+      "titulo": "Lula é reeleito presidente com quase 52% dos votos válidos no 2º turno",
+      "url": "https://www.camara.leg.br/noticias/1313705-lula-e-reeleito-presidente-com-quase-52-dos-votos-validos-no-2o-turno",
+      "publicacao_como_exibida": "25/10/2026 21:29",
+      "acessado_em_utc": "2026-10-26T10:17:33+00:00",
+      "tipo": "oficial",
+      "resumo": "Cobertura do resultado e das dificuldades de votação.",
+      "limitacoes": "Percentual publicado durante a apuração difere da atualização posterior do TSE.",
+      "acesso": "texto acessível consultado via pesquisa web",
+      "fuso_publicacao": "UTC quando explícito; demais horários conforme página"
+    },
+    {
+      "id": "F03",
+      "responsavel": "Reuters",
+      "titulo": "Brazil’s Lula reelected president in runoff vote",
+      "url": "https://www.reuters.com/world/americas/brazils-lula-reelected-president-runoff-vote-2026-10-26/",
+      "publicacao_como_exibida": "26/10/2026 00:13 UTC",
+      "acessado_em_utc": "2026-10-26T10:17:33+00:00",
+      "tipo": "jornalistica",
+      "resumo": "Confirmação jornalística da vitória.",
+      "limitacoes": "Confirmação baseada na autoridade eleitoral; não é recontagem independente.",
+      "acesso": "texto acessível consultado via pesquisa web",
+      "fuso_publicacao": "UTC quando explícito; demais horários conforme página"
+    },
+    {
+      "id": "F04",
+      "responsavel": "Agência Brasil",
+      "titulo": "Flávio não reconhece vitória de Lula e tentará anulação do pleito",
+      "url": "https://agenciabrasil.ebc.com.br/politica/noticia/2026-10/flavio-nao-reconhece-vitoria-de-lula-e-tentara-anulacao-do-pleito",
+      "publicacao_como_exibida": "25/10/2026 23:39",
+      "acessado_em_utc": "2026-10-26T10:17:33+00:00",
+      "tipo": "jornalistica",
+      "resumo": "Notícia sobre declaração de contestação do candidato derrotado.",
+      "limitacoes": "Anúncio não prova protocolo, decisão ou fraude.",
+      "acesso": "texto acessível consultado via pesquisa web",
+      "fuso_publicacao": "UTC quando explícito; demais horários conforme página"
+    },
+    {
+      "id": "F05",
+      "responsavel": "Reuters",
+      "titulo": "Bolsonaro refuses to concede, says he will seek annulment of Brazil vote",
+      "url": "https://www.reuters.com/world/americas/bolsonaro-refuses-concede-says-he-will-seek-annulment-brazil-vote-2026-10-26/",
+      "publicacao_como_exibida": "26/10/2026 01:55 UTC",
+      "acessado_em_utc": "2026-10-26T10:17:33+00:00",
+      "tipo": "jornalistica",
+      "resumo": "Outra cobertura da declaração de Flávio.",
+      "limitacoes": "Trata da mesma declaração pública; não valida suas acusações.",
+      "acesso": "texto acessível consultado via pesquisa web",
+      "fuso_publicacao": "UTC quando explícito; demais horários conforme página"
+    },
+    {
+      "id": "F06",
+      "responsavel": "Folha de S.Paulo / Encaminhado com Frequência",
+      "titulo": "Petistas comemoram vitória de Lula, e bolsonaristas contestam resultado",
+      "url": "https://www1.folha.uol.com.br/colunas/encaminhado-com-frequencia/2026/10/petistas-comemoram-vitoria-de-lula-e-bolsonaristas-contestam-resultado.shtml",
+      "publicacao_como_exibida": "26/10/2026 01:42",
+      "acessado_em_utc": "2026-10-26T10:17:33+00:00",
+      "tipo": "analise_jornalistica",
+      "resumo": "Relato de monitoramento digital da Palver até 23h de 25/10.",
+      "limitacoes": "Sem microdados, auditoria própria ou amostra probabilística da população.",
+      "acesso": "texto acessível consultado via pesquisa web",
+      "fuso_publicacao": "UTC quando explícito; demais horários conforme página"
+    },
+    {
+      "id": "F07",
+      "responsavel": "Metrópoles",
+      "titulo": "Veja fotos da festa na Avenida Paulista após reeleição de Lula",
+      "url": "https://www.metropoles.com/sao-paulo/veja-fotos-da-festa-na-avenida-paulista-apos-reeleicao-de-lula",
+      "publicacao_como_exibida": "26/10/2026 00:07",
+      "acessado_em_utc": "2026-10-26T10:17:33+00:00",
+      "tipo": "jornalistica",
+      "resumo": "Registro jornalístico de comemoração na Paulista.",
+      "limitacoes": "Evento localizado; não foi feita perícia independente das imagens nem contagem própria.",
+      "acesso": "texto acessível consultado via pesquisa web",
+      "fuso_publicacao": "UTC quando explícito; demais horários conforme página"
+    },
+    {
+      "id": "F08",
+      "responsavel": "Presidência da República / Planalto",
+      "titulo": "Constituição da República Federativa do Brasil",
+      "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+      "publicacao_como_exibida": null,
+      "acessado_em_utc": "2026-10-26T10:17:33+00:00",
+      "tipo": "legislacao",
+      "resumo": "Referência para liberdade de expressão, reunião e acesso à Justiça.",
+      "limitacoes": "Contexto geral; nenhum processo concreto foi analisado.",
+      "acesso": "texto acessível consultado via pesquisa web",
+      "fuso_publicacao": "UTC quando explícito; demais horários conforme página"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "versao": 1,
+  "data_corte": "2026-10-26",
+  "tema": "Reeleição de Lula em 2026 e reações públicas",
+  "fatos": [
+    {
+      "id": "C01",
+      "descricao": "Resultado anunciado: Lula 51,79%, Flávio Bolsonaro 48,21% dos votos válidos.",
+      "fontes": [
+        "F01",
+        "F03"
+      ],
+      "confianca": "alta"
+    },
+    {
+      "id": "C02",
+      "descricao": "Flávio anunciou contestação do resultado.",
+      "fontes": [
+        "F04",
+        "F05"
+      ],
+      "confianca": "alta quanto à declaração, sem conclusão sobre seu mérito"
+    },
+    {
+      "id": "C03",
+      "descricao": "Comemoração pública noticiada na Avenida Paulista.",
+      "fontes": [
+        "F07"
+      ],
+      "confianca": "alta quanto ao registro jornalístico; sem contagem própria"
+    }
+  ],
+  "conclusao": "Revolta de todo o Brasil não sustentada pelas evidências reunidas. Não há estimativa representativa do sentimento nacional.",
+  "pendencias": [
+    "Inventário de atos realizados por UF",
+    "Pesquisa nacional de opinião posterior ao resultado",
+    "Consulta processual oficial sobre contestação e prorrogação",
+    "Verificação de vídeos eventualmente apresentados pelo usuário"
+  ],
+  "coleta_propria_redes_sociais": false,
+  "monitoramento_automatico_ativo": false
+}
