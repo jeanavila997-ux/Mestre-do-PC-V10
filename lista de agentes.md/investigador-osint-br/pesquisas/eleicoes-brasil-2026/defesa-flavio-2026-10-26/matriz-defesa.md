@@ -1,6 +1,6 @@
 # Matriz de defesa preenchida
 
-**Corte:** 26/10/2026. IDs e links completos: [fontes.json](fontes.json). Desenvolvimento: [relatorio.md](relatorio.md).
+**Corte:** 26/10/2026. IDs e links completos: [fontes.json](fontes.json). Desenvolvimento: [pesquisa.md](pesquisa.md).
 
 | Questão | Elementos favoráveis à apuração | Contraponto | Lacuna e providência | Situação |
 | --- | --- | --- | --- | --- |

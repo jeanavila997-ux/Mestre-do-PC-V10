@@ -62,7 +62,7 @@ Não foi confirmado número de ação de anulação ajuizada por Flávio após o
 
 Não foram obtidos inventário nacional de seções prorrogadas, horários de recebimento das ordens, quantidade oficial consolidada de votos adicionais nem dados completos de impedimento de acesso. D16 noticia que o TSE buscava apurar o impacto, mas não apresenta o resultado final desse levantamento. [D16 — UOL](https://noticias.uol.com.br/colunas/cezar-feitoza/2026/10/26/tse-minimiza-impacto-de-votacao-prorrogada-e-ala-do-stf-descarta-anulacao.htm).
 
-Votos após 17h não são automaticamente irregulares: há a situação de eleitores já presentes e o cumprimento de ordem judicial. Tampouco se pode atribuir todos esses votos a Lula ou reconstruir escolhas individuais por horários. Uma análise agregada precisa preservar o sigilo do voto, declarar hipóteses e separar ocorrência, alcance, prejuízo e responsabilidade. O relatório não calculou um resultado eleitoral alternativo.
+Votos após 17h não são automaticamente irregulares: há a situação de eleitores já presentes e o cumprimento de ordem judicial. Tampouco se pode atribuir todos esses votos a Lula ou reconstruir escolhas individuais por horários. Uma análise agregada precisa preservar o sigilo do voto, declarar hipóteses e separar ocorrência, alcance, prejuízo e responsabilidade. Com os dados disponíveis, não foi possível calcular um resultado eleitoral alternativo.
 
 ## 6. A expressão “mais uma vez” e eleições anteriores
 
@@ -83,12 +83,16 @@ Para 2022, o TCU registrou ausência de divergências na comparação dos boleti
 
 1. Obter íntegra do pedido de Flávio e certidão/andamento dos processos pertinentes.
 2. Reunir comunicações do TSE, TREs e zonas eleitorais, com horários de envio e recebimento, e atas das seções afetadas.
-3. Solicitar dados agregados sobre extensão efetiva e relatórios de impacto, sem identificar escolhas de eleitores.
+3. Solicitar dados agregados sobre a extensão efetiva e seus efeitos, sem identificar escolhas de eleitores.
 4. Solicitar preservação e acesso regular aos registros de fiscalização, confrontando-os com atas e relatos precisos.
 5. Examinar as reclamações de transporte de ambas as campanhas e as respostas dos responsáveis, sem presumir dolo ou benefício eleitoral.
 
 São diligências propostas; nenhum pedido foi enviado a terceiros e nenhuma petição foi protocolada pelo agente.
 
-## Explicação para Humanos
+## O que isso significa
 
-A pesquisa encontrou motivos documentados para exigir explicações sobre como a votação foi prorrogada. Não encontrou prova de que Lula tenha roubado a eleição. Uma defesa consistente precisa demonstrar o problema, quem foi prejudicado e qual a consequência jurídica cabível, enfrentando também os documentos que contrariem sua tese.
+Há motivos concretos para perguntar como a prorrogação foi comunicada e aplicada em cada lugar. Essas dúvidas merecem resposta, especialmente se algumas seções receberam orientações em momentos diferentes.
+
+Até agora, porém, os documentos não provam que Lula roubou a eleição. Para sustentar essa acusação seria necessário mostrar o que aconteceu, quantas pessoas foram afetadas, quem foi beneficiado e como isso poderia ter mudado o resultado. Essas provas ainda não apareceram.
+
+A defesa de Flávio pode cobrar os registros, as atas e os horários de cada comunicação. Esse caminho é mais sólido do que apresentar como fato uma fraude que ainda não foi demonstrada.

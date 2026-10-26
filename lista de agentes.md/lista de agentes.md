@@ -12,4 +12,4 @@
 - **Base:** três anexos fornecidos pelo usuário, preservados em `referencias/originais/`.
 - **Execução:** carregar o prompt em uma ferramenta de IA com pesquisa web. Sem agendamento ou integração automática ao launcher.
 
-- **Pesquisa de defesa executada:** [Relatório de 26/10/2026](investigador-osint-br/pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/relatorio.md) e [PDF](investigador-osint-br/pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/relatorio-defesa-flavio-2026-10-26.pdf), com documentos, matriz preenchida e limites da coleta.
+- **Pesquisa de defesa executada:** [Análise de 26/10/2026](investigador-osint-br/pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/pesquisa.md) e [PDF](investigador-osint-br/pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/defesa-flavio-2026-10-26.pdf), com documentos, matriz preenchida e limites da coleta.

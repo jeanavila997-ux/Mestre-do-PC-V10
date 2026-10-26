@@ -28,8 +28,8 @@ investigador-osint-br/
     └── memoria/estado.json
 ```
 
-O agente é documental e pode ser executado manualmente por uma IA. Não há processo em segundo plano nem coleta automática de redes sociais. O PDF em `referencias/originais/` é o modelo enviado pelo usuário; o relatório produzido nesta pesquisa está disponível separadamente abaixo.
+O agente é documental e pode ser executado manualmente por uma IA. Não há processo em segundo plano nem coleta automática de redes sociais. O PDF em `referencias/originais/` é o modelo enviado pelo usuário; a pesquisa produzida está disponível separadamente abaixo.
 
 ## Pesquisa com o perfil de defesa
 
-Consulte o [relatório de defesa documental de 26/10/2026](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/relatorio.md), a [versão em PDF](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/relatorio-defesa-flavio-2026-10-26.pdf), a [matriz preenchida](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/matriz-defesa.md) e as [fontes verificadas](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/fontes.json). Esta rodada identifica questões de procedimento sem demonstrar fraude atribuível a Lula.
+Consulte a [pesquisa de defesa documental de 26/10/2026](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/pesquisa.md), a [versão em PDF](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/defesa-flavio-2026-10-26.pdf), a [matriz preenchida](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/matriz-defesa.md) e as [fontes verificadas](pesquisas/eleicoes-brasil-2026/defesa-flavio-2026-10-26/fontes.json). Esta rodada identifica questões de procedimento sem demonstrar fraude atribuível a Lula.
