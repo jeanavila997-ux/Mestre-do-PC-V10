@@ -1,4 +1,4 @@
-#Requires -Version 7
+﻿#Requires -Version 7
 <#
 .SYNOPSIS
   Copia as skills-globais do Mestre do PC para pastas de agentes CLI.

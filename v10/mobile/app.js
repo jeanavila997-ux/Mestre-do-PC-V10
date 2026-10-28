@@ -237,6 +237,14 @@
     $("endpoint-hint").textContent = `${preset.detail} · ${apiBase()}${auto ? " · detectado neste servidor" : ""}`;
     $("endpoint-url").value = apiBase();
     $("endpoint-token").value = state.settings.mobileToken || "";
+    const endpoint = apiBase();
+    if (state.chatEndpoint && state.chatEndpoint !== endpoint) {
+      if (state.chatAbort) state.chatAbort.abort();
+      state.messages = [];
+      const box = $("messages");
+      if (box) box.replaceChildren();
+    }
+    state.chatEndpoint = endpoint;
     const desktop = $("desktop-link");
     desktop.href = `${apiBase()}/?desktop=1`;
   }
@@ -694,7 +702,9 @@
           const detail = typeof chunk.error === "string"
             ? chunk.error
             : (chunk.error.message || "Erro no streaming do chat");
-          throw new Error(detail);
+          const streamError = new Error(detail);
+          streamError.streamError = true;
+          throw streamError;
         }
         const delta = flavor === "openai"
           ? (chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content) || ""
@@ -733,7 +743,7 @@
         }
         return await readStream(response, attempt.flavor, onDelta);
       } catch (error) {
-        if (error.name === "AbortError") throw error;
+        if (error.name === "AbortError" || error.streamError) throw error;
         lastError = error;
         if (error.status && error.status !== 404 && error.status !== 405) throw error;
       }
@@ -761,7 +771,8 @@
       if (state.settings.speak) speak(finalText);
     } catch (error) {
       const message = error.name === "AbortError" ? "Geração interrompida." : (error.message || "Falha no chat");
-      bubble.textContent = message;
+      const partial = bubble.textContent && bubble.textContent !== "…" ? bubble.textContent : "";
+      bubble.textContent = partial ? `${partial}\n\n${message}` : message;
       addBubble("system", message);
     } finally {
       state.streaming = false;
