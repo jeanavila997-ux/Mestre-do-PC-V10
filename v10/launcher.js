@@ -157,11 +157,31 @@ function sameToken(left, right) {
   return timingSafeEqual(a, b);
 }
 
+function headerValue(req, name) {
+  const value = req.headers?.[name];
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean).join(",");
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function isProxiedClient(req) {
+  return Boolean(headerValue(req, "x-forwarded-for") || headerValue(req, "cf-connecting-ip"));
+}
+
+function isDirectLoopback(req) {
+  if (isProxiedClient(req)) return false;
+  const remote = req.socket?.remoteAddress || "";
+  return remote === "127.0.0.1" || remote === "::1" || remote === "::ffff:127.0.0.1";
+}
+
 function crossOriginMobileTokenOk(req) {
   const expected = process.env.MESTRE_MOBILE_TOKEN || "";
   if (!expected) return true;
   const origin = req.headers.origin || "";
-  if (!origin || isAllowedWebOrigin(origin, BASE_URL)) return true;
+  const sameLauncher = !origin || isAllowedWebOrigin(origin, BASE_URL);
+  // O Desktop local entra direto em 127.0.0.1, sem proxy. Túnel e proxy
+  // (x-forwarded-for / cf-connecting-ip) ou um socket que não é loopback
+  // precisam do token, mesmo sem Origin ou com a origem do próprio launcher.
+  if (sameLauncher && isDirectLoopback(req)) return true;
   return sameToken(req.headers["x-mestre-mobile-token"] || "", expected);
 }
 
@@ -569,13 +589,13 @@ async function handleNppAction(action, payload) {
 }
 
 // Métricas do sistema via PowerShell (para o dashboard V10).
-function getSystemStatus(res) {
+function getSystemStatus(res, allowedOrigin = BASE_URL) {
   const empty = { cpu: 0, ramFree: 0, ramTotal: 0, diskFree: 0, diskUsed: 0, uptimeSec: 0 };
   let settled = false;
   const finish = (data) => {
     if (settled) return;
     settled = true;
-    sendJson(res, 200, data);
+    sendJson(res, 200, data, allowedOrigin);
   };
   const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `
 $os = Get-WmiObject Win32_OperatingSystem
@@ -740,7 +760,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (path === "/status") {
-      return getSystemStatus(res);
+      return getSystemStatus(res, allowedOrigin);
     }
 
     if (path === "/run" && req.method === "POST") {

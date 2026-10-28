@@ -54,7 +54,7 @@ Favoritos, histórico, endpoint e a última cópia das memórias ficam no aparel
 
 ## Sincronizar com o repositório mobile
 
-O workflow `.github/workflows/sync-mobile-repo.yml` roda no `main` quando `v10/mobile/` muda, e também manualmente. Ele precisa do secret `MOBILE_REPO_TOKEN` (PAT com escrita em `jeanavila997-ux/mestre-do-pc-mobile`).
+O workflow `.github/workflows/sync-mobile-repo.yml` roda no `main` quando `v10/mobile/` muda, e também manualmente. Com o secret `MOBILE_REPO_TOKEN` (PAT com escrita em `jeanavila997-ux/mestre-do-pc-mobile`) ele publica a pasta. Sem o secret, o job avisa e termina com sucesso, sem falhar o workflow.
 
 No Windows:
 

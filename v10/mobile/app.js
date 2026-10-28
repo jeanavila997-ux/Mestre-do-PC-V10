@@ -58,7 +58,7 @@
     shown: PAGE_SIZE,
     opsOffline: false,
     messages: [],
-    conversaId: null,
+    conversas: {},
     streaming: false,
     chatAbort: null,
     masterPrompt: "",
@@ -628,18 +628,23 @@
     }
   }
 
+  function conversaKey() {
+    return apiBase();
+  }
+
   async function ensureConversa() {
-    if (state.conversaId) return state.conversaId;
+    const key = conversaKey();
+    if (state.conversas[key]) return state.conversas[key];
     try {
       const { data } = await api("/api/conversas", {
         method: "POST",
         body: { titulo: "Mobile V11", modelo: state.settings.model },
       });
-      state.conversaId = data.id || null;
+      state.conversas[key] = data.id || null;
     } catch {
-      state.conversaId = null;
+      state.conversas[key] = null;
     }
-    return state.conversaId;
+    return state.conversas[key];
   }
 
   async function persistMessage(role, content) {
@@ -679,16 +684,25 @@
         if (!trimmed || trimmed.startsWith(":")) continue;
         const payload = trimmed.startsWith("data:") ? trimmed.slice(5).trim() : trimmed;
         if (payload === "[DONE]") continue;
+        let chunk;
         try {
-          const chunk = JSON.parse(payload);
-          const delta = flavor === "openai"
-            ? (chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content) || ""
-            : (chunk.message && chunk.message.content) || chunk.response || "";
-          if (delta) {
-            full += delta;
-            onDelta(full);
-          }
-        } catch { /* linha parcial */ }
+          chunk = JSON.parse(payload);
+        } catch {
+          continue;
+        }
+        if (chunk && chunk.error) {
+          const detail = typeof chunk.error === "string"
+            ? chunk.error
+            : (chunk.error.message || "Erro no streaming do chat");
+          throw new Error(detail);
+        }
+        const delta = flavor === "openai"
+          ? (chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content) || ""
+          : (chunk.message && chunk.message.content) || chunk.response || "";
+        if (delta) {
+          full += delta;
+          onDelta(full);
+        }
       }
     }
     return full;
@@ -1202,14 +1216,21 @@
     for (const button of document.querySelectorAll("[data-sub]")) {
       button.addEventListener("click", () => showSub(button.dataset.sub));
     }
-    $("chat-form").addEventListener("submit", (event) => {
-      event.preventDefault();
+    const onChatSend = (event) => {
+      if (event) event.preventDefault();
       if (state.streaming && state.chatAbort) {
         state.chatAbort.abort();
         return;
       }
-      sendChat($("chat-input").value);
-    });
+      const text = $("chat-input").value;
+      if (!text.trim()) {
+        toast("Escreva uma mensagem.");
+        return;
+      }
+      sendChat(text);
+    };
+    $("send").addEventListener("click", onChatSend);
+    $("chat-form").addEventListener("submit", onChatSend);
     $("model").addEventListener("change", () => {
       state.settings.model = $("model").value;
       saveSettings();
