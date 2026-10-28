@@ -32,5 +32,9 @@ jobs:
         shell: pwsh
         run: |
           node --check v10/launcher.js
+          node --check v10/security/origin-policy.js
+          node --check v10/mobile/app.js
+          node --check v10/mobile/sw.js
+          node --test v10/security/origin-policy.test.mjs
           node --check mcp-server/index.js
           node --check mcp-server/security.js
