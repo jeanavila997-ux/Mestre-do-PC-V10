@@ -21,4 +21,9 @@ jobs:
       - name: Publicar v10/mobile em mestre-do-pc-mobile
         env:
           MOBILE_REPO_TOKEN: ${{ secrets.MOBILE_REPO_TOKEN }}
-        run: bash scripts/sync-mobile-repo.sh --push
+        run: |
+          if [ -z "${MOBILE_REPO_TOKEN}" ]; then
+            echo "Aviso: MOBILE_REPO_TOKEN não está configurado. A publicação em jeanavila997-ux/mestre-do-pc-mobile foi ignorada."
+            exit 0
+          fi
+          bash scripts/sync-mobile-repo.sh --push

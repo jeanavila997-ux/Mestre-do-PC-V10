@@ -1,4 +1,4 @@
-#Requires -Version 7
+﻿#Requires -Version 7
 <#
 .SYNOPSIS
   Sobe Microsoft Edge com Chrome DevTools Protocol (CDP) só em loopback.
