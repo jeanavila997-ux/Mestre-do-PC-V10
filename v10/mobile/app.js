@@ -319,7 +319,8 @@
 
     const brainPill = $("ollama-pill");
     brainPill.className = "pill";
-    const modelCount = (brain && (brain.models || brain.data || [])).length;
+    const listed = brain && (Array.isArray(brain.models) ? brain.models : Array.isArray(brain.data) ? brain.data : []);
+    const modelCount = listed ? listed.length : 0;
     if (brain) {
       brainPill.textContent = isRouterTarget() ? `9Router · ${modelCount} modelo(s)` : `Ollama · ${modelCount} modelo(s)`;
       brainPill.classList.add("ok");
@@ -1286,7 +1287,7 @@
   function boot() {
     bind();
     showTab("home");
-    refreshHome();
+    refreshHome().catch((error) => toast(error.message || "Falha ao ler o pulso"));
     if ("serviceWorker" in navigator) {
       const scope = new URL("./", window.location.href);
       navigator.serviceWorker.register(new URL("sw.js", scope), { scope: scope.href }).catch(() => {});

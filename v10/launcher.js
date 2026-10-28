@@ -570,6 +570,13 @@ async function handleNppAction(action, payload) {
 
 // Métricas do sistema via PowerShell (para o dashboard V10).
 function getSystemStatus(res) {
+  const empty = { cpu: 0, ramFree: 0, ramTotal: 0, diskFree: 0, diskUsed: 0, uptimeSec: 0 };
+  let settled = false;
+  const finish = (data) => {
+    if (settled) return;
+    settled = true;
+    sendJson(res, 200, data);
+  };
   const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `
 $os = Get-WmiObject Win32_OperatingSystem
 $ramFree = [math]::Round($os.FreePhysicalMemory/1MB, 2)
@@ -586,10 +593,10 @@ $uptime = [int]((Get-Date) - $boot).TotalSeconds
   ps.stdout.on("data", (d) => (out += d.toString()));
   ps.stderr.on("data", (d) => (out += d.toString()));
   ps.on("close", () => {
-    try { sendJson(res, 200, JSON.parse(out.trim())); }
-    catch { sendJson(res, 200, { cpu: 0, ramFree: 0, ramTotal: 0, diskFree: 0, diskUsed: 0, uptimeSec: 0 }); }
+    try { finish(JSON.parse(out.trim())); }
+    catch { finish(empty); }
   });
-  ps.on("error", () => sendJson(res, 500, { error: "Falha ao obter métricas" }));
+  ps.on("error", () => finish(empty));
 }
 
 const MOBILE_CSP = [
