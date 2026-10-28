@@ -257,3 +257,23 @@ de reiniciar o MCP Server (a ponte sobe no boot, em `startServer()`).
 
 - `docs/CONTEXTO-SESSAO-2026-10-14-INSTALACAO-ATALHO.md` — instalação, atalho, bug do `localhost`, incidente das operações interrompidas.
 - `docs/CONTEXTO-SESSAO-RESUMO.md` — sessão anterior (17/08/2026).
+
+## Cursor Cloud specific instructions
+
+The Cloud Agent VM is Linux. Windows maintenance commands spawn `powershell.exe` and do not run here. The Node launcher, the panel, and `npm test` do.
+
+- The default image already has Node.js that satisfies `engines` (`>=22.13.0`). Do not install another Node.
+- Dependencies (idempotent; same as CI, plus the launcher lockfile, which CI does not install):
+
+```bash
+npm ci --ignore-scripts
+npm ci --prefix mcp-server
+npm ci --prefix v10
+```
+
+Root `postinstall` is skipped on purpose. `npm ci --prefix v10` is what puts `@wonderwhy-er/desktop-commander` and `mysql2` in `v10/node_modules`.
+
+- Dev server, from the repo root: `node v10/launcher.js`. It listens only on `127.0.0.1:7777` (`MPC_HOST` cannot be anything else). First boot writes `MESTRE_LOCAL_MCP_TOKEN` into `.env.local` (gitignored).
+- Stop that launcher before `npm test` in `mcp-server/`. The suite writes `logs/audit/` and starts its own launchers. On Linux, expect about 139 passed and 1 skipped (`RUN_OLLAMA_SMOKE` unset). With `v10` installed, `desktop-commander-client.test.js` runs for real; a cold first spawn can exceed 20s, so rerun once before investigating.
+- `/ping`, `/classify`, `/memories/*`, `/login.html`, and `/mobile/` work without PowerShell. `/status` returns zeros because it shells out to `powershell.exe`. Ollama and MySQL are optional; chat and local DB tools stay disabled when they are unset.
+- The first visit to `http://127.0.0.1:7777/` redirects to `/login.html` and shows local registration. That account lives only in the browser's localStorage.
