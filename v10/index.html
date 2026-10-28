@@ -9,6 +9,23 @@
     <script>
       (() => {
         try {
+          const params = new URLSearchParams(location.search);
+          if (params.get("mobile") === "1") {
+            localStorage.removeItem("mestrePreferDesktop");
+            location.replace("/mobile/");
+            return;
+          }
+          const forceDesktop = params.get("desktop") === "1";
+          if (forceDesktop) localStorage.setItem("mestrePreferDesktop", "1");
+          const preferDesktop = forceDesktop || localStorage.getItem("mestrePreferDesktop") === "1";
+          const narrow = Math.min(screen.width || 0, screen.height || 0) > 0
+            && Math.min(screen.width, screen.height) <= 820;
+          const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+          const mobile = mobileUa || (navigator.maxTouchPoints > 1 && narrow);
+          if (!preferDesktop && mobile && (location.pathname === "/" || location.pathname === "/index.html")) {
+            location.replace("/mobile/");
+            return;
+          }
           const session = JSON.parse(localStorage.getItem("mestre-site-session") || "null");
           if (!session || session.expiresAt <= Date.now()) {
             const next = `${location.pathname}${location.search}`;
@@ -767,6 +784,7 @@
       <div class="header">
         <h1>🛡️ Mestre do PC V11 <span class="header-license">| <span class="header-license-name">JEAN</span></span></h1>
         <div class="header-right">
+          <a href="/mobile/" style="text-decoration:none"><button type="button" class="btn-open-ps" title="Abrir Mestre Mobile V11">📱 Versão Mobile</button></a>
           <input type="text" id="searchInput" class="search" placeholder="🔍 Buscar comando..." />
           <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
           <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11.2">🎉 Novidades V11.2</button></a>

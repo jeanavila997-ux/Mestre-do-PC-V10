@@ -6,7 +6,7 @@
 
 import http from "node:http";
 import { spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -19,7 +19,7 @@ import { handleMemoryRoutes } from "./memory-routes.js";
 import { handleOperationRoutes } from "./operation-routes.js";
 import { handleSoulRoutes } from "./soul-routes.js";
 import { handleComputerUseRoutes } from "./computer-use-routes.js";
-import { isAllowedWebOrigin, isNppOrigin } from "./security/origin-policy.js";
+import { isAllowedWebOrigin, isNppOrigin, isTrustedClientOrigin, parseExtraOrigins } from "./security/origin-policy.js";
 import { isLocalMcpEnabled, validateLocalMcpToken, ensureLocalMcpToken, isLegacyMcpAllowed } from "../mcp-server/auth/local-token.js";
 import { 
   createMemory, 
@@ -144,10 +144,31 @@ async function reloadRegistry() {
 
 const jobs = new Map();
 
+const CORS_ALLOW_HEADERS = "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token, X-Mestre-Npp-Token, X-Mestre-Mobile-Token";
+
+function mobileExtraOrigins() {
+  return parseExtraOrigins(process.env.MESTRE_MOBILE_ORIGINS || "");
+}
+
+function sameToken(left, right) {
+  const a = Buffer.from(String(left));
+  const b = Buffer.from(String(right));
+  if (a.length !== b.length || a.length === 0) return false;
+  return timingSafeEqual(a, b);
+}
+
+function crossOriginMobileTokenOk(req) {
+  const expected = process.env.MESTRE_MOBILE_TOKEN || "";
+  if (!expected) return true;
+  const origin = req.headers.origin || "";
+  if (!origin || isAllowedWebOrigin(origin, BASE_URL)) return true;
+  return sameToken(req.headers["x-mestre-mobile-token"] || "", expected);
+}
+
 function cors(res, origin = BASE_URL) {
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token, X-Mestre-Npp-Token");
+  res.setHeader("Access-Control-Allow-Headers", CORS_ALLOW_HEADERS);
   res.setHeader("Vary", "Origin");
 }
 
@@ -188,9 +209,13 @@ function isAuthorized(req) {
   const origin = req.headers.origin || "";
   const client = req.headers["x-mestre-client"] || "";
 
-  // v10-web tem permissão total apenas quando vem do próprio launcher.
-  if (client === "v10-web") {
-    return isAllowedWebOrigin(origin, BASE_URL);
+  // v10-web: a UI desktop no próprio launcher, e a PWA mobile quando a origem
+  // é localhost, LAN, túnel trycloudflare, VPS ou página estática do projeto.
+  // v11-mobile é alias do mesmo cliente. Fora da origem do launcher, um
+  // MESTRE_MOBILE_TOKEN definido passa a ser obrigatório.
+  if (client === "v10-web" || client === "v11-mobile") {
+    if (!crossOriginMobileTokenOk(req)) return false;
+    return isAllowedWebOrigin(origin, BASE_URL) || isTrustedClientOrigin(origin, mobileExtraOrigins());
   }
 
   // MCP local: sempre exige o token (fail-closed). Nunca aceita origin externa.
@@ -224,9 +249,11 @@ function getRunningJobCount() {
 
 function getAllowedOrigin(req) {
   const origin = req.headers.origin || "";
-  if (isAllowedWebOrigin(origin, BASE_URL)) return origin || BASE_URL;
+  if (!origin) return BASE_URL;
+  if (isAllowedWebOrigin(origin, BASE_URL)) return origin;
+  if (isTrustedClientOrigin(origin, mobileExtraOrigins())) return origin;
   if (isExtensionOrigin(origin)) return origin;
-  if (isNppOrigin(origin)) return origin || BASE_URL;
+  if (isNppOrigin(origin)) return origin;
   return BASE_URL;
 }
 
@@ -236,7 +263,7 @@ function sendJson(res, status, data, allowOrigin = BASE_URL) {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Mestre-Client, X-Mestre-Extension-Token, X-Mestre-Npp-Token",
+    "Access-Control-Allow-Headers": CORS_ALLOW_HEADERS,
     "Vary": "Origin",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
@@ -543,6 +570,13 @@ async function handleNppAction(action, payload) {
 
 // Métricas do sistema via PowerShell (para o dashboard V10).
 function getSystemStatus(res) {
+  const empty = { cpu: 0, ramFree: 0, ramTotal: 0, diskFree: 0, diskUsed: 0, uptimeSec: 0 };
+  let settled = false;
+  const finish = (data) => {
+    if (settled) return;
+    settled = true;
+    sendJson(res, 200, data);
+  };
   const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `
 $os = Get-WmiObject Win32_OperatingSystem
 $ramFree = [math]::Round($os.FreePhysicalMemory/1MB, 2)
@@ -559,10 +593,80 @@ $uptime = [int]((Get-Date) - $boot).TotalSeconds
   ps.stdout.on("data", (d) => (out += d.toString()));
   ps.stderr.on("data", (d) => (out += d.toString()));
   ps.on("close", () => {
-    try { sendJson(res, 200, JSON.parse(out.trim())); }
-    catch { sendJson(res, 200, { cpu: 0, ramFree: 0, ramTotal: 0, diskFree: 0, diskUsed: 0, uptimeSec: 0 }); }
+    try { finish(JSON.parse(out.trim())); }
+    catch { finish(empty); }
   });
-  ps.on("error", () => sendJson(res, 500, { error: "Falha ao obter métricas" }));
+  ps.on("error", () => finish(empty));
+}
+
+const MOBILE_CSP = [
+  "default-src 'self'",
+  "img-src 'self' data: blob:",
+  "style-src 'self' 'unsafe-inline'",
+  "script-src 'self'",
+  "connect-src 'self' http: https:",
+  "font-src 'self' data:",
+  "worker-src 'self'",
+  "manifest-src 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join("; ");
+
+async function serveMobile(res, requestPath, method) {
+  if (method !== "GET" && method !== "HEAD") {
+    sendJson(res, 405, { error: "Método não permitido." });
+    return true;
+  }
+  let relative = requestPath.slice("/mobile".length).replace(/^\/+/, "");
+  if (!relative || relative.endsWith("/")) relative += "index.html";
+  if (relative.includes("\0") || /(?:^|\/)\.\.(?:\/|$)/.test(relative) || /[\\<>|:"*?]/.test(relative)) {
+    sendJson(res, 403, { error: "Caminho não permitido." });
+    return true;
+  }
+  const root = resolve(__dirname, "mobile");
+  const filePath = resolve(root, relative);
+  if (filePath !== root && !filePath.startsWith(root + sep)) {
+    sendJson(res, 403, { error: "Caminho não permitido." });
+    return true;
+  }
+  const ext = extname(filePath).toLowerCase();
+  const mimeTypes = {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".webmanifest": "application/manifest+json; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".txt": "text/plain; charset=utf-8",
+    ".md": "text/markdown; charset=utf-8",
+  };
+  const contentType = mimeTypes[ext];
+  if (!contentType) {
+    sendJson(res, 403, { error: "Extensão não permitida." });
+    return true;
+  }
+  try {
+    const content = await readFile(filePath);
+    const headers = {
+      "Content-Type": contentType,
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+      "Cache-Control": ext === ".png" || ext === ".svg" ? "public, max-age=86400" : "no-store",
+    };
+    if (ext === ".html") headers["Content-Security-Policy"] = MOBILE_CSP;
+    if (filePath.endsWith(`${sep}sw.js`) || filePath.endsWith("/sw.js")) {
+      headers["Service-Worker-Allowed"] = "/mobile/";
+      headers["Cache-Control"] = "no-store";
+    }
+    res.writeHead(200, headers);
+    if (method === "HEAD") return res.end(), true;
+    res.end(content);
+  } catch {
+    sendJson(res, 404, { error: "recurso mobile não encontrado" });
+  }
+  return true;
 }
 
 const server = http.createServer(async (req, res) => {
@@ -570,10 +674,16 @@ const server = http.createServer(async (req, res) => {
   const path = url.pathname;
   const allowedOrigin = getAllowedOrigin(req);
   if (req.method === "OPTIONS") {
-    if (allowedOrigin === BASE_URL && req.headers.origin !== BASE_URL) {
+    const requestOrigin = req.headers.origin || "";
+    const originTrusted = !requestOrigin
+      || isAllowedWebOrigin(requestOrigin, BASE_URL)
+      || isTrustedClientOrigin(requestOrigin, mobileExtraOrigins())
+      || isExtensionOrigin(requestOrigin)
+      || isNppOrigin(requestOrigin);
+    if (!originTrusted) {
       return sendJson(res, 403, { error: "Origem não autorizada." }, BASE_URL);
     }
-    cors(res, allowedOrigin);
+    cors(res, requestOrigin || allowedOrigin);
     res.writeHead(204);
     return res.end();
   }
@@ -789,6 +899,17 @@ const server = http.createServer(async (req, res) => {
       return proxyOllamaStream("/api/pull", req, res, allowedOrigin);
     }
 
+    // PWA Mestre Mobile V11 — arquivos de v10/mobile/ em /mobile e /mobile/*
+    // A barra final mantém CSS/JS relativos dentro de /mobile/.
+    if (path === "/mobile") {
+      res.writeHead(302, { Location: `/mobile/${url.search}`, "Cache-Control": "no-store" });
+      return res.end();
+    }
+    if (path.startsWith("/mobile/")) {
+      const served = await serveMobile(res, path, req.method);
+      if (served) return;
+    }
+
     // Servir frontend estático
     // Login local compartilhado com o site público.
     if (path === "/login.html") {
@@ -975,7 +1096,7 @@ server.listen(PORT, HOST, async () => {
   console.log(`Ollama proxy -> ${OLLAMA_URL}`);
   console.log(`Extensão do navegador: ${EXTENSION_TOKEN ? "habilitada" : "desabilitada (defina MESTRE_EXTENSION_TOKEN)"}`);
   console.log(`Notepad++: ${NPP_TOKEN ? "habilitado" : "desabilitado (defina MESTRE_NPP_TOKEN)"}`);
-  console.log(`Dashboard /status | Streaming /ollama/chat | Notepad++ /npp`);
+  console.log(`Dashboard /status | Streaming /ollama/chat | Notepad++ /npp | Mobile /mobile`);
 });
 
 const cleanupTimer = setInterval(() => {

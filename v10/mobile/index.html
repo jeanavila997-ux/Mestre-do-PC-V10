@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#071018" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="Mestre do PC V11 — Ultimate Plus Mobile Edition" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' http: https:; font-src 'self' data:; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'" />
+    <title>Mestre Mobile V11</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon-192.png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-tab="home">
+    <div id="ptr" class="ptr" hidden>Puxe para atualizar</div>
+    <header class="top">
+      <div class="brand">
+        <img src="icon.svg" alt="" width="42" height="42" />
+        <div>
+          <p class="eyebrow">Ultimate Plus</p>
+          <h1>Mestre Mobile</h1>
+        </div>
+        <a id="desktop-link" class="ghost" href="/?desktop=1">Desktop</a>
+      </div>
+      <div id="target-switch" class="switch" role="tablist" aria-label="Seletor de alvo"></div>
+      <p id="endpoint-hint" class="hint"></p>
+      <button id="endpoint-toggle" class="linkish" type="button">Editar endpoint</button>
+      <form id="endpoint-form" class="endpoint">
+        <label>URL do servidor
+          <input id="endpoint-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" required placeholder="http://127.0.0.1:7777" />
+        </label>
+        <label>Token mobile (opcional)
+          <input id="endpoint-token" type="password" autocomplete="off" placeholder="MESTRE_MOBILE_TOKEN" />
+        </label>
+        <button type="submit">Salvar</button>
+      </form>
+    </header>
+
+    <main id="scroller">
+      <section id="panel-home" class="tab active" data-tab-panel="home" aria-hidden="false">
+        <div class="section-head">
+          <h2>Pulso &amp; Telemetria</h2>
+          <span id="updated">aguardando leitura</span>
+        </div>
+        <div class="gauges">
+          <article class="gauge" id="g-cpu" style="--p:0">
+            <div class="ring"><span id="cpu-value">--</span></div>
+            <p>CPU</p>
+          </article>
+          <article class="gauge" id="g-ram" style="--p:0">
+            <div class="ring"><span id="ram-value">--</span></div>
+            <p>RAM</p>
+          </article>
+          <article class="gauge" id="g-disk" style="--p:0">
+            <div class="ring"><span id="disk-value">--</span></div>
+            <p>Disco C:</p>
+          </article>
+          <article class="gauge" id="g-lat" style="--p:0">
+            <div class="ring"><span id="lat-value">--</span></div>
+            <p>Latência</p>
+          </article>
+        </div>
+        <div class="stats">
+          <p id="ram-detail">RAM usada / livre / total</p>
+          <p id="disk-detail">Disco C: usado / livre</p>
+        </div>
+        <div class="pills">
+          <span id="ollama-pill" class="pill">Ollama / 9Router</span>
+          <span id="net-pill" class="pill">Rede</span>
+          <span id="admin-pill" class="pill">Sessão</span>
+        </div>
+        <h3 class="block-title">Stream Deck</h3>
+        <div id="deck" class="deck"></div>
+        <button id="install" class="wide" type="button" hidden>Instalar atalho na tela inicial</button>
+      </section>
+
+      <section id="panel-chat" class="tab chat-layout" data-tab-panel="chat" aria-hidden="true">
+        <div id="chips" class="chips"></div>
+        <p id="chat-meta" class="hint">Conectando ao chat do Mestre…</p>
+        <div class="model-row">
+          <label class="grow">Modelo
+            <select id="model"></select>
+          </label>
+          <label class="check"><input id="speak" type="checkbox" /> Falar</label>
+          <label class="check"><input id="auto-send" type="checkbox" /> Enviar ao ditar</label>
+        </div>
+        <div id="messages" class="messages" aria-live="polite"></div>
+        <form id="chat-form" class="composer">
+          <textarea id="chat-input" rows="2" placeholder="Pergunte ou dite um comando" required></textarea>
+          <button id="send" type="submit">Enviar</button>
+        </form>
+      </section>
+
+      <section id="panel-commands" class="tab" data-tab-panel="commands" aria-hidden="true">
+        <div class="section-head">
+          <h2>Comandos</h2>
+          <span id="cmd-count"></span>
+        </div>
+        <input id="cmd-search" class="search" type="search" placeholder="Buscar operação" enterkeyhint="search" />
+        <div id="cmd-chips" class="chips"></div>
+        <p id="cmd-offline" class="banner" hidden>Catálogo em cache. O PC pode estar desligado.</p>
+        <div id="cmd-list" class="cards"></div>
+        <button id="cmd-more" class="wide" type="button" hidden>Mostrar mais</button>
+      </section>
+
+      <section id="panel-vps" class="tab" data-tab-panel="vps" aria-hidden="true">
+        <div class="section-head">
+          <h2>VPS &amp; Cloud</h2>
+          <button id="vps-refresh" class="ghost" type="button">Verificar</button>
+        </div>
+        <p class="hint">srv1483039 · 72.62.11.116</p>
+        <h3 class="block-title">Apps em sslip.io</h3>
+        <div id="vps-apps" class="cards"></div>
+        <h3 class="block-title">Portas e serviços</h3>
+        <div id="vps-services" class="cards"></div>
+      </section>
+
+      <section id="panel-prompts" class="tab" data-tab-panel="prompts" aria-hidden="true">
+        <div class="subnav" role="tablist">
+          <button type="button" data-sub="architect" class="active" aria-selected="true">Arquiteto</button>
+          <button type="button" data-sub="memories" aria-selected="false">Memórias</button>
+        </div>
+        <div id="sub-architect">
+          <h2>O Arquiteto de Prompts v2</h2>
+          <p class="hint">Framework R.C.T.R.F. A regra de evidência entra no Master Prompt.</p>
+          <form id="prompt-form" class="stack">
+            <label>Ideia bruta<textarea id="ideia" rows="3" placeholder="O que você quer obter"></textarea></label>
+            <label>Papel (Role)<input id="papel" type="text" placeholder="Ex.: engenheiro de plantão" /></label>
+            <label>Contexto<textarea id="contexto" rows="2"></textarea></label>
+            <label>Tarefa<textarea id="tarefa" rows="2"></textarea></label>
+            <label>Restrições<textarea id="restricoes" rows="2"></textarea></label>
+            <label>Formato<input id="formato" type="text" placeholder="Ex.: lista curta em português" /></label>
+            <div class="row">
+              <button type="submit">Gerar</button>
+              <button id="prompt-copy" type="button">Copiar</button>
+              <button id="prompt-send" type="button">Enviar ao Chat</button>
+            </div>
+          </form>
+          <pre id="prompt-output" class="log"></pre>
+        </div>
+        <div id="sub-memories" hidden>
+          <div id="mem-stats" class="pills"></div>
+          <p id="mem-offline" class="banner" hidden>Cache offline — o PC pode estar desligado.</p>
+          <form id="mem-search-form" class="row">
+            <input id="mem-search" type="search" placeholder="Buscar memórias" />
+            <button type="submit">Buscar</button>
+          </form>
+          <form id="mem-form" class="stack">
+            <label>Tipo
+              <select id="mem-type">
+                <option value="note">Nota</option>
+                <option value="context">Contexto</option>
+                <option value="diagnostic">Diagnóstico</option>
+                <option value="command">Comando</option>
+                <option value="conversation">Conversa</option>
+                <option value="config">Configuração</option>
+              </select>
+            </label>
+            <label>Título<input id="mem-title" type="text" required /></label>
+            <label>Conteúdo<textarea id="mem-content" rows="3" required></textarea></label>
+            <button type="submit">Salvar memória</button>
+          </form>
+          <div id="mem-list" class="cards"></div>
+        </div>
+      </section>
+    </main>
+
+    <div id="live-log" class="live-log" hidden>
+      <div class="live-head">
+        <strong id="live-title">Operação</strong>
+        <button id="live-close" type="button">Fechar</button>
+      </div>
+      <pre id="live-pre"></pre>
+    </div>
+
+    <button id="mic" class="mic" type="button" hidden aria-pressed="false" title="Ditar">🎤</button>
+
+    <nav class="tabbar" aria-label="Abas">
+      <button type="button" data-tab="home" class="active" aria-selected="true"><span aria-hidden="true">🏠</span>Pulso</button>
+      <button type="button" data-tab="chat" aria-selected="false"><span aria-hidden="true">💬</span>Chat IA</button>
+      <button type="button" data-tab="commands" aria-selected="false"><span aria-hidden="true">⚡</span>Comandos</button>
+      <button type="button" data-tab="vps" aria-selected="false"><span aria-hidden="true">🌐</span>VPS</button>
+      <button type="button" data-tab="prompts" aria-selected="false"><span aria-hidden="true">🧠</span>Prompts</button>
+    </nav>
+
+    <div id="toast" class="toast" hidden role="status"></div>
+    <div id="sheet" class="sheet" hidden>
+      <button class="sheet-backdrop" type="button" data-sheet-dismiss aria-label="Fechar"></button>
+      <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+        <div class="sheet-handle"></div>
+        <h3 id="sheet-title"></h3>
+        <p id="sheet-body"></p>
+        <div id="sheet-extra"></div>
+        <div class="sheet-actions">
+          <button id="sheet-cancel" type="button">Cancelar</button>
+          <button id="sheet-ok" type="button">Confirmar</button>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

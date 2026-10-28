@@ -1,0 +1,24 @@
+name: Sync mobile repo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "v10/mobile/**"
+      - "scripts/sync-mobile-repo.sh"
+      - "scripts/sync-mobile-repo.ps1"
+      - ".github/workflows/sync-mobile-repo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publicar v10/mobile em mestre-do-pc-mobile
+        env:
+          MOBILE_REPO_TOKEN: ${{ secrets.MOBILE_REPO_TOKEN }}
+        run: bash scripts/sync-mobile-repo.sh --push
