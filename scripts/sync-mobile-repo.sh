@@ -26,8 +26,8 @@ if [[ "$PUSH" -ne 1 ]]; then
 fi
 
 if [[ -z "${MOBILE_REPO_TOKEN:-}" ]]; then
-  echo "Defina MOBILE_REPO_TOKEN com permissão de escrita em jeanavila997-ux/mestre-do-pc-mobile." >&2
-  exit 1
+  echo "Aviso: MOBILE_REPO_TOKEN não está configurado. A publicação em ${DEST_REPO} foi ignorada."
+  exit 0
 fi
 
 WORKDIR="$(mktemp -d)"

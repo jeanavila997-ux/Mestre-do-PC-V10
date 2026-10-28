@@ -1,4 +1,4 @@
-# Publica v10/mobile/ no repositório jeanavila997-ux/mestre-do-pc-mobile.
+﻿# Publica v10/mobile/ no repositório jeanavila997-ux/mestre-do-pc-mobile.
 # Sem -Push, apenas lista a origem. O token fica em $env:MOBILE_REPO_TOKEN.
 param(
   [switch]$Push,
@@ -24,7 +24,8 @@ if (-not $Push) {
 }
 
 if (-not $env:MOBILE_REPO_TOKEN) {
-  throw "Defina MOBILE_REPO_TOKEN com permissão de escrita em jeanavila997-ux/mestre-do-pc-mobile."
+  Write-Warning "MOBILE_REPO_TOKEN não está configurado. A publicação em $RepoUrl foi ignorada."
+  exit 0
 }
 
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ("mestre-mobile-" + [guid]::NewGuid().ToString("n"))
