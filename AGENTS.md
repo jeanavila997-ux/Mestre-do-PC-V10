@@ -1,259 +1,209 @@
-# Repository Guidelines
+# AGENTS.md — Mestre do PC V10
 
-## Project Overview
-O **Mestre do PC V10** (ou **Oh My Pi**) é um assistente de automação e manutenção para computadores Windows, especializado em:
-- **Automação de tarefas**: Execução de comandos PowerShell, gerenciamento de serviços e processos.
-- **Integração com IA**: Uso de modelos locais (Ollama) e cloud para análise de código, Chain-of-Thought, RAG e comparação de modelos.
-- **Gerenciamento de banco de dados**: Conexão com MySQL/MariaDB para armazenamento de memórias, tarefas e logs.
-- **Segurança e auditoria**: Proteção contra prompt injection, autenticação local e logs detalhados de operações.
-- **Integração com ferramentas externas**: Webhooks (Discord, Teams, Slack), análise de código PowerShell e monitoramento de recursos.
+Instruções para agentes (Grok, Codex, OpenCode, Copilot). Leia este arquivo **antes** de editar. Detalhe de arquitetura: `docs/CLAUDE.md`. Segurança: `SECURITY.md`. Deploy VPS: `docs/VPS-DEPLOY.md`.
 
+Responda em **pt-BR**. Strings da UI e docs visíveis ao Jean também em pt-BR. Identificadores de API, env vars e nomes de arquivo ficam em inglês.
 
-## Architecture & Data Flow
-### Arquitetura de Alto Nível
-1. **MCP Server (`mcp-server/`)**:
-   - **Núcleo do sistema**: Implementado em Node.js, utiliza o framework `@modelcontextprotocol/sdk` para gerenciar ferramentas, autenticação e comunicação via `stdio` ou HTTP/SSE.
-   - **Ferramentas**: Mapeia operações da whitelist (`allowed-operations.json`) para comandos executáveis no launcher do Mestre do PC.
-   - **Integração com IA**: Comunicação com modelos Ollama (local e cloud) para análise de código, RAG, Chain-of-Thought e comparação de modelos.
-   - **Banco de dados**: Conexão com MySQL/MariaDB para armazenamento de memórias, tarefas e logs de auditoria.
-   - **Segurança**: Validação de prompts, autenticação local e logs de auditoria.
+Clone de trabalho: **`C:\Users\Jean\Projetos\Mestre-do-PC-V10`**. Existe cópia antiga em `Projetos\ProjetosPessoais\Mestre-do-PC-V10` — **não use**. Sempre `Set-Location` neste repo antes de `git`.
 
-2. **Launcher (`v10/`)**:
-   - **Whitelist de operações**: Define comandos permitidos (`allowed-operations.json`) para execução no sistema.
-   - **Execução de comandos**: Comunica-se com o MCP Server via HTTP/SSE para executar operações.
+---
 
-3. **Fluxo de Dados**:
-   - **Entrada**: Requisições via `stdio` ou HTTP/SSE com parâmetros de ferramentas.
-   - **Processamento**:
-     - Validação de segurança (prompt injection, autenticação).
-     - Execução de comandos (PowerShell, banco de dados, IA).
-     - Integração com modelos Ollama para análise e geração de respostas.
-   - **Saída**: Respostas estruturadas em JSON ou texto formatado para webhooks.
+## O que é
 
+Assistente local de diagnóstico e manutenção do Windows. Clientes de IA **nunca** executam PowerShell direto: todo comando administrativo passa pelo launcher, que só aceita a whitelist.
 
-## Key Directories
-| Diretório/Arquivo                     | Propósito                                                                                     |
-|---------------------------------------|-----------------------------------------------------------------------------------------------|
-| `mcp-server/`                         | Núcleo do projeto. Contém lógica principal, ferramentas, autenticação e integrações.         |
-| `mcp-server/index.js`                 | Arquivo principal. Configura o servidor, ferramentas e handlers de requisições.              |
-| `mcp-server/nexo-bridge.js`           | Ponte MCP (stdio) para o nexo-core. Re-expoe as tools do nexo como `nexo_*`.                 |
-| `mcp-server/chrome-devtools-bridge.js`| Ponte MCP (stdio) para o chrome-devtools-mcp. Re-expoe as tools de browser como `chrome_*`.   |
-| `mcp-server/auth/`                    | Autenticação local para ferramentas sensíveis (ex.: banco de dados).                          |
-| `mcp-server/db/`                      | Ferramentas de banco de dados (MySQL/MariaDB) e migrações.                                    |
-| `mcp-server/db/migrations/`           | Migrações para criação e atualização do schema do banco de dados.                             |
-| `mcp-server/db/schema.sql`            | Schema do banco de dados.                                                                     |
-| `mcp-server/transports/`              | Implementação de transportes (ex.: HTTP/SSE).                                                |
-| `mcp-server/test/`                    | Testes unitários e de integração para ferramentas e segurança.                                |
-| `v10/allowed-operations.json`         | Whitelist de comandos permitidos para execução no launcher.                                   |
-| `v10/operation-registry.js`           | Carrega e valida a whitelist de operações.                                                    |
-| `logs/audit/`                         | Logs de auditoria das operações executadas.                                                   |
+| Superfície | Onde | Porta / URL |
+|---|---|---|
+| Launcher + UI desktop | `v10/launcher.js`, `v10/index.html` | `http://127.0.0.1:7777` |
+| PWA mobile | `v10/mobile/` (espelho em `dist/site/mobile/`) | `http://127.0.0.1:7777/mobile/` |
+| MCP | `mcp-server/index.js` (stdio) | chama o launcher via HTTP |
+| GitHub Pages | `dist/site/` | `https://jeanavila997-ux.github.io/Mestre-do-PC-V10/` |
+| VPS (site + PWA) | `deploy/vps/` | `https://mestre.72-62-11-116.sslip.io` |
 
+O launcher **só escuta `127.0.0.1`**. `MPC_HOST` diferente de `127.0.0.1` aborta o processo. Na VPS sobe só o site estático em `127.0.0.1:7780` atrás do Traefik — o launcher Windows continua no PC.
 
-## Development Commands
-### Comandos Principais
-| Comando                          | Descrição                                                                                     |
-|----------------------------------|-----------------------------------------------------------------------------------------------|
-| `node mcp-server/index.js`       | Inicia o MCP Server em modo `stdio`.                                                          |
-| `npm install`                    | Instala dependências do projeto.                                                              |
-| `npm test`                       | Executa testes unitários e de integração (localizados em `mcp-server/test/`).                |
-| `pwsh mcp-server/check-status.ps1` | Verifica o status do MCP Server e do launcher.                                                |
-| `pwsh mcp-server/start-launcher.ps1` | Inicia o launcher do Mestre do PC.                                                            |
-| `pwsh mcp-server/generate-mcp-skills.ps1` | Gera dinamicamente o registro de ferramentas a partir da whitelist.                          |
-| `pwsh mcp-server/fix-allowed-ops.ps1` | Corrige permissões da whitelist de operações.                                                 |
+---
 
+## Arquitetura (não quebre este fluxo)
 
-## Code Conventions & Common Patterns
-### Formatação e Nomenclatura
-- **Nomenclatura**:
-  - Funções e variáveis: `camelCase` (ex.: `sanitizeToolArgument`, `executeLauncherCommand`).
-  - Arquivos: `kebab-case` (ex.: `audit-logger.js`, `mcp-db-tools.js`).
-  - Constantes: `UPPER_SNAKE_CASE` (ex.: `OLLAMA_API_KEY`, `MESTRE_BASE_URL`).
-
-- **Tratamento de Erros**:
-  - Uso de `try/catch` para operações assíncronas (ex.: requisições HTTP, consultas ao banco de dados).
-  - Erros são auditados e retornados com mensagens claras (ex.: `auditLog(AuditLevel.SECURITY, ...)`).
-  - Validação de entradas com schemas (ex.: `inputSchema` nas ferramentas).
-
-- **Padrões Assíncronos**:
-  - Uso de `async/await` para operações assíncronas (ex.: `ollamaChat`, `executeLauncherCommand`).
-  - Promessas são tratadas com `.catch()` em casos críticos (ex.: inicialização do servidor).
-
-- **Injeção de Dependências**:
-  - Dependências são importadas explicitamente no início dos arquivos (ex.: `import { query } from "./connector.js"`).
-  - Configurações são carregadas via variáveis de ambiente (ex.: `process.env.OLLAMA_URL`).
-
-- **Gerenciamento de Estado**:
-  - Estado global é gerenciado via variáveis de ambiente e arquivos de configuração (ex.: `model-profiles.json`).
-  - Banco de dados é utilizado para persistência de memórias e tarefas.
-
-
-## Important Files
-| Arquivo                              | Propósito                                                                                     |
-|---------------------------------------|-----------------------------------------------------------------------------------------------|
-| `mcp-server/index.js`                 | Ponto de entrada do MCP Server. Configura ferramentas, handlers e integrações.                |
-| `mcp-server/auth/local-token.js`      | Autenticação local para ferramentas sensíveis.                                                |
-| `mcp-server/db/mcp-db-tools.js`       | Ferramentas de banco de dados (MySQL/MariaDB).                                                |
-| `mcp-server/db/schema.sql`            | Schema do banco de dados.                                                                     |
-| `mcp-server/security.js`              | Validação de prompts e sanitização de argumentos.                                             |
-| `mcp-server/audit-logger.js`          | Registro de logs de auditoria.                                                                |
-| `v10/allowed-operations.json`         | Whitelist de comandos permitidos para execução no launcher.                                   |
-| `mcp-server/model-profiles.json`      | Perfis de modelos Ollama para automação.                                                      |
-| `mcp-server/test/`                    | Testes unitários e de integração.                                                             |
-
-
-## Runtime/Tooling Preferences
-- **Runtime**: Node.js **≥ 22.13.0** (exigido por `engines` no `package.json`; validado com v24.21.0).
-- **Gerenciador de Pacotes**: npm.
-- **Banco de Dados**: MySQL ou MariaDB (opcional, para ferramentas locais).
-- **Modelos de IA**: Ollama (local ou cloud).
-- **Ferramentas Externas**:
-  - PowerShell para execução de comandos no Windows.
-  - Webhooks para integração com Discord, Teams e Slack.
-  - Bibliotecas: `@modelcontextprotocol/sdk`, `express`, `hono`, `zod`, `mysql2`.
-
-
-## Testing & QA
-### Frameworks de Teste
-- **Jest**: Utilizado para testes unitários e de integração (ex.: `mcp-server/test/`).
-- **Testes de Segurança**: Validação de prompt injection, autenticação e whitelist de comandos.
-
-### Execução de Testes
-| Comando               | Descrição                                                                                     |
-|-----------------------|-----------------------------------------------------------------------------------------------|
-| `npm test`            | Executa todos os testes localizados em `mcp-server/test/`.                                   |
-| `node test/<arquivo>` | Executa um teste específico (ex.: `node test/whitelist-enforcement.test.js`).                 |
-
-### Cobertura de Testes
-- **Ferramentas**: Testes cobrem validação de schemas, execução de comandos, segurança e integração com IA.
-- **Expectativas**: Testes devem garantir que:
-  - Comandos não permitidos sejam bloqueados.
-  - Prompts maliciosos sejam detectados.
-  - Integrações com banco de dados e IA funcionem corretamente.
-
-
-## Exemplo de Padrões de Código
-### 1. Tratamento de Erros
-```javascript
-async function executeLauncherCommand(commandOrPayload, options = {}) {
-  try {
-    const { cmd, args } = typeof commandOrPayload === "string"
-      ? { cmd: commandOrPayload, args: [] }
-      : commandOrPayload;
-    const classification = await classifyLauncherCommand(cmd);
-    if (classification.allowed === false) {
-      throw new Error(`Comando bloqueado: ${classification.reason || "não está na whitelist."}`);
-    }
-    const result = await runChildProcess(cmd, args, options);
-    return { content: result };
-  } catch (error) {
-    await auditLog(AuditLevel.ERROR, "launcher_command_failed", { cmd, error: error.message });
-    return { isError: true, content: [{ type: "text", text: `❌ ${error.message}` }] };
-  }
-}
+```
+cliente (UI / MCP / extensão / mobile)
+    │  HTTP + X-Mestre-Client (+ token quando exigido)
+    ▼
+v10/launcher.js          127.0.0.1:7777
+    │  operation-registry.js ← allowed-operations.json
+    │  POST /run  → jobId; GET /run-status?id=
+    ▼
+powershell.exe           só comandos da whitelist
 ```
 
-### 2. Validação de Prompts
-```javascript
-export function checkPromptInjection(text) {
-  if (!text || typeof text !== "string") {
-    return { classification: "invalid", score: 1.0, details: ["Entrada vazia ou invalida."] };
-  }
-  const patterns = [
-    { regex: /ignore\s+(all\s+)?previous\s+(instructions?|commands?|prompts?)/gi, weight: 0.9, label: "Injecao: ignore previous instructions" },
-    { regex: /forget\s+(everything|all\s+previous|your\s+instructions)/gi, weight: 0.85, label: "Injecao: forget instructions" },
-  ];
-  // ...
-}
+- MCP **não** executa comando. Só `POST /run` no launcher com `X-Mestre-Client: mcp` + `X-Mestre-Mcp-Token`.
+- Fonte da verdade da whitelist: `v10/allowed-operations.json` + `v10/operation-registry.js`. **Não** cadastre tool nova em `mcp-server/index.js`.
+- Concorrência do launcher: no máximo 3 jobs; timeout 15 min; retenção 30 min. Tools MCP `mestre_*` em paralelo falham com “Limite de comandos simultâneos” — serialize.
+- `pageId` do chrome-devtools-mcp é **1-based**.
+
+---
+
+## Comandos
+
+Rodar a partir da raiz do repo, em **pwsh**.
+
+```powershell
+# Launcher (produção local)
+pwsh mcp-server/check-status.ps1
+pwsh mcp-server/start-launcher.ps1   # UAC; Jean precisa aprovar
+# ping: Invoke-RestMethod http://127.0.0.1:7777/ping
+
+# MCP stdio
+node mcp-server/index.js
+
+# Testes — PARE o launcher de produção antes
+cd mcp-server; npm test                          # node --test --test-concurrency=1
+node --test test/whitelist-enforcement.test.js   # um arquivo
+node --check ..\v10\launcher.js
+
+# Validação unificada
+node scripts/validate.mjs                  # quick + testes + PS + HTML
+node scripts/validate.mjs --depth=quick
+node scripts/validate.mjs --depth=ci
+
+# Extensão
+cd browser-extension; node build.js chrome; node build.js firefox
+
+# VPS — pasta completa, nada na Área de Trabalho
+pwsh -NoProfile -File scripts/deploy-vps.ps1 -SkipRemote   # só empacota
+pwsh -NoProfile -File scripts/deploy-vps.ps1               # scp + compose
 ```
 
-### 3. Integração com Banco de Dados
-```javascript
-export async function handleDbTool(name, args) {
-  if (!isLocalMcpEnabled()) {
-    return { isError: true, content: [{ type: "text", text: "🔒 MCP local de banco de dados está desabilitado." }] };
-  }
-  try {
-    requireLocalMcpToken(args);
-  } catch (e) {
-    await auditLog(AuditLevel.SECURITY, "mcp_local_db_unauthorized", { tool: name, error: e.message });
-    return { isError: true, content: [{ type: "text", text: `🚫 ${e.message}` }] };
-  }
-  // ...
-}
-```
+Atalho desktop: `.\start-mestre-v10.ps1`. Instalador: `install.ps1` (Admin) — cria **somente `.lnk`**. Código fica em `$InstallDir`.
 
+CI (`.github/workflows/ci.yml`): Node 22.x e 24.x, `npm ci` na raiz e em `mcp-server/`, `npm test`, `node --check` em launcher / origin-policy / mobile / mcp.
 
-## Troubleshooting & Notas de Sessão
+---
 
-### Ambiente validado (14/10/2026)
+## Regras duras
 
-- Instalação verificada com **Node v24.21.0**, **npm 11.19.0**, **Ollama 0.40.2**, **pwsh 7.6.6** (Windows 11). MySQL/MariaDB ausente — as ferramentas locais de banco ficam desabilitadas.
-- Sequência de instalação: `npm ci --ignore-scripts` (raiz) → `npm ci` (`mcp-server/`) → `npm install` (`v10/`). O `v10/package-lock.json` agora é versionado para instalações reproduzíveis.
-- Suíte de referência: **129 testes, 128 pass, 0 fail, 1 skipped** (~17 s).
+1. **`127.0.0.1`, nunca `localhost`.** No Windows `localhost` → `::1` e o Ollama só escuta IPv4; vira timeout de ~2 s em vez de falha rápida.
+2. **ESM puro** (`"type": "module"`): `import`/`export`, imports `node:fs` / `node:path`. Sem `require`.
+3. **Não invente suíte de teste.** Testes oficiais = `node --test` em `mcp-server/test/` (+ `v10/security/origin-policy.test.mjs`). Sem Jest.
+4. **Não edite `v10/allowed-operations.json` sem o Jean confirmar.** Operação nova: entrada no JSON (`id`, `title`, `category`, `destructive`, `description`, `command` ou `pattern`+`params`) + teste de contrato. O registry gera as tools MCP sozinho.
+5. **Não passe input do usuário para o PowerShell.** `sanitizeToolArgument()` em `mcp-server/security.js` — só `[a-zA-Z0-9_. -]`, máx. 128. Prompt vai em `checkPromptInjection()` antes do Ollama.
+6. **Não reabra `file://`, CORS `*` nem tire validação de Origin** nos POST. Clientes: `mcp`, `v10-web`, `browser-extension`, `notepad-plus-plus`. Origens extras: `v10/security/origin-policy.js` (`isTrustedClientOrigin`).
+7. **Não espalhe arquivos.** Pasta completa do projeto permanece junta. Desktop só recebe `.lnk`. Staging VPS = `dist/vps-bundle/` (gitignored via `dist/*`, com exceção de `dist/site/`). Não copie `node_modules`, `.git`, `logs/`, `data/`, `.env` para a VPS.
+8. **Não commite segredos.** `.env`, `.keys/`, tokens, `sk-…`. Chave OpenAI do login ChatGPT fica no `localStorage` do browser (`mestre-openai-key`), não no repo.
+9. **Não desabilite o Defender** nem crie exclusões sem o Jean pedir.
+10. **Não gere APK / não instale Java / Bubblewrap** neste ciclo, a menos que o Jean peça de novo. “Download Android” = PWA + URL pública.
+11. **Não commite leftovers** sem confirmação: `v10/chat-integrado/chat-integrado.js`, `v10/chat/Soul.md`, `v10/chat/chat-module.js`, `v10/chat/chat-template.html`, `docs/superpowers/`.
+12. Use `MESTRE_PROJETO_PATH`. Não grave `C:\Users\Jean\...` em HTML/scripts versionados.
 
-### ⚠️ `localhost` vs `127.0.0.1` no Windows
+---
 
-`localhost` resolve primeiro para `::1` (IPv6) e o Ollama escuta **apenas IPv4**. Por isso `Invoke-RestMethod` / `Invoke-WebRequest` com `-TimeoutSec N` **estouram o timeout** (≈2 s por tentativa) em vez de falhar rápido — o atalho do desktop demorava **~100 s** para abrir (corrigido em `start-mestre-v10.ps1`, agora **10,8 s**).
+## Auth HTTP
 
-**Use sempre `127.0.0.1`** em scripts, whitelist e UI. Ocorrências ainda pendentes:
+| Cliente | Header | Extra |
+|---|---|---|
+| UI / mobile no launcher | `X-Mestre-Client: v10-web` | Origin loopback ou trusted |
+| MCP | `X-Mestre-Client: mcp` | `X-Mestre-Mcp-Token` (obrigatório; gerado em `.env.local`) |
+| Extensão | `X-Mestre-Client: browser-extension` | `X-Mestre-Extension-Token` |
+| Notepad++ | `X-Mestre-Client: notepad-plus-plus` | `X-Mestre-Npp-Token` (`/npp` = 501 se vazio) |
 
-| Arquivo | Linhas |
+Site estático / PWA (Pages e VPS): sessão em `localStorage` `mestre-site-session` + conta `mestre-site-account`. Login ChatGPT **não é OAuth** — é chave `sk-…` validada em `GET https://api.openai.com/v1/models`, depois chat em `/v1/chat/completions`.
+
+Testes que sobem o launcher: importar `mcp-server/test/helpers/launcher-test-env.js` **antes** de montar o env (fixa `TEST_MCP_TOKEN` e `.env.local` temporário).
+
+---
+
+## Pastas que importam
+
+| Caminho | Função |
 |---|---|
-| `startup/MestreDoPC-Startup.ps1` | 9, **18** |
-| `v10/allowed-operations.json` | **656**, **2440**, 3184, **3187** |
-| `v10/index.html` | 1064, **1191**, **1192** |
-| `scripts/test_ollama.mjs` | 14, **26** |
-| `scripts/test-ollama.ps1`, `scripts/test-chat-ia.ps1` | 2, 6 |
+| `v10/launcher.js` | Backend HTTP. Cache-Control: `no-store`. |
+| `v10/allowed-operations.json` | Whitelist. |
+| `v10/operation-registry.js` | Resolve `{id}` / `{id,params}` / `{cmd}`. |
+| `v10/index.html` | SPA desktop, sem bundler. |
+| `v10/mobile/` | PWA. Ao mudar, copie para `dist/site/mobile/`. |
+| `v10/chat/` | Chat da UI (`initChat` → `#chat-root`). |
+| `v10/chat-integrado/` | Chat Integrado; skills em `chat-skills.json`. |
+| `v10/security/origin-policy.js` | Origens confiáveis (VPS, sslip.io, github.io, trycloudflare). |
+| `mcp-server/` | MCP stdio + testes. |
+| `mcp-server/chrome-devtools-bridge.js` | Tools `chrome_*`. |
+| `mcp-server/nexo-bridge.js` | Tools `nexo_*`. |
+| `dist/site/` | O que o GitHub Pages e a VPS servem. |
+| `deploy/vps/` | `server.mjs` + `docker-compose.yml`. |
+| `scripts/deploy-vps.ps1` | Empacota a árvore (sem node_modules/.git/logs/data/.env) e envia. |
+| `browser-extension/` | MV3 Chrome/Firefox. |
+| `skills-globais/` | Skills DevTools; sync com `sincronizar-para-agentes.ps1`. |
+| `logs/audit/` | Auditoria real — testes **escrevem aqui**. |
+| `.agents/`, `data/` | gitignored. |
 
-(`scripts/install.sh` é Linux/WSL — lá `localhost` funciona normalmente.)
+UI desktop não tem build. Edite HTML/CSS/JS servidos. Mobile: altere `v10/mobile/` **e** o espelho `dist/site/mobile/` na mesma mudança (Pages/VPS leem o `dist`).
 
-### ⚠️ npm 11 — gate `install-scripts`
+---
 
-O npm 11.19 **bloqueia postinstall** por padrão. Neste projeto isso atinge `@wonderwhy-er/desktop-commander` (checagem de `ripgrep`), `puppeteer` (download do Chromium) e `sharp` (prebuilt `@img/sharp-win32-x64` já presente). Nenhum deles bloqueia a suíte de testes. Gerenciar com `npm install-scripts ls | approve <pkg> | deny <pkg>`.
+## Mobile / Android / VPS
 
-### ⚠️ Os testes NÃO isolam o ambiente
+- PWA em `/mobile/`. Manifest + `sw.js` no próprio diretório mobile.
+- URL pública Android (PWA): `https://jeanavila997-ux.github.io/Mestre-do-PC-V10/mobile/`
+- URL VPS: `https://mestre.72-62-11-116.sslip.io/mobile/`
+- Atalhos embutidos: `BUILTIN_OPS` (Cmds) e `BUILTIN_PROMPTS` (Mais + chips) em `v10/mobile/app.js`. IDs = whitelist real.
+- Deploy VPS: unidade = pasta completa em `/opt/apps/mestre-do-pc`. SSH `root@72.62.11-116` com `%USERPROFILE%\.ssh\id_ed25519_vps` (Host `srv1483039`). Firewall só 22/80/443. Porta 7780 só em loopback.
+- SSH recusa `publickey` até a chave pública estar no hPanel (Hostinger → VPS → Settings → SSH keys). Pública documentada em `docs/VPS-DEPLOY.md`. **Não reinicie a VPS** para “tentar de novo”.
 
-- Escrevem no diretório real `logs/audit/` — apenas `diagnosticar-saude.test.js` isola via `MESTRE_AUDIT_LOG_DIR`.
-- Vários arquivos sobem launchers adicionais em portas reservadas.
-- `desktop-commander-client.test.js` roda de verdade quando o pacote está instalado: o **primeiro spawn a frio leva ~22 s** e estoura `CONNECT_TIMEOUT_MS = 20000`; com cache quente conecta em ~1,95 s. Se só o primeiro run falhar, repita antes de investigar.
-- **Pare o launcher antes de rodar `npm test`**, para não misturar jobs reais com jobs de teste nem poluir a auditoria de produção.
+---
 
-### 🔧 Ponte Chrome DevTools (tools `chrome_*`)
+## Testes — pegadinhas
 
-O MCP Server do Mestre do PC também expõe as ferramentas de debugging de browser do
-**chrome-devtools-mcp** (Google), re-expostas com o prefixo `chrome_`. O padrão é
-idêntico ao da ponte NEXO: subprocesso local via **stdio**, zero portas de rede,
-degradação graciosa (sem o pacote instalado, o Mestre segue vivo sem as tools).
+- Runner: **`node --test --test-concurrency=1`**, não Jest.
+- A suíte escreve em `logs/audit/` real (exceto `diagnosticar-saude.test.js` com `MESTRE_AUDIT_LOG_DIR`).
+- Vários testes sobem launcher extra em `MPC_PORT` livre + `TEST_MCP_TOKEN`.
+- **Pare o launcher de produção** (`:7777`) antes de `npm test`.
+- `desktop-commander-client.test.js`: primeiro spawn a frio ~22 s pode estourar 20 s; com cache quente ~2 s. Repita uma vez antes de investigar.
+- Smoke mínimo de API nova: 403 sem `X-Mestre-Client`; URL GitHub inválida → 400; GET com shape estável.
 
-| Item | Valor |
-|---|---|
-| Pacote | `chrome-devtools-mcp@1.12.0` (instalado em `mcp-server/node_modules`) |
-| Ponte | `mcp-server/chrome-devtools-bridge.js` |
-| Prefixo | `chrome_` (ex.: `chrome_take_snapshot`, `chrome_evaluate_script`) |
-| Modo padrão | headless (`CHROME_DEVTOOLS_HEADLESS=1`) — não abre janela |
-| Tools | 32 (navegação, snapshot, DOM, console, network, performance, Lighthouse) |
+---
 
-**Instalação** — pelo comando na UI do Mestre ("Instalar Chrome DevTools MCP" /
-"Verificar Chrome DevTools MCP", categoria 📚 Bibliotecas → 🟩 Node.js) ou manual:
-```bash
-cd mcp-server && npm install chrome-devtools-mcp@1.12.0
+## Env (os que mais quebram sessão)
+
+| Variável | Default | Nota |
+|---|---|---|
+| `MPC_PORT` / `MPC_HOST` | `7777` / `127.0.0.1` | HOST ≠ loopback → crash |
+| `MESTRE_BASE_URL` | `http://127.0.0.1:7777` | MCP → launcher |
+| `MESTRE_LOCAL_MCP_TOKEN` | gerado | obrigatório para cliente `mcp` |
+| `MESTRE_ALLOW_LEGACY_MCP` | `0` | emergência; loga SECURITY |
+| `OLLAMA_URL` | `http://127.0.0.1:11434` | IPv4 |
+| `MESTRE_EXTENSION_TOKEN` | vazio | extensão |
+| `MESTRE_NPP_TOKEN` | vazio | `/npp` |
+| `MESTRE_SOUL_DIR` | — | isola writes de `/soul*` nos testes |
+
+npm 12 (máquina do Jean) **bloqueia postinstall**. Neste repo o impacto conhecido é `@wonderwhy-er/desktop-commander`, `puppeteer`, `sharp` — não quebra a suíte.
+
+---
+
+## Git
+
+Prefixos observados: `feat:`, `feat(escopo):`, `fix(escopo):`, `docs+feat:`, `docs:`. Mensagens em pt-BR, minúsculas.
+
+`dist/site/` **entra** no Git (Pages). `dist/vps-bundle/` **não**. Lockfiles npm da raiz e de `mcp-server/` entram; `yarn.lock` / `pnpm-lock.yaml` não.
+
+HEAD de referência na época deste init: `7deedb7` (`feat(auth): login com ChatGPT/OpenAI…`) em `origin/main`.
+
+---
+
+## Verificação rápida
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:7777/ping
+# version ~10.1.0, pid, ok
+
+# UI
+# http://127.0.0.1:7777/
+# http://127.0.0.1:7777/mobile/
+# http://127.0.0.1:7777/login.html   (bloco ChatGPT)
+
+# Header de smoke na UI
+# Invoke-WebRequest http://127.0.0.1:7777/run -Headers @{ 'X-Mestre-Client'='v10-web' }
 ```
 
-**Ponto de atenção — capability `roots`:** o chrome-devtools-mcp restringe escrita
-de arquivos (screenshots, traces) à pasta temporária do SO **a menos que o cliente
-negocie `roots`**. A ponte implementa o handshake `roots/list` e libera a raiz do
-projeto + `CHROME_DEVTOOLS_WORKSPACE`. Sem isso, `chrome_take_screenshot` com
-`filePath` falha com *"Access denied: path ... is not within any of the configured
-workspace roots"*.
+Reinicie **só** o processo Node do launcher. `v10/restart-launcher.ps1` mata **todo** Node da máquina — não use sem aviso.
 
-**Ponto de atenção — `pageId` é 1-based:** o primeiro `pageId` é `1`, não `0`.
-`chrome_take_snapshot` com `pageId: 0` devolve *"Error: No page found"*. Use
-`chrome_list_pages` para descobrir os IDs válidos.
-
-**Reinício obrigatório:** as tools `chrome_*` só aparecem no `tools/list` depois
-de reiniciar o MCP Server (a ponte sobe no boot, em `startServer()`).
-
-### Relatórios de sessão
-
-- `docs/CONTEXTO-SESSAO-2026-10-14-INSTALACAO-ATALHO.md` — instalação, atalho, bug do `localhost`, incidente das operações interrompidas.
-- `docs/CONTEXTO-SESSAO-RESUMO.md` — sessão anterior (17/08/2026).
+Skill de auditoria: `/auditar-mestre-pc` (`~\.grok\skills\auditar-mestre-pc`).
