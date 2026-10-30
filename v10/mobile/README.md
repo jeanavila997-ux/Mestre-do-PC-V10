@@ -29,26 +29,29 @@ Abra `https://<id>.trycloudflare.com/mobile/`.
 
 A mesma pasta é o site inteiro. Dá para hospedar em GitHub Pages, Cloudflare Pages ou na VPS `72.62.11.116`.
 
-1. No topo, escolha **PC Desktop**, **VPS** ou **9Router**.
-2. Toque em **Editar endpoint** e salve a URL do launcher:
+1. O app abre na aba **Chat**. No topo, escolha **PC Desktop**, **VPS** ou **9Router**.
+2. Toque em **Conexão** (ou no banner “Alvo offline”) e salve a URL do launcher:
    - PC na rede local: `http://192.168.x.x:7777` (atrás de um proxy; o processo não abre em `0.0.0.0`)
    - Túnel: `https://<id>.trycloudflare.com`
    - VPS: `http://72.62.11.116:7777`
    - 9Router: `http://127.0.0.1:20128` ou o host da VPS na porta `20128`
-3. Quando a página é servida pelo próprio launcher, o alvo Desktop começa em `window.location.origin`.
-4. Se o servidor tiver `MESTRE_MOBILE_TOKEN`, cole o mesmo valor no campo token. Ele vai no header `X-Mestre-Mobile-Token`.
+3. Use **Testar** no sheet para validar o endpoint (`/ping` ou `/api/health` no 9Router). A bolinha no header mostra online/offline e a latência.
+4. Quando a página é servida pelo próprio launcher, o alvo Desktop começa em `window.location.origin`.
+5. Se o servidor tiver `MESTRE_MOBILE_TOKEN`, cole o mesmo valor no campo token. Ele vai no header `X-Mestre-Mobile-Token`.
 
 O app chama o launcher com `X-Mestre-Client: v10-web`. Origens aceitas: localhost, LAN privada, `*.trycloudflare.com`, `72.62.11.116`, `*.72-62-11-116.sslip.io`, `jeanavila997-ux.github.io` e `mestre-do-pc-mobile.pages.dev`. Outras origens entram por `MESTRE_MOBILE_ORIGINS` (lista separada por vírgula; `*.pages.dev` é um curinga de host).
 
 Antes de deixar um túnel no ar, defina `MESTRE_MOBILE_TOKEN`. Sem esse token, qualquer página numa origem confiável consegue chamar `/run` enquanto o túnel existir.
 
-## Abas
+## Abas (nav inferior)
 
-1. **Pulso** — medidores de CPU, RAM, disco C: e latência (`/status`, `/ping`) e o Stream Deck (`POST /run`).
-2. **Chat IA** — `/ollama/chat`, `/api/conversas`, `/api/tools`, `/api/skills`, modelos locais e `gcli/grok-4.7-build-fast` via 9Router, ditado pela Web Speech API.
-3. **Comandos** — catálogo de `/operations`, busca, categorias, favoritos, histórico e confirmação das operações destrutivas. A saída chega por `/run-status`.
+Ordem: **Pulso** · **Cmds** · **Chat** (centro, padrão) · **VPS** · **Mais** (Prontos, Arquiteto & Memórias).
+
+1. **Chat** — tela principal: `/ollama/chat` ou 9Router `/v1/chat/completions`, modelos, ditado pela Web Speech API e chips de prompts/comandos prontos.
+2. **Pulso** — medidores de CPU, RAM, disco C: e latência (`/status`, `/ping`) e o Stream Deck (`POST /run`).
+3. **Comandos** — filtro **Atalhos** com 21 operações embutidas da whitelist (RAM, limpeza, DNS, rede, Defender…), mais o catálogo completo de `/operations`, busca, categorias, favoritos e histórico. Destrutivas pedem confirmação; a saída chega por `/run-status`.
 4. **VPS & Cloud** — os oito apps `*.72-62-11-116.sslip.io` e as portas MySQL `32768`, PostgreSQL `32769`, Adminer `32771`, Ollama `11434`, Nexus-Terminal `3100`, Hermes `8642`, n8n `5677` e 9Router `20128`.
-5. **Prompts & Memória** — Arquiteto de Prompts v2 (R.C.T.R.F.) e memórias em `/memories/list`, `/memories/create`, `/memories/search` e `/memories/stats`, com cache em `localStorage` e IndexedDB.
+5. **Mais** — **Prontos** (prompts e atalhos já no menu), Arquiteto de Prompts v2 (R.C.T.R.F.) e memórias em `/memories/list`, `/memories/create`, `/memories/search` e `/memories/stats`, com cache em `localStorage` e IndexedDB.
 
 Favoritos, histórico, endpoint e a última cópia das memórias ficam no aparelho. Dá para consultar o cache com o PC desligado.
 

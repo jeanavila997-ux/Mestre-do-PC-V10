@@ -14,13 +14,55 @@
     { icon: "🧹", label: "Limpar Temp Usuário & Windows", ids: ["limpar_temp_usuario", "limpar_temp_do_windows"], destructive: true },
     { icon: "🗑️", label: "Esvaziar Lixeira", ids: ["esvaziar_lixeira"], destructive: true },
     { icon: "🌐", label: "Flush DNS", ids: ["limpar_cache_dns"] },
-    { icon: "📡", label: "Análise Wi-Fi", ids: ["rede_wifi_analise"] },
-    { icon: "📶", label: "Wi-Fi Info + Sinal", ids: ["rede_info_wifi_completo", "rede_wifi_sinal_bars"] },
-    { icon: "📡", label: "Redes Wi-Fi Próximas", ids: ["rede_wifi_redes_proximas"] },
-    { icon: "💾", label: "Perfis Wi-Fi", ids: ["rede_wifi_perfis"] },
-    { icon: "⚡", label: "Speedtest Rápido", ids: ["rede_speedtest_mini"] },
+    { icon: "📡", label: "Diagnóstico de Rede", ids: ["diagnostico_de_rede_completo"] },
+    { icon: "📶", label: "Adaptadores de Rede", ids: ["ver_adaptadores_de_rede", "info_adaptadores_rede"] },
+    { icon: "🧪", label: "Testar DNS", ids: ["testar_dns", "teste_dns_resolucao"] },
+    { icon: "🗺️", label: "Mapear Rede Local", ids: ["mapear_rede_local_netbios"] },
+    { icon: "📋", label: "Relatório Rápido", ids: ["relatorio_rapido_do_pc"] },
     { icon: "🔄", label: "Sincronizar Memórias", action: "sync" },
   ];
+  /** Comandos já no menu (Cmds → Atalhos), mesmo sem /operations. IDs = whitelist real. */
+  const BUILTIN_OPS = [
+    { id: "liberar_memoria_ram_imediatamente", title: "Liberar Memória RAM Imediatamente", category: "Memória", description: "Libera RAM agora", destructive: false },
+    { id: "ver_uso_atual_de_ram", title: "Ver Uso Atual de RAM", category: "Memória", description: "Leitura rápida de memória", destructive: false },
+    { id: "listar_processos_por_uso_de_ram", title: "Listar Processos por Uso de RAM", category: "Memória", description: "Quem está comendo RAM", destructive: false },
+    { id: "info_ram", title: "Informações da Memória RAM", category: "Hardware", description: "Detalhe dos módulos (whitelist demo)", destructive: false },
+    { id: "relatorio_rapido_do_pc", title: "Relatório rápido do PC", category: "Outros", description: "Visão geral do sistema", destructive: false },
+    { id: "listar_processos_ativos", title: "Listar Processos Ativos", category: "Processos", description: "Processos em execução", destructive: false },
+    { id: "limpar_temp_usuario", title: "Limpar TEMP Usuário", category: "Limpeza", description: "Temp do perfil", destructive: true },
+    { id: "limpar_temp_do_windows", title: "Limpar TEMP do Windows", category: "Limpeza", description: "Temp do sistema", destructive: true },
+    { id: "esvaziar_lixeira", title: "Esvaziar Lixeira", category: "Limpeza", description: "Esvazia a lixeira", destructive: true },
+    { id: "limpar_cache_dns", title: "Limpar Cache DNS", category: "Limpeza", description: "Flush DNS", destructive: false },
+    { id: "ver_dns_atual", title: "Ver DNS Atual", category: "Limpeza", description: "Servidores DNS configurados", destructive: false },
+    { id: "testar_dns", title: "Testar DNS", category: "Limpeza", description: "Checagem de resolução", destructive: false },
+    { id: "teste_dns_resolucao", title: "Teste de Tempo de Resolução DNS", category: "Velocidade", description: "Latência de DNS", destructive: false },
+    { id: "diagnostico_de_rede_completo", title: "Diagnóstico de Rede Completo", category: "Outros", description: "Diagnóstico amplo de rede", destructive: false },
+    { id: "ver_adaptadores_de_rede", title: "Ver Adaptadores de Rede", category: "Outros", description: "Adaptadores ativos", destructive: false },
+    { id: "info_adaptadores_rede", title: "Listar Adaptadores de Rede", category: "Velocidade", description: "Lista detalhada", destructive: false },
+    { id: "mapear_rede_local_netbios", title: "Mapear Rede Local (NetBIOS)", category: "Rede", description: "Hosts na LAN", destructive: false },
+    { id: "verificar_status_do_windows_defender", title: "Status do Windows Defender", category: "Defender", description: "Estado da proteção", destructive: false },
+    { id: "scan_rapido_com_defender", title: "Scan Rápido com Defender", category: "Defender", description: "Varredura rápida", destructive: false },
+    { id: "listar_startups_do_sistema", title: "Listar Startups do Sistema", category: "Outros", description: "Itens na inicialização", destructive: false },
+    { id: "verificar_processos_node_ativos", title: "Verificar Processos Node.js Ativos", category: "Node.js", description: "Node em execução", destructive: false },
+  ];
+  /** Prompts já no menu (Mais → Prontos) e chips do Chat. */
+  const BUILTIN_PROMPTS = [
+    { id: "diag", icon: "💻", label: "Diagnóstico do PC", kind: "chat", text: "Faz um diagnóstico completo do meu PC com a regra de evidência [confirmado]/[inferência]." },
+    { id: "limpeza", icon: "🧹", label: "Limpeza", kind: "chat", text: "Quero limpar arquivos temporários do meu PC. Sugira só operações da whitelist e diga o risco." },
+    { id: "performance", icon: "⚡", label: "Performance", kind: "chat", text: "Como posso melhorar a performance do meu PC agora? Liste 5 ações práticas da whitelist." },
+    { id: "status", icon: "📊", label: "Status do sistema", kind: "chat", text: "Mostre o status atual do sistema em lista curta (CPU, RAM, disco, rede)." },
+    { id: "vps", icon: "🌐", label: "Resumo da VPS", kind: "chat", action: "vps" },
+    { id: "status-local", icon: "📟", label: "Status com telemetria", kind: "chat", action: "status" },
+    { id: "ram-cmd", icon: "🚀", label: "Otimizar RAM", kind: "command", ids: ["liberar_memoria_ram_imediatamente"] },
+    { id: "info-ram", icon: "✅", label: "Testar whitelist (RAM)", kind: "command", ids: ["info_ram"] },
+    { id: "rede", icon: "📡", label: "Diagnóstico de Rede", kind: "command", ids: ["diagnostico_de_rede_completo"] },
+    { id: "dns", icon: "🌐", label: "Flush DNS", kind: "command", ids: ["limpar_cache_dns"] },
+    { id: "relatorio", icon: "📋", label: "Relatório rápido", kind: "command", ids: ["relatorio_rapido_do_pc"] },
+    { id: "arquiteto", icon: "🧠", label: "Abrir Arquiteto", kind: "nav", tab: "prompts", sub: "architect" },
+    { id: "code-review", icon: "🔎", label: "Revisar código", kind: "chat", text: "Revise o código que eu colar a seguir com foco em bugs, segurança e clareza. Espere o trecho." },
+    { id: "professor", icon: "🎓", label: "Modo professor", kind: "chat", text: "Explique o próximo tema no modo professor: porquê, passo a passo, exemplo e analogia simples." },
+  ];
+  const BUILTIN_OP_IDS = new Set(BUILTIN_OPS.map((op) => op.id));
   const VPS_APPS = [
     ["chat-ia", "https://chat-ia.72-62-11-116.sslip.io"],
     ["homeovet-app", "https://homeovet-app.72-62-11-116.sslip.io"],
@@ -50,14 +92,14 @@
 
   const $ = (id) => document.getElementById(id);
   const state = {
-    tab: "home",
-    sub: "architect",
+    tab: "chat",
+    sub: "ready",
     settings: loadSettings(),
     favs: new Set(readJson(FAV_KEY, [])),
     recent: readJson(RECENT_KEY, []),
-    ops: [],
-    categorias: [],
-    filter: "todas",
+    ops: BUILTIN_OPS.map((op) => ({ ...op, builtin: true })),
+    categorias: [...new Set(BUILTIN_OPS.map((op) => op.category))],
+    filter: "atalhos",
     search: "",
     shown: PAGE_SIZE,
     opsOffline: false,
@@ -69,6 +111,8 @@
     memories: [],
     install: null,
     recognition: null,
+    online: null,
+    statusTimer: null,
   };
 
   function readJson(key, fallback) {
@@ -215,6 +259,57 @@
     return result;
   }
 
+  function setConnectionUi(online, latencyMs) {
+    state.online = online;
+    const dot = $("status-dot");
+    const lat = $("status-lat");
+    const banner = $("chat-offline");
+    if (dot) {
+      dot.classList.remove("ok", "bad", "wait");
+      dot.classList.add(online === true ? "ok" : online === false ? "bad" : "wait");
+    }
+    if (lat) {
+      lat.textContent = online && Number.isFinite(latencyMs) ? `${latencyMs} ms` : online === false ? "offline" : "-- ms";
+    }
+    if (banner) banner.hidden = online !== false;
+  }
+
+  async function updateConnectionStatus() {
+    const started = performance.now();
+    try {
+      if (isRouterTarget()) {
+        await api("/api/health", { timeout: 5000 });
+      } else {
+        await api("/ping", { timeout: 5000 });
+      }
+      setConnectionUi(true, Math.round(performance.now() - started));
+    } catch {
+      setConnectionUi(false, null);
+    }
+  }
+
+  function scheduleConnectionStatus() {
+    updateConnectionStatus().catch(() => {});
+    clearInterval(state.statusTimer);
+    state.statusTimer = setInterval(() => {
+      updateConnectionStatus().catch(() => {});
+    }, 20000);
+  }
+
+  function openConnectionDialog() {
+    const dialog = $("connection-dialog");
+    $("endpoint-url").value = apiBase();
+    $("endpoint-token").value = state.settings.mobileToken || "";
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
+
+  function closeConnectionDialog() {
+    const dialog = $("connection-dialog");
+    if (typeof dialog.close === "function" && dialog.open) dialog.close();
+    else dialog.removeAttribute("open");
+  }
+
   function renderTargets() {
     const host = $("target-switch");
     host.replaceChildren();
@@ -232,6 +327,8 @@
         state.settings.targetId = preset.id;
         saveSettings();
         renderTargets();
+        setConnectionUi(null, null);
+        scheduleConnectionStatus();
         refreshActive();
       });
       host.append(button);
@@ -425,21 +522,37 @@
     idbSet("favs", list);
   }
 
+  function mergeOperations(remoteOps, remoteCategorias) {
+    const map = new Map(BUILTIN_OPS.map((op) => [op.id, { ...op, builtin: true }]));
+    for (const op of remoteOps || []) {
+      const prev = map.get(op.id);
+      map.set(op.id, { ...op, builtin: Boolean(prev?.builtin || BUILTIN_OP_IDS.has(op.id)) });
+    }
+    state.ops = [...map.values()];
+    const cats = new Set([
+      ...BUILTIN_OPS.map((op) => op.category),
+      ...(remoteCategorias || []),
+      ...state.ops.map((op) => op.category).filter(Boolean),
+    ]);
+    state.categorias = [...cats];
+  }
+
   async function loadOperations() {
     try {
       const { data } = await api("/operations");
-      state.ops = data.operations || [];
-      state.categorias = data.categorias || [];
+      mergeOperations(data.operations || [], data.categorias || []);
       state.opsOffline = false;
       await idbSet("operations", { operations: state.ops, categorias: state.categorias });
     } catch (error) {
       const cached = await idbGet("operations");
-      if (cached && Array.isArray(cached.operations)) {
-        state.ops = cached.operations;
-        state.categorias = cached.categorias || [];
+      if (cached && Array.isArray(cached.operations) && cached.operations.length) {
+        mergeOperations(cached.operations, cached.categorias || []);
+        state.opsOffline = true;
+      } else {
+        mergeOperations([], []);
         state.opsOffline = true;
       }
-      toast(error.message || "Catálogo indisponível");
+      toast(error.message || "Catálogo remoto indisponível — usando atalhos embutidos");
     }
     renderCommands();
   }
@@ -448,7 +561,8 @@
     const query = state.search.trim().toLowerCase();
     return state.ops.filter((op) => {
       if (state.filter === "favoritos" && !state.favs.has(op.id)) return false;
-      if (state.filter !== "todas" && state.filter !== "favoritos" && state.filter !== "recentes" && op.category !== state.filter) return false;
+      if (state.filter === "atalhos" && !op.builtin && !BUILTIN_OP_IDS.has(op.id)) return false;
+      if (state.filter !== "todas" && state.filter !== "favoritos" && state.filter !== "recentes" && state.filter !== "atalhos" && op.category !== state.filter) return false;
       if (!query) return true;
       return [op.title, op.id, op.category, op.description].join(" ").toLowerCase().includes(query);
     });
@@ -458,11 +572,11 @@
     $("cmd-offline").hidden = !state.opsOffline;
     const chips = $("cmd-chips");
     chips.replaceChildren();
-    const filters = ["todas", "favoritos", "recentes", ...state.categorias];
+    const filters = ["atalhos", "todas", "favoritos", "recentes", ...state.categorias];
     for (const name of filters) {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = name === "todas" ? "Todas" : name === "favoritos" ? "⭐ Favoritos" : name === "recentes" ? "Recentes" : name;
+      button.textContent = name === "todas" ? "Todas" : name === "favoritos" ? "⭐ Favoritos" : name === "recentes" ? "Recentes" : name === "atalhos" ? "⚡ Atalhos" : name;
       button.className = state.filter === name ? "active" : "";
       button.addEventListener("click", () => {
         state.filter = name;
@@ -486,7 +600,9 @@
     if (!slice.length) {
       const empty = document.createElement("p");
       empty.className = "empty";
-      empty.textContent = state.ops.length ? "Nada com esse filtro." : "Catálogo ainda não carregou.";
+      empty.textContent = state.ops.length
+        ? "Nada com esse filtro."
+        : "Atalhos embutidos indisponíveis — recarregue a página.";
       list.append(empty);
     }
     for (const op of slice) list.append(operationCard(op));
@@ -793,20 +909,63 @@
     window.speechSynthesis.speak(utterance);
   }
 
+  function runBuiltinPrompt(item) {
+    if (!item) return;
+    if (item.kind === "nav") {
+      showTab(item.tab || "prompts");
+      if (item.sub) showSub(item.sub);
+      return;
+    }
+    if (item.kind === "command") {
+      const ids = item.ids || [];
+      executeDeck({ label: item.label, ids, destructive: ids.some((id) => {
+        const op = state.ops.find((entry) => entry.id === id) || BUILTIN_OPS.find((entry) => entry.id === id);
+        return Boolean(op?.destructive);
+      }) });
+      return;
+    }
+    if (item.action === "vps") return sendChat(vpsPrompt());
+    if (item.action === "status") return sendChat(statusPrompt());
+    return sendChat(item.text || item.label);
+  }
+
+  function renderReadyPrompts() {
+    const root = $("prompt-ready-list");
+    if (!root) return;
+    root.replaceChildren();
+    for (const item of BUILTIN_PROMPTS) {
+      const card = document.createElement("article");
+      card.className = "card ready-card";
+      const copy = document.createElement("div");
+      const title = document.createElement("h3");
+      title.textContent = `${item.icon || "✨"} ${item.label}`;
+      const meta = document.createElement("p");
+      meta.textContent = item.kind === "command"
+        ? `Comando · ${(item.ids || []).join(", ")}`
+        : item.kind === "nav"
+          ? "Abre a seção no app"
+          : "Prompt → Chat";
+      copy.append(title, meta);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = item.kind === "command" ? "Rodar" : item.kind === "nav" ? "Abrir" : "Enviar";
+      button.addEventListener("click", () => runBuiltinPrompt(item));
+      card.append(copy, button);
+      root.append(card);
+    }
+  }
+
   function renderChips() {
     const root = $("chips");
-    const chips = [
-      { label: "/arquiteto-de-prompts", run: () => showTab("prompts") },
-      { label: "Status do PC", run: () => sendChat(statusPrompt()) },
-      { label: "Otimizar RAM", run: () => executeDeck(DECK[0]) },
-      { label: "Resumo da VPS", run: () => sendChat(vpsPrompt()) },
-    ];
+    const chips = BUILTIN_PROMPTS.filter((item) => [
+      "diag", "limpeza", "performance", "status-local", "ram-cmd", "vps", "arquiteto", "info-ram",
+    ].includes(item.id));
     root.replaceChildren();
     for (const chip of chips) {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = chip.label;
-      button.addEventListener("click", () => chip.run());
+      button.textContent = `${chip.icon || ""} ${chip.label}`.trim();
+      button.addEventListener("click", () => runBuiltinPrompt(chip));
       root.append(button);
     }
   }
@@ -1071,13 +1230,21 @@
 
   function showSub(name) {
     state.sub = name;
-    $("sub-architect").hidden = name !== "architect";
-    $("sub-memories").hidden = name !== "memories";
+    const panels = {
+      ready: $("sub-ready"),
+      architect: $("sub-architect"),
+      memories: $("sub-memories"),
+    };
+    for (const [key, panel] of Object.entries(panels)) {
+      if (!panel) continue;
+      panel.hidden = key !== name;
+    }
     for (const button of document.querySelectorAll("[data-sub]")) {
       const on = button.dataset.sub === name;
       button.classList.toggle("active", on);
       button.setAttribute("aria-selected", on ? "true" : "false");
     }
+    if (name === "ready") renderReadyPrompts();
     if (name === "memories" && !state.memories.length) loadMemories();
   }
 
@@ -1097,13 +1264,16 @@
     $("mic").hidden = name !== "chat" && name !== "prompts";
     const titles = { home: "Pulso", chat: "Chat IA", commands: "Comandos", vps: "VPS", prompts: "Prompts" };
     document.title = `Mestre Mobile — ${titles[name] || "V11"}`;
-    if (name === "commands" && !state.ops.length) loadOperations();
+    if (name === "commands") loadOperations();
     if (name === "chat") {
       loadModels();
       loadChatMeta();
     }
     if (name === "vps" && !$("vps-apps").childElementCount) refreshVps();
-    if (name === "prompts" && state.sub === "memories") loadMemories();
+    if (name === "prompts") {
+      if (state.sub === "ready") renderReadyPrompts();
+      if (state.sub === "memories") loadMemories();
+    }
   }
 
   async function refreshActive() {
@@ -1206,8 +1376,21 @@
     renderModels();
     $("speak").checked = !!state.settings.speak;
     $("auto-send").checked = !!state.settings.autoSend;
-    $("endpoint-toggle").addEventListener("click", () => {
-      $("endpoint-form").classList.toggle("open");
+    $("conn-open").addEventListener("click", openConnectionDialog);
+    $("chat-offline").addEventListener("click", openConnectionDialog);
+    $("endpoint-test").addEventListener("click", async () => {
+      try {
+        const url = new URL($("endpoint-url").value.trim());
+        if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Use http ou https");
+        state.settings.targets[state.settings.targetId] = url.origin;
+        state.settings.mobileToken = $("endpoint-token").value.trim();
+        saveSettings();
+        renderTargets();
+        await updateConnectionStatus();
+        toast(state.online ? `Online · ${$("status-lat").textContent}` : "Sem resposta neste endpoint");
+      } catch {
+        toast("URL inválida");
+      }
     });
     $("endpoint-form").addEventListener("submit", (event) => {
       event.preventDefault();
@@ -1217,14 +1400,28 @@
         state.settings.targets[state.settings.targetId] = url.origin;
         state.settings.mobileToken = $("endpoint-token").value.trim();
         saveSettings();
-        $("endpoint-form").classList.remove("open");
+        closeConnectionDialog();
         renderTargets();
+        scheduleConnectionStatus();
         toast("Endpoint salvo neste aparelho");
         refreshActive();
       } catch {
         toast("URL inválida");
       }
     });
+    const connDialog = $("connection-dialog");
+    if (!("closedBy" in HTMLDialogElement.prototype)) {
+      connDialog.addEventListener("click", (event) => {
+        if (event.target !== connDialog) return;
+        const rect = connDialog.getBoundingClientRect();
+        const inside =
+          rect.top <= event.clientY &&
+          event.clientY <= rect.top + rect.height &&
+          rect.left <= event.clientX &&
+          event.clientX <= rect.left + rect.width;
+        if (!inside) closeConnectionDialog();
+      });
+    }
     for (const button of document.querySelectorAll(".tabbar [data-tab]")) {
       button.addEventListener("click", () => showTab(button.dataset.tab));
     }
@@ -1322,8 +1519,11 @@
 
   function boot() {
     bind();
-    showTab("home");
-    refreshHome().catch((error) => toast(error.message || "Falha ao ler o pulso"));
+    renderReadyPrompts();
+    renderCommands();
+    showSub("ready");
+    showTab("chat");
+    scheduleConnectionStatus();
     if ("serviceWorker" in navigator) {
       const scope = new URL("./", window.location.href);
       navigator.serviceWorker.register(new URL("sw.js", scope), { scope: scope.href }).catch(() => {});
