@@ -10,24 +10,51 @@
  *   - Anexos de contexto (dashboard, arquivos, imagens, terminal, app)
  */
 
-const DEFAULT_SYSTEM_PROMPT = `Você é o Mestre do PC V10, um assistente especializado em manutenção de computadores Windows.
-REGRAS:
-1. Responda SEMPRE em português brasileiro.
-2. Quando sugerir uma ação, inclua o comando PowerShell exato entre \`\`\`powershell e \`\`\`.
-3. NUNCA invente comandos. Use APENAS comandos PowerShell reais do Windows.
-4. Seja direto e objetivo. O usuário quer soluções rápidas.
-5. Se o usuário descrever um problema, sugira no máximo 3 ações ordenadas por prioridade.
-COMANDOS QUE VOCÊ CONHECE:
-- Limpeza: Remove-Item no TEMP, Clear-RecycleBin, cleanmgr, DISM StartComponentCleanup
-- RAM: Get-Process, [System.GC]::Collect(), SysMain
+const HISTORY_MESSAGE_LIMIT = 80;
+const HISTORY_CHAR_BUDGET = 48000;
+
+/**
+ * Seleciona as mensagens mais recentes para a API, com teto de contagem e de caracteres.
+ * @param {Array<{role: string, content?: string}>} messages
+ * @returns {Array<{role: string, content?: string}>}
+ */
+function selectHistoryForApi(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return [];
+  const capped = messages.slice(-HISTORY_MESSAGE_LIMIT);
+  let total = 0;
+  const picked = [];
+  for (let i = capped.length - 1; i >= 0; i--) {
+    const msg = capped[i];
+    const len = typeof msg?.content === "string" ? msg.content.length : 0;
+    if (picked.length > 0 && total + len > HISTORY_CHAR_BUDGET) break;
+    picked.push(msg);
+    total += len;
+  }
+  return picked.reverse();
+}
+
+const DEFAULT_SYSTEM_PROMPT = `Você é o Mestre IA do Mestre do PC — um assistente no estilo Grok: franco, bem-humorado, direto e útil, em português brasileiro.
+
+TOM E CONTEXTO:
+- Conversa livre: código, ideias, curiosidades, explicações, brainstorm — não fique preso só a manutenção de PC.
+- Quando o assunto for o PC Windows do JEAN, use seu superpoder: diagnóstico, PowerShell e manutenção.
+- Seja claro e honesto. Humor leve quando couber; sem enrolação.
+- Prefira respostas úteis e acionáveis. Em problemas do PC, no máximo 3 ações por prioridade.
+
+COMANDOS E SEGURANÇA (só quando sugerir execução no PC):
+1. Inclua o comando PowerShell exato entre \`\`\`powershell e \`\`\`.
+2. NUNCA invente comandos — só PowerShell/Windows reais.
+3. A execução passa pela whitelist do launcher (/classify + /run). Não prometa rodar o que a whitelist não cobre; oriente cadastrar em /gerenciar-comandos.html se precisar.
+4. Nunca peça nem repita senhas, tokens ou chaves.
+
+ÁREAS QUE VOCÊ DOMINA NO PC (quando pedido):
+- Limpeza: TEMP, lixeira, cleanmgr, DISM StartComponentCleanup
+- RAM / processos: Get-Process, GC, SysMain
 - Disco: Get-PSDrive, Optimize-Volume, chkdsk, Get-PhysicalDisk
 - Rede: ipconfig, Test-Connection, Resolve-DnsName, netsh, Get-NetAdapter
-- Sistema: Get-ComputerInfo, sfc /scannow, DISM, bootrec
-- Segurança: Get-MpComputerStatus, Start-MpScan, Get-NetFirewallProfile
-- Performance: powercfg, Game Mode, efeitos visuais
-- Backup: Checkpoint-Computer, Export-WindowsDriver, reg export
-- Drivers: Get-WmiObject Win32_PnPSignedDriver, pnputil
-- Privacidade: AllowTelemetry, AdvertisingInfo, Cortana`;
+- Sistema: Get-ComputerInfo, sfc, DISM, bootrec
+- Segurança: Defender, firewall
+- Performance, backup, drivers, privacidade`;
 
 const OLLAMA_MODEL_PREFERENCES = [
   "qwen2.5-coder:3b-instruct",
@@ -81,7 +108,7 @@ const TEMPLATE = `
       <input type="file" id="mestreChatFileInput" style="display:none" accept=".txt,.md,.json,.csv,.log,.ps1,.bat,.cmd,.xml,.yaml,.yml,.ini,.conf,.env,.html,.css,.js,.ts,.py" />
       <input type="file" id="mestreChatImageInput" style="display:none" accept="image/*" />
       <div class="mestre-chat-messages" id="mestreChatMessages">
-        <div class="mestre-chat-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br/>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>
+        <div class="mestre-chat-msg ai">Olá! Sou o <strong>Mestre IA</strong> — conversa livre estilo Grok, com superpoderes no seu PC. 🖥️<br/>Pergunte qualquer coisa: código, ideias, ou diga o que está acontecendo na máquina que eu ajudo.</div>
       </div>
       <div class="mestre-chat-input-area">
         <input type="text" id="mestreChatInput" aria-label="Mensagem para o Mestre IA" placeholder="Digite sua mensagem..." autocomplete="off" />
@@ -493,7 +520,7 @@ export class MestreChat {
   _clearConversation() {
     this.conversation = [];
     localStorage.removeItem(this.storageKey);
-    this.el.messages.innerHTML = '<div class="mestre-chat-msg ai">Olá! Sou o <strong>Mestre IA</strong>, seu assistente de manutenção do PC. 🖥️<br/>Me diga o que está acontecendo e eu sugiro os melhores comandos para resolver!</div>';
+    this.el.messages.innerHTML = '<div class="mestre-chat-msg ai">Olá! Sou o <strong>Mestre IA</strong> — conversa livre estilo Grok, com superpoderes no seu PC. 🖥️<br/>Pergunte qualquer coisa: código, ideias, ou diga o que está acontecendo na máquina que eu ajudo.</div>';
     this.toast("💬 Sessão de chat limpa", "info");
   }
 
@@ -591,9 +618,10 @@ export class MestreChat {
     this.conversation[this.conversation.length - 1].images = imageAttachments.map((a) => ({ name: a.name, mime: a.mime }));
     this._saveConversation();
 
+    const history = selectHistoryForApi(this.conversation);
     const messagesForApi = [
       { role: "system", content: this.systemPrompt },
-      ...this.conversation.slice(-20).map((m, i, arr) => {
+      ...history.map((m, i, arr) => {
         const isLastUser = m.role === "user" && i === arr.length - 1;
         const out = { role: m.role };
         if (isLastUser) {
@@ -756,7 +784,7 @@ export class MestreChat {
     el.remove();
     const messagesForApi = [
       { role: "system", content: this.systemPrompt },
-      ...this.conversation.slice(-20).map((m) => ({ role: m.role, content: m.content })),
+      ...selectHistoryForApi(this.conversation).map((m) => ({ role: m.role, content: m.content })),
     ];
     const result = await this._streamOllamaReply(messagesForApi);
     if (result.ok) {
@@ -1458,4 +1486,4 @@ export function initChat(options = {}) {
   return new MestreChat(options);
 }
 
-export { DEFAULT_SYSTEM_PROMPT };
+export { DEFAULT_SYSTEM_PROMPT, selectHistoryForApi, HISTORY_MESSAGE_LIMIT, HISTORY_CHAR_BUDGET };

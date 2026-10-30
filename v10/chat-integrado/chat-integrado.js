@@ -24,15 +24,45 @@ const TEXT_EXTENSIONS = new Set([
   "hpp", "sql", "sh", "toml",
 ]);
 
-const SYSTEM_PROMPT = `Você é o Mestre do PC V10, um assistente especializado em manutenção de computadores Windows.
-REGRAS:
-1. Responda SEMPRE em português brasileiro.
-2. Quando sugerir uma ação, inclua o comando PowerShell exato entre \`\`\`powershell e \`\`\`.
-3. NUNCA invente comandos. Use APENAS comandos PowerShell reais do Windows.
-4. Seja direto e objetivo. O usuário quer soluções rápidas.
-5. Se o usuário descrever um problema, sugira no máximo 3 ações ordenadas por prioridade.
-Você tem acesso a ferramentas MCP que podem executar diagnósticos, buscar na web, analisar código, enviar webhooks e muito mais.
-Quando achar relevante, sugira o uso de uma ferramenta específica.`;
+const HISTORY_MESSAGE_LIMIT = 80;
+const HISTORY_CHAR_BUDGET = 48000;
+
+/**
+ * Seleciona as mensagens mais recentes para a API, com teto de contagem e de caracteres.
+ * @param {Array<{role: string, content?: string}>} messages
+ * @returns {Array<{role: string, content?: string}>}
+ */
+function selectHistoryForApi(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return [];
+  const capped = messages.slice(-HISTORY_MESSAGE_LIMIT);
+  let total = 0;
+  const picked = [];
+  for (let i = capped.length - 1; i >= 0; i--) {
+    const msg = capped[i];
+    const len = typeof msg?.content === "string" ? msg.content.length : 0;
+    if (picked.length > 0 && total + len > HISTORY_CHAR_BUDGET) break;
+    picked.push(msg);
+    total += len;
+  }
+  return picked.reverse();
+}
+
+const SYSTEM_PROMPT = `Você é o Mestre IA do Mestre do PC — um assistente no estilo Grok: franco, bem-humorado, direto e útil, em português brasileiro.
+
+TOM E CONTEXTO:
+- Conversa livre: código, ideias, curiosidades, explicações, brainstorm — não fique preso só a manutenção de PC.
+- Quando o assunto for o PC Windows do JEAN, use seu superpoder: diagnóstico, PowerShell, ferramentas MCP e manutenção.
+- Seja claro e honesto. Humor leve quando couber; sem enrolação.
+- Prefira respostas úteis e acionáveis. Em problemas do PC, no máximo 3 ações por prioridade.
+
+COMANDOS E SEGURANÇA (só quando sugerir execução no PC):
+1. Inclua o comando PowerShell exato entre \`\`\`powershell e \`\`\`.
+2. NUNCA invente comandos — só PowerShell/Windows reais.
+3. A execução passa pela whitelist do launcher (/classify + /run). Não prometa rodar o que a whitelist não cobre; oriente cadastrar em /gerenciar-comandos.html se precisar.
+4. Nunca peça nem repita senhas, tokens ou chaves.
+
+FERRAMENTAS:
+Você tem acesso a ferramentas MCP (diagnósticos, web, código, webhooks, etc.). Quando for relevante, sugira ou use a ferramenta certa.`;
 
 const TOOL_DESCRIPTIONS = {
   perguntar_ia: { icon: "🧠", desc: "Perguntar à IA local" },
@@ -644,10 +674,11 @@ function renderActiveMemoryChips() {
 // ── Streaming via /ollama/chat ──────────────────────────────────────
 
 async function streamOllamaReply(userText) {
+  const history = selectHistoryForApi(state.messages);
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
-    ...state.messages.slice(-20).map((message, index, messages) =>
-      index === messages.length - 1 && message.role === "user"
+    ...history.map((message, index, msgs) =>
+      index === msgs.length - 1 && message.role === "user"
         ? { ...message, content: buildUserPromptWithMemories(message.content) }
         : message
     ),
