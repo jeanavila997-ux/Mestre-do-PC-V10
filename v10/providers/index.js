@@ -15,6 +15,7 @@ export const CATALOG = {
   openai:   { name: "OpenAI",           type: "openai", baseUrl: "https://api.openai.com/v1",     model: "gpt-4o-mini",                 envKey: "OPENAI_API_KEY",     implemented: true },
   claude:   { name: "Claude / Claude Code", type: "anthropic", baseUrl: "https://api.anthropic.com/v1", model: "claude-sonnet-4",      envKey: "ANTHROPIC_API_KEY",  implemented: true },
   gemini:   { name: "Gemini",           type: "openai", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.5-flash", envKey: "GEMINI_API_KEY", implemented: true },
+  firecrawl:{ name: "Firecrawl (web scraping)", type: "firecrawl", baseUrl: "https://api.firecrawl.dev/v2", model: "", envKey: "FIRECRAWL_API_KEY", implemented: true },
 };
 
 function load() {
@@ -87,6 +88,13 @@ export async function listModels(id) {
   const p = getProvider(id);
   if (!p) throw new Error("Provedor desconhecido");
   if (!p.implemented) throw new Error(p.name + ": em breve");
+  if (p.type === "firecrawl") {
+    if (!p.apiKey) throw new Error("Informe a chave da Firecrawl (fc-...)");
+    const r = await fetch(p.baseUrl + "/team/credit-usage", { headers: headers(p), signal: AbortSignal.timeout(10000) });
+    if (!r.ok) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
+    const j = await r.json(); const c = j.data?.remainingCredits ?? j.data?.remaining_credits ?? "?";
+    return ["Créditos restantes: " + c];
+  }
   if (p.type === "ollama") {
     const r = await fetch(p.baseUrl + "/api/tags", { signal: AbortSignal.timeout(8000) });
     if (!r.ok) throw new Error("HTTP " + r.status);
@@ -114,7 +122,7 @@ export async function chat(messages, { provider, model, temperature } = {}) {
   let lastErr;
   for (const id of order) {
     const p = getProvider(id);
-    if (!p || !p.implemented || !p.enabled) continue;
+    if (!p || !p.implemented || !p.enabled || p.type === "firecrawl") continue;
     if (p.type !== "ollama" && id !== "9router" && !p.apiKey) continue;
     try {
       const useModel = (id === (provider || order[0]) && model) || p.model;
@@ -128,7 +136,7 @@ export async function chat(messages, { provider, model, temperature } = {}) {
         const j = await r.json();
         return { provider: id, model: useModel, content: (j.content || []).map((c) => c.text || "").join("") };
       }
-      if (p.type === "ollama") {
+  if (p.type === "ollama") {
         const r = await fetch(p.baseUrl + "/api/chat", { method: "POST", headers: headers(p),
           body: JSON.stringify({ model: useModel, messages, stream: false }), signal: AbortSignal.timeout(120000) });
         if (!r.ok) throw new Error("HTTP " + r.status);

@@ -2807,6 +2807,22 @@
       "destructive": false,
       "command": "$pasta = Join-Path $env:MESTRE_PROJETO_PATH 'mcp-server'; $pkg = Join-Path $pasta 'node_modules\\chrome-devtools-mcp\\package.json'; if (Test-Path $pkg) { $v = (Get-Content $pkg -Raw | ConvertFrom-Json).version; Write-Host \"✅ Chrome DevTools MCP instalado — versão $v\" -ForegroundColor Green; Write-Host \"ℹ️ Para as tools chrome_*: reinicie o MCP Server.\" -ForegroundColor Cyan } else { Write-Host \"⚠️ Chrome DevTools MCP não encontrado em $pasta. Use o comando de instalação.\" -ForegroundColor Yellow }",
       "description": "Mostra a versão do chrome-devtools-mcp instalada na pasta mcp-server do projeto e avisa se o MCP Server precisa ser reiniciado para ativar as tools chrome_*."
+    },
+    {
+      "id": "fc_1_1793346585805",
+      "title": "Clonar Firecrawl Skills (gh)",
+      "category": "Instalações",
+      "destructive": false,
+      "command": "Set-Location $env:USERPROFILE\\Projetos; if (Test-Path skills) { Write-Host \"Pasta skills j? existe ? atualizando\" -ForegroundColor Yellow; git -C skills pull } else { gh repo clone firecrawl/skills }",
+      "description": "Clona o reposit?rio firecrawl/skills."
+    },
+    {
+      "id": "fc_3_1793346585805",
+      "title": "Instalar Firecrawl Skills (37)",
+      "category": "Instalações",
+      "destructive": false,
+      "command": "Set-Location $env:USERPROFILE\\Projetos\\Mestre-do-PC-V10; npx -y skills add https://github.com/firecrawl/skills.git --all -y",
+      "description": "Instala as 37 skills Firecrawl nos agentes."
     }
   ],
   "templates": [
@@ -3570,6 +3586,30 @@
       "destructive": false,
       "command": "$t = Measure-Command { Invoke-WebRequest -Uri 'http://speedtest.tele2.net/1MB.zip' -OutFile \"$env:TEMP\\speedtest.tmp\" -UseBasicParsing }; $mb = 1; $s = [math]::Round($t.TotalSeconds,2); $mbps = [math]::Round(($mb * 8) / $s,2); Remove-Item \"$env:TEMP\\speedtest.tmp\" -Force -ErrorAction SilentlyContinue; Write-Host \"Velocidade estimada: ~$mbps Mbps (download de 1MB em ${s}s)\" -ForegroundColor Cyan",
       "description": "Speed Test Mini."
+    },
+    {
+      "id": "rede_wifi_perfis",
+      "title": "Wi-Fi Perfis Salvos",
+      "category": "Rede",
+      "destructive": false,
+      "command": "Write-Host '=== Perfis Wi-Fi salvos (sem senha) ===' -ForegroundColor Cyan; netsh wlan show profiles | Out-String",
+      "description": "Lista perfis Wi-Fi salvos sem expor chave."
+    },
+    {
+      "id": "rede_wifi_drivers",
+      "title": "Wi-Fi Capacidade do Adaptador",
+      "category": "Rede",
+      "destructive": false,
+      "command": "Write-Host '=== Capacidade do adaptador Wi-Fi ===' -ForegroundColor Cyan; netsh wlan show drivers | Out-String",
+      "description": "Mostra rádios, bandas e recursos do driver Wi-Fi."
+    },
+    {
+      "id": "rede_wifi_analise",
+      "title": "Wi-Fi Análise Completa",
+      "category": "Rede",
+      "destructive": false,
+      "command": "$ErrorActionPreference='SilentlyContinue'; Write-Host '=== ANALISE WIFI MESTRE ===' -ForegroundColor Cyan; $iface = netsh wlan show interfaces | Out-String; Write-Host $iface; $lines = $iface -split [Environment]::NewLine; $pick = { param($rx) ($lines | Where-Object { $_ -match $rx } | Select-Object -First 1) }; $ssidLine = & $pick '^\\s*SSID\\s+:'; if($ssidLine -match 'BSSID'){ $ssidLine = ($lines | Where-Object { $_ -match '^\\s*SSID\\s+:' -and $_ -notmatch 'BSSID' } | Select-Object -First 1) }; $ssid = if($ssidLine -match ':\\s*(.+)$'){ $Matches[1].Trim() } else { '' }; $banda = if((& $pick 'Banda\\s+:') -match ':\\s*(.+)$'){ $Matches[1].Trim() } else { '' }; $sinal = if((& $pick 'Sinal\\s+:') -match '(\\d+)'){ [int]$Matches[1] } else { 0 }; $canal = if((& $pick 'Canal\\s+:') -match '(\\d+)'){ $Matches[1] } else { '' }; $radio = if((& $pick 'Tipo de rádio\\s+:') -match ':\\s*(.+)$'){ $Matches[1].Trim() } else { '' }; Write-Host ''; Write-Host '=== PERFIS SALVOS (sem senha) ===' -ForegroundColor Cyan; netsh wlan show profiles; Write-Host ''; Write-Host '=== CAPACIDADE DO ADAPTADOR ===' -ForegroundColor Cyan; netsh wlan show drivers | Select-String -Pattern 'Nome da interface|Versão|Tipos de rádio|Número de bandas|2,4 GHz|5 GHz|6 GHz'; Write-Host ''; Write-Host '=== GATEWAY ===' -ForegroundColor Cyan; $g = (Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue | Select-Object -First 1).NextHop; if($g){ $p = Test-Connection $g -Count 2 -ErrorAction SilentlyContinue; if($p){ $avg = [math]::Round(($p | Measure-Object -Property ResponseTime -Average).Average, 0); Write-Host \"Gateway $g ~ ${avg}ms\" -ForegroundColor Green } else { Write-Host \"Gateway $g sem resposta\" -ForegroundColor Red } } else { Write-Host 'Gateway nao encontrado' -ForegroundColor Red }; Write-Host ''; Write-Host '=== DIAGNOSTICO ===' -ForegroundColor Yellow; if($banda -match '2[,.]4'){ Write-Host \"[ATENCAO] Conectado em 2,4 GHz (canal $canal). Se existir perfil 5G na mesma casa, ele costuma ter menos interferencia.\" -ForegroundColor Yellow }; if($sinal -ge 70){ Write-Host \"[OK] Sinal forte: $sinal%\" -ForegroundColor Green } elseif($sinal -ge 40){ Write-Host \"[ATENCAO] Sinal medio: $sinal%\" -ForegroundColor Yellow } else { Write-Host \"[CRITICO] Sinal fraco: $sinal%\" -ForegroundColor Red }; if($canal -eq '1' -or $canal -eq '6' -or $canal -eq '11'){ Write-Host \"[INFO] Canal $canal e padrao 2,4 GHz (1/6/11).\" -ForegroundColor Cyan }; Write-Host \"Radio: $radio | SSID: $ssid | Banda: $banda | Canal: $canal | Sinal: $sinal%\"; Write-Host '=== FIM ANALISE WIFI ===' -ForegroundColor Cyan",
+      "description": "Relatório Wi-Fi: interface, perfis, bandas, gateway e dicas."
     },
     {
       "id": "backup_registro_completo",

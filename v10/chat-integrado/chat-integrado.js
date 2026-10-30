@@ -1354,6 +1354,7 @@ async function loadProfiles() {
     state.perfilAtivo = data.perfil_ativo || "balanced";
     state.modeloAtivo = data.modelo_local || data.modelo_ativo || "";
     state.profileOptions = data.opcoes || {};
+    try { const salvo = localStorage.getItem("mestre.perfilAtivo"); const sp = salvo && state.perfis.find(x => x.id === salvo); if (sp && sp.id !== state.perfilAtivo) { state.perfilAtivo = sp.id; if (sp.model) state.modeloAtivo = sp.model; } } catch {}
     renderProfilesMenu();
     updateModelBadge();
     await ensureModel();
@@ -1362,35 +1363,103 @@ async function loadProfiles() {
 
 function renderProfilesMenu() {
   const menu = $("modelsMenu");
-  const items = menu.querySelectorAll(".menu-item");
-  items.forEach(i => i.remove());
-
-  const header = menu.querySelector("div");
-  if (header) header.remove();
-
-  const titleDiv = document.createElement("div");
-  titleDiv.style.cssText = "font-size:11px;color:var(--text-muted);padding:6px";
-  titleDiv.textContent = "PERFIS DE MODELO";
-  menu.appendChild(titleDiv);
-
+  if (!menu) return;
+  menu.replaceChildren();
+  const title = document.createElement("div");
+  title.className = "models-title";
+  title.textContent = "Perfis de modelo";
+  menu.appendChild(title);
+  if (!state.perfis || !state.perfis.length) {
+    const empty = document.createElement("div");
+    empty.className = "models-empty";
+    empty.textContent = "Nenhum perfil disponível (Ollama offline?)";
+    menu.appendChild(empty);
+    return;
+  }
   for (const p of state.perfis) {
+    const ativo = p.id === state.perfilAtivo;
     const item = document.createElement("div");
-    item.className = "menu-item" + (p.id === state.perfilAtivo ? " selected" : "");
-    item.innerHTML = `<span>${p.label || p.id}</span><small>${p.model || ""}</small>`;
-    item.addEventListener("click", async () => {
-      const result = await apiPost("/api/profiles/activate", { perfil: p.id });
-      if (result.modelo) {
-        state.perfilAtivo = p.id;
-        state.modeloAtivo = result.modelo;
-      }
-      renderProfilesMenu();
-      menu.classList.remove("show");
-      updateModelBadge();
-    });
+    item.className = "menu-item" + (ativo ? " selected" : "");
+    item.setAttribute("role", "option");
+    item.setAttribute("aria-selected", String(ativo));
+    item.tabIndex = -1;
+    item.dataset.id = String(p.id);
+    const check = document.createElement("span"); check.className = "mi-check"; check.textContent = ativo ? "✓" : "";
+    const label = document.createElement("span"); label.className = "mi-label"; label.textContent = String(p.label || p.id);
+    const model = document.createElement("small"); model.textContent = String(p.model || ""); model.title = String(p.model || "");
+    item.append(check, label, model);
+    item.addEventListener("click", () => activateProfile(p, item));
+    item.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); activateProfile(p, item); } });
     menu.appendChild(item);
   }
 }
 
+async function activateProfile(p, item) {
+  const menu = $("modelsMenu");
+  if (p.id === state.perfilAtivo) { closeModelsMenu(); return; }
+  menu.querySelectorAll(".menu-item").forEach(i => i.setAttribute("aria-disabled", "true"));
+  try {
+    const result = await apiPost("/api/profiles/activate", { perfil: p.id });
+    if (!result || result.error || !result.modelo) throw new Error(result?.error || "Falha ao ativar perfil");
+    state.perfilAtivo = p.id;
+    state.modeloAtivo = result.modelo;
+    if (result.opcoes) state.profileOptions = result.opcoes;
+    try { localStorage.setItem("mestre.perfilAtivo", p.id); } catch {}
+    updateModelBadge();
+    closeModelsMenu();
+  } catch (err) {
+    console.error("[modelos]", err);
+    if (typeof showToast === "function") showToast("Não foi possível trocar o modelo: " + err.message);
+    else alert("Não foi possível trocar o modelo: " + err.message);
+  } finally {
+    renderProfilesMenu();
+  }
+}
+
+function positionModelsMenu() {
+  const menu = $("modelsMenu"), btn = $("btnModelSelect");
+  if (!menu || !btn) return;
+  const r = btn.getBoundingClientRect(), m = 12, gap = 8;
+  const w = Math.min(340, window.innerWidth - m * 2);
+  const below = window.innerHeight - r.bottom - m - gap, above = r.top - m - gap;
+  const openDown = below >= 260 || below >= above;
+  const maxH = Math.max(160, Math.min(420, openDown ? below : above));
+  menu.style.width = w + "px";
+  menu.style.maxHeight = maxH + "px";
+  menu.style.left = Math.max(m, Math.min(r.left, window.innerWidth - w - m)) + "px";
+  menu.style.top = openDown ? (r.bottom + gap) + "px" : "auto";
+  menu.style.bottom = openDown ? "auto" : (window.innerHeight - r.top + gap) + "px";
+  menu.style.right = "auto";
+}
+
+function openModelsMenu() {
+  const menu = $("modelsMenu");
+  closeAllMenus();
+  renderProfilesMenu();
+  menu.classList.add("show");
+  positionModelsMenu();
+  (menu.querySelector(".menu-item.selected") || menu.querySelector(".menu-item"))?.focus();
+  refreshAria();
+}
+
+function closeModelsMenu() {
+  $("modelsMenu")?.classList.remove("show");
+  refreshAria();
+}
+
+(function wireModelsMenuKeys() {
+  document.addEventListener("keydown", (ev) => {
+    const menu = $("modelsMenu");
+    if (!menu || !menu.classList.contains("show")) return;
+    const items = [...menu.querySelectorAll(".menu-item")];
+    const i = items.indexOf(document.activeElement);
+    if (ev.key === "Escape") { ev.preventDefault(); closeModelsMenu(); $("btnModelSelect")?.focus(); }
+    else if (ev.key === "ArrowDown") { ev.preventDefault(); items[(i + 1) % items.length]?.focus(); }
+    else if (ev.key === "ArrowUp") { ev.preventDefault(); items[(i - 1 + items.length) % items.length]?.focus(); }
+  });
+  window.addEventListener("resize", () => { if ($("modelsMenu")?.classList.contains("show")) positionModelsMenu(); });
+  window.addEventListener("scroll", () => { if ($("modelsMenu")?.classList.contains("show")) positionModelsMenu(); }, true);
+})();
 function updateModelBadge() {
   const badge = $("btnModelSelect");
   const span = badge.querySelector("span");
@@ -1752,12 +1821,12 @@ export async function initChatIntegrado() {
 
   $("btnModelSelect").addEventListener("click", (e) => {
     e.stopPropagation();
-    const menu = $("modelsMenu");
-    const isShow = menu.classList.contains("show");
-    closeAllMenus();
-    if (!isShow) menu.classList.add("show");
-    refreshAria();
+    if ($("modelsMenu").classList.contains("show")) closeModelsMenu(); else openModelsMenu();
   });
+  $("btnModelSelect").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") { e.preventDefault(); e.stopPropagation(); openModelsMenu(); }
+  });
+  $("modelsMenu").addEventListener("click", (e) => e.stopPropagation());
 
   $("btnMemories").addEventListener("click", (e) => {
     e.stopPropagation();

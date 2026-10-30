@@ -14,6 +14,10 @@
     { icon: "🧹", label: "Limpar Temp Usuário & Windows", ids: ["limpar_temp_usuario", "limpar_temp_do_windows"], destructive: true },
     { icon: "🗑️", label: "Esvaziar Lixeira", ids: ["esvaziar_lixeira"], destructive: true },
     { icon: "🌐", label: "Flush DNS", ids: ["limpar_cache_dns"] },
+    { icon: "📡", label: "Análise Wi-Fi", ids: ["rede_wifi_analise"] },
+    { icon: "📶", label: "Wi-Fi Info + Sinal", ids: ["rede_info_wifi_completo", "rede_wifi_sinal_bars"] },
+    { icon: "📡", label: "Redes Wi-Fi Próximas", ids: ["rede_wifi_redes_proximas"] },
+    { icon: "💾", label: "Perfis Wi-Fi", ids: ["rede_wifi_perfis"] },
     { icon: "⚡", label: "Speedtest Rápido", ids: ["rede_speedtest_mini"] },
     { icon: "🔄", label: "Sincronizar Memórias", action: "sync" },
   ];

@@ -96,6 +96,9 @@ As seguintes operações foram adicionadas ao `allowed-operations.json`:
 | `rede_portas_estabelecidas` | Conexões Estabelecidas |
 | `rede_rotas_tabela` | Tabela de Rotas |
 | `rede_wifi_sinal_bars` | Força do Sinal (Barras) |
+| `rede_wifi_perfis` | Perfis Wi-Fi salvos (sem senha) |
+| `rede_wifi_drivers` | Capacidade do adaptador Wi-Fi |
+| `rede_wifi_analise` | Análise completa (interface + perfis + gateway + dicas) |
 | `rede_ping_trace_route` | Trace Route |
 | `rede_speedtest_mini` | Speed Test Mini |
 

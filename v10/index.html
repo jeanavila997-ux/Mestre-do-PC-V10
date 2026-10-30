@@ -1020,6 +1020,8 @@
         label: "0. Instalações",
         cmds: [
           ["Instalar Ollama (irm install.ps1)", "irm https://ollama.com/install.ps1 | iex"],
+      ["Clonar Firecrawl Skills (gh)", "Set-Location $env:USERPROFILE\\Projetos; if (Test-Path skills) { Write-Host \"Pasta skills já existe — atualizando\" -ForegroundColor Yellow; git -C skills pull } else { gh repo clone firecrawl/skills }"],
+      ["Instalar Firecrawl Skills (37)", "Set-Location $env:USERPROFILE\\Projetos\\Mestre-do-PC-V10; npx -y skills add https://github.com/firecrawl/skills.git --all -y"],
           ["Instalar Google Chrome", "winget install Google.Chrome --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Chrome iniciada!\" -ForegroundColor Green"],
           ["Instalar Mozilla Firefox", "winget install Mozilla.Firefox --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Firefox iniciada!\" -ForegroundColor Green"],
           ["Instalar Microsoft Edge", "winget install Microsoft.Edge --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Edge iniciada!\" -ForegroundColor Green"],
@@ -3089,7 +3091,24 @@
           });
           const win = window.open("", "_blank", "width=900,height=700");
           if (!win) { showToast("⚠️ O navegador bloqueou a janela de impressão. Permita pop-ups.", "#f0a800"); return; }
-          win.document.write(`<html><head><meta charset="utf-8"><title>Relatório Mestre do PC</title><style>body{font-family:Arial,sans-serif;color:#111;padding:20px}h1{color:#0077aa}</style></head><body>${body}</body></html>`);
+          win.document.write(`<html><head><meta charset="utf-8"><title>Relatório Mestre do PC</title><style>body{font-family:Arial,sans-serif;color:#111;padding:20px}h1{color:#0077aa}/* ── Menu compacto + abertura responsiva (v11.1) ── */
+.category { margin-bottom: 10px; contain: layout paint; }
+.category-header { padding-top: 10px !important; padding-bottom: 10px !important; }
+.category-content { padding: 10px; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.category:not(.active) .category-content { content-visibility: hidden; }
+.category.active .category-content { animation: catOpen .14s ease-out; }
+@keyframes catOpen { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.cmd-card { padding: 10px 12px; transition: border-color .15s, box-shadow .15s; }
+.cmd-card:hover { transform: none; }
+.cmd-card h4 { font-size: .86rem; margin-bottom: 5px; line-height: 1.25; }
+.cmd-card code { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .72rem; padding: 6px 8px; margin-bottom: 6px; word-break: break-all; }
+.cmd-card:hover code, .cmd-card:focus-within code { -webkit-line-clamp: 6; }
+.cmd-card .btn-row { gap: 4px; flex-wrap: wrap; }
+.cmd-card .btn-row .btn { padding: 4px 8px; font-size: .72rem; }
+.subcategory-header { grid-column: 1 / -1; margin: 4px 0 0; padding: 4px 2px; font-size: .78rem; }
+@media (max-width: 640px) { .category-content { grid-template-columns: 1fr; padding: 8px; } .cmd-card .btn-row .btn { flex: 1 1 45%; } }
+@media (prefers-reduced-motion: reduce) { .category.active .category-content { animation: none; } }
+</style></head><body>${body}</body></html>`);
           win.document.close();
           win.focus();
           setTimeout(() => win.print(), 300);

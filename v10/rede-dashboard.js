@@ -119,7 +119,20 @@ const RedeDashboard = {
         <span><b>Gateway:</b> <span id="rd-gateway">--</span></span>
         <span><b>DNS:</b> <span id="rd-dnssrv">--</span></span>
         <span><b>Canal:</b> <span id="rd-canal">--</span></span>
+        <span><b>Banda:</b> <span id="rd-banda">--</span></span>
+        <span><b>Rádio:</b> <span id="rd-radio">--</span></span>
+        <span><b>Rx/Tx:</b> <span id="rd-taxas">--</span></span>
       </div>
+
+      <div class="rd-quick" role="group" aria-label="Atalhos Wi-Fi">
+        <button type="button" class="rd-btn rd-quick-btn" data-op="rede_wifi_analise">📡 Análise Wi-Fi</button>
+        <button type="button" class="rd-btn rd-quick-btn" data-op="rede_wifi_perfis">💾 Perfis</button>
+        <button type="button" class="rd-btn rd-quick-btn" data-op="rede_wifi_drivers">🧩 Adaptador</button>
+        <button type="button" class="rd-btn rd-quick-btn" data-op="rede_wifi_redes_proximas">📡 Redes próximas</button>
+        <button type="button" class="rd-btn rd-quick-btn" data-op="rede_wifi_sinal_bars">📶 Sinal</button>
+      </div>
+      <pre class="rd-quick-out" id="rd-quick-out" hidden></pre>
+      <p class="rd-tip" id="rd-tip" hidden></p>
 
       <div class="rd-status">
         <span>Status:</span>
@@ -170,6 +183,30 @@ const RedeDashboard = {
     // Refletir o intervalo persistido no botão de configuração
     const cfgLabel = document.getElementById('rd-cfg-label');
     if (cfgLabel) cfgLabel.textContent = this.formatarIntervalo(this.intervaloMs);
+
+    // Atalhos Wi-Fi: texto via textContent (saída do /run pode ter caracteres especiais)
+    div.querySelectorAll('.rd-quick-btn[data-op]').forEach((btn) => {
+      btn.addEventListener('click', () => this.executarAtalho(btn.dataset.op, btn));
+    });
+  },
+
+  async executarAtalho(opId, btn) {
+    if (!opId) return;
+    const out = document.getElementById('rd-quick-out');
+    if (btn) btn.disabled = true;
+    if (out) {
+      out.hidden = false;
+      out.textContent = `Executando ${opId}…`;
+    }
+    try {
+      const texto = await this.executarOperacao(opId);
+      if (out) out.textContent = texto && String(texto).trim() ? String(texto) : `(sem saída) ${opId}`;
+      this.log(`Atalho ${opId} concluído`);
+    } catch (e) {
+      if (out) out.textContent = `Erro em ${opId}: ${e.message || e}`;
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   },
 
   // Estilos CSS
@@ -221,8 +258,13 @@ const RedeDashboard = {
       .rd-card-value.ok { color: #00e676; }
       .rd-card-value.warn { color: #ffc107; }
       .rd-card-value.err { color: #ff5252; }
-      .rd-info { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px; background: rgba(0,0,0,.2); border-radius: 10px; margin-bottom: 16px; font-size: 13px; color: #8b949e; }
+      .rd-info { display: flex; flex-wrap: wrap; gap: 16px; padding: 12px; background: rgba(0,0,0,.2); border-radius: 10px; margin-bottom: 12px; font-size: 13px; color: #8b949e; }
       .rd-info b { color: var(--text); }
+      .rd-quick { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+      .rd-quick-btn { background: linear-gradient(135deg,#0ea5e9,#2563eb); color: #fff; }
+      .rd-quick-btn:disabled { opacity: .55; }
+      .rd-quick-out { max-height: 280px; overflow: auto; margin: 0 0 12px; padding: 12px; border-radius: 10px; background: rgba(0,0,0,.35); border: 1px solid rgba(0,212,255,.2); color: #d7e3f4; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+      .rd-tip { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: rgba(255,193,7,.12); border: 1px solid rgba(255,193,7,.35); color: #ffe082; font-size: 13px; line-height: 1.45; }
       .rd-status { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,.03); border-radius: 10px; }
       .rd-badge { padding: 6px 18px; border-radius: 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
       .rd-badge.saudavel { background: linear-gradient(135deg,#00c853,#00e676); color: #000; }
@@ -445,19 +487,39 @@ const RedeDashboard = {
 
   // Obter informações via operações registradas
   async obterInfo() {
-    const info = { tipo: 'DESCONHECIDO', ssid: '—', sinal: 0, canal: 0, gateway: '--', ipv4: '--', dns: '--' };
+    const info = {
+      tipo: 'DESCONHECIDO',
+      ssid: '—',
+      sinal: 0,
+      canal: 0,
+      banda: '--',
+      radio: '--',
+      taxas: '--',
+      gateway: '--',
+      ipv4: '--',
+      dns: '--',
+    };
     try {
       const wifiOut = await this.executarOperacao('rede_info_wifi_completo');
       if (wifiOut) {
         // Estado "conectado" (sem acento no output do netsh) confirma Wi-Fi ativo
         const estadoMatch = wifiOut.match(/Estado\s*:\s*(conectado|desconectado)/i);
         if (estadoMatch && estadoMatch[1].toLowerCase() === 'conectado') info.tipo = 'WIFI';
-        const ssidMatch = wifiOut.match(/SSID\s*[:\-]\s*(.+)/i);
+        const ssidMatch = wifiOut.match(/^\s*SSID\s*[:\-]\s*(.+)$/im);
         const sinalMatch = wifiOut.match(/Sinal\s*[:\-]\s*(\d+)/i);
         const canalMatch = wifiOut.match(/Canal\s*[:\-]\s*(\d+)/i);
+        const bandaMatch = wifiOut.match(/Banda\s*[:\-]\s*(.+)$/im);
+        const radioMatch = wifiOut.match(/Tipo de r[aá]dio\s*[:\-]\s*(.+)$/im);
+        const rxMatch = wifiOut.match(/Taxa de recep[cç][aã]o\s*\(Mbps\)\s*[:\-]\s*([\d.,]+)/i);
+        const txMatch = wifiOut.match(/Taxa de transmiss[aã]o\s*\(Mbps\)\s*[:\-]\s*([\d.,]+)/i);
         if (ssidMatch) info.ssid = ssidMatch[1].trim();
         if (sinalMatch) info.sinal = parseInt(sinalMatch[1], 10);
         if (canalMatch) info.canal = parseInt(canalMatch[1], 10);
+        if (bandaMatch) info.banda = bandaMatch[1].trim();
+        if (radioMatch) info.radio = radioMatch[1].trim();
+        if (rxMatch || txMatch) {
+          info.taxas = `${rxMatch ? rxMatch[1] : '--'}/${txMatch ? txMatch[1] : '--'} Mbps`;
+        }
       }
 
       const ipOut = await this.executarOperacao('diagnostico_de_rede_completo');
@@ -554,6 +616,7 @@ const RedeDashboard = {
     const sinalEl = document.getElementById('rd-v-sinal');
     const setSinal = (txt, cls) => { if (sinalEl) { sinalEl.textContent = txt; sinalEl.className = 'rd-card-value ' + cls; } };
 
+    const tip = document.getElementById('rd-tip');
     if (info.tipo === 'ETHERNET') {
       // Conexão por cabo: SSID/sinal não se aplicam
       if (conIcon) conIcon.textContent = '🔌';
@@ -561,12 +624,29 @@ const RedeDashboard = {
       setSinal('Cabo', 'ok');
       set('rd-ssid', '— (cabo)');
       set('rd-canal', '—');
+      set('rd-banda', '—');
+      set('rd-radio', '—');
+      set('rd-taxas', '—');
+      if (tip) { tip.hidden = true; tip.textContent = ''; }
     } else if (info.tipo === 'WIFI') {
       if (conIcon) conIcon.textContent = '📶';
       if (conEl) { conEl.textContent = 'WI-FI'; conEl.className = 'rd-card-value ok'; }
       setSinal(info.sinal ? info.sinal + '%' : '--', info.sinal >= 70 ? 'ok' : info.sinal >= 40 ? 'warn' : 'err');
       set('rd-ssid', info.ssid);
       set('rd-canal', info.canal || '--');
+      set('rd-banda', info.banda || '--');
+      set('rd-radio', info.radio || '--');
+      set('rd-taxas', info.taxas || '--');
+      if (tip) {
+        const on24 = /2[,.]4/.test(String(info.banda || ''));
+        if (on24) {
+          tip.hidden = false;
+          tip.textContent = 'Conectado em 2,4 GHz. Se a casa tiver SSID 5G salvo, ele costuma ter menos interferência e mais velocidade.';
+        } else {
+          tip.hidden = true;
+          tip.textContent = '';
+        }
+      }
     } else if (info.ipv4 && info.ipv4 !== '--') {
       // Conectado por outro meio (VPN, USB etc.)
       if (conIcon) conIcon.textContent = '🌐';
@@ -574,12 +654,20 @@ const RedeDashboard = {
       setSinal('--', '');
       set('rd-ssid', info.ssid);
       set('rd-canal', info.canal || '--');
+      set('rd-banda', info.banda || '--');
+      set('rd-radio', info.radio || '--');
+      set('rd-taxas', info.taxas || '--');
+      if (tip) { tip.hidden = true; tip.textContent = ''; }
     } else {
       if (conIcon) conIcon.textContent = '❌';
       if (conEl) { conEl.textContent = 'OFFLINE'; conEl.className = 'rd-card-value err'; }
       setSinal('--', 'err');
       set('rd-ssid', info.ssid);
       set('rd-canal', info.canal || '--');
+      set('rd-banda', info.banda || '--');
+      set('rd-radio', info.radio || '--');
+      set('rd-taxas', info.taxas || '--');
+      if (tip) { tip.hidden = true; tip.textContent = ''; }
     }
 
     set('rd-ipv4', info.ipv4 || '--');
