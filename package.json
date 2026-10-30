@@ -13,6 +13,7 @@
     "mobile:setup": "npm --prefix mobile/gateway run setup",
     "mobile:test": "node --test mobile/gateway/test/gateway.test.mjs",
     "deploy:hostinger": "pwsh scripts/deploy-hostinger.ps1",
+    "deploy:vps": "pwsh -NoProfile -File scripts/deploy-vps.ps1",
     "build:package": "node scripts/build-package.cjs",
     "install:computer-use": "node scripts/install-computer-use.js"
   },

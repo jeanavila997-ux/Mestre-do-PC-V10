@@ -256,9 +256,11 @@ if (-not $SkipMcpConfig) {
 
 # ---------------------------------------------------------------
 # 6. Atalhos (Desktop + Menu Iniciar)
+# Só .lnk. Código, ícones e runtime ficam em $InstallDir (pasta completa).
+# Não copiar arquivos do projeto para a Área de Trabalho.
 # ---------------------------------------------------------------
 if (-not $NoShortcuts) {
-    Write-Step "Criando atalhos..."
+    Write-Step "Criando atalhos (somente .lnk; pasta completa permanece em $InstallDir)..."
     $startScript = Join-Path $InstallDir "start-mestre-v10.ps1"
     $startBat    = Join-Path $InstallDir "v10\start-v10.bat"
     $iconPath    = Join-Path $InstallDir "icon.ico"

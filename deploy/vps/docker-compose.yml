@@ -1,0 +1,27 @@
+name: mestre-do-pc
+
+# Pasta completa em /opt/apps/mestre-do-pc.
+# O site (dist/site + mobile PWA) escuta só em 127.0.0.1:7780.
+# Traefik (já na VPS, network host) publica HTTPS.
+
+services:
+  web:
+    image: node:22-alpine
+    restart: unless-stopped
+    network_mode: host
+    user: "1000:1000"
+    working_dir: /app
+    command: ["node", "deploy/vps/server.mjs"]
+    environment:
+      HOST: 127.0.0.1
+      PORT: "7780"
+      SITE_ROOT: /app/dist/site
+    volumes:
+      - ./deploy/vps/server.mjs:/app/deploy/vps/server.mjs:ro
+      - ./dist/site:/app/dist/site:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mestre.rule=Host(`mestre.72-62-11-116.sslip.io`)
+      - traefik.http.routers.mestre.entrypoints=websecure
+      - traefik.http.routers.mestre.tls.certresolver=letsencrypt
+      - traefik.http.services.mestre.loadbalancer.server.port=7780
