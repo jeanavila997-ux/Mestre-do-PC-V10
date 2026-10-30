@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chaves de API & Provedores — Mestre do PC</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Segoe UI,sans-serif;background:#0f1115;color:#e6e6e6}
+header{padding:18px 24px;border-bottom:1px solid #222;display:flex;gap:16px;align-items:center;flex-wrap:wrap;max-width:1400px;margin:0 auto}
+h1{font-size:20px;margin:0;flex:1}a{color:#7aa2f7;text-decoration:none}
+main{padding:24px;max-width:1400px;margin:0 auto;display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));align-items:stretch}
+.card{background:#171a21;border:1px solid #262a33;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card.off{opacity:.6}
+.head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.head b{flex:1;font-size:15px}
+label{font-size:12px;color:#9aa0aa;display:block;margin:8px 0 4px}
+input{width:100%;background:#0f1115;color:#e6e6e6;border:1px solid #2d323c;border-radius:8px;padding:9px 10px;font-size:13px}
+input:focus{outline:none;border-color:#3d59a1}
+.check{display:flex;align-items:center;gap:8px;margin:10px 0 4px;font-size:13px;color:#cfd3da}.check input{width:auto;margin:0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid #222630}
+button{background:#2b3245;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px;white-space:nowrap}
+button:hover{filter:brightness(1.15)}button.p{background:#3d59a1}
+.tag{font-size:11px;padding:3px 9px;border-radius:999px;background:#2d323c;white-space:nowrap}
+.tag.ok{background:#1f5131}
+.out{font-size:12px;color:#9aa0aa;white-space:pre-wrap;margin-top:8px;max-height:140px;overflow:auto}.out:empty{display:none}
+@media(max-width:420px){main{padding:14px;gap:14px;grid-template-columns:1fr}}
+</style></head><body>
+<header><h1>🔑 Chaves de API & Provedores</h1><span>Padrão do chat: <b id="def">—</b></span>
+<a href="/">← Voltar ao painel</a></header>
+<main id="grid"></main>
+<script>
+const $=s=>document.querySelector(s);
+async function api(p,o={}){const r=await fetch(p,{headers:{"Content-Type":"application/json","X-Mestre-Client":"v10-web"},...o});return r.json();}
+function card(p,def){
+  const soon=!p.implemented;
+  return `<div class="card ${p.enabled?'':'off'}" data-id="${p.id}">
+   <div class="head"><b>${p.name}</b>
+    ${(p.hasKey||p.id==='ollama'?'<span class="tag ok">configurado</span>':'<span class="tag">sem chave</span>')}
+    ${def===p.id?'<span class="tag ok">padrão</span>':''}</div>
+   <label>Base URL</label><input name="baseUrl" value="${p.baseUrl||''}">
+   ${p.id==='ollama'?'':`<label>API key ${p.envKey?'(ou variável '+p.envKey+')':''}</label><input name="apiKey" type="password" placeholder="${p.keyMasked||'cole a chave aqui'}">`}
+   <label>Modelo padrão</label><input name="model" value="${p.model||''}" list="m-${p.id}"><datalist id="m-${p.id}"></datalist>
+   <label class="check"><input type="checkbox" name="enabled" ${p.enabled?'checked':''}> Ativo</label>
+   <div class="out" id="o-${p.id}"></div>
+   <div class="btns"><button class="p" onclick="salvar('${p.id}')">Salvar</button>
+    ${p.id==='ollama'?'':`<button onclick="verChave('${p.id}')">👁</button>`}
+    ${p.hasKey?`<button onclick="limpar('${p.id}')">Apagar chave</button>`:''}
+    <button onclick="resetar('${p.id}')">Restaurar padrão</button>
+    ${soon?'':`<button onclick="testar('${p.id}')">Testar conexão</button><button onclick="padrao('${p.id}')">Tornar padrão</button>`}</div>
+   </div>`;
+}
+async function carregar(){const d=await api('/providers');$('#def').textContent=d.defaultProvider;$('#grid').innerHTML=d.providers.map(p=>card(p,d.defaultProvider)).join('');}
+async function salvar(id){const c=document.querySelector(`[data-id="${id}"]`);const b={};
+ c.querySelectorAll('input[name]').forEach(i=>{if(i.type==='checkbox')b.enabled=i.checked;else if(i.name==='apiKey'){if(i.value)b.apiKey=i.value;}else b[i.name]=i.value;});
+ await api('/providers/'+id,{method:'POST',body:JSON.stringify(b)});carregar();}
+async function testar(id){const o=$('#o-'+id);o.textContent='Testando…';const r=await api('/providers/'+id+'/test',{method:'POST'});
+ o.textContent=r.ok?`✅ OK em ${r.ms} ms — ${r.models.length} modelos`:`❌ ${r.error}`;
+ if(r.ok)$('#m-'+id).innerHTML=r.models.map(m=>`<option value="${m}">`).join('');}
+async function padrao(id){await api('/providers/default',{method:'POST',body:JSON.stringify({id})});carregar();}
+async function limpar(id){if(!confirm('Apagar a chave salva de '+id+'?'))return;await api('/providers/'+id,{method:'POST',body:JSON.stringify({clearKey:true})});carregar();}
+async function resetar(id){if(!confirm('Voltar '+id+' para a configuração padrão?'))return;await api('/providers/'+id,{method:'POST',body:JSON.stringify({reset:true})});carregar();}
+function verChave(id){const i=document.querySelector(`[data-id="${id}"] input[name=apiKey]`);i.type=i.type==='password'?'text':'password';}
+carregar();
+</script></body></html>

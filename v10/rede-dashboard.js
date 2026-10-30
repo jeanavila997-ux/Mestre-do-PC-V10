@@ -435,7 +435,7 @@ const RedeDashboard = {
 
       for (let i = 0; i < 60; i++) {
         await new Promise(r => setTimeout(r, 500));
-        const statusRes = await fetch(`/run-status?id=${runData.jobId}`);
+        const statusRes = await fetch(`/run-status?id=${runData.jobId}`, { headers: { "X-Mestre-Client": "v10-web" } });
         const status = await statusRes.json();
         if (status.done) return status.output || '';
       }

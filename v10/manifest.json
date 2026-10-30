@@ -1,0 +1,71 @@
+{
+  "id": "/index.html",
+  "name": "Mestre do PC V11 - Ultimate Plus",
+  "short_name": "Mestre do PC",
+  "description": "Painel completo do Mestre do PC V11 - Ultimate Plus: comandos de manutenção, diagnóstico em tempo real, Chat IA integrado e memórias.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05070a",
+  "theme_color": "#00d4ff",
+  "categories": ["utilities", "productivity", "developer tools"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Painel Principal V11",
+      "short_name": "Painel",
+      "description": "Abrir o dashboard principal do Mestre do PC V11",
+      "url": "/index.html",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Chat IA Integrado",
+      "short_name": "Chat IA",
+      "description": "Abrir o Chat IA do Mestre do PC",
+      "url": "/chat-integrado/chat-integrado.html",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Memórias da IA",
+      "short_name": "Memórias",
+      "description": "Gerenciar memórias do Mestre do PC",
+      "url": "/memories.html",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Gerenciar Comandos",
+      "short_name": "Comandos",
+      "description": "Ativar, desativar ou criar comandos",
+      "url": "/gerenciar-comandos.html",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

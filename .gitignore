@@ -115,3 +115,7 @@ Mestre-do-PC-V10/
 
 # Credenciais e estado local do gateway Android
 mobile/gateway/data/
+
+# Backups locais com data
+*.bak-*
+

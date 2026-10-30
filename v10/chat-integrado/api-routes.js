@@ -38,6 +38,7 @@ import * as db from "./db.js";
 import { sincronizarAgora, getStatus as getSyncStatus, iniciarSyncAutomatico } from "./mysql-sync.js";
 import { auditLog, AuditLevel } from "../../mcp-server/audit-logger.js";
 import { loadOperationRegistry } from "../operation-registry.js";
+import { GROKBOT_TOOLS_METADATA, getGrokBotStatus, callGrokBotTool, syncGrokBotMemories, listGrokBotTasks, createGrokBotTask } from "./grokbot-bridge.js";
 import {
   callDesktopCommanderTool,
   getDesktopCommanderStatus,
@@ -141,7 +142,7 @@ async function getToolCatalog() {
   }
 
   const desktopStatus = await getDesktopCommanderStatus();
-  const metadata = Object.fromEntries(desktopTools.map((tool) => [tool.id, tool]));
+  const metadata = { ...GROKBOT_TOOLS_METADATA, ...Object.fromEntries(desktopTools.map((tool) => [tool.id, tool])) };
   return {
     names: [...TOOL_NAMES, ...desktopTools.map((tool) => tool.id)],
     metadata,
@@ -623,6 +624,53 @@ export async function handleApiRoute(req, res, url, ctx) {
       auditLog(AuditLevel.ERROR, "web_fetch_error", { url: targetUrl, error: err.message });
       fail(res, 502, { error: err.message }, allowedOrigin);
     }
+    return true;
+  }
+
+  // ── Grok Bot Bridge & MCP (/api/grokbot/*) ────────────────────────
+
+  if (path === "/api/grokbot/status" && method === "GET") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    const status = await getGrokBotStatus();
+    ok(res, status, allowedOrigin);
+    return true;
+  }
+
+  if (path === "/api/grokbot/chat" && method === "POST") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    let body;
+    try { body = await readBody(req); } catch { fail(res, 400, { error: "JSON inválido" }, allowedOrigin); return true; }
+    try {
+      const result = await callGrokBotTool("grokbot__chat", body);
+      ok(res, { success: true, result }, allowedOrigin);
+    } catch (err) {
+      fail(res, 502, { error: err.message }, allowedOrigin);
+    }
+    return true;
+  }
+
+  if (path === "/api/grokbot/sync" && method === "POST") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    let body = {};
+    try { body = await readBody(req); } catch {}
+    const result = await syncGrokBotMemories({ note: body.nota || body.note || "" });
+    ok(res, result, allowedOrigin);
+    return true;
+  }
+
+  if (path === "/api/grokbot/tasks" && method === "GET") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    const tasks = await listGrokBotTasks();
+    ok(res, { tasks }, allowedOrigin);
+    return true;
+  }
+
+  if (path === "/api/grokbot/tasks" && method === "POST") {
+    if (!auth) return fail(res, 403, { error: "Não autorizado" }, allowedOrigin), true;
+    let body;
+    try { body = await readBody(req); } catch { fail(res, 400, { error: "JSON inválido" }, allowedOrigin); return true; }
+    const task = await createGrokBotTask(body);
+    ok(res, { success: true, task }, allowedOrigin);
     return true;
   }
 

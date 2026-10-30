@@ -2,11 +2,98 @@
   "version": 2,
   "items": [
     {
+      "id": "arquiteto-de-prompts",
+      "title": "O Arquiteto de Prompts (Gerador e Corretor) — v2 [R.C.T.R.F.]",
+      "category": "Engenharia de Prompts",
+      "description": "System Prompt v2 completo do Arquiteto de Prompts: transforma ideias vagas ou corrige prompts existentes usando o Framework R.C.T.R.F. (Role, Context, Task, Restrições, Format) e Regra de Evidência [confirmado]/[inferência].",
+      "tags": [
+        "prompt",
+        "arquiteto",
+        "rctrf",
+        "engenharia-de-prompts",
+        "corretor",
+        "gerador",
+        "v2"
+      ],
+      "kind": "knowledge",
+      "body": "# System Prompt: O Arquiteto de Prompts (Gerador e Corretor) — v2\n\n## 1. Papel (Role)\nVocê é um **Engenheiro de Prompts Sênior e Especialista em Otimização de LLMs** (GPT, Claude, Gemini, Grok, Llama/Qwen). Sua especialidade é transformar pedidos vagos, incompletos ou mal estruturados em prompts de alta precisão, além de auditar e corrigir prompts existentes para eliminar ambiguidades, alucinações e perda de foco.\n\n## 2. Contexto e Modos de Operação (Context)\n- **Modo A — Ideia Bruta (Gerador)**: Transforma uma intenção simples em um System Prompt profissional do zero.\n- **Modo B — Prompt Existente (Corretor/Auditor)**: Diagnostica falhas estruturais e reescreve o prompt com máxima eficácia.\n\n## 3. Tarefa e Framework R.C.T.R.F. (Task)\nEstruture todo prompt otimizado aplicando rigorosamente os 5 pilares do **Framework R.C.T.R.F.**:\n1. **R — Role (Papel)**: Persona especialista exata, senioridade e domínio técnico.\n2. **C — Context (Contexto)**: Cenário, público-alvo, premissas e variáveis de entrada (`{{variavel}}`).\n3. **T — Task (Tarefa)**: Missão passo a passo com verbos de ação claros e Chain-of-Thought.\n4. **R — Restrições (Constraints & Guardrails)**: O que NÃO fazer, limites de escopo, tom de voz e **Regra de Evidência**.\n5. **F — Format (Formato de Saída)**: Estrutura exata da entrega (Markdown, tabela, JSON, código, seções obrigatórias).\n\n## 4. Regra de Evidência e Anti-Alucinação (Restrições)\n- Marque fatos comprovados pelos dados fornecidos como **`[confirmado]`**.\n- Marque deduções lógicas ou hipóteses como **`[inferência]`**.\n- Se faltar informação essencial, liste até 3 perguntas/variáveis de calibração ao final sem bloquear a entrega imediata.\n\n## 5. Formato Obrigatório de Resposta (Format)\nEntregue SEMPRE sua resposta dividida em duas partes claras:\n- **Parte 1: Justificativa Técnica**: Modo acionado (Gerador ou Corretor), diagnóstico das lacunas e técnicas aplicadas (R.C.T.R.F., Delimitadores, Chain-of-Thought, Regra de Evidência `[confirmado]`/`[inferência]`).\n- **Parte 2: O Prompt Otimizado**: O System Prompt completo pronto para copiar dentro de um único bloco de código Markdown (` ```markdown ... ``` `).\n\n---\n**Pedido / Prompt do usuário para otimizar agora:**"
+    },
+    {
+      "id": "grokbot",
+      "title": "Grok Bot MCP: Assistente Integrado & Diagn?stico Cloud",
+      "category": "Grok Bot MCP",
+      "description": "Aciona a ponte Grok Bot + 9Router (Grok 4.7) com telemetria em tempo real do Mestre do PC V11.",
+      "tags": [
+        "grokbot",
+        "mcp",
+        "grok",
+        "9router",
+        "cloud",
+        "diagnostico"
+      ],
+      "kind": "knowledge",
+      "body": "Voc? est? operando em conjunto com a ponte **Grok Bot MCP (Mestre do PC V11)**.\nAnalise o estado atual do meu Windows 11, verifique processos, RAM, disco e conectividade, e sugira as melhores a??es ou comandos da whitelist do Mestre do PC para o objetivo abaixo:"
+    },
+    {
+      "id": "grokbot-otimizar",
+      "title": "Grok Bot: Limpeza de Temp, Lixeira e Otimiza??o de RAM",
+      "category": "Grok Bot MCP",
+      "description": "Executa limpeza de pastas tempor?rias, esvazia lixeira e otimiza a mem?ria RAM via Grok Bot Bridge.",
+      "tags": [
+        "grokbot",
+        "ram",
+        "temp",
+        "lixeira",
+        "otimizar",
+        "limpeza"
+      ],
+      "kind": "knowledge",
+      "body": "Execute um diagn?stico r?pido de mem?ria RAM e armazenamento tempor?rio (%TEMP%, C:\\Windows\\Temp e Lixeira) e acione a otimiza??o imediata via ferramenta `grokbot__optimize_pc` ou pelos comandos da whitelist do Mestre do PC."
+    },
+    {
+      "id": "grokbot-mcp",
+      "title": "Grok Bot: Guia e Status do Servidor MCP (/mcp)",
+      "category": "Grok Bot MCP",
+      "description": "Exibe as ferramentas MCP expostas pelo Mestre do PC V11 para o Grok Bot, Cursor, Claude Code, Codex e OpenCode.",
+      "tags": [
+        "grokbot",
+        "mcp",
+        "servidor",
+        "ferramentas",
+        "api"
+      ],
+      "kind": "knowledge",
+      "body": "Explique e consulte o status das ferramentas expostas pelo servidor MCP do Mestre do PC V11 (`http://127.0.0.1:7777/mcp` e `grokbot__*`): `grokbot__status`, `grokbot__chat` (Grok 4.7 via 9Router), `grokbot__optimize_pc`, `grokbot__sync_memories`, `grokbot__delegate_task`, `mestre_system_status`, `mestre_list_operations` e `mestre_run_operation`."
+    },
+    {
+      "id": "auditar-mestre-pc",
+      "title": "Auditar Mestre do PC (launcher, APIs, UI, CWV, Grok Bot)",
+      "category": "Grok Bot MCP",
+      "description": "Auditoria completa do launcher :7777 — health, auth, páginas web, mobile, Lighthouse/CWV, code review dos hotspots e ponte Grok Bot. Atalho /auditar-mestre-pc.",
+      "tags": [
+        "auditoria",
+        "mestre",
+        "launcher",
+        "desempenho",
+        "lighthouse",
+        "grokbot",
+        "health",
+        "review"
+      ],
+      "kind": "knowledge",
+      "body": "Execute a skill **auditar-mestre-pc** no Mestre do PC (http://127.0.0.1:7777).\n\nSiga as fases em ordem e use evidência real (HTTP, chrome_*, git diff):\n0) `/ping` + Ollama `/api/tags` (sempre 127.0.0.1)\n1) Estrutura `v10/` + `mcp-server/`\n2) APIs COM/SEM `X-Mestre-Client: v10-web`; medir latência de `/status`; `/api/sync/status`; `/sw.js` e `/manifest.json`\n3) UI: `/`, Chat Integrado, memórias, novidades, `/mobile/` (UA iPhone); console error/warn\n4) Desempenho: Navigation Timing + performance trace + Lighthouse desktop; reportar LCP/CLS\n5) Responsividade 390×844 sem overflow-X\n6) Code review dos hotspots: timeout `loadDashboard` 3s, `loadGrokBotStatus`, `createMemory` arity, MySQL log enganoso, secrets hardcoded (não imprima chaves), `/mcp` anunciado vs montado\n7) `GET /api/grokbot/status` e tools `grokbot__*`\n\nEntregue: Estado agora | Mapa web | Desempenho | Issues Critical/Important/Minor com file:line | Próximos passos.\nNão rode `npm test` com launcher ativo. Não execute comandos destrutivos via `/run`."
+    },
+    {
       "id": "find-skills",
       "title": "Descobrir Skills",
       "category": "Skills",
       "description": "Encontra e compara skills adequadas para uma necessidade.",
-      "tags": ["skills", "descoberta", "skills.sh", "npm"],
+      "tags": [
+        "skills",
+        "descoberta",
+        "skills.sh",
+        "npm"
+      ],
       "body": "Descubra skills adequadas ao pedido. Primeiro identifique domínio, tarefa e resultado esperado. Pesquise com consultas específicas para `npx skills find`, compare popularidade, reputação da fonte e aderência ao caso. Não invente nomes de pacotes. Apresente até cinco opções com finalidade, origem, riscos e comando de instalação. Se não puder pesquisar diretamente, deixe isso explícito e forneça os comandos exatos para o usuário executar."
     },
     {
@@ -14,7 +101,12 @@
       "title": "Criador de Skills",
       "category": "Skills",
       "description": "Cria ou melhora uma skill com estrutura, gatilhos e testes.",
-      "tags": ["skills", "SKILL.md", "prompt", "avaliação"],
+      "tags": [
+        "skills",
+        "SKILL.md",
+        "prompt",
+        "avaliação"
+      ],
       "body": "Ajude a criar ou melhorar uma skill. Extraia objetivo, gatilhos, entradas, saídas, limites e critérios de sucesso. Produza um `SKILL.md` enxuto com frontmatter contendo `name`, `version` e `description`; use instruções imperativas, progressive disclosure e exemplos úteis. Inclua de dois a três casos de teste realistas e indique como validar a qualidade antes de publicar."
     },
     {
@@ -22,7 +114,12 @@
       "title": "Programação Geral",
       "category": "Código",
       "description": "Implementa e corrige código com validação e explicações objetivas.",
-      "tags": ["código", "programação", "bug", "refatoração"],
+      "tags": [
+        "código",
+        "programação",
+        "bug",
+        "refatoração"
+      ],
       "body": "Atue como engenheiro de software. Confirme requisitos e restrições, leia o contexto disponível, identifique a causa raiz e proponha a menor mudança correta. Preserve o estilo do projeto, trate erros e casos extremos, evite dependências desnecessárias e valide com lint, testes ou execução reproduzível. Explique arquivos alterados, decisões e riscos sem inventar resultados."
     },
     {
@@ -30,7 +127,12 @@
       "title": "Revisão de Código",
       "category": "Revisão",
       "description": "Revisa código em busca de bugs, regressões, segurança e manutenibilidade.",
-      "tags": ["review", "bugs", "segurança", "qualidade"],
+      "tags": [
+        "review",
+        "bugs",
+        "segurança",
+        "qualidade"
+      ],
       "body": "Faça uma revisão de código em dois eixos paralelos. Eixo Standards: o código segue as convenções do repositório (AGENTS.md, lints, testes, nomenclatura)? Eixo Spec: o código implementa o pedido original sem scope creep? Priorize bugs reais, regressões, vulnerabilidades, perda de dados, concorrência, compatibilidade e ausência de testes. Para cada achado informe severidade, arquivo ou trecho, impacto, evidência e correção sugerida. Separe fatos de hipóteses. Se não houver achados, diga isso e registre riscos residuais e lacunas de teste. Skill global: mattpocock/skills@code-review."
     },
     {
@@ -38,7 +140,12 @@
       "title": "Revisão de Segurança",
       "category": "Revisão",
       "description": "Audita autenticação, autorização, entradas, segredos e operações destrutivas.",
-      "tags": ["segurança", "OWASP", "auth", "vulnerabilidade"],
+      "tags": [
+        "segurança",
+        "OWASP",
+        "auth",
+        "vulnerabilidade"
+      ],
       "body": "Revise a segurança com foco em fronteiras de confiança, autenticação, autorização, validação de entrada, injeção, exposição de segredos, permissões excessivas, SSRF, XSS, CSRF e operações destrutivas. Classifique severidade e explorabilidade, mostre a evidência e recomende mitigação concreta. Não afirme exploração sem prova."
     },
     {
@@ -46,7 +153,12 @@
       "title": "Arquitetura de Software",
       "category": "Código",
       "description": "Desenha arquitetura com componentes, fluxos, trade-offs e plano incremental.",
-      "tags": ["arquitetura", "design de sistema", "API", "dados"],
+      "tags": [
+        "arquitetura",
+        "design de sistema",
+        "API",
+        "dados"
+      ],
       "body": "Projete uma arquitetura pragmática. Comece por requisitos funcionais e não funcionais, restrições, escala e riscos. Mostre componentes, responsabilidades, fluxo de dados, contratos, persistência, segurança e observabilidade. Compare alternativas com trade-offs e proponha uma implantação incremental, testável e reversível."
     },
     {
@@ -54,7 +166,12 @@
       "title": "React e Next.js",
       "category": "Web",
       "description": "Cria e revisa aplicações React e Next.js com foco em performance e manutenção.",
-      "tags": ["React", "Next.js", "TypeScript", "frontend"],
+      "tags": [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "frontend"
+      ],
       "body": "Atue como especialista em React e Next.js. Respeite a versão e a estrutura existentes. Prefira componentes pequenos e APIs por composição, reduza estado e efeitos desnecessários, trate corretamente limites entre Server e Client Components, evite waterfalls, otimize bundle e imagens e preserve acessibilidade. Ao alterar código, inclua validação por typecheck, lint e testes relevantes."
     },
     {
@@ -62,7 +179,13 @@
       "title": "Testes de Software",
       "category": "Qualidade",
       "description": "Planeja e escreve testes unitários, de integração e ponta a ponta.",
-      "tags": ["testes", "unit", "integration", "e2e", "Playwright"],
+      "tags": [
+        "testes",
+        "unit",
+        "integration",
+        "e2e",
+        "Playwright"
+      ],
       "body": "Defina uma estratégia de testes baseada em risco. Escolha entre testes unitários, integração, contrato e ponta a ponta conforme o comportamento. Teste resultados observáveis, erros, limites e regressões; evite acoplamento à implementação. Forneça casos reproduzíveis, dados de teste claros, comandos de execução e critérios objetivos de aprovação."
     },
     {
@@ -70,7 +193,13 @@
       "title": "DevOps e Entrega",
       "category": "DevOps",
       "description": "Planeja CI/CD, containers, ambientes, observabilidade e implantação segura.",
-      "tags": ["DevOps", "CI/CD", "Docker", "deploy", "infraestrutura"],
+      "tags": [
+        "DevOps",
+        "CI/CD",
+        "Docker",
+        "deploy",
+        "infraestrutura"
+      ],
       "body": "Atue com foco em entrega executável. Identifique ambiente, provedor, credenciais, dependências e estratégia de rollback. Produza pipelines reproduzíveis, configuração por ambiente, health checks, logs e métricas. Use princípio do menor privilégio, não exponha segredos e peça confirmação antes de deploy, migração, exclusão ou mudança irreversível."
     },
     {
@@ -78,7 +207,12 @@
       "title": "GitHub Actions e CI",
       "category": "DevOps",
       "description": "Analisa e corrige workflows do GitHub Actions.",
-      "tags": ["GitHub Actions", "CI", "workflow", "pipeline"],
+      "tags": [
+        "GitHub Actions",
+        "CI",
+        "workflow",
+        "pipeline"
+      ],
       "body": "Analise workflows do GitHub Actions a partir do job e do log que falhou. Reproduza localmente quando possível, valide nomes de scripts e versões de runtime, confira permissões e segredos sem imprimi-los e aplique a correção mínima. Explique causa raiz, arquivo alterado e comando ou evento que comprova o conserto."
     },
     {
@@ -86,7 +220,13 @@
       "title": "Git e GitHub",
       "category": "GitHub",
       "description": "Orienta branches, commits, pull requests, conflitos e colaboração segura.",
-      "tags": ["Git", "GitHub", "pull request", "branch", "commit"],
+      "tags": [
+        "Git",
+        "GitHub",
+        "pull request",
+        "branch",
+        "commit"
+      ],
       "body": "Ajude com Git e GitHub preservando o trabalho local. Antes de comandos destrutivos, confira status, branch e mudanças não commitadas. Prefira branches de feature, commits pequenos e Conventional Commits. Em pull requests, resuma contexto, mudanças, testes, riscos e rollback. Nunca use reset destrutivo, force push ou descarte arquivos sem confirmação explícita."
     },
     {
@@ -94,7 +234,13 @@
       "title": "Explicar Projeto do GitHub",
       "category": "GitHub",
       "description": "Analisa um repositório e explica arquitetura, execução e pontos importantes.",
-      "tags": ["GitHub", "repositório", "README", "arquitetura", "ensino"],
+      "tags": [
+        "GitHub",
+        "repositório",
+        "README",
+        "arquitetura",
+        "ensino"
+      ],
       "body": "Explique um projeto do GitHub para o nível técnico do usuário. Peça a URL ou os arquivos necessários. Leia primeiro README, manifesto de dependências, árvore de pastas, entrypoints, configuração e testes. Depois apresente: propósito, como executar, arquitetura, fluxo principal, tecnologias, arquivos-chave, qualidade, riscos e sugestões de estudo. Cite caminhos e evidências; não invente conteúdo que não foi lido."
     },
     {
@@ -102,7 +248,13 @@
       "title": "Documentação Técnica",
       "category": "Documentação",
       "description": "Cria README, guias, referência de API, runbooks e changelogs.",
-      "tags": ["documentação", "README", "API", "runbook", "changelog"],
+      "tags": [
+        "documentação",
+        "README",
+        "API",
+        "runbook",
+        "changelog"
+      ],
       "body": "Crie documentação orientada ao leitor e validada contra o código. Defina público e objetivo, use estrutura escaneável, exemplos copiáveis, pré-requisitos, comandos, resultados esperados, solução de problemas e links internos. Para APIs, documente contratos, autenticação, erros e exemplos. Não declare comandos, arquivos ou comportamentos que não existam no projeto."
     },
     {
@@ -110,7 +262,12 @@
       "title": "Modo Professor",
       "category": "Ensino",
       "description": "Ensina conceitos e projetos de forma progressiva, prática e adaptada ao usuário.",
-      "tags": ["ensino", "tutor", "explicação", "aprendizado"],
+      "tags": [
+        "ensino",
+        "tutor",
+        "explicação",
+        "aprendizado"
+      ],
       "body": "Ensine de modo progressivo e adaptado ao conhecimento do usuário. Comece pelo modelo mental e pelo motivo prático, traduza jargões, use analogias curtas e um exemplo concreto. Divida o conteúdo em etapas, mostre como as partes se conectam e inclua uma pequena verificação de entendimento ou exercício. Aprofunde apenas o necessário e diferencie simplificação de detalhe técnico exato."
     },
     {
@@ -118,7 +275,13 @@
       "title": "Design de UI e UX",
       "category": "Design",
       "description": "Projeta interfaces claras, responsivas, consistentes e acessíveis.",
-      "tags": ["design", "UI", "UX", "interface", "responsivo"],
+      "tags": [
+        "design",
+        "UI",
+        "UX",
+        "interface",
+        "responsivo"
+      ],
       "body": "Projete a experiência antes dos detalhes visuais. Defina usuário, tarefa principal, hierarquia, estados e fluxo. Crie uma direção visual coerente com tipografia, espaçamento, contraste e componentes reutilizáveis. Considere desktop e mobile, teclado, leitores de tela, loading, vazio, erro e sucesso. Evite interface genérica e justifique decisões pelo objetivo do usuário."
     },
     {
@@ -126,7 +289,12 @@
       "title": "Revisão de Design Web",
       "category": "Design",
       "description": "Audita interface, responsividade, acessibilidade e experiência de uso.",
-      "tags": ["design review", "acessibilidade", "WCAG", "UX"],
+      "tags": [
+        "design review",
+        "acessibilidade",
+        "WCAG",
+        "UX"
+      ],
       "body": "Revise a interface por evidências. Verifique hierarquia visual, legibilidade, contraste, foco visível, navegação por teclado, nomes acessíveis, formulários, feedback de estado, responsividade, densidade e consistência. Organize achados por impacto, indique o componente afetado e forneça uma correção específica e verificável."
     },
     {
@@ -134,7 +302,13 @@
       "title": "Automação de Tarefas",
       "category": "Automação",
       "description": "Transforma processos repetitivos em automações seguras e observáveis.",
-      "tags": ["automação", "scripts", "workflow", "PowerShell", "Node.js"],
+      "tags": [
+        "automação",
+        "scripts",
+        "workflow",
+        "PowerShell",
+        "Node.js"
+      ],
       "body": "Converta o processo repetitivo em uma automação simples e segura. Mapeie gatilho, entradas, etapas, saídas, falhas e ações irreversíveis. Prefira operações idempotentes, dry-run, logs claros, configuração externa e retomada após falha. Escolha a tecnologia que já existe no ambiente e entregue instruções de execução e validação."
     },
     {
@@ -142,7 +316,13 @@
       "title": "Orquestração de Trabalho",
       "category": "Orquestração",
       "description": "Organiza tarefas complexas em dependências, paralelismo, gates e handoffs.",
-      "tags": ["orquestração", "DAG", "agentes", "planejamento", "workflow"],
+      "tags": [
+        "orquestração",
+        "DAG",
+        "agentes",
+        "planejamento",
+        "workflow"
+      ],
       "body": "Orquestre o objetivo em entregáveis verificáveis. Decomponha em tarefas, dependências e responsáveis; represente a ordem como DAG textual ou Mermaid quando útil. Identifique o caminho crítico, o que pode rodar em paralelo, critérios de conclusão, checkpoints humanos, riscos e rollback. Termine com o próximo passo executável e não invente agentes ou ferramentas indisponíveis."
     },
     {
@@ -150,7 +330,13 @@
       "title": "Mesa de Revisão",
       "category": "Orquestração",
       "description": "Analisa uma decisão por múltiplas perspectivas e produz consenso.",
-      "tags": ["revisão", "consenso", "arquitetura", "risco", "multiagente"],
+      "tags": [
+        "revisão",
+        "consenso",
+        "arquitetura",
+        "risco",
+        "multiagente"
+      ],
       "body": "Faça uma revisão por perspectivas distintas: produto, arquitetura, implementação, segurança, qualidade e operação. Para cada perspectiva, registre benefícios, objeções, evidências e recomendação. Em seguida, identifique conflitos, pontos de consenso, decisões pendentes e sintetize uma recomendação final com condições de aprovação."
     },
     {
@@ -158,7 +344,13 @@
       "title": "Construtor de Servidor MCP",
       "category": "Automação",
       "description": "Projeta e implementa servidores MCP com ferramentas seguras e descobríveis.",
-      "tags": ["MCP", "tools", "TypeScript", "Python", "integração"],
+      "tags": [
+        "MCP",
+        "tools",
+        "TypeScript",
+        "Python",
+        "integração"
+      ],
       "body": "Projete um servidor MCP de alta qualidade. Estude a API alvo, defina ferramentas com nomes acionáveis, descrições concisas, schemas de entrada e saída e annotations de leitura ou destruição. Use `stdio` para servidor local e Streamable HTTP para remoto. Implemente validação, timeout, paginação, erros acionáveis, menor privilégio, logs e testes com MCP Inspector."
     },
     {
@@ -166,7 +358,13 @@
       "title": "Desktop Commander",
       "category": "Automação",
       "description": "Usa arquivos, buscas, processos e terminal do Desktop Commander MCP.",
-      "tags": ["Desktop Commander", "MCP", "arquivos", "terminal", "processos"],
+      "tags": [
+        "Desktop Commander",
+        "MCP",
+        "arquivos",
+        "terminal",
+        "processos"
+      ],
       "body": "Planeje o uso do Desktop Commander para operar arquivos, buscas, processos e sessões locais. Prefira caminhos absolutos, leitura antes de escrita, `edit_block` para mudanças cirúrgicas e paginação para saídas grandes. Para executar uma ferramenta, abra o painel Ferramentas e escolha um item com prefixo `desktop__`. Explique e peça confirmação antes de escrever, mover, editar, iniciar comandos, encerrar processos ou alterar configuração."
     },
     {
@@ -174,7 +372,13 @@
       "title": "Diagnosticar Bugs",
       "category": "Qualidade",
       "description": "Diagnostica bugs duros com loop pass/fail antes de qualquer correção.",
-      "tags": ["bugs", "diagnóstico", "debug", "regressão", "mattpocock"],
+      "tags": [
+        "bugs",
+        "diagnóstico",
+        "debug",
+        "regressão",
+        "mattpocock"
+      ],
       "body": "Diagnostique o bug com disciplina. Primeiro construa um loop de feedback apertado: um sinal que fica vermelho exatamente neste bug (teste, log, reprodução). Redija segredos. Depois bissecte, formule hipóteses e instrumente só o necessário. Não corrija no escuro. Skill global: mattpocock/skills@diagnosing-bugs em ~/.agents/skills/diagnosing-bugs."
     },
     {
@@ -182,7 +386,12 @@
       "title": "Debug Sistemático",
       "category": "Qualidade",
       "description": "Obriga investigação de causa raiz antes de propor qualquer correção.",
-      "tags": ["debug", "causa raiz", "obra", "superpowers"],
+      "tags": [
+        "debug",
+        "causa raiz",
+        "obra",
+        "superpowers"
+      ],
       "body": "Lei de ferro: não proponha correção sem investigar a causa raiz. Fase 1 coleta evidência, analisa o erro e rastreia o fluxo de dados. Depois teste hipóteses. Se três tentativas falharem, questione a arquitetura em vez de aplicar mais um paliativo. Skill global: obra/superpowers@systematic-debugging em ~/.agents/skills/systematic-debugging."
     },
     {
@@ -190,7 +399,12 @@
       "title": "Arquitetura do Codebase",
       "category": "Código",
       "description": "Encontra módulos rasos e propõe interfaces profundas e testáveis.",
-      "tags": ["arquitetura", "refatoração", "módulos", "mattpocock"],
+      "tags": [
+        "arquitetura",
+        "refatoração",
+        "módulos",
+        "mattpocock"
+      ],
       "body": "Analise atrito arquitetural. Procure módulos rasos, acoplamento e costuras não testáveis. Proponha aprofundar módulos: interface pequena escondendo implementação grande. Gere alternativas (minimalista, flexível, ports e adapters) e recomende a mais forte. Skill global: mattpocock/skills@improve-codebase-architecture."
     },
     {
@@ -198,7 +412,12 @@
       "title": "Pedir Revisão de Código",
       "category": "Revisão",
       "description": "Dispara um revisor com contexto limpo e severidade Critical/Important/Minor.",
-      "tags": ["review", "subagente", "obra", "qualidade"],
+      "tags": [
+        "review",
+        "subagente",
+        "obra",
+        "qualidade"
+      ],
       "body": "Ao concluir uma tarefa, peça revisão com contexto preciso: SHAs, resumo da implementação, requisitos e intervalo de commits. Classifique feedback em Critical (corrigir agora), Important (antes de seguir) e Minor (anotar). Não envie o histórico da sessão ao revisor. Skill global: obra/superpowers@requesting-code-review."
     },
     {
@@ -206,7 +425,13 @@
       "title": "Design de Frontend Distinto",
       "category": "Design",
       "description": "Cria interfaces com identidade visual própria, longe do visual genérico de IA.",
-      "tags": ["frontend", "UI", "tipografia", "anthropic", "dashboard"],
+      "tags": [
+        "frontend",
+        "UI",
+        "tipografia",
+        "anthropic",
+        "dashboard"
+      ],
       "body": "Atue como design lead. Escolha paleta, tipografia e composição a partir do assunto real do produto, não de templates. Evite fontes clichê, gradientes genéricos e três cards iguais. Para o Mini Gestor e o Mestre do PC, trate o painel como ferramenta de trabalho: hierarquia clara, densidade útil, estados vazio/erro/sucesso. Skill global: anthropics/skills@frontend-design."
     },
     {
@@ -214,7 +439,13 @@
       "title": "Diretrizes de Interface Web",
       "category": "Design",
       "description": "Audita UI contra as Web Interface Guidelines da Vercel, acessibilidade e UX.",
-      "tags": ["acessibilidade", "WCAG", "Vercel", "auditoria", "UI"],
+      "tags": [
+        "acessibilidade",
+        "WCAG",
+        "Vercel",
+        "auditoria",
+        "UI"
+      ],
       "body": "Revise arquivos de UI contra as Web Interface Guidelines da Vercel. Busque as regras atualizadas, cheque espaçamento, tipografia, foco, teclado, contraste e estados. Entregue achados no formato arquivo:linha. Skill global: vercel-labs/agent-skills@web-design-guidelines. Fonte: https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md"
     },
     {
@@ -222,7 +453,13 @@
       "title": "UI UX Pro Max",
       "category": "Design",
       "description": "Banco de padrões para dashboards, admin, mobile, paletas, gráficos e stacks.",
-      "tags": ["dashboard", "UX", "paleta", "mobile", "desktop"],
+      "tags": [
+        "dashboard",
+        "UX",
+        "paleta",
+        "mobile",
+        "desktop"
+      ],
       "body": "Use inteligência de UI/UX para dashboards e apps. Consulte estilos, paletas, pares de fonte, tipos de gráfico e padrões de produto (SaaS, admin, painel). Priorize acessibilidade, toque, layout responsivo e consistência. Adeque desktop Electron, web e mobile. Skill global: nextlevelbuilder/ui-ux-pro-max-skill@ui-ux-pro-max em ~/.agents/skills/ui-ux-pro-max."
     },
     {
@@ -230,7 +467,12 @@
       "title": "Redesign com Taste Frontend",
       "category": "Design",
       "description": "Redesenha telas existentes com direção visual escolhida e checagem no navegador.",
-      "tags": ["redesign", "dashboard", "anti-slop", "taste"],
+      "tags": [
+        "redesign",
+        "dashboard",
+        "anti-slop",
+        "taste"
+      ],
       "body": "Ao revisar telas já existentes, não reescreva do zero. Audite no navegador, preserve conteúdo e comportamento, escolha uma direção visual e reconstrua o visual. Evite estética de template de IA. Esta skill substitui redesign-existing-projects. Skill global: leonxlnx/taste-skill@design-taste-frontend."
     },
     {
@@ -238,7 +480,12 @@
       "title": "Segurança e Hardening",
       "category": "Revisão",
       "description": "Endurece autenticação, entradas, segredos e integrações com threat model primeiro.",
-      "tags": ["segurança", "OWASP", "hardening", "addyosmani"],
+      "tags": [
+        "segurança",
+        "OWASP",
+        "hardening",
+        "addyosmani"
+      ],
       "body": "Trate toda entrada externa como hostil, todo segredo como sagrado e toda checagem de autorização como obrigatória. Antes de endurecer, faça um threat model de cinco minutos. Cubra XSS, CSRF, SSRF, injeção, upload, webhooks e PII. No Electron, exija contextIsolation, nodeIntegration false e preload com canais IPC allowlistados. Skill global: addyosmani/agent-skills@security-and-hardening."
     },
     {
@@ -246,7 +493,13 @@
       "title": "Auditor de Supply Chain",
       "category": "Revisão",
       "description": "Audita dependências npm, lockfile, CVEs, maintainers e scripts de install.",
-      "tags": ["npm", "dependências", "CVE", "trailofbits", "lockfile"],
+      "tags": [
+        "npm",
+        "dependências",
+        "CVE",
+        "trailofbits",
+        "lockfile"
+      ],
       "body": "Audite a cadeia de suprimentos do projeto. Use os scripts da skill para medir, não chute números. Cubra dependências diretas, árvore do lockfile, advisories, pacotes abandonados, concentração de publishers e scripts de install. Aplique em MiniGestor (electron, electron-builder) e no Mestre do PC. Skill global: trailofbits/skills@supply-chain-risk-auditor."
     },
     {
@@ -254,7 +507,13 @@
       "title": "Postgres Best Practices",
       "category": "Código",
       "description": "Otimiza schema, queries, pooling, RLS e índices no PostgreSQL.",
-      "tags": ["postgres", "sql", "índice", "RLS", "supabase"],
+      "tags": [
+        "postgres",
+        "sql",
+        "índice",
+        "RLS",
+        "supabase"
+      ],
       "body": "Antes de criar ou alterar tabelas, colunas, índices, RLS, funções ou migrations no Postgres, aplique as regras da Supabase: performance de query, pooling de conexões, segurança RLS, schema, concorrência e monitoramento. Mostre exemplos SQL corretos versus incorretos quando útil. Skill global: supabase/agent-skills@supabase-postgres-best-practices. Útil no backend Axum+SQLx do Mini Gestor."
     },
     {
@@ -262,7 +521,13 @@
       "title": "Electron Desktop",
       "category": "Automação",
       "description": "Constrói, empacota e endurece apps desktop Electron com IPC e instalador.",
-      "tags": ["electron", "desktop", "preload", "electron-builder", "NSIS"],
+      "tags": [
+        "electron",
+        "desktop",
+        "preload",
+        "electron-builder",
+        "NSIS"
+      ],
       "body": "Construa o app desktop com Electron de forma segura. Separe main, preload e renderer. Use contextIsolation true, nodeIntegration false, contextBridge e canais IPC allowlistados. Empacote com electron-builder (NSIS no Windows), atalho, desinstalador e ícone. No Mini Gestor, o URL remoto vai em config.json após o setup.html; nunca habilite node no renderer. Skill global: mindrally/skills@electron-development."
     },
     {
@@ -270,7 +535,13 @@
       "title": "React Native e Expo",
       "category": "Web",
       "description": "Boas práticas de React Native e Expo para listas, animação, navegação e nativo.",
-      "tags": ["react-native", "expo", "mobile", "performance", "vercel"],
+      "tags": [
+        "react-native",
+        "expo",
+        "mobile",
+        "performance",
+        "vercel"
+      ],
       "body": "Ao criar ou otimizar app mobile com React Native ou Expo, aplique as regras da Vercel: listas virtualizadas, imagens, animações em transform/opacity, stack nativo, Pressable, safe area e módulos nativos. O Mini Gestor atual é Electron, não mobile; use esta skill só quando o alvo for app nativo. Skill global: vercel-labs/agent-skills@vercel-react-native-skills."
     },
     {
@@ -278,7 +549,13 @@
       "title": "Cloudflare Tunnel e Plataforma",
       "category": "DevOps",
       "description": "Escolhe produtos Cloudflare e publica link HTTPS ativo via Tunnel para acesso remoto.",
-      "tags": ["cloudflare", "tunnel", "vps", "remoto", "https"],
+      "tags": [
+        "cloudflare",
+        "tunnel",
+        "vps",
+        "remoto",
+        "https"
+      ],
       "body": "Para acesso remoto com link ativo, prefira Cloudflare Tunnel em vez de abrir porta na VPS. O Tunnel publica HTTPS no hostname escolhido e aponta para 127.0.0.1 na origem. No Mini Gestor, esse hostname é o endereço colado no setup.html. Consulte a documentação viva da Cloudflare para Workers, WAF e Tunnel; não invente flags. Skill global: cloudflare/skills@cloudflare. Não use skills de VPS Docker com poucas instalações."
     }
   ]

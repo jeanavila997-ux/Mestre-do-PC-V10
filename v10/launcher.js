@@ -19,6 +19,7 @@ import { handleMemoryRoutes } from "./memory-routes.js";
 import { handleOperationRoutes } from "./operation-routes.js";
 import { handleSoulRoutes } from "./soul-routes.js";
 import { handleComputerUseRoutes } from "./computer-use-routes.js";
+import { handleProviderRoutes } from "./providers-routes.js";
 import { isAllowedWebOrigin, isNppOrigin, isTrustedClientOrigin, parseExtraOrigins } from "./security/origin-policy.js";
 import { isLocalMcpEnabled, validateLocalMcpToken, ensureLocalMcpToken, isLegacyMcpAllowed } from "../mcp-server/auth/local-token.js";
 import { 
@@ -709,6 +710,12 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    // ── Chaves de API & Provedores: rotas /providers* ───────────────
+    if (path === "/providers" || path.startsWith("/providers/")) {
+      const handled = await handleProviderRoutes(req, res, url, { sendJson, readBody, allowedOrigin });
+      if (handled) return;
+    }
+
     // ── Chat Integrado: rotas /api/* ───────────────────────────────
     if (path.startsWith("/api/")) {
       const handled = await handleApiRoute(req, res, url, { isAuthorized, allowedOrigin });

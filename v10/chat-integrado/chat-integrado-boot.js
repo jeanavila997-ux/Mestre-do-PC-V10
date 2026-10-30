@@ -58,3 +58,25 @@ checkStatus();
 setInterval(checkStatus, 30000);
 
 initChatIntegrado().catch(err => console.error("[chat-integrado] Erro na inicialização:", err));
+// Mobile drawer toggle & Service Worker registration
+const mobileBtn = document.getElementById("mobileSidebarBtn");
+const mobileBackdrop = document.getElementById("mobileSidebarBackdrop");
+if (mobileBtn) {
+  mobileBtn.addEventListener("click", () => {
+    document.body.classList.toggle("mobile-sidebar-open");
+  });
+}
+if (mobileBackdrop) {
+  mobileBackdrop.addEventListener("click", () => {
+    document.body.classList.remove("mobile-sidebar-open");
+  });
+}
+document.querySelectorAll(".sidebar .nav-item").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.body.classList.remove("mobile-sidebar-open");
+  });
+});
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}

@@ -12,6 +12,7 @@
 import { checkPromptInjection, sanitizeToolArgument } from "../../mcp-server/security.js";
 import { auditLog, queryAuditLog, exportAuditReport, AuditLevel } from "../../mcp-server/audit-logger.js";
 import { searchWeb, fetchWebPage, isGovBrDomain } from "./web-search.js";
+import { callGrokBotTool, callGrokRouterChat } from "./grokbot-bridge.js";
 import { refreshLocalMcpTokenFromFile } from "../../mcp-server/auth/local-token.js";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -188,8 +189,17 @@ async function ollamaChat({ messages, system, timeoutMs = 60000, think }) {
     const data = await resp.json();
     return data.message?.content || "";
   } catch (err) {
-    if (err.name === "AbortError") throw new Error(`Ollama timeout após ${timeoutMs}ms`);
-    throw err;
+    try {
+      return await callGrokRouterChat({
+        messages,
+        system,
+        model: isRouter9Model(model) ? model : DEFAULT_GROK_MODEL,
+        timeoutMs,
+      });
+    } catch {
+      if (err.name === "AbortError") throw new Error(`Ollama timeout após ${timeoutMs}ms`);
+      throw err;
+    }
   } finally {
     clearTimeout(timer);
   }
@@ -530,7 +540,7 @@ export const TOOLS_API = {
     return { relatorio: report };
   },
 
-  gerar_snapshot_git: async ({ fase }) => {
+    gerar_snapshot_git: async ({ fase }) => {
     const projectPath = process.env.MESTRE_PROJETO_PATH;
     if (!projectPath) return { error: "MESTRE_PROJETO_PATH não configurado" };
     const msg = fase ? `snapshot: ${fase}` : "snapshot do projeto";
@@ -544,6 +554,13 @@ export const TOOLS_API = {
       return { success: false, error: err.message };
     }
   },
+
+  // ── Ferramentas Nativas Grok Bot (MCP + 9Router + Otimização) ──────
+  grokbot__status: async (args = {}) => callGrokBotTool("grokbot__status", args),
+  grokbot__chat: async (args = {}) => callGrokBotTool("grokbot__chat", args),
+  grokbot__optimize_pc: async (args = {}) => callGrokBotTool("grokbot__optimize_pc", args),
+  grokbot__sync_memories: async (args = {}) => callGrokBotTool("grokbot__sync_memories", args),
+  grokbot__delegate_task: async (args = {}) => callGrokBotTool("grokbot__delegate_task", args),
 };
 
 // Lista de nomes de ferramentas para descoberta

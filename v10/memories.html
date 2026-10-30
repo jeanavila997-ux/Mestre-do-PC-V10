@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Memórias - Mestre do PC V11</title>
-    <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
     <style>
         :root {
             --bg-primary: #0d1117;
@@ -512,7 +512,7 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        const API = 'http://127.0.0.1:7777';
+        const API = window.location.protocol.startsWith('http') ? window.location.origin : 'http://127.0.0.1:7777';
         const CLIENT_HEADERS = { 'X-Mestre-Client': 'v10-web' };
         let allMemories = [];
 
@@ -796,5 +796,6 @@
         // Inicializa
         loadMemories();
     </script>
-</body>
+  <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}</script>
+  </body>
 </html>

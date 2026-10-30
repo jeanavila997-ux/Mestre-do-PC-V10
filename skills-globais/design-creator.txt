@@ -1,0 +1,26 @@
+Claro. Posso criar uma skill de Design voltada para transformar pedidos simples em especificações profissionais para geração de imagens, posts, banners, thumbnails, anúncios e identidades visuais.
+
+Só há uma limitação: o ambiente atual não disponibiliza a skill obrigatória de criação de skills, então não consigo gerar/instalar corretamente o pacote da skill sem inventar uma estrutura incompatível.
+
+Uma boa definição para a skill seria:
+
+Nome: design-creator
+
+Objetivo: atuar como diretor de arte, analisando o pedido e produzindo prompts e especificações visuais prontas para ferramentas de IA.
+
+Fluxo:
+
+Identificar o objetivo da peça.
+Definir formato e proporção.
+Determinar assunto/personagem/produto.
+Criar composição e hierarquia visual.
+Definir cenário e fundo.
+Especificar iluminação, cores e atmosfera.
+Definir estilo visual, fotografia ou ilustração.
+Planejar tipografia e textos quando necessários.
+Produzir um prompt final otimizado para geração da imagem.
+Quando solicitado, gerar a própria imagem.
+
+Modos sugeridos: Post Social, Banner, Thumbnail, Produto, Retrato, Logo, Cartaz, Anúncio e UI/UX.
+
+Se a sua intenção é criar uma skill instalável para seu projeto/agente de IA, eu precisaria do recurso de criação de skills disponível para montar o pacote no formato correto.

@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrar - Mestre do PC V10</title>
     <meta name="description" content="Acesse o painel do Mestre do PC V10. Autenticação local e direcionamento ao app.">
-    <link rel="icon" type="image/png" href="favicon.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00d4ff">
+    
+    
     <style>
         :root {
             --accent: #00d4ff;
@@ -18,6 +20,59 @@
             --border: #2a3548;
         }
         * { box-sizing: border-box; }
+        /* Standalone utility classes (substitui CDN Tailwind para 100% offline/mobile) */
+        .hidden { display: none !important; }
+        .block { display: block; }
+        .flex { display: flex; }
+        .inline-flex { display: inline-flex; }
+        .grid { display: grid; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .flex-col { flex-direction: column; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-5 > * + * { margin-top: 1.25rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .fixed { position: fixed; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .z-10 { z-index: 10; }
+        .w-full { width: 100%; }
+        .max-w-md { max-width: 28rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .min-h-screen { min-height: 100vh; }
+        .p-4 { padding: 1rem; }
+        .p-6, .p-8, .sm\:p-10 { padding: 1.75rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .text-center { text-align: center; }
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl, .text-3xl { font-size: 1.65rem; }
+        .font-bold, .font-extrabold { font-weight: 700; }
+        .uppercase { text-transform: uppercase; }
+        .tracking-wider { letter-spacing: 0.05em; }
+        .rounded-2xl, .rounded-3xl { border-radius: 1.25rem; }
+        .rounded-full { border-radius: 9999px; }
+        .text-slate-400, .text-slate-500, .text-slate-600 { color: #94a3b8; }
+        .text-white { color: #ffffff; }
+        .right-4 { right: 1rem; }
+        .right-10 { right: 2.5rem; }
+        .top-1\/2 { top: 50%; }
+        .-translate-y-1\/2 { transform: translateY(-50%); }
+        .cursor-pointer { cursor: pointer; }
+        button.toggle-pass { background: transparent; border: none; cursor: pointer; }
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-deep);
@@ -306,7 +361,7 @@
            texto puro no armazenamento local.
            ===================================================================== */
 
-        const APP_URL = ['127.0.0.1', 'localhost'].includes(location.hostname)
+        const APP_URL = location.protocol.startsWith('http')
             ? location.origin
             : 'http://127.0.0.1:7777';
         const LS_ACCOUNT = 'mestre-site-account';   // {user, hash}
@@ -465,7 +520,7 @@
 
         // ===== Verifica se o launcher (app) está online e redireciona =====
         function checkLauncherAndRedirect() {
-            showInfo('🔎 Verificando se o painel está rodando em <code>127.0.0.1:7777</code>...');
+            showInfo('🔎 Verificando se o painel está respondendo em <code>' + (location.host || '127.0.0.1:7777') + '</code>...');
 
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 4000);
@@ -494,7 +549,7 @@
             msgInfo.classList.remove('show');
             document.getElementById('btn-continue').disabled = false;
             showError(
-                '❌ O painel não está respondendo em 127.0.0.1:7777.\n' +
+                '❌ O painel não está respondendo em ' + (location.host || '127.0.0.1:7777') + '.\n' +
                 'Inicie o launcher primeiro (ex.: start-mestre-v10.ps1) e tente novamente.'
             );
             // Botão tentar de novo

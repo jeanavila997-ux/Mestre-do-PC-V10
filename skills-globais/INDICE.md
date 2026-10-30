@@ -1,6 +1,6 @@
 # Índice das Skills Globais
 
-Atualizado: 2026-10-28 · Fonte: Microsoft Learn Edge DevTools
+Atualizado: 2026-10-29 · Fonte: Microsoft Learn Edge DevTools + auditoria Mestre
 
 | ID | Nome (slug) | Categoria | Quando usar |
 |---|---|---|---|
@@ -12,6 +12,7 @@ Atualizado: 2026-10-28 · Fonte: Microsoft Learn Edge DevTools
 | 6 | `emular-dispositivos` | Emulação | Mobile, viewport, sensores |
 | 7 | `auditar-seguranca-armazenamento` | Segurança | Cookies, storage, HTTPS, Service Worker |
 | 8 | `conectar-navegador-agente` | Acesso agente | CDP, Edge remoto, chrome_*, limitações edge:// |
+| 9 | `auditar-mestre-pc` | Auditoria Mestre | Health launcher :7777, APIs, UI, CWV, Grok Bot |
 
 ## Analogia
 

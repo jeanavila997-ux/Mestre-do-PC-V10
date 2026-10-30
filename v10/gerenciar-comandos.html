@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#00d4ff"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
 <title>Mestre do PC — Gerenciar Comandos &amp; Ferramentas</title>
 <style>
 :root{--bg:#05070a;--panel:#0d1117;--card:#161b22;--hover:#1c2530;--border:rgba(255,255,255,0.1);--text:#e6edf3;--text-muted:#8b949e;--accent:#00d4ff;--accent2:#00ff88;--danger:#f85149;--warning:#f0a800;--purple:#a200ff;--radius:10px}
@@ -580,5 +584,6 @@ document.addEventListener("keydown", (e) => {
 
 loadComandos();
 </script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js").catch(()=>{});}</script>
 </body>
 </html>

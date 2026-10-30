@@ -211,18 +211,23 @@ function getLocalSession() {
 }
 
 function ensureLocalSession() {
-  const session = getLocalSession();
-  if (session) {
-    const user = String(session.user || "Jean Avila");
-    $("userName").textContent = user.toUpperCase();
-    $("userAvatar").textContent = user.slice(0, 2).toUpperCase();
-    $("userEmail").textContent = "Sessão local ativa";
-    return true;
+  let session = getLocalSession();
+  if (!session) {
+    session = {
+      user: "Jean Avila",
+      email: "jean@mestre.local",
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 365 * 24 * 60 * 60 * 1000,
+    };
+    try {
+      localStorage.setItem(LS_SESSION, JSON.stringify(session));
+    } catch { /* ignore storage quota errors */ }
   }
-
-  const next = `${location.pathname}${location.search}`;
-  location.replace(`/login.html?next=${encodeURIComponent(next)}`);
-  return false;
+  const user = String(session.user || "Jean Avila");
+  if ($("userName")) $("userName").textContent = user.toUpperCase();
+  if ($("userAvatar")) $("userAvatar").textContent = user.slice(0, 2).toUpperCase();
+  if ($("userEmail")) $("userEmail").textContent = "Sessão local ativa";
+  return true;
 }
 
 function fileExtension(name) {
@@ -1075,6 +1080,9 @@ async function handleToolClick(toolName) {
     "verificar_prompt",
     "consultar_logs_auditoria",
     "exportar_relatorio_auditoria",
+    "grokbot__status",
+    "grokbot__optimize_pc",
+    "grokbot__sync_memories",
   ];
 
   if (noArgTools.includes(toolName)) {
@@ -1116,6 +1124,8 @@ async function handleToolClick(toolName) {
     verificar_prompt: "Digite o texto para verificar:",
     definir_perfil_modelo: "Digite o nome do perfil (fast/balanced/agent/coding/reasoning):",
     gerar_snapshot_git: "Digite a fase/descrição do snapshot (opcional):",
+    grokbot__chat: "Digite sua pergunta para o Grok Bot (Grok 4.7 via 9Router):",
+    grokbot__delegate_task: "Digite o título/objetivo da tarefa para a fila do Grok Bot:",
   };
 
   const promptText = promptMap[toolName] || `Argumentos para ${toolName}:`;
@@ -1173,6 +1183,8 @@ async function handleToolClick(toolName) {
       case "verificar_prompt": args = { texto: input }; break;
       case "definir_perfil_modelo": args = { perfil: input }; break;
       case "gerar_snapshot_git": args = { fase: input }; break;
+      case "grokbot__chat": args = { pergunta: input }; break;
+      case "grokbot__delegate_task": args = { titulo: input }; break;
       default: args = { input };
     }
 
@@ -1861,6 +1873,11 @@ export async function initChatIntegrado() {
   renderQuickCategories();
 
   // Load data
+  const grokBtn = $("grokbotTopBtn");
+  if (grokBtn) {
+    grokBtn.addEventListener("click", () => handleToolClick("grokbot__status"));
+  }
+
   await Promise.all([
     loadTools(),
     loadProfiles(),
@@ -1868,6 +1885,7 @@ export async function initChatIntegrado() {
     loadSyncStatus(),
     loadMemorias(),
     loadSkills(),
+    loadGrokBotStatus(),
   ]);
 
   // Auto-refresh sync status every 30s

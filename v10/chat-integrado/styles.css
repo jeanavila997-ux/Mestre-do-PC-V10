@@ -1110,9 +1110,70 @@ body.sidebar-collapsed .main { margin-left: 0 }
 
 /* ── Responsive ─────────────────────────────────────── */
 
+.mobile-only-btn {
+  display: none;
+}
+.mobile-dash-link {
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 10px;
+  width: auto;
+  border-radius: 8px;
+}
+.mobile-sidebar-backdrop {
+  display: none;
+}
+
 @media (max-width: 768px) {
-  .sidebar { display: none }
+  .mobile-only-btn {
+    display: inline-flex;
+  }
+  .top-bar {
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .top-bar .credits-badge {
+    margin-left: auto;
+  }
+  .mobile-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 1400;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  body.mobile-sidebar-open .mobile-sidebar-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 270px !important;
+    min-width: 270px !important;
+    z-index: 1500;
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.75);
+  }
+  body.mobile-sidebar-open .sidebar {
+    transform: translateX(0);
+  }
   .composer-box { max-width: 100% }
+  .messages-container { max-width: 100% }
+  .quick-categories { max-width: 100% }
+  .skills-library-panel,
+  .memories-panel,
+  .tools-panel { width: calc(100% - 24px); max-height: 70vh; overflow-y: auto; }
+  .skills-library-grid { grid-template-columns: 1fr }
+}
   .messages-container { max-width: 100% }
   .quick-categories { max-width: 100% }
   .skills-library-panel,

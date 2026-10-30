@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mestre do PC V11 - Ultimate Plus</title>
-    <link rel="icon" type="image/png" sizes="512x512" href="../favicon.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
     <link rel="stylesheet" href="/chat/chat-styles.css" />
     <script>
       (() => {
@@ -773,19 +773,113 @@
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+      /* ===== PWA & RESPONSIVIDADE MOBILE ANDROID ===== */
+      .btn-pwa-install {
+        display: none;
+        background: linear-gradient(135deg, #00ff88, #00d4ff);
+        color: #000 !important;
+        font-weight: 800;
+        border: none;
+        box-shadow: 0 0 14px rgba(0, 255, 136, 0.45);
+      }
+      .mobile-menu-btn {
+        display: none;
+        background: var(--card);
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 1.15rem;
+        cursor: pointer;
+      }
+      @media (max-width: 768px) {
+        .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+        .sidebar, body.sidebar-collapsed .sidebar {
+          transform: translateX(-105%);
+          width: 260px !important;
+          padding: 16px 12px !important;
+          box-shadow: 8px 0 30px rgba(0,0,0,0.75);
+        }
+        body.mobile-nav-open .sidebar {
+          transform: translateX(0);
+        }
+        body.sidebar-collapsed .sidebar .logo-img {
+          width: 85% !important;
+          max-width: 170px !important;
+        }
+        body.sidebar-collapsed .nav-item {
+          justify-content: flex-start !important;
+          padding: 10px 14px !important;
+        }
+        body.sidebar-collapsed .nav-item .nav-label,
+        body.sidebar-collapsed .nav-item .badge {
+          display: inline !important;
+        }
+        .main, body.sidebar-collapsed .main {
+          margin-left: 0 !important;
+          padding: 14px 12px 80px !important;
+          width: 100% !important;
+          max-width: 100vw !important;
+          overflow-x: hidden;
+        }
+        .header {
+          padding: 12px 14px;
+          gap: 10px;
+        }
+        .header h1 {
+          font-size: 1.15rem;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+        }
+        .header-right {
+          width: 100%;
+          justify-content: flex-start;
+          gap: 6px;
+        }
+        .search, .search:focus {
+          width: 100% !important;
+          flex: 1 1 100%;
+        }
+        .btn-open-ps {
+          padding: 8px 11px;
+          font-size: 0.78rem;
+        }
+        .dashboard {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        .metric-card { padding: 12px 10px; }
+        .metric-value { font-size: 1.25rem; }
+        .category-content, #repoList {
+          grid-template-columns: 1fr !important;
+          padding: 12px !important;
+        }
+        .status-container {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+        }
+        .status-divider {
+          border-left: none;
+          padding-left: 0;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="sidebar">
-      <img src="../logo-mestre-v7-transparent.png" class="logo-img" alt="Mestre do PC V10" title="Voltar ao início" onclick="voltarInicio()" onerror="this.style.display='none'" />
+      <img src="/logo-mestre-v7-transparent.png" class="logo-img" alt="Mestre do PC V10" title="Voltar ao início" onclick="voltarInicio()" onerror="this.style.display='none'" />
       <div id="nav"></div>
     </div>
     <div class="main">
       <div class="header">
-        <h1>🛡️ Mestre do PC V11 <span class="header-license">| <span class="header-license-name">JEAN</span></span></h1>
+        <h1><button class="mobile-menu-btn" onclick="document.body.classList.toggle('mobile-nav-open')" title="Menu de categorias">☰</button> 🛡️ Mestre do PC V11 <span class="header-license">| <span class="header-license-name">JEAN</span></span></h1>
         <div class="header-right">
           <a href="/mobile/" style="text-decoration:none"><button type="button" class="btn-open-ps" title="Abrir Mestre Mobile V11">📱 Versão Mobile</button></a>
           <input type="text" id="searchInput" class="search" placeholder="🔍 Buscar comando..." />
+          <button class="btn-open-ps btn-pwa-install" id="pwaInstallBtn" onclick="installPwaApp()" title="Instalar aplicativo no Android / PC">📲 Instalar App</button>
           <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
           <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11.2">🎉 Novidades V11.2</button></a>
           <a href="/gerenciar-comandos.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#a200ff,#00d4ff);color:#fff;font-weight:700" title="Editar, ativar e desativar comandos e ferramentas">⚙️ Gerenciar</button></a>
@@ -3277,5 +3371,48 @@
     </script>
     <!-- Módulo de Diagnóstico de Rede (Casa5G Dashboard integrado) -->
     <script src="rede-dashboard.js" defer></script>
+    <script>
+      // ===== PWA Service Worker + Botão de Instalação Android =====
+      let deferredPwaPrompt = null;
+      const pwaInstallBtn = document.getElementById("pwaInstallBtn");
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+        if (pwaInstallBtn) pwaInstallBtn.style.display = "inline-flex";
+      });
+
+      window.addEventListener("appinstalled", () => {
+        deferredPwaPrompt = null;
+        if (pwaInstallBtn) pwaInstallBtn.style.display = "none";
+        if (typeof showToast === "function") showToast("📲 Mestre do PC V11 instalado com sucesso!");
+      });
+
+      async function installPwaApp() {
+        if (deferredPwaPrompt) {
+          deferredPwaPrompt.prompt();
+          await deferredPwaPrompt.userChoice;
+          deferredPwaPrompt = null;
+          if (pwaInstallBtn) pwaInstallBtn.style.display = "none";
+        } else if (typeof showToast === "function") {
+          showToast("📲 No Android Chrome: toque em ⋮ e escolha 'Instalar aplicativo' ou 'Adicionar à tela inicial'");
+        }
+      }
+
+      if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch((err) => {
+            console.warn("SW registro falhou:", err);
+          });
+        });
+      }
+
+      // Fecha drawer mobile ao selecionar categoria
+      document.addEventListener("click", (e) => {
+        if (e.target.closest(".nav-item") && window.innerWidth <= 768) {
+          document.body.classList.remove("mobile-nav-open");
+        }
+      });
+    </script>
   </body>
 </html>
