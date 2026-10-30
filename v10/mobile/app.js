@@ -4,7 +4,8 @@
   const RECENT_KEY = "mestre_mobile_recent";
   const PAGE_SIZE = 40;
   const PUBLIC_ANDROID_URL = "https://jeanavila997-ux.github.io/Mestre-do-PC-V10/mobile/";
-  const CLOUD_MODELS = ["gcli/grok-4.7-build-fast", "qwen2.5-coder:3b-instruct"];
+  const PUBLIC_VPS_URL = "https://mestre.72-62-11-116.sslip.io/mobile/";
+  const CLOUD_MODELS = ["gpt-4o-mini", "gcli/grok-4.7-build-fast", "qwen2.5-coder:3b-instruct"];
   const PRESETS = [
     { id: "desktop", label: "PC Desktop", detail: "DESKTOP-O7T3I00" },
     { id: "vps", label: "VPS", detail: "72.62.11.116" },
@@ -144,6 +145,7 @@
       speak: false,
       autoSend: false,
       mobileToken: "",
+      openaiKey: "",
     };
     const saved = readJson(SETTINGS_KEY, null);
     if (!saved || typeof saved !== "object") return defaults;
@@ -301,6 +303,7 @@
     const dialog = $("connection-dialog");
     $("endpoint-url").value = apiBase();
     $("endpoint-token").value = state.settings.mobileToken || "";
+    if ($("endpoint-openai")) $("endpoint-openai").value = state.settings.openaiKey || "";
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
   }
@@ -339,6 +342,7 @@
     $("endpoint-hint").textContent = `${preset.detail} · ${apiBase()}${auto ? " · detectado neste servidor" : ""}`;
     $("endpoint-url").value = apiBase();
     $("endpoint-token").value = state.settings.mobileToken || "";
+    if ($("endpoint-openai")) $("endpoint-openai").value = state.settings.openaiKey || "";
     const endpoint = apiBase();
     if (state.chatEndpoint && state.chatEndpoint !== endpoint) {
       if (state.chatAbort) state.chatAbort.abort();
@@ -788,13 +792,24 @@
   }
 
   function chatAttempts() {
+    const attempts = [];
+    if (state.settings.openaiKey) {
+      attempts.push({
+        url: "https://api.openai.com/v1/chat/completions",
+        flavor: "openai",
+        headers: { Authorization: `Bearer ${state.settings.openaiKey}` },
+        model: String(state.settings.model || "").startsWith("gpt-") ? state.settings.model : "gpt-4o-mini",
+      });
+    }
     if (isRouterTarget()) {
-      return [
+      attempts.push(
         { url: `${apiBase()}/v1/chat/completions`, flavor: "openai" },
         { url: `${apiBase()}/api/chat`, flavor: "ollama" },
-      ];
+      );
+    } else {
+      attempts.push({ url: `${apiBase()}/ollama/chat`, flavor: "ollama" });
     }
-    return [{ url: `${apiBase()}/ollama/chat`, flavor: "ollama" }];
+    return attempts;
   }
 
   async function readStream(response, flavor, onDelta) {
@@ -851,9 +866,10 @@
             "Content-Type": "application/json",
             "X-Mestre-Client": "v10-web",
             ...(state.settings.mobileToken ? { "X-Mestre-Mobile-Token": state.settings.mobileToken } : {}),
+            ...(attempt.headers || {}),
           },
           body: JSON.stringify(attempt.flavor === "openai"
-            ? { model: state.settings.model, messages, stream: true }
+            ? { model: attempt.model || state.settings.model, messages, stream: true }
             : { model: state.settings.model, messages, stream: true }),
         });
         if (!response.ok) {
@@ -1184,6 +1200,8 @@
     const nativeBtn = $("install-native");
     if (local) local.value = installPageUrl();
     if (publicUrl) publicUrl.value = PUBLIC_ANDROID_URL;
+    const vpsUrl = $("install-url-vps");
+    if (vpsUrl) vpsUrl.value = PUBLIC_VPS_URL;
     if (status) {
       status.textContent = isStandaloneApp()
         ? "Este aparelho já está no modo app. Use o link abaixo para instalar em outro Android."
@@ -1510,6 +1528,7 @@
         if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Use http ou https");
         state.settings.targets[state.settings.targetId] = url.origin;
         state.settings.mobileToken = $("endpoint-token").value.trim();
+        if ($("endpoint-openai")) state.settings.openaiKey = $("endpoint-openai").value.trim();
         saveSettings();
         renderTargets();
         await updateConnectionStatus();
@@ -1525,11 +1544,12 @@
         if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Use http ou https");
         state.settings.targets[state.settings.targetId] = url.origin;
         state.settings.mobileToken = $("endpoint-token").value.trim();
+        if ($("endpoint-openai")) state.settings.openaiKey = $("endpoint-openai").value.trim();
         saveSettings();
         closeConnectionDialog();
         renderTargets();
         scheduleConnectionStatus();
-        toast("Endpoint salvo neste aparelho");
+        toast(state.settings.openaiKey ? "Endpoint e ChatGPT salvos neste aparelho" : "Endpoint salvo neste aparelho");
         refreshActive();
       } catch {
         toast("URL inválida");

@@ -33,8 +33,9 @@ A mesma pasta é o site inteiro. Dá para hospedar em GitHub Pages, Cloudflare P
 2. Toque em **Conexão** (ou no banner “Alvo offline”) e salve a URL do launcher:
    - PC na rede local: `http://192.168.x.x:7777` (atrás de um proxy; o processo não abre em `0.0.0.0`)
    - Túnel: `https://<id>.trycloudflare.com`
-   - VPS: `http://72.62.11.116:7777`
+   - VPS: `http://72.62.11.116:7777` (launcher) ou o site `https://mestre.72-62-11-116.sslip.io`
    - 9Router: `http://127.0.0.1:20128` ou o host da VPS na porta `20128`
+   - ChatGPT: cole a chave `sk-…` da API OpenAI em **Conexão**. O chat passa a usar `api.openai.com`.
 3. Use **Testar** no sheet para validar o endpoint (`/ping` ou `/api/health` no 9Router). A bolinha no header mostra online/offline e a latência.
 4. Quando a página é servida pelo próprio launcher, o alvo Desktop começa em `window.location.origin`.
 5. Se o servidor tiver `MESTRE_MOBILE_TOKEN`, cole o mesmo valor no campo token. Ele vai no header `X-Mestre-Mobile-Token`.
@@ -52,6 +53,10 @@ No app, o botão **App** (topo), **Baixar app Android** (Pulso), o card em **Mai
 Link público (GitHub Pages):
 
 https://jeanavila997-ux.github.io/Mestre-do-PC-V10/mobile/
+
+Na VPS (pasta completa em `/opt/apps/mestre-do-pc`):
+
+https://mestre.72-62-11-116.sslip.io/mobile/
 
 Na LAN/túnel, use a URL desta sessão (`/mobile/` no launcher).
 

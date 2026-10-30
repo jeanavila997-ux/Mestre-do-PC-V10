@@ -224,6 +224,9 @@
         <label>Link desta sessão
           <input id="install-url-local" type="url" readonly />
         </label>
+        <label>Link na VPS
+          <input id="install-url-vps" type="url" readonly value="https://mestre.72-62-11-116.sslip.io/mobile/" />
+        </label>
         <ol class="install-steps">
           <li>Abra o link no <strong>Chrome</strong> do Android.</li>
           <li>Toque em <strong>⋮</strong> (menu).</li>
@@ -240,13 +243,16 @@
     <dialog id="connection-dialog" class="conn-dialog" closedby="any" aria-labelledby="conn-title">
       <div class="sheet-handle"></div>
       <h3 id="conn-title">Conexão</h3>
-      <p class="hint">URL do launcher (PC, túnel ou VPS) e token opcional.</p>
+      <p class="hint">URL do launcher (PC, túnel ou VPS), token opcional e login ChatGPT.</p>
       <form id="endpoint-form" class="endpoint open" method="dialog">
         <label>URL do servidor
           <input id="endpoint-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" required placeholder="http://127.0.0.1:7777" />
         </label>
         <label>Token mobile (opcional)
           <input id="endpoint-token" type="password" autocomplete="off" placeholder="MESTRE_MOBILE_TOKEN" />
+        </label>
+        <label>ChatGPT / OpenAI (chave sk-…)
+          <input id="endpoint-openai" type="password" autocomplete="off" placeholder="sk-… para logar no chat da OpenAI" />
         </label>
         <div class="sheet-actions">
           <button id="endpoint-test" type="button">Testar</button>
