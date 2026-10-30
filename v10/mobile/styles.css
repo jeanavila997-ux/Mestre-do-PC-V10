@@ -118,6 +118,26 @@ textarea { min-height: 76px; resize: vertical; }
   font-weight: 700;
 }
 .wide { width: 100%; margin: 8px 0 18px; }
+.android-cta {
+  background: linear-gradient(135deg, #3dffb0, var(--cyan));
+  color: #041018;
+}
+.android-card { margin-bottom: 10px; }
+.install-steps {
+  margin: 4px 0 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  display: grid;
+  gap: 6px;
+}
+.install-steps strong { color: var(--text); }
+.install-actions {
+  grid-template-columns: 1fr 1fr;
+}
+#install-native:not([hidden]) {
+  grid-column: 1 / -1;
+}
 
 main {
   flex: 1;
@@ -284,6 +304,13 @@ main {
 #sheet-ok.danger { background: linear-gradient(135deg, #ff5d73, #ff3df0); color: white; }
 .empty { color: var(--muted); padding: 12px 0; }
 
+dialog:modal {
+  overscroll-behavior: contain;
+}
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
 .conn-dialog {
   margin: 0;
   margin-top: auto;
@@ -301,6 +328,8 @@ main {
 .conn-dialog::backdrop {
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(2px);
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 .conn-dialog[open] {
   display: block;

@@ -29,6 +29,7 @@
           <span id="status-dot" class="status-dot wait" aria-hidden="true"></span>
           <span id="status-lat" class="status-lat">-- ms</span>
         </div>
+        <button id="android-open" class="ghost" type="button" title="Baixar app Android">App</button>
         <button id="conn-open" class="ghost" type="button">Conexão</button>
         <a id="desktop-link" class="ghost desktop-link" href="/?desktop=1">PC</a>
       </div>
@@ -71,7 +72,7 @@
         </div>
         <h3 class="block-title">Stream Deck</h3>
         <div id="deck" class="deck"></div>
-        <button id="install" class="wide" type="button" hidden>Instalar atalho na tela inicial</button>
+        <button id="install" class="wide android-cta" type="button">Baixar app Android</button>
       </section>
 
       <section id="panel-chat" class="tab chat-layout active" data-tab-panel="chat" aria-hidden="false">
@@ -125,6 +126,13 @@
         <div id="sub-ready" role="tabpanel">
           <h2>Prompts e atalhos prontos</h2>
           <p class="hint">Toque para enviar ao Chat ou abrir o comando. Funciona offline na lista; a execução precisa do launcher.</p>
+          <article class="card ready-card android-card">
+            <div>
+              <h3>📲 App Android</h3>
+              <p>Instalar na tela inicial ou copiar o link de download. PWA — sem APK na Play Store.</p>
+            </div>
+            <button id="android-open-mais" type="button">Baixar</button>
+          </article>
           <div id="prompt-ready-list" class="cards"></div>
         </div>
         <div id="sub-architect" role="tabpanel" hidden>
@@ -205,6 +213,30 @@
       </div>
     </div>
 
+    <dialog id="install-dialog" class="conn-dialog" closedby="any" aria-labelledby="install-title">
+      <div class="sheet-handle"></div>
+      <h3 id="install-title">Baixar no Android</h3>
+      <p id="install-status" class="hint">Instale o Mestre como app na tela inicial. É um PWA — não há APK na Play Store neste momento.</p>
+      <form id="install-form" class="endpoint open" method="dialog">
+        <label>Link público (abra no Chrome do celular)
+          <input id="install-url-public" type="url" readonly value="https://jeanavila997-ux.github.io/Mestre-do-PC-V10/mobile/" />
+        </label>
+        <label>Link desta sessão
+          <input id="install-url-local" type="url" readonly />
+        </label>
+        <ol class="install-steps">
+          <li>Abra o link no <strong>Chrome</strong> do Android.</li>
+          <li>Toque em <strong>⋮</strong> (menu).</li>
+          <li>Toque em <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>.</li>
+        </ol>
+        <div class="sheet-actions install-actions">
+          <button id="install-native" type="button" hidden>Instalar agora</button>
+          <button id="install-copy" type="button">Copiar link</button>
+          <button id="install-share" type="button">Compartilhar</button>
+          <button type="submit" value="close">Fechar</button>
+        </div>
+      </form>
+    </dialog>
     <dialog id="connection-dialog" class="conn-dialog" closedby="any" aria-labelledby="conn-title">
       <div class="sheet-handle"></div>
       <h3 id="conn-title">Conexão</h3>

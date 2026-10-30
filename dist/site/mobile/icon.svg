@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mestre Mobile">
+  <rect width="64" height="64" rx="16" fill="#071018"/>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="none" stroke="#00f0ff" stroke-width="2"/>
+  <path d="M16 46V18h8l8 14 8-14h8v28h-7V30l-9 16h-0l-9-16v16z" fill="#00f0ff"/>
+</svg>

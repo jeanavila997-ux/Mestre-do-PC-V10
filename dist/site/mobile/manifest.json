@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "Mestre Mobile V11",
+  "short_name": "Mestre",
+  "description": "Mestre do PC V11 — Ultimate Plus Mobile Edition",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070b12",
+  "theme_color": "#071018",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

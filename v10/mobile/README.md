@@ -39,6 +39,22 @@ A mesma pasta é o site inteiro. Dá para hospedar em GitHub Pages, Cloudflare P
 4. Quando a página é servida pelo próprio launcher, o alvo Desktop começa em `window.location.origin`.
 5. Se o servidor tiver `MESTRE_MOBILE_TOKEN`, cole o mesmo valor no campo token. Ele vai no header `X-Mestre-Mobile-Token`.
 
+## App Android (PWA, sem APK)
+
+Não há APK na Play Store neste momento. O “download” no Android é instalar o PWA na tela inicial.
+
+No app, o botão **App** (topo), **Baixar app Android** (Pulso), o card em **Mais → Prontos** e o chip **App Android** no Chat abrem o mesmo sheet:
+
+1. **Instalar agora** — aparece quando o Chrome dispara `beforeinstallprompt`.
+2. **Copiar link** / **Compartilhar** — o link público e o da sessão atual.
+3. No Chrome Android: menu **⋮** → **Instalar app** (ou **Adicionar à tela inicial**).
+
+Link público (GitHub Pages):
+
+https://jeanavila997-ux.github.io/Mestre-do-PC-V10/mobile/
+
+Na LAN/túnel, use a URL desta sessão (`/mobile/` no launcher).
+
 O app chama o launcher com `X-Mestre-Client: v10-web`. Origens aceitas: localhost, LAN privada, `*.trycloudflare.com`, `72.62.11.116`, `*.72-62-11-116.sslip.io`, `jeanavila997-ux.github.io` e `mestre-do-pc-mobile.pages.dev`. Outras origens entram por `MESTRE_MOBILE_ORIGINS` (lista separada por vírgula; `*.pages.dev` é um curinga de host).
 
 Antes de deixar um túnel no ar, defina `MESTRE_MOBILE_TOKEN`. Sem esse token, qualquer página numa origem confiável consegue chamar `/run` enquanto o túnel existir.

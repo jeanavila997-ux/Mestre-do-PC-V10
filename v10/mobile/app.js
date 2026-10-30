@@ -3,6 +3,7 @@
   const FAV_KEY = "mestre_mobile_favs";
   const RECENT_KEY = "mestre_mobile_recent";
   const PAGE_SIZE = 40;
+  const PUBLIC_ANDROID_URL = "https://jeanavila997-ux.github.io/Mestre-do-PC-V10/mobile/";
   const CLOUD_MODELS = ["gcli/grok-4.7-build-fast", "qwen2.5-coder:3b-instruct"];
   const PRESETS = [
     { id: "desktop", label: "PC Desktop", detail: "DESKTOP-O7T3I00" },
@@ -961,6 +962,12 @@
       "diag", "limpeza", "performance", "status-local", "ram-cmd", "vps", "arquiteto", "info-ram",
     ].includes(item.id));
     root.replaceChildren();
+    const android = document.createElement("button");
+    android.type = "button";
+    android.id = "chip-android";
+    android.textContent = "📲 App Android";
+    android.addEventListener("click", openInstallDialog);
+    root.append(android);
     for (const chip of chips) {
       const button = document.createElement("button");
       button.type = "button";
@@ -1137,14 +1144,133 @@
     ].join("\n");
   }
 
-  async function copyText(text) {
+  async function copyText(text, okMessage = "Master Prompt copiado") {
     if (!text) return toast("Gere o prompt antes de copiar.");
     try {
       await navigator.clipboard.writeText(text);
-      toast("Master Prompt copiado");
+      toast(okMessage);
     } catch {
       toast("A área de transferência bloqueou a cópia");
     }
+  }
+
+  function installPageUrl() {
+    try {
+      return new URL("./", window.location.href).href;
+    } catch {
+      return window.location.href;
+    }
+  }
+
+  function preferredInstallUrl() {
+    const here = installPageUrl();
+    try {
+      const host = new URL(here).hostname;
+      if (host.endsWith("github.io") || host.endsWith("pages.dev")) return here;
+    } catch { /* usa o link público */ }
+    return PUBLIC_ANDROID_URL;
+  }
+
+  function isStandaloneApp() {
+    return window.matchMedia("(display-mode: standalone)").matches
+      || window.matchMedia("(display-mode: fullscreen)").matches
+      || window.navigator.standalone === true;
+  }
+
+  function refreshInstallUi() {
+    const local = $("install-url-local");
+    const publicUrl = $("install-url-public");
+    const status = $("install-status");
+    const nativeBtn = $("install-native");
+    if (local) local.value = installPageUrl();
+    if (publicUrl) publicUrl.value = PUBLIC_ANDROID_URL;
+    if (status) {
+      status.textContent = isStandaloneApp()
+        ? "Este aparelho já está no modo app. Use o link abaixo para instalar em outro Android."
+        : "Instale o Mestre como app na tela inicial. É um PWA — não há APK na Play Store neste momento.";
+    }
+    if (nativeBtn) nativeBtn.hidden = !state.install;
+  }
+
+  function closeInstallDialog() {
+    const dialog = $("install-dialog");
+    if (dialog && dialog.open) dialog.close();
+  }
+
+  function openInstallDialog() {
+    refreshInstallUi();
+    const dialog = $("install-dialog");
+    if (dialog && typeof dialog.showModal === "function") dialog.showModal();
+  }
+
+  async function copyInstallLink() {
+    await copyText(preferredInstallUrl(), "Link do app copiado");
+  }
+
+  async function shareInstallLink() {
+    const url = preferredInstallUrl();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Mestre Mobile",
+          text: "Instale o Mestre do PC no Android (PWA na tela inicial).",
+          url,
+        });
+        return;
+      } catch (error) {
+        if (error && error.name === "AbortError") return;
+      }
+    }
+    await copyInstallLink();
+  }
+
+  async function promptNativeInstall() {
+    if (!state.install) {
+      toast("Neste navegador use Chrome → ⋮ → Instalar app");
+      return;
+    }
+    state.install.prompt();
+    const choice = await state.install.userChoice;
+    state.install = null;
+    refreshInstallUi();
+    if (choice && choice.outcome === "accepted") {
+      toast("App instalado na tela inicial");
+      closeInstallDialog();
+    }
+  }
+
+  function bindInstallDialog() {
+    const dialog = $("install-dialog");
+    if (!dialog) return;
+    $("android-open")?.addEventListener("click", openInstallDialog);
+    $("android-open-mais")?.addEventListener("click", openInstallDialog);
+    $("install")?.addEventListener("click", openInstallDialog);
+    $("install-copy")?.addEventListener("click", copyInstallLink);
+    $("install-share")?.addEventListener("click", shareInstallLink);
+    $("install-native")?.addEventListener("click", promptNativeInstall);
+    if (!("closedBy" in HTMLDialogElement.prototype)) {
+      dialog.addEventListener("click", (event) => {
+        if (event.target !== dialog) return;
+        const rect = dialog.getBoundingClientRect();
+        const inside =
+          rect.top <= event.clientY &&
+          event.clientY <= rect.top + rect.height &&
+          rect.left <= event.clientX &&
+          event.clientX <= rect.left + rect.width;
+        if (!inside) closeInstallDialog();
+      });
+    }
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      state.install = event;
+      refreshInstallUi();
+    });
+    window.addEventListener("appinstalled", () => {
+      state.install = null;
+      refreshInstallUi();
+      toast("App instalado na tela inicial");
+      closeInstallDialog();
+    });
   }
 
   function renderMemoryStats(stats) {
@@ -1502,18 +1628,7 @@
       searchMemories($("mem-search").value.trim());
     });
     $("live-close").addEventListener("click", () => { $("live-log").hidden = true; });
-    $("install").addEventListener("click", async () => {
-      if (!state.install) return;
-      state.install.prompt();
-      await state.install.userChoice;
-      state.install = null;
-      $("install").hidden = true;
-    });
-    window.addEventListener("beforeinstallprompt", (event) => {
-      event.preventDefault();
-      state.install = event;
-      $("install").hidden = false;
-    });
+    bindInstallDialog();
     bindPullToRefresh();
   }
 
