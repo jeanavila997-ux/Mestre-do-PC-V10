@@ -1,0 +1,5 @@
+# Painel completo e confiável para diagnóstico e testes de rede
+winget install --id BornToBeRoot.NETworkManager -e
+
+# Visualizador leve e portátil para inspeção rápida de canais e sinal
+winget install --id NirSoft.WifiInfoView -e

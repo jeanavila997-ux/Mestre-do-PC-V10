@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plano inicial — Wi‑Fi Analyser (Mestre do PC)</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --ink: #e7ecf3;
+      --muted: #9aa8bc;
+      --accent: #3d9cf0;
+      --ok: #3dd68c;
+      --warn: #f0b429;
+      --line: #2a3648;
+      --edit: #243044;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.55 system-ui, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      padding: 1.5rem;
+      max-width: 920px;
+      margin-inline: auto;
+    }
+    h1, h2, h3 { line-height: 1.25; }
+    h1 { font-size: 1.6rem; margin: 0 0 .35rem; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 1.6rem 0 .6rem;
+      padding-bottom: .35rem;
+      border-bottom: 1px solid var(--line);
+      color: var(--accent);
+    }
+    .meta { color: var(--muted); font-size: .92rem; margin-bottom: 1rem; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: .5rem;
+      position: sticky; top: 0; z-index: 5;
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(8px);
+      padding: .65rem 0;
+      margin-bottom: .75rem;
+      border-bottom: 1px solid var(--line);
+    }
+    button {
+      background: var(--card);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: .45rem .8rem;
+      cursor: pointer;
+      font: inherit;
+    }
+    button:hover { border-color: var(--accent); }
+    button.primary { background: #1e4d7a; border-color: var(--accent); }
+    button.ok { border-color: var(--ok); color: var(--ok); }
+    .hint {
+      background: var(--card);
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      color: var(--muted);
+      font-size: .9rem;
+      margin-bottom: 1rem;
+    }
+    .hint strong { color: var(--warn); }
+    section.card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: .9rem;
+    }
+    [contenteditable="true"] {
+      outline: none;
+      border-radius: 8px;
+      padding: .35rem .5rem;
+      background: var(--edit);
+      min-height: 1.4em;
+    }
+    [contenteditable="true"]:focus {
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .92rem;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: .45rem .55rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #152033; color: var(--muted); font-weight: 600; }
+    ul { margin: .4rem 0 .4rem 1.1rem; padding: 0; }
+    li { margin: .25rem 0; }
+    .tag {
+      display: inline-block;
+      font-size: .75rem;
+      padding: .15rem .45rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      margin-right: .25rem;
+    }
+    .tag.now { border-color: var(--ok); color: var(--ok); }
+    .tag.next { border-color: var(--warn); color: var(--warn); }
+    .status { font-size: .85rem; color: var(--muted); }
+    .status.saved { color: var(--ok); }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: .88em; color: #9fd0ff; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button class="primary" type="button" id="btn-save">💾 Salvar no navegador</button>
+    <button type="button" id="btn-export">⬇️ Baixar HTML</button>
+    <button type="button" id="btn-reset">↺ Restaurar rascunho</button>
+    <button class="ok" type="button" id="btn-print">🖨️ Imprimir / PDF</button>
+    <span class="status" id="save-status">Edição livre — clique nos blocos cinza</span>
+  </div>
+
+  <header>
+    <h1 contenteditable="true" id="doc-title">Plano inicial — Wi‑Fi Analyser</h1>
+    <p class="meta">
+      Projeto: <code>Mestre-do-PC-V10</code> ·
+      Data: <span contenteditable="true" id="doc-date">2026-10-31</span> ·
+      Status: <span contenteditable="true" id="doc-status">rascunho editável</span>
+    </p>
+  </header>
+
+  <p class="hint">
+    <strong>Como editar:</strong> clique em qualquer bloco cinza e digite.
+    Use <em>Salvar no navegador</em> para guardar no <code>localStorage</code> desta máquina.
+    Use <em>Baixar HTML</em> para levar o arquivo atualizado.
+  </p>
+
+  <h2>1. Objetivo</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-objetivo">
+      Transformar a análise Wi‑Fi do Mestre (hoje um relatório via <code>rede_wifi_analise</code> + painel Rede)
+      num <b>Wi‑Fi Analyser</b> claro: diagnóstico completo, dicas acionáveis e histórico,
+      sem expor senhas de perfis e sem comandos destrutivos.
+    </div>
+  </section>
+
+  <h2>2. O que já existe hoje</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-hoje">
+      <ul>
+        <li><span class="tag now">já tem</span> Op <code>rede_wifi_analise</code> — interface + perfis (sem senha) + drivers + gateway + dicas de sinal/banda</li>
+        <li><span class="tag now">já tem</span> <code>rede_wifi_perfis</code>, <code>rede_wifi_drivers</code>, <code>rede_wifi_redes_proximas</code>, <code>rede_wifi_sinal_bars</code>, <code>rede_info_wifi_completo</code></li>
+        <li><span class="tag now">já tem</span> UI desktop em <code>v10/rede-dashboard.js</code> (botão “📡 Análise Wi‑Fi”)</li>
+        <li><span class="tag now">já tem</span> Mobile DECK com atalho para a mesma op</li>
+        <li><span class="tag now">já tem</span> Doc <code>docs/REDE-DIAGNOSTICO.md</code></li>
+        <li><span class="tag next">gap</span> Relatório ainda é texto bruto do PowerShell — pouco “produto”</li>
+        <li><span class="tag next">gap</span> Sem mapa de canais / score visual / export JSON</li>
+        <li><span class="tag next">gap</span> Sem histórico estruturado só de Wi‑Fi (o painel tem histórico de saúde geral)</li>
+      </ul>
+    </div>
+  </section>
+
+  <h2>3. Escopo do produto (v1)</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-escopo">
+      <b>Entra na v1</b>
+      <ul>
+        <li>Uma tela / seção “Wi‑Fi Analyser” no launcher (:7777)</li>
+        <li>Resumo visual: SSID, banda, canal, rádio, sinal %, Rx/Tx, gateway ms</li>
+        <li>Score simples (Bom / Médio / Crítico) com regras já usadas na op</li>
+        <li>Lista de redes próximas (canal + sinal) para ver interferência</li>
+        <li>Perfis salvos (nome apenas) e capacidade do adaptador</li>
+        <li>Botão “Rodar análise” → <code>POST /run</code> com <code>rede_wifi_analise</code> (+ ops auxiliares)</li>
+        <li>Exportar relatório .txt / .md</li>
+      </ul>
+      <b>Fica fora da v1</b>
+      <ul>
+        <li>Captura de handshake / chave / key=clear</li>
+        <li>Mudar canal do roteador automaticamente</li>
+        <li>App store separado (fica dentro do Mestre)</li>
+        <li>Mapa de calor físico da casa</li>
+      </ul>
+    </div>
+  </section>
+
+  <h2>4. Personas e fluxos</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-fluxos">
+      <ol>
+        <li><b>Jean / uso diário:</b> abrir Mestre → Rede → Análise Wi‑Fi → ler score + dicas em 30 s.</li>
+        <li><b>Suporte remoto:</b> rodar análise → copiar relatório → colar no chat.</li>
+        <li><b>Mobile:</b> no DECK, mesmo atalho; resultado legível em tela estreita.</li>
+      </ol>
+    </div>
+  </section>
+
+  <h2>5. Fases sugeridas</h2>
+  <section class="card">
+    <table>
+      <thead>
+        <tr><th>Fase</th><th>Entrega</th><th>Critério de pronto</th></tr>
+      </thead>
+      <tbody contenteditable="true" id="sec-fases">
+        <tr>
+          <td>0 — Alinhamento</td>
+          <td>Este plano + checklist de gaps</td>
+          <td>Jean valida escopo v1</td>
+        </tr>
+        <tr>
+          <td>1 — Parse estruturado</td>
+          <td>Op (ou wrapper) devolve JSON além do texto</td>
+          <td>Campos SSID/banda/sinal/canal/gateway estáveis em teste</td>
+        </tr>
+        <tr>
+          <td>2 — UI Analyser</td>
+          <td>Cards + score + dicas no dashboard Rede</td>
+          <td>Rodar análise sem abrir console; mobile ok</td>
+        </tr>
+        <tr>
+          <td>3 — Redes próximas</td>
+          <td>Tabela canal×sinal (interferência)</td>
+          <td>Destaca canais vizinhos do atual</td>
+        </tr>
+        <tr>
+          <td>4 — Histórico / export</td>
+          <td>Últimas N análises + baixar .md</td>
+          <td>Persistência local (localStorage ou arquivo do Mestre)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <h2>6. Regras de segurança (não negociáveis)</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-seguranca">
+      <ul>
+        <li>Nunca mostrar ou pedir senha de Wi‑Fi / <code>key=clear</code></li>
+        <li>Ops só na whitelist <code>allowed-operations.json</code> (Rede, não destrutivas)</li>
+        <li>Chamadas locais em <code>127.0.0.1</code> (não <code>localhost</code>)</li>
+        <li>Header de cliente esperado pelo launcher (<code>X-Mestre-Client</code>)</li>
+      </ul>
+    </div>
+  </section>
+
+  <h2>7. Métricas de sucesso</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-metricas">
+      <ul>
+        <li>Análise completa em &lt; 15 s no Nitro 5</li>
+        <li>Usuário entende “o que fazer agora” sem ler o dump do netsh</li>
+        <li>Zero regressão nas ops Rede existentes / testes de whitelist</li>
+      </ul>
+    </div>
+  </section>
+
+  <h2>8. Riscos e perguntas abertas</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-riscos">
+      <ul>
+        <li>Saída do <code>netsh</code> muda com idioma do Windows (pt-BR vs en-US) — parsers frágeis</li>
+        <li>Launcher fora do ar → UI precisa do estado “offline” (já existe no painel)</li>
+        <li>Scan de redes próximas pode demorar / exigir rádio ligado</li>
+      </ul>
+      <p><b>Perguntas para Jean editar:</b></p>
+      <ul>
+        <li>Preferência: evoluir o painel Rede atual ou criar página dedicada <code>/wifi-analyser</code>?</li>
+        <li>JSON estruturado na própria op PowerShell ou parse no Node do launcher?</li>
+        <li>Histórico: só no browser ou também em arquivo em disco?</li>
+      </ul>
+    </div>
+  </section>
+
+  <h2>9. Próximo passo imediato</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-proximo">
+      1) Jean revisa e edita este HTML (escopo + perguntas).<br>
+      2) Congelar v1 (fase 0 → 1).<br>
+      3) Implementar parse estruturado de <code>rede_wifi_analise</code> e cards na UI.
+    </div>
+  </section>
+
+  <h2>10. Notas livres</h2>
+  <section class="card">
+    <div contenteditable="true" id="sec-notas">
+      Escreva aqui ideias soltas, prints, SSID de teste, etc.
+    </div>
+  </section>
+
+  <script>
+    const STORAGE_KEY = 'mestre-plano-wifi-analyser-v1';
+    const editableIds = [
+      'doc-title', 'doc-date', 'doc-status',
+      'sec-objetivo', 'sec-hoje', 'sec-escopo', 'sec-fluxos',
+      'sec-fases', 'sec-seguranca', 'sec-metricas', 'sec-riscos',
+      'sec-proximo', 'sec-notas'
+    ];
+
+    const statusEl = document.getElementById('save-status');
+
+    function snapshot() {
+      const data = {};
+      for (const id of editableIds) {
+        const el = document.getElementById(id);
+        if (el) data[id] = el.innerHTML;
+      }
+      data._savedAt = new Date().toISOString();
+      return data;
+    }
+
+    function apply(data) {
+      if (!data) return;
+      for (const id of editableIds) {
+        if (data[id] != null) {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = data[id];
+        }
+      }
+    }
+
+    function setStatus(msg, ok) {
+      statusEl.textContent = msg;
+      statusEl.classList.toggle('saved', !!ok);
+    }
+
+    document.getElementById('btn-save').addEventListener('click', () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot()));
+      setStatus('Salvo no navegador · ' + new Date().toLocaleString('pt-BR'), true);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (!confirm('Apagar o rascunho salvo e recarregar o HTML original do disco?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    });
+
+    document.getElementById('btn-export').addEventListener('click', () => {
+      // Congela o HTML atual (já editado no DOM) num download
+      const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'plano-wifi-analyser.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setStatus('Download gerado', true);
+    });
+
+    document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+    // Auto-load
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        apply(JSON.parse(raw));
+        setStatus('Rascunho restaurado do navegador', true);
+      }
+    } catch (e) {
+      setStatus('Não foi possível restaurar o rascunho', false);
+    }
+
+    // Aviso visual ao digitar
+    document.addEventListener('input', () => {
+      setStatus('Alterações não salvas — clique em Salvar', false);
+    });
+  </script>
+</body>
+</html>
