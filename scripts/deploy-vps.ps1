@@ -1,4 +1,4 @@
-# Envia a PASTA COMPLETA do Mestre para a VPS, sem espalhar arquivos.
+﻿# Envia a PASTA COMPLETA do Mestre para a VPS, sem espalhar arquivos.
 # Origem: este repositório. Destino remoto: /opt/apps/mestre-do-pc
 # Staging local: dist/vps-bundle/ (dentro do projeto, nunca na Área de Trabalho)
 #
