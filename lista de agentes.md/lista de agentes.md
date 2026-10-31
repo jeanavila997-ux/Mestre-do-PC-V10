@@ -1,9 +1,9 @@
 # Lista de agentes
 
-## Investigador OSINT-BR
+## Investigador OSINT
 
 - **Identificador:** investigador-osint-br
-- **Versão:** 1.1.0 — 26/10/2026
+- **Versão:** 1.1.0 —
 - **Objetivo:** investigar assuntos públicos com fontes rastreáveis, separando fatos, alegações e hipóteses.
 - **Instruções:** [README](investigador-osint-br/README.md).
 - **Prompt:** [system-prompt.md](investigador-osint-br/prompts/system-prompt.md).
