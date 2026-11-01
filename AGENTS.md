@@ -207,3 +207,15 @@ Invoke-RestMethod http://127.0.0.1:7777/ping
 Reinicie **só** o processo Node do launcher. `v10/restart-launcher.ps1` mata **todo** Node da máquina — não use sem aviso.
 
 Skill de auditoria: `/auditar-mestre-pc` (`~\.grok\skills\auditar-mestre-pc`).
+
+---
+
+## Cursor Cloud specific instructions
+
+O Cloud Agent é Linux. O painel HTTP sobe; jobs da whitelist não, porque o launcher chama `powershell.exe`.
+
+- Node da imagem já atende `engines` (`>=22.13`). Instale como o CI, e também o painel: `npm ci --ignore-scripts` na raiz, depois `npm ci --prefix mcp-server` e `npm ci --prefix v10`. O `--ignore-scripts` da raiz evita o `postinstall`, que reinstala o `mcp-server` fora do `npm ci`.
+- Suba com `node v10/launcher.js`. Só escuta `127.0.0.1:7777` (`MPC_HOST` diferente aborta). `GET /ping` devolve `status: ok`. `POST /run` sem `X-Mestre-Client` devolve 403.
+- No primeiro boot o launcher grava `MESTRE_LOCAL_MCP_TOKEN` em `.env.local` (gitignored). Não commite esse arquivo.
+- Antes de `npm test` em `mcp-server`, pare o processo da porta 7777. A suíte sobe launchers próprios e escreve em `logs/audit/`.
+- Ollama, MySQL, Supabase e chave OpenAI ficam de fora. O smoke do Ollama só roda com `RUN_OLLAMA_SMOKE=1`. Não instale PowerShell para o fluxo padrão.
