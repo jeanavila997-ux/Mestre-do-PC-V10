@@ -7,6 +7,7 @@ Atualizado: 2026-10-29 · Fonte: Microsoft Learn Edge DevTools + auditoria Mestr
 | 1 | `inspecionar-elementos` | Inspeção DOM | Ver/alterar DOM/CSS, achar seletor, snapshot a11y |
 | 2 | `depurar-console` | Console JS | Erros JS, avaliar script, logs |
 | 3 | `inspecionar-rede` | Rede | Requests, status, headers, XHR/fetch |
+| 3b | `analise-wifi-lan` | Rede (LAN/Wi-Fi) | Script PS1 + dashboard HTML/Vite da análise Wi-Fi/LAN |
 | 4 | `analisar-desempenho` | Desempenho | Lighthouse, trace, Core Web Vitals, cobertura |
 | 5 | `testar-acessibilidade` | Acessibilidade | Contraste, alt, teclado, árvore a11y |
 | 6 | `emular-dispositivos` | Emulação | Mobile, viewport, sensores |

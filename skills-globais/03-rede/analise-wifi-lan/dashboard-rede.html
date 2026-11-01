@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Rede — Mestre do PC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050b12;
+      --panel: #0b1520;
+      --panel2: #0f1c2a;
+      --line: #1c3347;
+      --text: #e8f1f8;
+      --muted: #8aa0b5;
+      --cyan: #00d4ff;
+      --cyan-dim: rgba(0, 212, 255, 0.12);
+      --green: #3ddc97;
+      --amber: #f5b942;
+      --rose: #ff6b8a;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: Sora, system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(0, 212, 255, 0.12), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(61, 220, 151, 0.08), transparent 50%),
+        var(--bg);
+      color: var(--text);
+    }
+    code, pre, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+    #root { min-height: 100vh; }
+    .shell {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: sticky; top: 0; z-index: 20; border-right: 0; border-bottom: 1px solid var(--line); }
+      .nav { display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 0.4rem; }
+      .nav button { white-space: nowrap; }
+    }
+    .sidebar {
+      background: rgba(7, 16, 24, 0.92);
+      border-right: 1px solid var(--line);
+      padding: 1.25rem 1rem;
+      backdrop-filter: blur(10px);
+    }
+    .brand {
+      display: flex; flex-direction: column; gap: 0.25rem;
+      padding: 0.4rem 0.6rem 1.2rem;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 1rem;
+    }
+    .brand strong { font-size: 1.05rem; letter-spacing: -0.02em; }
+    .brand span { color: var(--muted); font-size: 0.78rem; }
+    .nav { display: flex; flex-direction: column; gap: 0.35rem; }
+    .nav button {
+      appearance: none; border: 1px solid transparent; background: transparent;
+      color: var(--muted); text-align: left; padding: 0.7rem 0.8rem; border-radius: 10px;
+      cursor: pointer; font: inherit; font-size: 0.92rem;
+    }
+    .nav button:hover { color: var(--text); background: var(--panel2); }
+    .nav button.active {
+      color: var(--cyan); background: var(--cyan-dim); border-color: rgba(0, 212, 255, 0.25);
+    }
+    .main { padding: 1.4rem 1.5rem 3rem; max-width: 1200px; }
+    .hero {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 { margin: 0; font-size: clamp(1.4rem, 2.4vw, 2rem); letter-spacing: -0.03em; }
+    .hero p { margin: 0.45rem 0 0; color: var(--muted); max-width: 54ch; line-height: 1.5; }
+    .badge {
+      align-self: flex-start;
+      border: 1px solid rgba(0, 212, 255, 0.35);
+      background: var(--cyan-dim);
+      color: var(--cyan);
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+    .kpi {
+      background: linear-gradient(180deg, var(--panel2), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .kpi .label { color: var(--muted); font-size: 0.78rem; margin-bottom: 0.35rem; }
+    .kpi .value { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.03em; }
+    .kpi .value small { font-size: 0.85rem; color: var(--muted); font-weight: 500; margin-left: 0.2rem; }
+    .kpi .delta { margin-top: 0.35rem; color: var(--green); font-size: 0.8rem; }
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .card h2, .card h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+    .card h2 { font-size: 1.05rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.55rem 0.4rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; font-size: 0.75rem; }
+    .pill {
+      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 600;
+    }
+    .pill.ok { background: rgba(61, 220, 151, 0.15); color: var(--green); }
+    .pill.warn { background: rgba(245, 185, 66, 0.15); color: var(--amber); }
+    .pill.bad { background: rgba(255, 107, 138, 0.15); color: var(--rose); }
+    .bars { display: flex; flex-direction: column; gap: 0.65rem; }
+    .bar-row { display: grid; grid-template-columns: 1fr 64px; gap: 0.5rem; align-items: center; }
+    .bar-track { height: 10px; background: #122233; border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, #0891b2, var(--cyan)); border-radius: 999px; }
+    .bar-row span { font-size: 0.8rem; color: var(--muted); text-align: right; }
+    pre.code {
+      margin: 0; padding: 0.9rem 1rem; background: #071018; border: 1px solid var(--line);
+      border-radius: 10px; overflow: auto; font-size: 0.8rem; line-height: 1.45; color: #c7e9ff;
+      white-space: pre-wrap;
+    }
+    .cmd-list { display: flex; flex-direction: column; gap: 0.85rem; }
+    .cmd-item details { border: 1px solid var(--line); border-radius: 10px; background: var(--panel2); }
+    .cmd-item summary {
+      cursor: pointer; padding: 0.75rem 0.9rem; font-weight: 600; list-style: none;
+    }
+    .cmd-item summary::-webkit-details-marker { display: none; }
+    .cmd-item .body { padding: 0 0.9rem 0.9rem; }
+    .compare {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: stretch;
+    }
+    @media (max-width: 700px) {
+      .compare { grid-template-columns: 1fr; }
+      .compare .vs { display: none; }
+    }
+    .compare .vs {
+      align-self: center; color: var(--muted); font-weight: 700; font-size: 0.85rem;
+    }
+    .muted { color: var(--muted); }
+    .footnote { margin-top: 1.5rem; color: var(--muted); font-size: 0.8rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+  <script>window.__DADOS__ = {
+  "meta": {
+    "titulo": "Análise Wi-Fi & LAN — Mestre do PC",
+    "host": "HOST-LOCAL",
+    "usuario": "usuario",
+    "coletadoEm": "2026-10-31",
+    "ferramentas": ["Mestre do PC V10", "netsh", "Test-Connection", "Cloudflare Speed", "ARP", "ipinfo"]
+  },
+  "resumo": {
+    "conclusao": "Troca REDE-24 (2,4 GHz) → REDE-5G valeu: link PHY ~3× e download útil mais que dobrou. Gargalo atual tende ao plano/rota do ISP, não ao rádio.",
+    "recomendacao": "Manter REDE-5G. Reexecutar analisar-rede-mestre.ps1 após mudanças no roteador.",
+    "kpis": [
+      { "label": "Download pico (5G)", "value": "278", "unit": "Mbps", "delta": "+180 vs 2,4G" },
+      { "label": "Upload (5G)", "value": "23", "unit": "Mbps", "delta": "+8 vs 2,4G" },
+      { "label": "Link PHY Rx", "value": "721", "unit": "Mbps", "delta": "era ~287" },
+      { "label": "Gateway", "value": "1", "unit": "ms", "delta": "excelente" }
+    ]
+  },
+  "wifi": {
+    "antes": {
+      "ssid": "REDE-24",
+      "banda": "2,4 GHz",
+      "canal": 1,
+      "bssid": "00:00:5e:00:53:01",
+      "radio": "802.11ax",
+      "auth": "WPA2-Personal",
+      "cipher": "CCMP",
+      "sinal": "89–91%",
+      "rssi": "-48 → -44",
+      "rxMbps": 287,
+      "txMbps": 287,
+      "ip": "192.168.1.37",
+      "adaptador": "Killer Wi-Fi 6 AX1650i 160MHz (201NGW)"
+    },
+    "depois": {
+      "ssid": "REDE-5G",
+      "banda": "5 GHz",
+      "canal": 149,
+      "bssid": "00:00:5e:00:53:02",
+      "radio": "802.11ax / ac",
+      "auth": "WPA2-Personal",
+      "cipher": "CCMP",
+      "sinal": "84%",
+      "rssi": "-58",
+      "rxMbps": 721,
+      "txMbps": 649,
+      "ip": "192.168.1.40",
+      "adaptador": "Killer Wi-Fi 6 AX1650i 160MHz (201NGW)",
+      "utilizacaoCanal": "~0% (quase vazio)"
+    },
+    "perfisSalvos": ["REDE-24", "REDE-5G"],
+    "gateway": { "ip": "192.168.1.1", "latenciaMs": 1.8, "vendor": "Fiberhome" },
+    "dns": ["192.168.1.1", "2804:3868:ffff::10", "2804:3868:ffff::11"]
+  },
+  "speed": {
+    "antes24": [
+      { "alvo": "Cloudflare 5MB", "mbps": 47.7, "nota": "download" },
+      { "alvo": "Cloudflare 25MB", "mbps": 97.8, "nota": "melhor amostra 2,4G" },
+      { "alvo": "GitHub ~66MB", "mbps": 88.3, "nota": "download" },
+      { "alvo": "OVH 10MB", "mbps": 20.0, "nota": "rota fraca" },
+      { "alvo": "Upload CF 1MB", "mbps": 14.5, "nota": "upload" }
+    ],
+    "depois5g": [
+      { "alvo": "Cloudflare 5MB", "mbps": 55, "nota": "download" },
+      { "alvo": "Cloudflare 25MB", "mbps": 205, "nota": "download" },
+      { "alvo": "Cloudflare 50MB", "mbps": 278, "nota": "pico útil" },
+      { "alvo": "OVH 10MB", "mbps": 21, "nota": "rota fraca" },
+      { "alvo": "Upload CF 2MB", "mbps": 23, "nota": "upload" }
+    ],
+    "latencia": [
+      { "host": "192.168.1.1", "avgMs": 1.0 },
+      { "host": "1.1.1.1", "avgMs": 51.8 },
+      { "host": "8.8.8.8", "avgMs": 63.0 }
+    ],
+    "isp": {
+      "ipPublico": "203.0.113.10",
+      "org": "ISP local",
+      "asn": "AS00000",
+      "cidade": "Cidade",
+      "regiao": "UF",
+      "pais": "BR",
+      "timezone": "America/Sao_Paulo"
+    },
+    "mestreSpeedtestMini": {
+      "status": "falhou",
+      "motivo": "Tele2.net inacessível",
+      "valorEnganoso": "0.19 Mbps — ignorar"
+    }
+  },
+  "lan": {
+    "rede": "192.168.1.0/24",
+    "estePc": "192.168.1.40",
+    "dispositivos": [
+      { "ip": "192.168.1.1", "mac": "00-00-5E-00-53-01", "estado": "UP", "latMs": 1, "vendor": "Fiberhome", "papel": "Gateway / ONT" },
+      { "ip": "192.168.1.2", "mac": "00-00-5E-00-53-11", "estado": "UP", "latMs": 2, "vendor": "AltoBeam", "papel": "IoT / CPE Wi-Fi" },
+      { "ip": "192.168.1.3", "mac": "00-00-5E-00-53-12", "estado": "UP", "latMs": 2, "vendor": "AltoBeam", "papel": "IoT / CPE Wi-Fi" },
+      { "ip": "192.168.1.5", "mac": "00-00-5E-00-53-13", "estado": "UP", "latMs": 35, "vendor": "AltoBeam (OUI)", "papel": "Host LAN (latência alta)" },
+      { "ip": "192.168.1.10", "mac": "00-00-5E-00-53-14", "estado": "UP", "latMs": 3, "vendor": "Sagemcom", "papel": "CPE / STB" },
+      { "ip": "192.168.1.13", "mac": "00-00-5E-00-53-15", "estado": "UP", "latMs": 0, "vendor": "Samsung", "papel": "Celular (provável)" },
+      { "ip": "192.168.1.40", "mac": "00-00-5E-00-53-40", "estado": "UP", "latMs": 0, "vendor": "MAC randomizado", "papel": "Nitro (este PC)" }
+    ],
+    "adaptadoresAtivos": [
+      { "nome": "Wi-Fi", "desc": "Killer AX1650i", "link": "649–721 Mbps", "status": "Up" },
+      { "nome": "Tailscale", "desc": "Tailscale Tunnel", "link": "100 Gbps (virtual)", "status": "Up" },
+      { "nome": "Npcap Loopback", "desc": "Npcap Loopback Adapter", "link": "1.2 Gbps", "status": "Up" }
+    ]
+  },
+  "usuarios": {
+    "sessao": "HOST-LOCAL\\usuario",
+    "dominio": "WORKGROUP",
+    "contasLocais": [
+      { "nome": "usuario", "enabled": true, "lastLogon": "2026-10-31" },
+      { "nome": "SandboxA", "enabled": true, "lastLogon": "2026-10-30" },
+      { "nome": "SandboxB", "enabled": true, "lastLogon": null },
+      { "nome": "Administrador", "enabled": false, "lastLogon": null },
+      { "nome": "Convidado", "enabled": false, "lastLogon": null }
+    ],
+    "processosPorUsuario": [
+      { "user": "HOST-LOCAL\\usuario", "count": 144 },
+      { "user": "AUTORIDADE NT\\SISTEMA", "count": 105 },
+      { "user": "SERVIÇO LOCAL", "count": 40 },
+      { "user": "SERVIÇO DE REDE", "count": 10 }
+    ]
+  },
+  "vizinhanca": [
+    { "ssid": "REDE-5G", "banda": "5 GHz", "canal": 149, "sinal": "91%", "nota": "sua rede (alvo)" },
+    { "ssid": "REDE-24", "banda": "2,4 GHz", "canal": 1, "sinal": "91%", "nota": "sua rede 2,4" },
+    { "ssid": "Vizinho-A", "banda": "2,4/5 GHz", "canal": "6 / 44", "sinal": "72%", "nota": "vizinho forte no 2,4" },
+    { "ssid": "Vizinho-B", "banda": "2,4 GHz", "canal": 3, "sinal": "67%", "nota": "interferência 2,4" },
+    { "ssid": "Vizinho-C", "banda": "2,4 GHz", "canal": 11, "sinal": "53%", "nota": "" },
+    { "ssid": "Vizinho-D", "banda": "2,4 GHz", "canal": 11, "sinal": "46%", "nota": "BSSID próximo ao .10" },
+    { "ssid": "Vizinho-E", "banda": "2,4 GHz", "canal": 11, "sinal": "50%", "nota": "" },
+    { "ssid": "Vizinho-F", "banda": "2,4 GHz", "canal": 9, "sinal": "35%", "nota": "" }
+  ],
+  "comandos": [
+    {
+      "id": "ping-mestre",
+      "titulo": "Health do launcher Mestre",
+      "shell": "pwsh",
+      "codigo": "Invoke-RestMethod http://127.0.0.1:7777/ping"
+    },
+    {
+      "id": "wifi-iface",
+      "titulo": "Interface Wi-Fi atual",
+      "shell": "pwsh",
+      "codigo": "netsh wlan show interfaces"
+    },
+    {
+      "id": "wifi-scan",
+      "titulo": "Redes próximas (BSSID)",
+      "shell": "pwsh",
+      "codigo": "netsh wlan show networks mode=bssid"
+    },
+    {
+      "id": "arp",
+      "titulo": "Dispositivos conhecidos (ARP)",
+      "shell": "pwsh",
+      "codigo": "arp -a\n# ou MCP: mestre_do_pc__seg_arp"
+    },
+    {
+      "id": "ipconfig",
+      "titulo": "IP / gateway / DNS",
+      "shell": "pwsh",
+      "codigo": "Get-NetIPConfiguration -InterfaceAlias 'Wi-Fi'\nGet-DnsClientServerAddress -InterfaceAlias 'Wi-Fi' -AddressFamily IPv4"
+    },
+    {
+      "id": "latencia",
+      "titulo": "Latência gateway + DNS públicos",
+      "shell": "pwsh",
+      "codigo": "Test-Connection 192.168.1.1,1.1.1.1,8.8.8.8 -Count 4"
+    },
+    {
+      "id": "speed-cf",
+      "titulo": "Speed test Cloudflare (download)",
+      "shell": "pwsh",
+      "codigo": "$sw=[Diagnostics.Stopwatch]::StartNew()\nInvoke-WebRequest 'https://speed.cloudflare.com/__down?bytes=25000000' -OutFile $env:TEMP\\cf.bin\n$sw.Stop(); $b=(Get-Item $env:TEMP\\cf.bin).Length\n[math]::Round(($b*8)/$sw.Elapsed.TotalSeconds/1e6,1)  # Mbps"
+    },
+    {
+      "id": "isp",
+      "titulo": "IP público / ISP",
+      "shell": "pwsh",
+      "codigo": "Invoke-RestMethod https://ipinfo.io/json"
+    },
+    {
+      "id": "users",
+      "titulo": "Usuário logado + contas locais",
+      "shell": "pwsh",
+      "codigo": "Get-CimInstance Win32_ComputerSystem | Select UserName,Name,Domain\nGet-LocalUser | Select Name,Enabled,LastLogon"
+    },
+    {
+      "id": "analise-script",
+      "titulo": "Script completo desta pasta",
+      "shell": "pwsh",
+      "codigo": "pwsh -NoProfile -File .\\analisar-rede-mestre.ps1"
+    }
+  ]
+}
+;</script>
+  <script>
+    const { useMemo, useState, useEffect, createElement: h } = React;
+
+    const SECTIONS = [
+      { id: 'resumo', label: 'Resumo' },
+      { id: 'wifi', label: 'Wi-Fi antes/depois' },
+      { id: 'speed', label: 'Speed & latência' },
+      { id: 'lan', label: 'LAN / máquinas' },
+      { id: 'usuarios', label: 'Usuários' },
+      { id: 'vizinhanca', label: 'Vizinhança Wi-Fi' },
+      { id: 'codigos', label: 'Códigos usados' },
+      { id: 'scripts', label: 'Scripts da pasta' }
+    ];
+
+    function Kpi({ item }) {
+      return h('div', { className: 'kpi' },
+        h('div', { className: 'label' }, item.label),
+        h('div', { className: 'value' }, item.value, h('small', null, item.unit)),
+        item.delta ? h('div', { className: 'delta' }, item.delta) : null
+      );
+    }
+
+    function WifiCard({ title, w }) {
+      return h('div', { className: 'card' },
+        h('h3', null, title),
+        h('table', null,
+          h('tbody', null,
+            ['ssid','banda','canal','bssid','sinal','rssi','rxMbps','txMbps','ip','auth'].map((k) =>
+              h('tr', { key: k },
+                h('th', null, k),
+                h('td', { className: 'mono' }, String(w[k] ?? '—'))
+              )
+            )
+          )
+        )
+      );
+    }
+
+    function SpeedBars({ rows, max }) {
+      return h('div', { className: 'bars' },
+        rows.map((r) => h('div', { key: r.alvo, className: 'bar-row' },
+          h('div', null,
+            h('div', { className: 'muted', style: { fontSize: '0.78rem', marginBottom: 4 } }, r.alvo),
+            h('div', { className: 'bar-track' },
+              h('div', { className: 'bar-fill', style: { width: `${Math.min(100, (r.mbps / max) * 100)}%` } })
+            )
+          ),
+          h('span', { className: 'mono' }, `${r.mbps}`)
+        ))
+      );
+    }
+
+    function App() {
+      const [data, setData] = useState(null);
+      const [section, setSection] = useState('resumo');
+      const [err, setErr] = useState('');
+
+      useEffect(() => {
+        if (window.__DADOS__) { setData(window.__DADOS__); return; }
+        fetch('./dados-coletados.json')
+          .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(setData)
+          .catch((e) => setErr(String(e.message || e)));
+      }, []);
+
+      const maxSpeed = useMemo(() => {
+        if (!data) return 300;
+        const all = [...data.speed.antes24, ...data.speed.depois5g].map((x) => x.mbps);
+        return Math.max(100, ...all) * 1.1;
+      }, [data]);
+
+      if (err) {
+        return h('div', { className: 'main' },
+          h('h1', null, 'Dashboard Rede'),
+          h('p', null, 'Não foi possível carregar dados-coletados.json (', err, ').'),
+          h('p', { className: 'muted' }, 'Abra esta pasta com um servidor local, por exemplo:'),
+          h('pre', { className: 'code' }, 'npx --yes serve .\n# ou\npwsh -NoProfile -Command "Start-Process \'dashboard-rede.html\'"')
+        );
+      }
+      if (!data) return h('div', { className: 'main' }, h('p', { className: 'muted' }, 'Carregando…'));
+
+      let body = null;
+      if (section === 'resumo') {
+        body = h(React.Fragment, null,
+          h('div', { className: 'kpis' }, data.resumo.kpis.map((k) => h(Kpi, { key: k.label, item: k }))),
+          h('div', { className: 'card' },
+            h('h2', null, 'Conclusão'),
+            h('p', null, data.resumo.conclusao),
+            h('p', { className: 'muted' }, data.resumo.recomendacao)
+          ),
+          h('div', { className: 'card' },
+            h('h2', null, 'Contexto'),
+            h('table', null,
+              h('tbody', null,
+                h('tr', null, h('th', null, 'Host'), h('td', { className: 'mono' }, data.meta.host)),
+                h('tr', null, h('th', null, 'Usuário'), h('td', null, data.meta.usuario)),
+                h('tr', null, h('th', null, 'Coletado em'), h('td', null, data.meta.coletadoEm)),
+                h('tr', null, h('th', null, 'Ferramentas'), h('td', null, data.meta.ferramentas.join(' · ')))
+              )
+            )
+          )
+        );
+      }
+
+      if (section === 'wifi') {
+        body = h(React.Fragment, null,
+          h('div', { className: 'compare' },
+            h(WifiCard, { title: 'Antes — REDE-24 (2,4 GHz)', w: data.wifi.antes }),
+            h('div', { className: 'vs' }, 'VS'),
+            h(WifiCard, { title: 'Depois — REDE-5G', w: data.wifi.depois })
+          ),
+          h('div', { className: 'card' },
+            h('h2', null, 'Gateway / DNS / perfis'),
+            h('table', null,
+              h('tbody', null,
+                h('tr', null, h('th', null, 'Gateway'), h('td', { className: 'mono' }, `${data.wifi.gateway.ip} (~${data.wifi.gateway.latenciaMs} ms) — ${data.wifi.gateway.vendor}`)),
+                h('tr', null, h('th', null, 'DNS'), h('td', { className: 'mono' }, data.wifi.dns.join(', '))),
+                h('tr', null, h('th', null, 'Perfis salvos'), h('td', null, data.wifi.perfisSalvos.join(', ')))
+              )
+            )
+          )
+        );
+      }
+
+      if (section === 'speed') {
+        body = h(React.Fragment, null,
+          h('div', { className: 'grid2' },
+            h('div', { className: 'card' },
+              h('h2', null, 'Download/Upload — 2,4 GHz'),
+              h(SpeedBars, { rows: data.speed.antes24, max: maxSpeed })
+            ),
+            h('div', { className: 'card' },
+              h('h2', null, 'Download/Upload — 5 GHz'),
+              h(SpeedBars, { rows: data.speed.depois5g, max: maxSpeed })
+            )
+          ),
+          h('div', { className: 'card' },
+            h('h2', null, 'Latência'),
+            h('table', null,
+              h('thead', null, h('tr', null, h('th', null, 'Host'), h('th', null, 'avg ms'))),
+              h('tbody', null, data.speed.latencia.map((l) =>
+                h('tr', { key: l.host }, h('td', { className: 'mono' }, l.host), h('td', null, l.avgMs))
+              ))
+            )
+          ),
+          h('div', { className: 'card' },
+            h('h2', null, 'ISP / IP público'),
+            h('table', null,
+              h('tbody', null,
+                Object.entries(data.speed.isp).map(([k, v]) =>
+                  h('tr', { key: k }, h('th', null, k), h('td', { className: 'mono' }, String(v)))
+                )
+              )
+            ),
+            h('p', { style: { marginTop: '0.8rem' } },
+              h('span', { className: 'pill bad' }, 'Mestre speedtest mini'),
+              ' ', data.speed.mestreSpeedtestMini.status, ' — ', data.speed.mestreSpeedtestMini.motivo,
+              ' (', data.speed.mestreSpeedtestMini.valorEnganoso, ')'
+            )
+          )
+        );
+      }
+
+      if (section === 'lan') {
+        body = h(React.Fragment, null,
+          h('div', { className: 'card' },
+            h('h2', null, `Dispositivos em ${data.lan.rede}`),
+            h('table', null,
+              h('thead', null, h('tr', null,
+                h('th', null, 'IP'), h('th', null, 'MAC'), h('th', null, 'Vendor'), h('th', null, 'Papel'), h('th', null, 'ms')
+              )),
+              h('tbody', null, data.lan.dispositivos.map((d) =>
+                h('tr', { key: d.ip },
+                  h('td', { className: 'mono' }, d.ip),
+                  h('td', { className: 'mono' }, d.mac),
+                  h('td', null, d.vendor),
+                  h('td', null, d.papel),
+                  h('td', null, d.latMs)
+                )
+              ))
+            )
+          ),
+          h('div', { className: 'card' },
+            h('h2', null, 'Adaptadores ativos'),
+            h('table', null,
+              h('thead', null, h('tr', null, h('th', null, 'Nome'), h('th', null, 'Descrição'), h('th', null, 'Link'))),
+              h('tbody', null, data.lan.adaptadoresAtivos.map((a) =>
+                h('tr', { key: a.nome }, h('td', null, a.nome), h('td', null, a.desc), h('td', { className: 'mono' }, a.link))
+              ))
+            )
+          )
+        );
+      }
+
+      if (section === 'usuarios') {
+        body = h(React.Fragment, null,
+          h('div', { className: 'card' },
+            h('h2', null, 'Sessão'),
+            h('p', null, h('span', { className: 'pill ok' }, 'ativo'), ' ', data.usuarios.sessao, ' · ', data.usuarios.dominio)
+          ),
+          h('div', { className: 'grid2' },
+            h('div', { className: 'card' },
+              h('h2', null, 'Contas locais'),
+              h('table', null,
+                h('thead', null, h('tr', null, h('th', null, 'Nome'), h('th', null, 'Enabled'), h('th', null, 'LastLogon'))),
+                h('tbody', null, data.usuarios.contasLocais.map((u) =>
+                  h('tr', { key: u.nome },
+                    h('td', null, u.nome),
+                    h('td', null, u.enabled ? h('span', { className: 'pill ok' }, 'sim') : h('span', { className: 'pill warn' }, 'não')),
+                    h('td', { className: 'mono' }, u.lastLogon || '—')
+                  )
+                ))
+              )
+            ),
+            h('div', { className: 'card' },
+              h('h2', null, 'Processos por usuário'),
+              h('table', null,
+                h('thead', null, h('tr', null, h('th', null, 'User'), h('th', null, 'Count'))),
+                h('tbody', null, data.usuarios.processosPorUsuario.map((p) =>
+                  h('tr', { key: p.user }, h('td', { className: 'mono' }, p.user), h('td', null, p.count))
+                ))
+              )
+            )
+          )
+        );
+      }
+
+      if (section === 'vizinhanca') {
+        body = h('div', { className: 'card' },
+          h('h2', null, 'SSIDs visíveis (amostra)'),
+          h('table', null,
+            h('thead', null, h('tr', null,
+              h('th', null, 'SSID'), h('th', null, 'Banda'), h('th', null, 'Canal'), h('th', null, 'Sinal'), h('th', null, 'Nota')
+            )),
+            h('tbody', null, data.vizinhanca.map((v) =>
+              h('tr', { key: v.ssid + v.banda },
+                h('td', null, v.ssid),
+                h('td', null, v.banda),
+                h('td', { className: 'mono' }, String(v.canal)),
+                h('td', null, v.sinal),
+                h('td', { className: 'muted' }, v.nota || '—')
+              )
+            ))
+          )
+        );
+      }
+
+      if (section === 'codigos') {
+        body = h('div', { className: 'cmd-list' },
+          data.comandos.map((c) =>
+            h('div', { key: c.id, className: 'cmd-item' },
+              h('details', { open: c.id === 'analise-script' },
+                h('summary', null, c.titulo, ' ', h('span', { className: 'pill warn' }, c.shell)),
+                h('div', { className: 'body' }, h('pre', { className: 'code' }, c.codigo))
+              )
+            )
+          )
+        );
+      }
+
+      if (section === 'scripts') {
+        body = h(React.Fragment, null,
+          h('div', { className: 'card' },
+            h('h2', null, 'Arquivos desta pasta'),
+            h('pre', { className: 'code' },
+`analisar-rede-mestre.ps1     → coleta ao vivo + JSON live
+dados-coletados.json         → snapshot da sessão 31/10/2026
+dashboard-rede.html          → este dashboard (React CDN)
+web/                         → app Vite + React (npm run dev)
+scripts/gerar-escaping-ips.sh → gerador híbrido ipset/iptables (Linux/VPS)`
+            )
+          ),
+          h('div', { className: 'card' },
+            h('h2', null, 'Rodar a análise'),
+            h('pre', { className: 'code' },
+`cd $env:MESTRE_PROJETO_PATH\skills-globais\03-rede\analise-wifi-lan
+pwsh -NoProfile -File .\\analisar-rede-mestre.ps1`
+            )
+          ),
+          h('div', { className: 'card' },
+            h('h2', null, 'App Vite'),
+            h('pre', { className: 'code' },
+`cd web
+npm install
+npm run dev`
+            )
+          ),
+          h('div', { className: 'card' },
+            h('h2', null, 'Escaping IPs (Linux)'),
+            h('p', { className: 'muted' }, 'Corrige o bug do echo-só-na-tela: create + iptables vão para add_escaping_ips.sh.'),
+            h('pre', { className: 'code' },
+`# no VPS
+./scripts/gerar-escaping-ips.sh ./seu_banco.db
+sudo ./add_escaping_ips.sh`
+            )
+          )
+        );
+      }
+
+      return h('div', { className: 'shell' },
+        h('aside', { className: 'sidebar' },
+          h('div', { className: 'brand' },
+            h('strong', null, 'Mestre · Rede'),
+            h('span', null, 'Dashboard de análise Wi-Fi / LAN')
+          ),
+          h('nav', { className: 'nav' },
+            SECTIONS.map((s) =>
+              h('button', {
+                key: s.id,
+                className: section === s.id ? 'active' : '',
+                onClick: () => setSection(s.id),
+                type: 'button'
+              }, s.label)
+            )
+          )
+        ),
+        h('main', { className: 'main' },
+          h('div', { className: 'hero' },
+            h('div', null,
+              h('h1', null, SECTIONS.find((s) => s.id === section)?.label || 'Dashboard'),
+              h('p', null, 'Dados da sessão Nitro + REDE-24 / REDE-5G — seções para repartir o relatório.')
+            ),
+            h('div', { className: 'badge' }, data.meta.coletadoEm, ' · ', data.wifi.depois.ssid)
+          ),
+          body,
+          h('p', { className: 'footnote' },
+            'Throughput calculado como (bytes × 8) / segundos / 1e6. Link PHY (netsh) não é a velocidade do provedor. ',
+            'IP público e OUI podem mudar; reexecute o script para atualizar o live JSON.'
+          )
+        )
+      );
+    }
+
+    // Load React without broken SRI
+    function boot() {
+      if (!window.React || !window.ReactDOM) {
+        const s1 = document.createElement('script');
+        s1.src = 'https://unpkg.com/react@18.3.1/umd/react.production.min.js';
+        s1.onload = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js';
+          s2.onload = () => ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+          document.body.appendChild(s2);
+        };
+        document.body.appendChild(s1);
+        return;
+      }
+      ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+    }
+    boot();
+  </script>
+</body>
+</html>
+
