@@ -1694,6 +1694,45 @@
           ["📊 Status do Computer Use", "__CU_STATUS__"],
         ],
       },
+      {
+        id: "cat_browser",
+        label: "19. Navegador / DevTools",
+        isNew: true,
+        subcategories: [
+          {
+            label: "⚡ Speedtest",
+            cmds: [
+              ["Speedtest mini (Cloudflare/GitHub)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action speedtest-mini"],
+              ["Abrir Speedtest no navegador", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action open-speedtest"],
+            ],
+          },
+          {
+            label: "🧰 DevTools",
+            cmds: [
+              ["Configuração DevTools / CDP", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action config-devtools"],
+              ["Abrir páginas internas DevTools", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action open-devtools-pages"],
+              ["Analisar DevTools (CDP)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action analisar-devtools"],
+              ["Iniciar Edge com CDP", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action iniciar-edge-cdp"],
+            ],
+          },
+          {
+            label: "🧠 Memória virtual",
+            cmds: [
+              ["Memória dos processos do navegador", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action memoria-processos"],
+              ["Memória virtual do navegador", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action memoria-virtual"],
+            ],
+          },
+          {
+            label: "🚀 Velocidade e abas",
+            cmds: [
+              ["Melhorar velocidade do navegador", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action melhorar-velocidade"],
+              ["Listar abas (CDP)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action listar-abas"],
+              ["Fechar abas descartáveis (CDP)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action fechar-abas-descartaveis"],
+              ["Instalar extensão do Mestre (pasta)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action abrir-extensao-pasta"],
+            ],
+          },
+        ],
+      },
 
       ];
       // Render navigation
@@ -1743,6 +1782,7 @@
         /SetSuspendState/i,
         /shutdown\s+\/[rshl]/i,
         /git\s+(push|stash\s+pop)/i,
+        /fechar-abas-descartaveis/i,
       ];
       function isDangerous(cmd) { return DANGER_PATTERNS.some((re) => re.test(cmd)); }
 
@@ -1863,7 +1903,7 @@
         });
         return cards;
       }
-      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web", "cat_computer_use"];
+      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web", "cat_computer_use", "cat_browser"];
       CATS.forEach((c) => {
         const div = document.createElement("div");
         div.className = "category";

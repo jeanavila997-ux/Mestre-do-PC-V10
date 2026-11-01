@@ -46,6 +46,11 @@
     { id: "scan_rapido_com_defender", title: "Scan Rápido com Defender", category: "Defender", description: "Varredura rápida", destructive: false },
     { id: "listar_startups_do_sistema", title: "Listar Startups do Sistema", category: "Outros", description: "Itens na inicialização", destructive: false },
     { id: "verificar_processos_node_ativos", title: "Verificar Processos Node.js Ativos", category: "Node.js", description: "Node em execução", destructive: false },
+    { id: "browser_speedtest_mini", title: "Speedtest mini (Cloudflare/GitHub)", category: "Navegador", description: "Mbps via Cloudflare/GitHub", destructive: false },
+    { id: "browser_memoria_processos", title: "Memória dos processos do navegador", category: "Navegador", description: "RAM de Edge/Chrome", destructive: false },
+    { id: "browser_melhorar_velocidade", title: "Melhorar velocidade do navegador", category: "Navegador", description: "Flush DNS + relatório", destructive: false },
+    { id: "browser_listar_abas", title: "Listar abas (CDP)", category: "Navegador", description: "Abas via DevTools Protocol", destructive: false },
+    { id: "browser_abrir_extensao_pasta", title: "Instalar extensão do Mestre", category: "Navegador", description: "Abre pasta unpacked", destructive: false },
   ];
   /** Prompts já no menu (Mais → Prontos) e chips do Chat. */
   const BUILTIN_PROMPTS = [

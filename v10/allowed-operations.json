@@ -2823,6 +2823,102 @@
       "destructive": false,
       "command": "Set-Location $env:USERPROFILE\\Projetos\\Mestre-do-PC-V10; npx -y skills add https://github.com/firecrawl/skills.git --all -y",
       "description": "Instala as 37 skills Firecrawl nos agentes."
+    },
+    {
+      "id": "browser_speedtest_mini",
+      "title": "Speedtest mini (Cloudflare/GitHub)",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action speedtest-mini",
+      "description": "Mede Mbps com download Cloudflare/GitHub (sem Tele2)."
+    },
+    {
+      "id": "browser_abrir_speedtest",
+      "title": "Abrir Speedtest no navegador",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action open-speedtest",
+      "description": "Abre fast.com e speed.cloudflare.com."
+    },
+    {
+      "id": "browser_devtools_config",
+      "title": "Configuração DevTools / CDP",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action config-devtools",
+      "description": "Mostra porta CDP 9222, atalhos F12 e flags do navegador."
+    },
+    {
+      "id": "browser_abrir_paginas_devtools",
+      "title": "Abrir páginas internas DevTools",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action open-devtools-pages",
+      "description": "Abre gpu, discards, system e memory no Edge/Chrome."
+    },
+    {
+      "id": "browser_memoria_processos",
+      "title": "Memória dos processos do navegador",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action memoria-processos",
+      "description": "Soma RAM (Working Set) de Edge, Chrome e WebView2."
+    },
+    {
+      "id": "browser_memoria_virtual",
+      "title": "Memória virtual do navegador",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action memoria-virtual",
+      "description": "RAM, pagefile, commit e Memory Compression ligados ao navegador."
+    },
+    {
+      "id": "browser_melhorar_velocidade",
+      "title": "Melhorar velocidade do navegador",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action melhorar-velocidade",
+      "description": "Flush DNS e relatório seguro (não mata o navegador)."
+    },
+    {
+      "id": "browser_listar_abas",
+      "title": "Listar abas (CDP)",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action listar-abas",
+      "description": "Lista abas via Chrome DevTools Protocol em 127.0.0.1:9222."
+    },
+    {
+      "id": "browser_fechar_abas_descartaveis",
+      "title": "Fechar abas descartáveis (CDP)",
+      "category": "Navegador",
+      "destructive": true,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action fechar-abas-descartaveis",
+      "description": "Fecha newtab/about:blank no CDP. Abas de trabalho ficam."
+    },
+    {
+      "id": "browser_analisar_devtools",
+      "title": "Analisar DevTools (CDP)",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action analisar-devtools",
+      "description": "Resume alvos CDP, WebSockets e checklist Performance/Memory."
+    },
+    {
+      "id": "browser_iniciar_edge_cdp",
+      "title": "Iniciar Edge com CDP",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action iniciar-edge-cdp",
+      "description": "Sobe Edge isolado com --remote-debugging-port=9222."
+    },
+    {
+      "id": "browser_abrir_extensao_pasta",
+      "title": "Instalar extensão do Mestre (pasta)",
+      "category": "Navegador",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action abrir-extensao-pasta",
+      "description": "Copia o caminho da extensão, abre a pasta e edge://extensions."
     }
   ],
   "templates": [

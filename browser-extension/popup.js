@@ -4,6 +4,13 @@
  */
 
 import { getSettings, localBaseUrl, fetchLocal as fetchWithTimeout } from "./settings.js";
+import {
+  summarizeMemory,
+  closeJunkTabs,
+  closeDuplicateTabs,
+  discardInactiveTabs,
+  openSpeedtest,
+} from "./tab-actions.js";
 
 const UI = {
   launcherDot: document.getElementById("launcherDot"),
@@ -15,6 +22,11 @@ const UI = {
   message: document.getElementById("message"),
   btnDiagnostico: document.getElementById("btnDiagnostico"),
   btnLimpeza: document.getElementById("btnLimpeza"),
+  btnSpeedtest: document.getElementById("btnSpeedtest"),
+  btnListarAbas: document.getElementById("btnListarAbas"),
+  btnFecharLixo: document.getElementById("btnFecharLixo"),
+  btnDuplicadas: document.getElementById("btnDuplicadas"),
+  btnDiscard: document.getElementById("btnDiscard"),
   btnEnviarPagina: document.getElementById("btnEnviarPagina"),
   btnOptions: document.getElementById("btnOptions"),
   linkOpenApp: document.getElementById("linkOpenApp"),
@@ -159,9 +171,55 @@ async function sendPageToAI(settings) {
 function wireActions() {
   if (wireActions.done) return;
   wireActions.done = true;
-  UI.btnDiagnostico.addEventListener("click", () => getSettings().then(settings => runLauncherCommand("diagnostico_completo", settings)).catch(e => showMessage(e.message)));
-  UI.btnLimpeza.addEventListener("click", () => getSettings().then(settings => runLauncherCommand("limpeza_rapida_completa", settings)).catch(e => showMessage(e.message)));
-  UI.btnEnviarPagina.addEventListener("click", () => getSettings().then(sendPageToAI).catch(e => showMessage(e.message)));
+  UI.btnDiagnostico.addEventListener("click", async () => {
+    try {
+      const settings = await getSettings();
+      await runLauncherCommand("diagnostico_completo", settings);
+    } catch (e) { showMessage(e.message); }
+  });
+  UI.btnLimpeza.addEventListener("click", async () => {
+    try {
+      const settings = await getSettings();
+      await runLauncherCommand("limpeza_rapida_completa", settings);
+    } catch (e) { showMessage(e.message); }
+  });
+  UI.btnSpeedtest.addEventListener("click", async () => {
+    try {
+      await openSpeedtest();
+      showMessage("fast.com e Cloudflare Speedtest abertos.", "success");
+    } catch (e) { showMessage(e.message); }
+  });
+  UI.btnListarAbas.addEventListener("click", async () => {
+    try {
+      const s = await summarizeMemory();
+      const hosts = s.topHosts.map(([h, n]) => `${h} (${n})`).join(", ");
+      showMessage(`Abas: ${s.total} · descartadas: ${s.discarded} · pin: ${s.pinned} · áudio: ${s.audible}. Hosts: ${hosts}`, "success");
+    } catch (e) { showMessage(e.message); }
+  });
+  UI.btnFecharLixo.addEventListener("click", async () => {
+    try {
+      const r = await closeJunkTabs();
+      showMessage(`Fechou ${r.closed} aba(s) sucata. Restam ${r.remaining}.`, "success");
+    } catch (e) { showMessage(e.message); }
+  });
+  UI.btnDuplicadas.addEventListener("click", async () => {
+    try {
+      const r = await closeDuplicateTabs();
+      showMessage(`Fechou ${r.closed} aba(s) duplicada(s).`, "success");
+    } catch (e) { showMessage(e.message); }
+  });
+  UI.btnDiscard.addEventListener("click", async () => {
+    try {
+      const r = await discardInactiveTabs();
+      showMessage(`Descartou ${r.discarded} aba(s) inativa(s) da RAM.`, "success");
+    } catch (e) { showMessage(e.message); }
+  });
+  UI.btnEnviarPagina.addEventListener("click", async () => {
+    try {
+      const settings = await getSettings();
+      await sendPageToAI(settings);
+    } catch (e) { showMessage(e.message); }
+  });
   UI.btnOptions.addEventListener("click", () => chrome.runtime.openOptionsPage());
   UI.linkOpenApp.addEventListener("click", async (e) => {
     e.preventDefault();

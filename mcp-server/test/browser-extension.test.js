@@ -142,6 +142,7 @@ test("manifest da extensao eh JSON valido e declara permissoes minimas", async (
   assert.equal(manifest.manifest_version, 3);
   assert.ok(manifest.permissions.includes("storage"));
   assert.ok(manifest.permissions.includes("activeTab"));
+  assert.ok(manifest.permissions.includes("tabs"));
   assert.ok(manifest.host_permissions.includes("http://127.0.0.1:7777/*"));
   assert.ok(manifest.action.default_popup);
   assert.ok(manifest.background.service_worker);

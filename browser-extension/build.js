@@ -42,6 +42,7 @@ const filesToInclude = [
   "popup.html",
   "popup.js",
   "background.js",
+  "tab-actions.js",
   "settings.js",
   "options.html",
   "options.js",

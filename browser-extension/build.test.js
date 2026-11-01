@@ -36,7 +36,7 @@ test("pacotes incluem manifesto correto, recursos e metadados validos", () => {
       }
       const resources = [manifest.action.default_popup, manifest.options_page,
         ...(manifest.background.scripts || [manifest.background.service_worker]),
-        ...(manifest.content_scripts || []).flatMap((script) => script.js), "settings.js"];
+        ...(manifest.content_scripts || []).flatMap((script) => script.js), "settings.js", "tab-actions.js"];
       assert.equal(manifest.content_scripts, undefined);
       assert.equal(manifest.web_accessible_resources, undefined);
       for (const file of resources) assert.ok(existsSync(join(unpacked, file)), file);

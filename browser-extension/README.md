@@ -6,8 +6,10 @@ Extensão Manifest V3 para integrar o navegador com o **Mestre do PC V10** e, op
 
 - Ver status do Launcher, Ollama e Chat Hub.
 - Executar comandos rápidos pelo popup: diagnóstico, limpeza, enviar página para IA.
-- Menu de contexto: diagnóstico, limpeza e análise de texto selecionado.
+- Speedtest (fast.com + Cloudflare), listar/memória das abas, fechar sucata/duplicadas, descartar inativas.
+- Menu de contexto: diagnóstico, limpeza, speedtest, abas e análise de texto selecionado.
 - Configuração segura por token (`MESTRE_EXTENSION_TOKEN`).
+- Atalho de instalação unpacked: `pwsh -File browser-extension/INSTALAR-UNPACKED.ps1`.
 
 ## Segurança
 

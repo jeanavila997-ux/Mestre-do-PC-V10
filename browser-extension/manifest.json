@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Mestre do PC - Integração",
-  "version": "1.0.2",
-  "description": "Integra o navegador com o Mestre do PC V10 e outros apps locais como Chat Hub.",
+  "version": "1.1.0",
+  "description": "Integra o navegador com o Mestre do PC: abas, speedtest, memória e o launcher local.",
   "permissions": [
     "storage",
     "activeTab",
+    "tabs",
     "contextMenus",
     "scripting",
     "notifications"

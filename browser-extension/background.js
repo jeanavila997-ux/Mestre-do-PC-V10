@@ -4,6 +4,13 @@
  */
 
 import { getSettings, fetchLocal as fetchWithTimeout } from "./settings.js";
+import {
+  summarizeMemory,
+  closeJunkTabs,
+  closeDuplicateTabs,
+  discardInactiveTabs,
+  openSpeedtest,
+} from "./tab-actions.js";
 
 async function sendToLauncher(id, params = {}) {
   const settings = await getSettings();
@@ -54,57 +61,60 @@ async function sendSelectionToAI(text, pageUrl, pageTitle) {
   return data.message?.content || "Sem resposta.";
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "mestre-diagnostico",
-    title: "🖥️ Mestre do PC: Diagnóstico rápido",
-    contexts: ["page", "selection"],
+function notify(title, message) {
+  return chrome.notifications.create({
+    type: "basic",
+    iconUrl: "icons/icon128.png",
+    title,
+    message: String(message).slice(0, 180),
   });
-  chrome.contextMenus.create({
-    id: "mestre-limpeza",
-    title: "🧹 Mestre do PC: Limpeza rápida",
-    contexts: ["page", "selection"],
-  });
-  chrome.contextMenus.create({
-    id: "mestre-analisar-texto",
-    title: "🧠 Mestre do PC: Analisar com IA",
-    contexts: ["selection"],
-  });
+}
+
+chrome.runtime.onInstalled.addListener(async () => {
+  await chrome.contextMenus.removeAll();
+  const items = [
+    { id: "mestre-diagnostico", title: "🖥️ Mestre do PC: Diagnóstico rápido", contexts: ["page", "selection"] },
+    { id: "mestre-limpeza", title: "🧹 Mestre do PC: Limpeza rápida", contexts: ["page", "selection"] },
+    { id: "mestre-speedtest", title: "⚡ Mestre do PC: Speedtest", contexts: ["page"] },
+    { id: "mestre-abas-memoria", title: "🧠 Mestre do PC: Memória das abas", contexts: ["page"] },
+    { id: "mestre-fechar-lixo", title: "🗑️ Mestre do PC: Fechar abas sucata", contexts: ["page"] },
+    { id: "mestre-duplicadas", title: "📑 Mestre do PC: Fechar duplicadas", contexts: ["page"] },
+    { id: "mestre-discard", title: "💤 Mestre do PC: Descartar abas inativas", contexts: ["page"] },
+    { id: "mestre-analisar-texto", title: "🧠 Mestre do PC: Analisar com IA", contexts: ["selection"] },
+  ];
+  for (const item of items) {
+    chrome.contextMenus.create(item);
+  }
 });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   try {
     if (info.menuItemId === "mestre-diagnostico") {
       await sendToLauncher("diagnostico_completo");
-      await chrome.notifications.create({
-        type: "basic",
-        iconUrl: "icons/icon128.png",
-        title: "Mestre do PC",
-        message: "Diagnóstico iniciado no app local.",
-      });
+      await notify("Mestre do PC", "Diagnóstico iniciado no app local.");
     } else if (info.menuItemId === "mestre-limpeza") {
       await sendToLauncher("limpeza_rapida_completa");
-      await chrome.notifications.create({
-        type: "basic",
-        iconUrl: "icons/icon128.png",
-        title: "Mestre do PC",
-        message: "Limpeza rápida iniciada no app local.",
-      });
+      await notify("Mestre do PC", "Limpeza rápida iniciada no app local.");
+    } else if (info.menuItemId === "mestre-speedtest") {
+      await openSpeedtest();
+      await notify("Mestre do PC", "Speedtest aberto (fast.com + Cloudflare).");
+    } else if (info.menuItemId === "mestre-abas-memoria") {
+      const s = await summarizeMemory();
+      await notify("Mestre do PC", `Abas: ${s.total} · descartadas: ${s.discarded} · pin: ${s.pinned}.`);
+    } else if (info.menuItemId === "mestre-fechar-lixo") {
+      const r = await closeJunkTabs();
+      await notify("Mestre do PC", `Fechou ${r.closed} aba(s) sucata.`);
+    } else if (info.menuItemId === "mestre-duplicadas") {
+      const r = await closeDuplicateTabs();
+      await notify("Mestre do PC", `Fechou ${r.closed} duplicada(s).`);
+    } else if (info.menuItemId === "mestre-discard") {
+      const r = await discardInactiveTabs();
+      await notify("Mestre do PC", `Descartou ${r.discarded} aba(s) inativa(s).`);
     } else if (info.menuItemId === "mestre-analisar-texto" && info.selectionText) {
       const answer = await sendSelectionToAI(info.selectionText, tab.url, tab.title);
-      await chrome.notifications.create({
-        type: "basic",
-        iconUrl: "icons/icon128.png",
-        title: "Mestre do PC - Análise",
-        message: answer.slice(0, 120) + (answer.length > 120 ? "..." : ""),
-      });
+      await notify("Mestre do PC - Análise", answer);
     }
   } catch (e) {
-    await chrome.notifications.create({
-      type: "basic",
-      iconUrl: "icons/icon128.png",
-      title: "Mestre do PC - Erro",
-      message: e.message,
-    });
+    await notify("Mestre do PC - Erro", e.message);
   }
 });
