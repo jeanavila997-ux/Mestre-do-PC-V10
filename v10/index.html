@@ -884,6 +884,9 @@
           <a href="/novidades-v11.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#00d4ff,#00ff88);color:#000;font-weight:700" title="Ver novidades da V11.2">🎉 Novidades V11.2</button></a>
           <a href="/gerenciar-comandos.html" style="text-decoration:none"><button class="btn-open-ps" style="background:linear-gradient(135deg,#a200ff,#00d4ff);color:#fff;font-weight:700" title="Editar, ativar e desativar comandos e ferramentas">⚙️ Gerenciar</button></a>
           <button class="btn-open-ps" onclick="openPS()">⚡ PowerShell</button>
+          <button class="btn-open-ps" onclick="openAgent('opencode')" title="Abrir OpenCode no terminal">OpenCode</button>
+          <button class="btn-open-ps" onclick="openAgent('grok')" title="Abrir Grok CLI no terminal">Grok CLI</button>
+          <button class="btn-open-ps" onclick="openAgent('copilot')" title="Abrir GitHub Copilot CLI">Copilot</button>
           <button class="btn-open-ps btn-ia-local" onclick="mestreChat.open()">🤖 IA Local</button>
           <button class="btn-open-ps btn-stop" id="btnPower" onclick="togglePower()" title="Parar o launcher (encerra o servidor local)">⏻ Parar</button>
         </div>
@@ -1621,6 +1624,29 @@
         ],
       },
       {
+        id: "cat_agentes_cli",
+        label: "20. Agentes CLI",
+        subcategories: [
+          {
+            label: "Status e instalação",
+            cmds: [
+              ["Status dos agentes CLI", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action status"],
+              ["Instalar / atualizar OpenCode (v2)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action install-opencode"],
+              ["Status llama.cpp (:8080)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action llamacpp-status"],
+            ],
+          },
+          {
+            label: "Abrir no terminal do Mestre",
+            cmds: [
+              ["Abrir OpenCode", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action opencode"],
+              ["Abrir Grok CLI", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action grok"],
+              ["Abrir OMP", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action omp"],
+              ["Abrir GitHub Copilot CLI", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action copilot"],
+            ],
+          },
+        ],
+      },
+      {
         id: "cat_nodejs",
         label: "🟢 Node.js",
         cmds: [
@@ -1903,7 +1929,7 @@
         });
         return cards;
       }
-      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web", "cat_computer_use", "cat_browser"];
+      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web", "cat_computer_use", "cat_browser", "cat_agentes_cli"];
       CATS.forEach((c) => {
         const div = document.createElement("div");
         div.className = "category";
@@ -2828,13 +2854,22 @@
       }
 
       async function openPS() {
+        await openAgent("pwsh");
+      }
+      async function openAgent(agent) {
         if (serverOnline === false) { showToast("ℹ️ Execute o Launcher como Administrador primeiro.", "#00d4ff"); checkServer(); return; }
-        showToast("⚡ Abrindo PowerShell admin...", "#00d4ff");
+        const label = agent === "pwsh" ? "PowerShell" : agent;
+        showToast("⚡ Abrindo " + label + "...", "#00d4ff");
         try {
-          const res = await fetch(API + "/open-terminal", { method: "POST", headers: { "X-Mestre-Client": "v10-web" }, signal: AbortSignal.timeout(10000) });
+          const res = await fetch(API + "/open-terminal", {
+            method: "POST",
+            headers: { ...PRIVILEGED_HEADERS, "Content-Type": "application/json" },
+            body: JSON.stringify({ agent }),
+            signal: AbortSignal.timeout(10000),
+          });
           const data = await res.json();
           if (res.ok === false || data.success !== true) throw new Error(data.output || "Falha ao abrir o terminal.");
-          showToast("✅ Terminal admin aberto.", "var(--accent2)");
+          showToast("✅ Terminal " + label + " aberto.", "var(--accent2)");
         } catch (err) { showToast("❌ " + err.message, "#f85149"); }
       }
       // ===== LIGA/DESLIGA DO LAUNCHER =====

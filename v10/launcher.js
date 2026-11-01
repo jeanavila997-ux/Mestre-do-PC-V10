@@ -894,8 +894,25 @@ const server = http.createServer(async (req, res) => {
 
     if (path === "/open-terminal" && req.method === "POST") {
       if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado." }, allowedOrigin);
-      spawn("powershell.exe", ["-NoLogo", "-NoExit", "-Command", "Set-Location '" + __dirname.replace(/'/g, "''") + "'"], { windowsHide: false, detached: true, stdio: "ignore" }).unref();
-      return sendJson(res, 200, { success: true, output: "Terminal aberto." }, allowedOrigin);
+      const body = await readBody(req, 16 * 1024);
+      const agent = String(body.agent || "pwsh").toLowerCase();
+      const allowedAgents = new Set(["pwsh", "opencode", "grok", "omp", "copilot", "llamacpp"]);
+      if (!allowedAgents.has(agent)) {
+        return sendJson(res, 400, { success: false, output: "Agente de terminal não permitido: " + agent }, allowedOrigin);
+      }
+      if (agent === "pwsh") {
+        spawn("powershell.exe", ["-NoLogo", "-NoExit", "-Command", "Set-Location '" + __dirname.replace(/'/g, "''") + "'"], { windowsHide: false, detached: true, stdio: "ignore" }).unref();
+      } else {
+        const script = join(PROJECT_DIR, "scripts", "cli-agents.ps1");
+        const action = agent === "llamacpp" ? "llamacpp-status" : agent;
+        spawn("pwsh.exe", ["-NoProfile", "-File", script, "-Action", action], {
+          windowsHide: false,
+          detached: true,
+          stdio: "ignore",
+          env: { ...process.env, MESTRE_PROJETO_PATH: PROJECT_DIR },
+        }).unref();
+      }
+      return sendJson(res, 200, { success: true, output: "Terminal aberto: " + agent }, allowedOrigin);
     }
 
     // Notepad++ integration endpoint

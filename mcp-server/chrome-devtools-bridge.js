@@ -66,11 +66,18 @@ function resolveChromeDevToolsEntry() {
  * Monta os argumentos de linha de comando do chrome-devtools-mcp.
  * Padrao: headless (nao abre janela de Chrome ao subir o Mestre).
  * CHROME_DEVTOOLS_HEADLESS=0 -> abre o Chrome visivel.
+ * CHROME_DEVTOOLS_AUTOCONNECT=1 -> go/chrome-devtools:taskflow (Chrome 144+):
+ * anexa à instância já aberta. Não combina com --headless.
  */
 function buildArgs(entry) {
   const args = [entry, "--no-usage-statistics"];
-  const headless = String(process.env.CHROME_DEVTOOLS_HEADLESS ?? "1") !== "0";
-  if (headless) args.push("--headless");
+  const autoConnect = String(process.env.CHROME_DEVTOOLS_AUTOCONNECT ?? "0") === "1";
+  if (autoConnect) {
+    args.push("--autoConnect");
+  } else {
+    const headless = String(process.env.CHROME_DEVTOOLS_HEADLESS ?? "1") !== "0";
+    if (headless) args.push("--headless");
+  }
   const exe = process.env.CHROME_DEVTOOLS_EXECUTABLE_PATH;
   if (exe && String(exe).trim()) args.push("--executablePath", String(exe).trim());
   const channel = process.env.CHROME_DEVTOOLS_CHANNEL;

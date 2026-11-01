@@ -8,14 +8,20 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = process.env.MPC_PROVIDERS_FILE || join(__dirname, "..", "data", "providers.json");
 
 export const CATALOG = {
-  grok:     { name: "Grok (xAI)",      type: "openai", baseUrl: "https://api.x.ai/v1",           model: "grok-4.7",                      envKey: "XAI_API_KEY",        implemented: true },
-  "9router":{ name: "9Router",          type: "openai", baseUrl: "http://127.0.0.1:20128/v1",     model: "gcli/grok-4.7-build-fast",     envKey: "NINEROUTER_API_KEY", implemented: true },
-  ollama:   { name: "Ollama (local)",   type: "ollama", baseUrl: "http://127.0.0.1:11434",        model: "qwen2.5-coder:3b-instruct",    envKey: null,                 implemented: true },
-  opencode: { name: "OpenCode (Zen)",   type: "openai", baseUrl: "https://opencode.ai/zen/v1",    model: "",                            envKey: "OPENCODE_API_KEY",   implemented: true },
-  openai:   { name: "OpenAI",           type: "openai", baseUrl: "https://api.openai.com/v1",     model: "gpt-4o-mini",                 envKey: "OPENAI_API_KEY",     implemented: true },
-  claude:   { name: "Claude / Claude Code", type: "anthropic", baseUrl: "https://api.anthropic.com/v1", model: "claude-sonnet-4",      envKey: "ANTHROPIC_API_KEY",  implemented: true },
-  gemini:   { name: "Gemini",           type: "openai", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.5-flash", envKey: "GEMINI_API_KEY", implemented: true },
-  firecrawl:{ name: "Firecrawl (web scraping)", type: "firecrawl", baseUrl: "https://api.firecrawl.dev/v2", model: "", envKey: "FIRECRAWL_API_KEY", implemented: true },
+  grok:      { name: "Grok (xAI)",      type: "openai",     baseUrl: "https://api.x.ai/v1",           model: "grok-4.7",                   envKey: "XAI_API_KEY",        implemented: true },
+  "9router": { name: "9Router",          type: "openai",     baseUrl: "http://127.0.0.1:20128/v1",     model: "gcli/grok-4.7-build-fast",  envKey: "NINEROUTER_API_KEY", implemented: true, local: true },
+  ollama:    { name: "Ollama (local)",   type: "ollama",     baseUrl: "http://127.0.0.1:11434",        model: "qwen2.5-coder:3b-instruct", envKey: null,                 implemented: true, local: true },
+  llamacpp:  { name: "llama.cpp",        type: "openai",     baseUrl: "http://127.0.0.1:8080/v1",      model: "",                         envKey: null,                 implemented: true, local: true },
+  lmstudio:  { name: "LM Studio",        type: "openai",     baseUrl: "http://127.0.0.1:1234/v1",      model: "",                         envKey: null,                 implemented: true, local: true },
+  opencode:  { name: "OpenCode (Zen)",   type: "openai",     baseUrl: "https://opencode.ai/zen/v1",    model: "",                         envKey: "OPENCODE_API_KEY",   implemented: true },
+  openai:    { name: "OpenAI",           type: "openai",     baseUrl: "https://api.openai.com/v1",     model: "gpt-4o-mini",              envKey: "OPENAI_API_KEY",     implemented: true },
+  claude:    { name: "Claude / Claude Code", type: "anthropic", baseUrl: "https://api.anthropic.com/v1", model: "claude-sonnet-4",       envKey: "ANTHROPIC_API_KEY",  implemented: true },
+  gemini:    { name: "Gemini",           type: "openai",     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.5-flash", envKey: "GEMINI_API_KEY", implemented: true },
+  groq:      { name: "Groq",             type: "openai",     baseUrl: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile", envKey: "GROQ_API_KEY",       implemented: true },
+  mistral:   { name: "Mistral",          type: "openai",     baseUrl: "https://api.mistral.ai/v1",     model: "mistral-small-latest",     envKey: "MISTRAL_API_KEY",    implemented: true },
+  deepseek:  { name: "DeepSeek",         type: "openai",     baseUrl: "https://api.deepseek.com/v1",   model: "deepseek-chat",            envKey: "DEEPSEEK_API_KEY",   implemented: true },
+  openrouter:{ name: "OpenRouter",       type: "openai",     baseUrl: "https://openrouter.ai/api/v1",  model: "openrouter/auto",          envKey: "OPENROUTER_API_KEY", implemented: true },
+  firecrawl: { name: "Firecrawl (web scraping)", type: "firecrawl", baseUrl: "https://api.firecrawl.dev/v2", model: "", envKey: "FIRECRAWL_API_KEY", implemented: true },
 };
 
 function load() {
@@ -39,8 +45,9 @@ export function getProvider(id) {
     id, ...base,
     baseUrl: saved.baseUrl || base.baseUrl,
     model: saved.model || base.model,
-    enabled: saved.enabled ?? (id === "ollama" || !!apiKey || id === "9router"),
+    enabled: saved.enabled ?? (!!base.local || !!apiKey),
     apiKey,
+    local: !!base.local,
   };
 }
 
@@ -51,7 +58,8 @@ export function listProviders() {
     providers: Object.keys(CATALOG).map((id) => {
       const p = getProvider(id);
       return { id, name: p.name, implemented: p.implemented, enabled: p.enabled, baseUrl: p.baseUrl,
-               model: p.model, hasKey: !!p.apiKey, keyMasked: mask(p.apiKey), envKey: p.envKey };
+               model: p.model, hasKey: !!p.apiKey, keyMasked: mask(p.apiKey), envKey: p.envKey,
+               local: !!p.local, needsKey: !p.local && p.type !== "ollama" && p.type !== "firecrawl" };
     }),
   };
 }
@@ -117,13 +125,13 @@ export async function testProvider(id) {
 
 // Chat não-streaming. messages = [{role, content}]
 export async function chat(messages, { provider, model, temperature } = {}) {
-  const order = [provider || listProviders().defaultProvider, "grok", "9router", "openai", "gemini", "claude", "opencode", "ollama"]
+  const order = [provider || listProviders().defaultProvider, "grok", "9router", "openai", "gemini", "claude", "opencode", "groq", "mistral", "deepseek", "openrouter", "llamacpp", "lmstudio", "ollama"]
     .filter((v, i, a) => v && a.indexOf(v) === i);
   let lastErr;
   for (const id of order) {
     const p = getProvider(id);
     if (!p || !p.implemented || !p.enabled || p.type === "firecrawl") continue;
-    if (p.type !== "ollama" && id !== "9router" && !p.apiKey) continue;
+    if (!p.local && p.type !== "ollama" && !p.apiKey) continue;
     try {
       const useModel = (id === (provider || order[0]) && model) || p.model;
       if (p.type === "anthropic") {
@@ -158,7 +166,7 @@ export async function chat(messages, { provider, model, temperature } = {}) {
 export async function chatStream(messages, res, { provider, model } = {}) {
   const id = provider || listProviders().defaultProvider;
   const p = getProvider(id);
-  if (!p || !p.implemented || p.type !== "openai") throw new Error("Streaming disponível para provedores compatíveis com OpenAI (Grok, 9Router, OpenAI, Gemini, OpenCode)");
+  if (!p || !p.implemented || p.type !== "openai") throw new Error("Streaming disponível para provedores compatíveis com OpenAI (Grok, 9Router, llama.cpp, LM Studio, Groq, Mistral, DeepSeek, OpenRouter, OpenAI, Gemini, OpenCode)");
   const r = await fetch(p.baseUrl + "/chat/completions", { method: "POST", headers: headers(p),
     body: JSON.stringify({ model: model || p.model, messages, stream: true }) });
   if (!r.ok || !r.body) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));

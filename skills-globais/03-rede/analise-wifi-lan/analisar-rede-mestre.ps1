@@ -64,10 +64,10 @@ function Measure-CloudflareDownload([int]$Bytes) {
     $sw.Stop()
     $size = (Get-Item $tmp).Length
     $mbps = [math]::Round(($size * 8.0) / $sw.Elapsed.TotalSeconds / 1000000.0, 1)
-    $mBps = [math]::Round($size / $sw.Elapsed.TotalSeconds / 1MB, 2)
+    $megaPerSec = [math]::Round($size / $sw.Elapsed.TotalSeconds / 1MB, 2)
     return [pscustomobject]@{
       Ok = $true; Bytes = $size; Seconds = [math]::Round($sw.Elapsed.TotalSeconds, 2)
-      Mbps = $mbps; MBps = $mBps; Url = $url
+      BitrateMbps = $mbps; MegaBytesPerSec = $megaPerSec; Url = $url
     }
   } catch {
     $sw.Stop()
@@ -149,7 +149,7 @@ $speed = $null
 if (-not $SkipSpeed) {
   Write-Section "SPEED Cloudflare ($CfBytes bytes)"
   $dl = Measure-CloudflareDownload -Bytes $CfBytes
-  if ($dl.Ok) { "Download: $($dl.Mbps) Mbps ($($dl.MBps) MB/s) em $($dl.Seconds)s" }
+  if ($dl.Ok) { "Download: $($dl.BitrateMbps) Mbps ($($dl.MegaBytesPerSec) MB/s) em $($dl.Seconds)s" }
   else { "Download FALHOU: $($dl.Error)" }
   $ul = Measure-CloudflareUpload -SizeBytes 1048576
   if ($ul.Ok) { "Upload: $($ul.Mbps) Mbps em $($ul.Seconds)s" }

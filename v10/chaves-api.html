@@ -32,10 +32,10 @@ function card(p,def){
   const soon=!p.implemented;
   return `<div class="card ${p.enabled?'':'off'}" data-id="${p.id}">
    <div class="head"><b>${p.name}</b>
-    ${(p.hasKey||p.id==='ollama'?'<span class="tag ok">configurado</span>':'<span class="tag">sem chave</span>')}
+    ${(p.hasKey||p.local?'<span class="tag ok">'+(p.local?'local':'configurado')+'</span>':'<span class="tag">sem chave</span>')}
     ${def===p.id?'<span class="tag ok">padrão</span>':''}</div>
    <label>Base URL</label><input name="baseUrl" value="${p.baseUrl||''}">
-   ${p.id==='ollama'?'':`<label>API key ${p.envKey?'(ou variável '+p.envKey+')':''}</label><input name="apiKey" type="password" placeholder="${p.keyMasked||'cole a chave aqui'}">`}
+   ${p.local&&!p.envKey?'':`<label>API key ${p.envKey?'(ou variável '+p.envKey+')':''}</label><input name="apiKey" type="password" placeholder="${p.keyMasked||'cole a chave aqui'}">`}
    <label>Modelo padrão</label><input name="model" value="${p.model||''}" list="m-${p.id}"><datalist id="m-${p.id}"></datalist>
    <label class="check"><input type="checkbox" name="enabled" ${p.enabled?'checked':''}> Ativo</label>
    <div class="out" id="o-${p.id}"></div>

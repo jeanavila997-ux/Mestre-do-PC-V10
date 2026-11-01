@@ -2919,6 +2919,62 @@
       "destructive": false,
       "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action abrir-extensao-pasta",
       "description": "Copia o caminho da extensão, abre a pasta e edge://extensions."
+    },
+    {
+      "id": "cli_agentes_status",
+      "title": "Status dos agentes CLI",
+      "category": "Agentes CLI",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action status",
+      "description": "Lista OpenCode, Grok, OMP, Copilot e APIs locais (llama.cpp, LM Studio, Ollama, 9Router)."
+    },
+    {
+      "id": "cli_agentes_instalar_opencode",
+      "title": "Instalar / atualizar OpenCode (v2)",
+      "category": "Agentes CLI",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action install-opencode",
+      "description": "Roda o instalador oficial curl https://opencode.ai/v2/install | bash via Git Bash."
+    },
+    {
+      "id": "cli_agentes_llamacpp_status",
+      "title": "Status llama.cpp (:8080)",
+      "category": "Agentes CLI",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action llamacpp-status",
+      "description": "Sonda a API OpenAI-compatível do llama.cpp em 127.0.0.1:8080."
+    },
+    {
+      "id": "cli_agentes_abrir_opencode",
+      "title": "Abrir OpenCode",
+      "category": "Agentes CLI",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action opencode",
+      "description": "Abre o OpenCode no Windows Terminal, na pasta do projeto."
+    },
+    {
+      "id": "cli_agentes_abrir_grok",
+      "title": "Abrir Grok CLI",
+      "category": "Agentes CLI",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action grok",
+      "description": "Abre o Grok CLI no terminal do Mestre."
+    },
+    {
+      "id": "cli_agentes_abrir_omp",
+      "title": "Abrir OMP",
+      "category": "Agentes CLI",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action omp",
+      "description": "Abre o OMP (modelo coder local) no terminal do Mestre."
+    },
+    {
+      "id": "cli_agentes_abrir_copilot",
+      "title": "Abrir GitHub Copilot CLI",
+      "category": "Agentes CLI",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action copilot",
+      "description": "Abre o GitHub Copilot CLI no terminal do Mestre."
     }
   ],
   "templates": [
