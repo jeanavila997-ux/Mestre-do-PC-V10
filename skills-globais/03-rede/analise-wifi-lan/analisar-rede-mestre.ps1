@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Análise Wi-Fi + LAN + speed + usuários (Mestre do PC / Nitro).
 .DESCRIPTION

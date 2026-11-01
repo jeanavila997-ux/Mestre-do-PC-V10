@@ -1,4 +1,4 @@
-#Requires -Version 7
+﻿#Requires -Version 7
 <#
 .SYNOPSIS
   Prepara a instalação unpacked da extensão Mestre do PC no Edge/Chrome.
