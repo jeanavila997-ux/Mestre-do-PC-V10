@@ -896,7 +896,7 @@ const server = http.createServer(async (req, res) => {
       if (!isAuthorized(req)) return sendJson(res, 403, { success: false, output: "Cliente não autorizado." }, allowedOrigin);
       const body = await readBody(req, 16 * 1024);
       const agent = String(body.agent || "pwsh").toLowerCase();
-      const allowedAgents = new Set(["pwsh", "opencode", "grok", "omp", "copilot", "llamacpp"]);
+      const allowedAgents = new Set(["pwsh", "opencode", "grok", "omp", "copilot", "claude", "llamacpp"]);
       if (!allowedAgents.has(agent)) {
         return sendJson(res, 400, { success: false, output: "Agente de terminal não permitido: " + agent }, allowedOrigin);
       }

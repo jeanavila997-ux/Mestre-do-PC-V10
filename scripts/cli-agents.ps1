@@ -16,6 +16,7 @@ param(
     'grok',
     'omp',
     'copilot',
+    'claude',
     'llamacpp-status'
   )]
   [string] $Action
@@ -35,7 +36,8 @@ function Find-Cmd([string]$Name) {
     (Join-Path $env:APPDATA "npm\$Name.ps1"),
     (Join-Path $env:APPDATA "npm\$Name.cmd"),
     (Join-Path $env:LOCALAPPDATA "omp\$Name.exe"),
-    (Join-Path $env:LOCALAPPDATA "omp\bin\$Name.exe")
+    (Join-Path $env:LOCALAPPDATA "omp\bin\$Name.exe"),
+    (Join-Path $env:USERPROFILE ".local\bin\$Name.exe")
   )
   foreach ($g in $guess) { if (Test-Path -LiteralPath $g) { return $g } }
   return $null
@@ -67,7 +69,7 @@ function Probe-Http([string]$Url) {
 switch ($Action) {
   'status' {
     Write-Host "===== Agentes CLI =====" -ForegroundColor Cyan
-    foreach ($n in @('opencode','grok','omp','copilot','llama-server','llama-cli')) {
+    foreach ($n in @('opencode','grok','omp','copilot','claude','llama-server','llama-cli')) {
       $p = Find-Cmd $n
       if ($p) { Write-Host ("{0,-14} {1}" -f $n, $p) -ForegroundColor Green }
       else { Write-Host ("{0,-14} nao encontrado no PATH" -f $n) -ForegroundColor Yellow }
@@ -128,6 +130,11 @@ switch ($Action) {
   'copilot' {
     if (-not (Find-Cmd 'copilot')) { Write-Host "GitHub Copilot CLI nao encontrado." -ForegroundColor Red; exit 1 }
     Open-AgentTerminal 'Copilot CLI' "copilot"
+  }
+
+  'claude' {
+    if (-not (Find-Cmd 'claude')) { Write-Host "Claude Code nao encontrado. Rode irm https://claude.ai/install.ps1 | iex" -ForegroundColor Red; exit 1 }
+    Open-AgentTerminal 'Claude Code' "claude"
   }
 
   'llamacpp-status' {

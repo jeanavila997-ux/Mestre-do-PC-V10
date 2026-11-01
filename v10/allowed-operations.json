@@ -2975,6 +2975,14 @@
       "destructive": false,
       "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action copilot",
       "description": "Abre o GitHub Copilot CLI no terminal do Mestre."
+    },
+    {
+      "id": "cli_agentes_abrir_claude",
+      "title": "Abrir Claude Code",
+      "category": "Agentes CLI",
+      "destructive": false,
+      "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action claude",
+      "description": "Abre o Claude Code nativo no terminal do Mestre."
     }
   ],
   "templates": [
