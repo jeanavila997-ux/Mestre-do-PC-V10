@@ -1,4 +1,4 @@
-#Requires -Version 7
+﻿#Requires -Version 7
 <#
 .SYNOPSIS
   Comandos de navegador do Mestre do PC: speedtest, DevTools, memória, abas, CDP.

@@ -1,4 +1,4 @@
-#Requires -Version 7
+﻿#Requires -Version 7
 <#
 .SYNOPSIS
   Status e lançamento de agentes CLI no terminal do Mestre do PC.
