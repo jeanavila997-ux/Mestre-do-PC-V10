@@ -4,7 +4,7 @@ Pasta de perfis e referências de design do agente de chat IA da V10.
 
 > **Estado atual:** a implementação modular em desenvolvimento está em `../chat/`. Esta pasta permanece como fonte dos perfis/personas e das decisões visuais; não é mais o destino do código executável do chat.
 
-O chat usado pela página principal ainda vive em `v10/index.html`. O componente reutilizável está em `v10/chat/chat-module.js` e ainda não substitui o monólito.
+A página principal não monta `v10/chat/chat-module.js`. Os botões de chat em `v10/index.html` redirecionam para `/chat-integrado/`. O módulo antigo permanece em `example-integration.html`.
 
 ## Estrutura
 
@@ -25,14 +25,4 @@ Estende `mcp-server/model-profiles.json` (fast/balanced/agent/coding/reasoning) 
 
 Não duplica o mockup — aponta para `../../sugestoes/chat-ia-redesign/` (proposta aprovável) e registra, conforme a proposta evolui, quais decisões visuais já foram validadas e prontas para virar código real aqui dentro.
 
-## Roteiro de migração (ainda não executado)
-
-Quando a extração do chat do monólito for autorizada, o plano é:
-
-1. Validar `v10/chat/chat-module.js`, `chat-styles.css` e o exemplo de integração.
-2. Integrar o módulo ao `v10/index.html`, removendo gradualmente o CSS e o JavaScript duplicados.
-3. Preservar os contratos de segurança, os IDs necessários e a confirmação explícita de todo comando sugerido pela IA.
-4. Preservar todos os IDs e o padrão `.cmd-confirm-overlay` já existente — ver `sugestoes/chat-ia-redesign/README.md` para o mapa completo.
-5. Cada etapa acompanhada de teste manual no app real antes do merge (regra do projeto: mudança de comportamento sempre com verificação).
-
-Essa migração não foi concluída — esta pasta contém apenas perfis e referências de design.
+A home já não usa este módulo. Esta pasta contém apenas perfis e referências de design.

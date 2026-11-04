@@ -99,23 +99,17 @@ test("handlers de IA aplicam o guard de prompt injection", async () => {
   assert.match(source, /guardPromptInjection\([^)]*"perguntar_ia_com_contexto"\)/);
 });
 
-test("index.html delega o chat inteiramente ao módulo separado (sem lógica de execução inline)", async () => {
+test("index.html não monta o chat antigo e redireciona para o chat integrado", async () => {
   const html = await readFile(join(root, "v10", "index.html"), "utf8");
 
-  // O app principal importa o módulo já coberto pelo teste
-  // "módulo de chat preserva comandos e trata anexos com segurança" abaixo —
-  // classificação, confirmação e whitelist vivem só lá, não duplicadas aqui.
-  assert.match(html, /import \{ initChat \} from "\/chat\/chat-module\.js"/);
-  assert.match(html, /clientHeader: "v10-web"/);
-  assert.match(html, /rootSelector: "#chat-root"/);
+  assert.doesNotMatch(html, /chat-module\.js/);
+  assert.doesNotMatch(html, /chat-styles\.css/);
+  assert.doesNotMatch(html, /id="chat-root"/);
+  assert.match(html, /window\.location\.href = "\/chat-integrado\/chat-integrado\.html"/);
 
-  // Não deve haver mais um segundo caminho de execução de comando sugerido
-  // pela IA duplicado dentro do index.html (o antigo runIACmd/iaOverlay).
   assert.doesNotMatch(html, /function runIACmd/);
   assert.doesNotMatch(html, /const verdict = await classifyCommand\(cmd\)/);
   assert.doesNotMatch(html, /id="iaOverlay"/);
-
-  // window.confirm não é mais usado para autorizar execução em nenhum dos dois arquivos.
   assert.doesNotMatch(html, /return window\.confirm\(/);
 });
 

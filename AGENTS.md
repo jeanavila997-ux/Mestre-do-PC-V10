@@ -93,7 +93,7 @@ CI (`.github/workflows/ci.yml`): Node 22.x e 24.x, `npm ci` na raiz e em `mcp-se
 8. **Não commite segredos.** `.env`, `.keys/`, tokens, `sk-…`. Chave OpenAI do login ChatGPT fica no `localStorage` do browser (`mestre-openai-key`), não no repo.
 9. **Não desabilite o Defender** nem crie exclusões sem o Jean pedir.
 10. **Não gere APK / não instale Java / Bubblewrap** neste ciclo, a menos que o Jean peça de novo. “Download Android” = PWA + URL pública.
-11. **Não commite leftovers** sem confirmação: `v10/chat-integrado/chat-integrado.js`, `v10/chat/Soul.md`, `v10/chat/chat-module.js`, `v10/chat/chat-template.html`, `docs/superpowers/`.
+11. **Não commite leftovers** sem confirmação: `docs/superpowers/`. `v10/chat-integrado/chat-integrado.js` e `v10/chat/Soul.md` são o chat da UI e a persona — não são leftovers.
 12. Use `MESTRE_PROJETO_PATH`. Não grave `C:\Users\Jean\...` em HTML/scripts versionados.
 
 ---
@@ -122,8 +122,8 @@ Testes que sobem o launcher: importar `mcp-server/test/helpers/launcher-test-env
 | `v10/operation-registry.js` | Resolve `{id}` / `{id,params}` / `{cmd}`. |
 | `v10/index.html` | SPA desktop, sem bundler. |
 | `v10/mobile/` | PWA. Ao mudar, copie para `dist/site/mobile/`. |
-| `v10/chat/` | Chat da UI (`initChat` → `#chat-root`). |
-| `v10/chat-integrado/` | Chat Integrado; skills em `chat-skills.json`. |
+| `v10/chat/` | Persona (`Soul.md`) e módulo legado só de `example-integration.html`. A home não monta esse módulo. |
+| `v10/chat-integrado/` | Chat da UI; skills em `chat-skills.json`. |
 | `v10/security/origin-policy.js` | Origens confiáveis (VPS, sslip.io, github.io, trycloudflare). |
 | `mcp-server/` | MCP stdio + testes. |
 | `mcp-server/chrome-devtools-bridge.js` | Tools `chrome_*`. |
