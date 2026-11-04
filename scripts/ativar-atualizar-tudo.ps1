@@ -646,25 +646,7 @@ if (Test-Path $startupScript) {
 }
 
 # =====================================================================
-# 12 – Sincronizar allowed-operations.json
-# =====================================================================
-Write-Log 'Sincronizando allowed-operations.json...' 'STEP'
-
-$fixScript = Join-Path $ProjectRoot 'mcp-server\fix-allowed-ops.ps1'
-if (Test-Path $fixScript) {
-    try {
-        & pwsh -NoProfile -ExecutionPolicy Bypass -File $fixScript 2>&1 |
-            ForEach-Object { Write-Log $_ 'INFO' }
-        Write-Log 'allowed-operations.json sincronizado.' 'OK'
-    } catch {
-        Write-Log "Falha na sincronização: $_" 'WARN'
-    }
-} else {
-    Write-Log 'fix-allowed-ops.ps1 não encontrado' 'WARN'
-}
-
-# =====================================================================
-# 13 – Configurar ExecutionPolicy (CurrentUser)
+# 12 – Configurar ExecutionPolicy (CurrentUser)
 # =====================================================================
 Write-Log 'Configurando permissões locais...' 'STEP'
 
@@ -676,7 +658,7 @@ try {
 }
 
 # =====================================================================
-# 14 – Executar testes do MCP
+# 13 – Executar testes do MCP
 # =====================================================================
 if (-not $SkipTests) {
     Write-Log 'Executando testes do MCP...' 'STEP'
@@ -699,7 +681,7 @@ if (-not $SkipTests) {
 }
 
 # =====================================================================
-# 15 – Verificar status final de todos os serviços
+# 14 – Verificar status final de todos os serviços
 # =====================================================================
 Write-Log 'Verificação final de status...' 'STEP'
 
@@ -794,7 +776,7 @@ $Status | ConvertTo-Json -Depth 5 | Set-Content -Path $summaryFile -Encoding UTF
 Write-Log "Resumo salvo em: $summaryFile" 'OK'
 
 # =====================================================================
-# 16 – Abrir interface web
+# 15 – Abrir interface web
 # =====================================================================
 Write-Log 'Abrindo interface web...' 'STEP'
 try {
@@ -806,7 +788,7 @@ try {
 }
 
 # =====================================================================
-# 17 – Exibir token da extensão e próximas etapas
+# 16 – Exibir token da extensão e próximas etapas
 # =====================================================================
 Write-Log 'CONFIGURAÇÃO DA EXTENSÃO' 'STEP'
 Write-Host ""
