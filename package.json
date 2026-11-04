@@ -32,7 +32,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "@modelcontextprotocol/server": "^2.0.0",
     "@qwen-code/cua-sdk": "^0.20.4"
   },
   "homepage": "https://github.com/jeanavila997-ux/Mestre-do-PC-V10#readme",

@@ -51,5 +51,5 @@ maybeTest("informa status e versão instalada", async () => {
 
   assert.equal(status.installed, true);
   assert.equal(status.connected, true);
-  assert.match(status.version, /^0\.2\./);
+  assert.match(status.version, /^0\.3\./);
 });
