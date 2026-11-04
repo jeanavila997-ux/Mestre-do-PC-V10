@@ -9,4 +9,4 @@ REM  pois limpamos PSModulePath explicitamente no script .ps1
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
   "$env:PSModulePath = '%ProgramFiles%\WindowsPowerShell\Modules;%SystemRoot%\system32\WindowsPowerShell\v1.0\Modules'; ^
-   & '%USERPROFILE%\Mestre-do-PC-V10-clean\v10\scripts\iniciar-mestre.ps1' %*"
+   & '%~dp0iniciar-mestre.ps1' %*"

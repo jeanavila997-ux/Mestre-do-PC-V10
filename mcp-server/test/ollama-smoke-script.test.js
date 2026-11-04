@@ -40,7 +40,7 @@ test("scripts/test_ollama.mjs roda contra o Ollama local (smoke test)", { skip: 
       encoding: "utf8",
       env: {
         ...process.env,
-        OLLAMA_HOST: "http://localhost:11434",
+        OLLAMA_HOST: "http://127.0.0.1:11434",
         OLLAMA_MODEL: "qwen2.5-coder:3b-instruct",
         PROMPT: "Reply with exactly: pong",
         TIMEOUT_MS: "30000",

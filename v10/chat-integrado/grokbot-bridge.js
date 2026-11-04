@@ -21,6 +21,7 @@ import { loadOperationRegistry } from "../operation-registry.js";
 import { listMemories, createMemory } from "../memory-manager.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = process.env.MESTRE_PROJETO_PATH || join(__dirname, "..", "..");
 const DATA_DIR = join(__dirname, "..", "data");
 const BRIDGE_FILE = join(DATA_DIR, "grokbot-bridge.json");
 
@@ -334,7 +335,7 @@ export async function getGrokBotStatus() {
     agent: "Grok Bot",
     bridgeVersion: "11.2.0",
     mcpEndpoint: `${MESTRE_BASE_URL}/mcp`,
-    mcpStdioEntry: "C:\\Users\\Jean\\Projetos\\Mestre-do-PC-V10\\mcp-server\\index.js",
+    mcpStdioEntry: join(PROJECT_ROOT, "mcp-server", "index.js"),
     router9: {
       online: router.online,
       baseUrl: ROUTER9_BASE_URL,

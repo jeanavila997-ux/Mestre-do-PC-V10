@@ -9,6 +9,3 @@ if (-not (Test-Path -LiteralPath $nodeLauncher)) {
 Write-Warning "MestreDoPC-Launcher.ps1 está obsoleto; iniciando o launcher Node.js."
 & $nodeLauncher
 exit $LASTEXITCODE
-
-# A implementação legada (servidor HTTP em PowerShell) foi removida — ver
-# docs/adr/ADR-001-launcher-unico-node.md. O código continua no histórico do git.
