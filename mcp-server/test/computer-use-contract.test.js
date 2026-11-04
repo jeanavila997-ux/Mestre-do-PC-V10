@@ -1,15 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Readable } from "node:stream";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { ComputerUse } from "@qwen-code/cua-sdk/computer-use";
 import * as client from "../../v10/computer-use-client.js";
 import { handleComputerUseRoutes } from "../../v10/computer-use-routes.js";
 
 const root = join(fileURLToPath(new URL("../..", import.meta.url)));
+
+async function loadClientComputerUse() {
+  const candidates = [
+    join(root, "v10", "node_modules", "@qwen-code", "cua-sdk", "computer-use", "index.js"),
+    join(root, "node_modules", "@qwen-code", "cua-sdk", "computer-use", "index.js"),
+  ];
+  const found = candidates.find((file) => existsSync(file));
+  assert.ok(found, "cua-sdk visível para v10/computer-use-client.js");
+  return import(pathToFileURL(found).href);
+}
 
 function request({ method = "GET", url = "/computer-use/status", body = "", headers = {} } = {}) {
   const req = Readable.from(body ? [body] : []);
@@ -82,6 +92,7 @@ test("computer-use client exports route contract and calls matching SDK methods"
     hotkey: async (opts) => (calls.push(["hotkey", opts]), { effect: "confirmed" }),
     close: async () => { calls.push(["close"]); },
   };
+  const { ComputerUse } = await loadClientComputerUse();
   const originalCreate = ComputerUse.create;
   ComputerUse.create = async () => fake;
 
