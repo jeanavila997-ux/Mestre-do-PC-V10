@@ -1,197 +1,50 @@
 {
   "meta": {
-    "titulo": "Análise Wi-Fi & LAN — Mestre do PC",
-    "host": "HOST-LOCAL",
-    "usuario": "usuario",
-    "coletadoEm": "2026-10-31",
-    "ferramentas": ["Mestre do PC V10", "netsh", "Test-Connection", "Cloudflare Speed", "ARP", "ipinfo"]
+    "titulo": "",
+    "host": "",
+    "usuario": "",
+    "coletadoEm": "",
+    "ferramentas": []
   },
   "resumo": {
-    "conclusao": "Troca REDE-24 (2,4 GHz) → REDE-5G valeu: link PHY ~3× e download útil mais que dobrou. Gargalo atual tende ao plano/rota do ISP, não ao rádio.",
-    "recomendacao": "Manter REDE-5G. Reexecutar analisar-rede-mestre.ps1 após mudanças no roteador.",
-    "kpis": [
-      { "label": "Download pico (5G)", "value": "278", "unit": "Mbps", "delta": "+180 vs 2,4G" },
-      { "label": "Upload (5G)", "value": "23", "unit": "Mbps", "delta": "+8 vs 2,4G" },
-      { "label": "Link PHY Rx", "value": "721", "unit": "Mbps", "delta": "era ~287" },
-      { "label": "Gateway", "value": "1", "unit": "ms", "delta": "excelente" }
-    ]
+    "conclusao": "",
+    "recomendacao": "",
+    "kpis": []
   },
   "wifi": {
-    "antes": {
-      "ssid": "REDE-24",
-      "banda": "2,4 GHz",
-      "canal": 1,
-      "bssid": "00:00:5e:00:53:01",
-      "radio": "802.11ax",
-      "auth": "WPA2-Personal",
-      "cipher": "CCMP",
-      "sinal": "89–91%",
-      "rssi": "-48 → -44",
-      "rxMbps": 287,
-      "txMbps": 287,
-      "ip": "192.168.1.37",
-      "adaptador": "Killer Wi-Fi 6 AX1650i 160MHz (201NGW)"
+    "antes": {},
+    "depois": {},
+    "perfisSalvos": [],
+    "gateway": {
+      "ip": "",
+      "latenciaMs": 0,
+      "vendor": ""
     },
-    "depois": {
-      "ssid": "REDE-5G",
-      "banda": "5 GHz",
-      "canal": 149,
-      "bssid": "00:00:5e:00:53:02",
-      "radio": "802.11ax / ac",
-      "auth": "WPA2-Personal",
-      "cipher": "CCMP",
-      "sinal": "84%",
-      "rssi": "-58",
-      "rxMbps": 721,
-      "txMbps": 649,
-      "ip": "192.168.1.40",
-      "adaptador": "Killer Wi-Fi 6 AX1650i 160MHz (201NGW)",
-      "utilizacaoCanal": "~0% (quase vazio)"
-    },
-    "perfisSalvos": ["REDE-24", "REDE-5G"],
-    "gateway": { "ip": "192.168.1.1", "latenciaMs": 1.8, "vendor": "Fiberhome" },
-    "dns": ["192.168.1.1", "2804:3868:ffff::10", "2804:3868:ffff::11"]
+    "dns": []
   },
   "speed": {
-    "antes24": [
-      { "alvo": "Cloudflare 5MB", "mbps": 47.7, "nota": "download" },
-      { "alvo": "Cloudflare 25MB", "mbps": 97.8, "nota": "melhor amostra 2,4G" },
-      { "alvo": "GitHub ~66MB", "mbps": 88.3, "nota": "download" },
-      { "alvo": "OVH 10MB", "mbps": 20.0, "nota": "rota fraca" },
-      { "alvo": "Upload CF 1MB", "mbps": 14.5, "nota": "upload" }
-    ],
-    "depois5g": [
-      { "alvo": "Cloudflare 5MB", "mbps": 55, "nota": "download" },
-      { "alvo": "Cloudflare 25MB", "mbps": 205, "nota": "download" },
-      { "alvo": "Cloudflare 50MB", "mbps": 278, "nota": "pico útil" },
-      { "alvo": "OVH 10MB", "mbps": 21, "nota": "rota fraca" },
-      { "alvo": "Upload CF 2MB", "mbps": 23, "nota": "upload" }
-    ],
-    "latencia": [
-      { "host": "192.168.1.1", "avgMs": 1.0 },
-      { "host": "1.1.1.1", "avgMs": 51.8 },
-      { "host": "8.8.8.8", "avgMs": 63.0 }
-    ],
-    "isp": {
-      "ipPublico": "203.0.113.10",
-      "org": "ISP local",
-      "asn": "AS00000",
-      "cidade": "Cidade",
-      "regiao": "UF",
-      "pais": "BR",
-      "timezone": "America/Sao_Paulo"
-    },
+    "antes24": [],
+    "depois5g": [],
+    "latencia": [],
+    "isp": {},
     "mestreSpeedtestMini": {
-      "status": "falhou",
-      "motivo": "Tele2.net inacessível",
-      "valorEnganoso": "0.19 Mbps — ignorar"
+      "status": "",
+      "motivo": "",
+      "valorEnganoso": ""
     }
   },
   "lan": {
-    "rede": "192.168.1.0/24",
-    "estePc": "192.168.1.40",
-    "dispositivos": [
-      { "ip": "192.168.1.1", "mac": "00-00-5E-00-53-01", "estado": "UP", "latMs": 1, "vendor": "Fiberhome", "papel": "Gateway / ONT" },
-      { "ip": "192.168.1.2", "mac": "00-00-5E-00-53-11", "estado": "UP", "latMs": 2, "vendor": "AltoBeam", "papel": "IoT / CPE Wi-Fi" },
-      { "ip": "192.168.1.3", "mac": "00-00-5E-00-53-12", "estado": "UP", "latMs": 2, "vendor": "AltoBeam", "papel": "IoT / CPE Wi-Fi" },
-      { "ip": "192.168.1.5", "mac": "00-00-5E-00-53-13", "estado": "UP", "latMs": 35, "vendor": "AltoBeam (OUI)", "papel": "Host LAN (latência alta)" },
-      { "ip": "192.168.1.10", "mac": "00-00-5E-00-53-14", "estado": "UP", "latMs": 3, "vendor": "Sagemcom", "papel": "CPE / STB" },
-      { "ip": "192.168.1.13", "mac": "00-00-5E-00-53-15", "estado": "UP", "latMs": 0, "vendor": "Samsung", "papel": "Celular (provável)" },
-      { "ip": "192.168.1.40", "mac": "00-00-5E-00-53-40", "estado": "UP", "latMs": 0, "vendor": "MAC randomizado", "papel": "Nitro (este PC)" }
-    ],
-    "adaptadoresAtivos": [
-      { "nome": "Wi-Fi", "desc": "Killer AX1650i", "link": "649–721 Mbps", "status": "Up" },
-      { "nome": "Tailscale", "desc": "Tailscale Tunnel", "link": "100 Gbps (virtual)", "status": "Up" },
-      { "nome": "Npcap Loopback", "desc": "Npcap Loopback Adapter", "link": "1.2 Gbps", "status": "Up" }
-    ]
+    "rede": "",
+    "estePc": "",
+    "dispositivos": [],
+    "adaptadoresAtivos": []
   },
   "usuarios": {
-    "sessao": "HOST-LOCAL\\usuario",
-    "dominio": "WORKGROUP",
-    "contasLocais": [
-      { "nome": "usuario", "enabled": true, "lastLogon": "2026-10-31" },
-      { "nome": "SandboxA", "enabled": true, "lastLogon": "2026-10-30" },
-      { "nome": "SandboxB", "enabled": true, "lastLogon": null },
-      { "nome": "Administrador", "enabled": false, "lastLogon": null },
-      { "nome": "Convidado", "enabled": false, "lastLogon": null }
-    ],
-    "processosPorUsuario": [
-      { "user": "HOST-LOCAL\\usuario", "count": 144 },
-      { "user": "AUTORIDADE NT\\SISTEMA", "count": 105 },
-      { "user": "SERVIÇO LOCAL", "count": 40 },
-      { "user": "SERVIÇO DE REDE", "count": 10 }
-    ]
+    "sessao": "",
+    "dominio": "",
+    "contasLocais": [],
+    "processosPorUsuario": []
   },
-  "vizinhanca": [
-    { "ssid": "REDE-5G", "banda": "5 GHz", "canal": 149, "sinal": "91%", "nota": "sua rede (alvo)" },
-    { "ssid": "REDE-24", "banda": "2,4 GHz", "canal": 1, "sinal": "91%", "nota": "sua rede 2,4" },
-    { "ssid": "Vizinho-A", "banda": "2,4/5 GHz", "canal": "6 / 44", "sinal": "72%", "nota": "vizinho forte no 2,4" },
-    { "ssid": "Vizinho-B", "banda": "2,4 GHz", "canal": 3, "sinal": "67%", "nota": "interferência 2,4" },
-    { "ssid": "Vizinho-C", "banda": "2,4 GHz", "canal": 11, "sinal": "53%", "nota": "" },
-    { "ssid": "Vizinho-D", "banda": "2,4 GHz", "canal": 11, "sinal": "46%", "nota": "BSSID próximo ao .10" },
-    { "ssid": "Vizinho-E", "banda": "2,4 GHz", "canal": 11, "sinal": "50%", "nota": "" },
-    { "ssid": "Vizinho-F", "banda": "2,4 GHz", "canal": 9, "sinal": "35%", "nota": "" }
-  ],
-  "comandos": [
-    {
-      "id": "ping-mestre",
-      "titulo": "Health do launcher Mestre",
-      "shell": "pwsh",
-      "codigo": "Invoke-RestMethod http://127.0.0.1:7777/ping"
-    },
-    {
-      "id": "wifi-iface",
-      "titulo": "Interface Wi-Fi atual",
-      "shell": "pwsh",
-      "codigo": "netsh wlan show interfaces"
-    },
-    {
-      "id": "wifi-scan",
-      "titulo": "Redes próximas (BSSID)",
-      "shell": "pwsh",
-      "codigo": "netsh wlan show networks mode=bssid"
-    },
-    {
-      "id": "arp",
-      "titulo": "Dispositivos conhecidos (ARP)",
-      "shell": "pwsh",
-      "codigo": "arp -a\n# ou MCP: mestre_do_pc__seg_arp"
-    },
-    {
-      "id": "ipconfig",
-      "titulo": "IP / gateway / DNS",
-      "shell": "pwsh",
-      "codigo": "Get-NetIPConfiguration -InterfaceAlias 'Wi-Fi'\nGet-DnsClientServerAddress -InterfaceAlias 'Wi-Fi' -AddressFamily IPv4"
-    },
-    {
-      "id": "latencia",
-      "titulo": "Latência gateway + DNS públicos",
-      "shell": "pwsh",
-      "codigo": "Test-Connection 192.168.1.1,1.1.1.1,8.8.8.8 -Count 4"
-    },
-    {
-      "id": "speed-cf",
-      "titulo": "Speed test Cloudflare (download)",
-      "shell": "pwsh",
-      "codigo": "$sw=[Diagnostics.Stopwatch]::StartNew()\nInvoke-WebRequest 'https://speed.cloudflare.com/__down?bytes=25000000' -OutFile $env:TEMP\\cf.bin\n$sw.Stop(); $b=(Get-Item $env:TEMP\\cf.bin).Length\n[math]::Round(($b*8)/$sw.Elapsed.TotalSeconds/1e6,1)  # Mbps"
-    },
-    {
-      "id": "isp",
-      "titulo": "IP público / ISP",
-      "shell": "pwsh",
-      "codigo": "Invoke-RestMethod https://ipinfo.io/json"
-    },
-    {
-      "id": "users",
-      "titulo": "Usuário logado + contas locais",
-      "shell": "pwsh",
-      "codigo": "Get-CimInstance Win32_ComputerSystem | Select UserName,Name,Domain\nGet-LocalUser | Select Name,Enabled,LastLogon"
-    },
-    {
-      "id": "analise-script",
-      "titulo": "Script completo desta pasta",
-      "shell": "pwsh",
-      "codigo": "pwsh -NoProfile -File .\\analisar-rede-mestre.ps1"
-    }
-  ]
+  "vizinhanca": [],
+  "comandos": []
 }
