@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mestre do PC V11 - Ultimate Plus</title>
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
-    <link rel="stylesheet" href="/chat/chat-styles.css" />
     <script>
       (() => {
         try {
@@ -1014,8 +1013,6 @@
         </div>
       </div>
     </div>
-    <!-- Chat IA (módulo separado, ver v10/chat/chat-module.js) -->
-    <div id="chat-root"></div>
     <div class="toast" id="toast">✅ Copiado!</div>
     <script>
       const CATS = [
@@ -3447,14 +3444,6 @@
       });
 
       console.log('🎬 Mestre do PC V10 - Animações carregadas!');
-    </script>
-    <script type="module">
-      import { initChat } from "/chat/chat-module.js";
-
-      initChat({
-        rootSelector: "#chat-root",
-        clientHeader: "v10-web",
-      });
     </script>
     <!-- Chat IA integrado -->
     <script>

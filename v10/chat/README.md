@@ -6,9 +6,8 @@ Aqui vivem, de forma isolada:
 
 - A documentação do chat
 - Os estilos CSS
-- O template HTML
 - O módulo JavaScript que realiza as chamadas ao launcher e ao Ollama
-- Exemplos de integração
+- O exemplo de integração
 
 ## Objetivo
 
@@ -26,7 +25,6 @@ Separar a funcionalidade de chat do monólito `v10/index.html`, permitindo:
 | `README.md` | Este documento |
 | `ARCHITECTURE.md` | Detalhes técnicos, chamadas HTTP e segurança |
 | `chat-styles.css` | Estilos do modal/painel de chat |
-| `chat-template.html` | Referência da marcação HTML do painel; deve acompanhar o template interno do módulo |
 | `chat-module.js` | Fonte executável do componente: template interno, Ollama, memórias, anexos e execução de comandos |
 | `example-integration.html` | Página mínima demonstrando como usar o módulo |
 
@@ -82,7 +80,6 @@ Veja `ARCHITECTURE.md` para o detalhamento completo.
 
 ## Estado atual
 
-Este modulo e uma **refatoracao modularizada** do chat original que vive em `v10/index.html`.
-Ainda nao substitui o chat embarcado no `index.html` principal — essa migracao pode ser feita futuramente sem risco, pois o modulo preserva todos os IDs e comportamentos originais.
+A home (`v10/index.html`) nao monta este modulo. `window.mestreChat` so redireciona para `/chat-integrado/chat-integrado.html`.
 
-Enquanto a migracao nao for concluida, alteracoes de comportamento e seguranca devem ser aplicadas tanto ao chat ativo no `index.html` quanto ao `chat-module.js`.
+`chat-module.js` e `chat-styles.css` ficam para `example-integration.html` e para os testes de permissao. A marcacao do painel vive dentro de `chat-module.js`; nao ha template HTML separado para sincronizar.

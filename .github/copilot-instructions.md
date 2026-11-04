@@ -154,7 +154,7 @@ PowerShell                    ← only whitelisted commands execute
 
 **Other components:**
 - `v10/index.html` — single-file SPA (no build step), served by the launcher. Uses CSS custom properties and vanilla JS; the `CATS` array defines command categories, and `renderCards()` renders cards (V11 cards get neon-green glow via `.cmd-card-new`).
-- `v10/chat/` — reusable chat module, synchronized template/styles, and Ollama streaming integration. Keep `chat-module.js` and `chat-template.html` aligned when changing the chat markup.
+- `v10/chat/` — `Soul.md` and the legacy module (`chat-module.js`, `chat-styles.css`) loaded only by `example-integration.html`. There is no `chat-template.html` to keep in sync. The home redirects chat actions to `v10/chat-integrado/`.
 - `browser-extension/` — Manifest V3 Chrome/Firefox extension. It talks to the launcher with `X-Mestre-Client: browser-extension` and a token from `MESTRE_EXTENSION_TOKEN`. Build with `cd browser-extension && node build.js`; prebuilt zips live in `browser-extension/dist/`.
 - `v10/notepad-plus-plus/` — Notepad++ integration for explaining code, asking the AI, suggesting commands, and generating diagnostics. See `docs/notepad-plus-plus-integration.md`.
 - `v10/rede-dashboard.js` — client-side network diagnostics panel loaded by `index.html`.
