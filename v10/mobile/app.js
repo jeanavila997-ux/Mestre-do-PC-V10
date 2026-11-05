@@ -251,6 +251,7 @@
       if (!response.ok) {
         const error = new Error((data && (data.error || data.output)) || text || `HTTP ${response.status}`);
         error.status = response.status;
+        if (response.status === 401 || response.status === 403) noticeMobileAuth(response.status);
         throw error;
       }
       return { data, response, latencyMs: latency };
@@ -291,6 +292,7 @@
         await api("/ping", { timeout: 5000 });
       }
       setConnectionUi(true, Math.round(performance.now() - started));
+      clearAuthHint();
     } catch {
       setConnectionUi(false, null);
     }
@@ -317,6 +319,67 @@
     const dialog = $("connection-dialog");
     if (typeof dialog.close === "function" && dialog.open) dialog.close();
     else dialog.removeAttribute("open");
+  }
+
+  let authNoticeAt = 0;
+
+  function ensureAuthHint() {
+    const dialog = $("connection-dialog");
+    if (!dialog) return null;
+    let hint = dialog.querySelector("[data-auth-hint]");
+    if (!hint) {
+      hint = document.createElement("p");
+      hint.className = "hint auth-hint";
+      hint.dataset.authHint = "";
+      hint.hidden = true;
+      const anchor = dialog.querySelector("p.hint") || $("conn-title");
+      if (anchor) anchor.insertAdjacentElement("afterend", hint);
+      else dialog.append(hint);
+    }
+    return hint;
+  }
+
+  function noticeMobileAuth(status) {
+    const code = status === 401 ? 401 : 403;
+    const hint = ensureAuthHint();
+    if (hint) {
+      hint.hidden = false;
+      hint.textContent = `HTTP ${code}. O launcher recusou a chamada. Cole o valor de MESTRE_MOBILE_TOKEN definido no PC no campo Token mobile e toque em Salvar.`;
+    }
+    const now = Date.now();
+    if (now - authNoticeAt <= 60000) return;
+    authNoticeAt = now;
+    toast(`Acesso negado (HTTP ${code}). Cole o MESTRE_MOBILE_TOKEN na Conexão.`);
+    const dialog = $("connection-dialog");
+    const open = Boolean(dialog && (dialog.open || dialog.hasAttribute("open")));
+    if (!open) openConnectionDialog();
+    const token = $("endpoint-token");
+    if (!open && token) token.focus();
+  }
+
+  function clearAuthHint() {
+    const hint = $("connection-dialog")?.querySelector("[data-auth-hint]");
+    if (!hint || hint.hidden) return;
+    hint.hidden = true;
+    hint.textContent = "";
+    authNoticeAt = 0;
+  }
+
+  function maybeWarnRouterLoopback() {
+    if (state.settings.targetId !== "router") return;
+    let routerHost = "";
+    let desktopHost = "";
+    try {
+      routerHost = new URL(state.settings.targets.router).hostname;
+      desktopHost = new URL(state.settings.targets.desktop).hostname;
+    } catch {
+      return;
+    }
+    if (routerHost !== "127.0.0.1" || desktopHost === "127.0.0.1") return;
+    const key = `${state.settings.targets.router}|${state.settings.targets.desktop}`;
+    if (state.routerWarnKey === key) return;
+    state.routerWarnKey = key;
+    toast("9Router aponta para 127.0.0.1, mas o PC Desktop está em outro host. Ajuste a URL do 9Router para o túnel ou o host do PC.");
   }
 
   function renderTargets() {
@@ -358,6 +421,7 @@
     state.chatEndpoint = endpoint;
     const desktop = $("desktop-link");
     desktop.href = `${apiBase()}/?desktop=1`;
+    maybeWarnRouterLoopback();
   }
 
   function setGauge(id, valueNode, percent, text) {
@@ -1483,6 +1547,31 @@
     });
   }
 
+  function dialogIsOpen(dialog) {
+    if (!dialog) return false;
+    return dialog.open === true || dialog.hasAttribute("open");
+  }
+
+  function closeTopLayer() {
+    const install = $("install-dialog");
+    if (dialogIsOpen(install)) {
+      if (typeof install.close === "function" && install.open) install.close();
+      else install.removeAttribute("open");
+      return true;
+    }
+    const connection = $("connection-dialog");
+    if (dialogIsOpen(connection)) {
+      closeConnectionDialog();
+      return true;
+    }
+    const sheet = $("sheet");
+    if (sheet && !sheet.hidden) {
+      $("sheet-cancel").click();
+      return true;
+    }
+    return false;
+  }
+
   function bindPullToRefresh() {
     const scroller = $("scroller");
     let pull = null;
@@ -1594,6 +1683,15 @@
     };
     $("send").addEventListener("click", onChatSend);
     $("chat-form").addEventListener("submit", onChatSend);
+    $("chat-input").addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+      event.preventDefault();
+      onChatSend(event);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || event.isComposing) return;
+      if (closeTopLayer()) event.preventDefault();
+    }, true);
     $("model").addEventListener("change", () => {
       state.settings.model = $("model").value;
       saveSettings();
