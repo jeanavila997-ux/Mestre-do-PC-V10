@@ -2,13 +2,16 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+const here = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = process.env.MESTRE_PROJETO_PATH || path.resolve(here, "..");
 const claudePath = path.join(os.homedir(), ".claude.json");
 const MCP_ENTRY = {
   command: "node",
-  args: ["C:\\Mestre-do-PC-V10-main\\mcp-server\\index.js"],
+  args: [path.join(projectRoot, "mcp-server", "index.js")],
   env: {
-    MESTRE_PROJETO_PATH: "C:\\Mestre-do-PC-V10-main",
+    MESTRE_PROJETO_PATH: projectRoot,
     MESTRE_BASE_URL: "http://127.0.0.1:7777",
   },
 };

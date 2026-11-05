@@ -1,7 +1,7 @@
 # Teste do Chat com IA - Formato Correto (messages array)
 Write-Host "=== Teste do Chat Stream ===" -ForegroundColor Cyan
 
-$uri = "http://localhost:7777/ollama/chat"
+$uri = "http://127.0.0.1:7777/ollama/chat"
 $headers = @{
     "X-Mestre-Client" = "v10-web"
     "Content-Type" = "application/json"

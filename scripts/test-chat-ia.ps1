@@ -3,7 +3,7 @@ Write-Host "=== Teste do Chat com IA ===" -ForegroundColor Cyan
 
 # Teste 1: Ollama direto
 Write-Host "`n1. Testando Ollama direto..." -ForegroundColor Yellow
-$uriOllama = "http://localhost:11434/api/generate"
+$uriOllama = "http://127.0.0.1:11434/api/generate"
 $bodyOllama = @{
     model = "qwen2.5-coder:3b-instruct"
     prompt = "Diga 'OLA' se estiver funcionando."
@@ -20,7 +20,7 @@ try {
 
 # Teste 2: Chat via Launcher (proxy)
 Write-Host "`n2. Testando Chat via Launcher..." -ForegroundColor Yellow
-$uriLauncher = "http://localhost:7777/ollama/chat"
+$uriLauncher = "http://127.0.0.1:7777/ollama/chat"
 $headers = @{
     "X-Mestre-Client" = "v10-web"
     "Content-Type" = "application/json"

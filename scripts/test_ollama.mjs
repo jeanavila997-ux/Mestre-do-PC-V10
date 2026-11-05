@@ -11,7 +11,7 @@
  *     node scripts/test_ollama.mjs
  *
  * Environment:
- *   OLLAMA_HOST    - default http://localhost:11434
+ *   OLLAMA_HOST    - default http://127.0.0.1:11434
  *   OLLAMA_MODEL   - default fazendaavila2026/agente
  *   OLLAMA_API_KEY - if set, sent as Authorization: Bearer ... (cloud mode)
  *   PROMPT         - default "Hello!"
@@ -23,7 +23,7 @@
 
 import process from 'node:process';
 
-const HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
+const HOST = process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
 const MODEL = process.env.OLLAMA_MODEL || 'fazendaavila2026/agente';
 const PROMPT = process.env.PROMPT || 'Hello!';
 const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 30000);

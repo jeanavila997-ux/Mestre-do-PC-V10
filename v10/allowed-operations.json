@@ -653,7 +653,7 @@
       "title": "Listar modelos Ollama",
       "category": "Ollama",
       "destructive": false,
-      "command": "try { $data=(Invoke-RestMethod -Uri \"http://localhost:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em localhost:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }",
+      "command": "try { $data=(Invoke-RestMethod -Uri \"http://127.0.0.1:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em 127.0.0.1:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }",
       "description": "Lista modelos disponíveis no Ollama local e destaca modelos cloud no texto."
     },
     {
@@ -2437,7 +2437,7 @@
       "title": "Testar Ollama (qwen3-coder-next:cloud)",
       "category": "Ollama",
       "destructive": false,
-      "command": "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://localhost:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }",
+      "command": "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://127.0.0.1:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }",
       "description": "Testar Ollama."
     },
     {
@@ -3717,10 +3717,10 @@
     },
     {
       "id": "rede_testar_ollama",
-      "title": "Testar Ollama (localhost:11434)",
+      "title": "Testar Ollama (127.0.0.1:11434)",
       "category": "Ollama",
       "destructive": false,
-      "command": "try { $r = Invoke-WebRequest -Uri 'http://localhost:11434' -TimeoutSec 5 -UseBasicParsing; if($r.StatusCode -eq 200) { Write-Host '✅ Ollama ONLINE' -ForegroundColor Green; $m = Invoke-RestMethod -Uri 'http://localhost:11434/api/tags' -TimeoutSec 5; Write-Host \"Modelos: $(($m.models | ForEach-Object { $_.name }) -join ', ')\" -ForegroundColor Cyan } } catch { Write-Host '❌ Ollama offline: ' $_.Exception.Message -ForegroundColor Red }",
+      "command": "try { $r = Invoke-WebRequest -Uri 'http://127.0.0.1:11434' -TimeoutSec 5 -UseBasicParsing; if($r.StatusCode -eq 200) { Write-Host '✅ Ollama ONLINE' -ForegroundColor Green; $m = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/tags' -TimeoutSec 5; Write-Host \"Modelos: $(($m.models | ForEach-Object { $_.name }) -join ', ')\" -ForegroundColor Cyan } } catch { Write-Host '❌ Ollama offline: ' $_.Exception.Message -ForegroundColor Red }",
       "description": "Testar Ollama."
     },
     {

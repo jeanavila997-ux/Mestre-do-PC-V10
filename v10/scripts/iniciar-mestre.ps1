@@ -29,7 +29,11 @@ $env:PSModulePath = @(
 ) -join ';'
 
 # --- Constantes ---------------------------------------------------------------
-$ProjectDir = Join-Path $env:USERPROFILE 'Mestre-do-PC-V10-clean'
+$ProjectDir = if ($env:MESTRE_PROJETO_PATH) {
+    $env:MESTRE_PROJETO_PATH
+} else {
+    (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
+}
 $NodeLauncher = Join-Path $ProjectDir 'v10\launcher.js'
 $PsLauncher = Join-Path $ProjectDir 'MestreDoPC-Launcher.ps1'
 $BaseUrl = 'http://127.0.0.1:7777'

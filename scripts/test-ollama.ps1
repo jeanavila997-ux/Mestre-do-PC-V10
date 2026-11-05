@@ -1,5 +1,5 @@
 ﻿# Teste do Ollama - Chat IA
-$uri = "http://localhost:11434/api/generate"
+$uri = "http://127.0.0.1:11434/api/generate"
 $body = @{
     model = "qwen2.5-coder:3b-instruct"
     prompt = "Olá, você está funcionando? Responda em português de forma breve."

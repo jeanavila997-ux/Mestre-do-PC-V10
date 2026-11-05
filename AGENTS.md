@@ -204,7 +204,7 @@ Invoke-RestMethod http://127.0.0.1:7777/ping
 # Invoke-WebRequest http://127.0.0.1:7777/run -Headers @{ 'X-Mestre-Client'='v10-web' }
 ```
 
-Reinicie **só** o processo Node do launcher. `v10/restart-launcher.ps1` mata **todo** Node da máquina — não use sem aviso.
+Reinicie **só** o processo Node do launcher com `scripts/restart-launcher.ps1`. O script antigo em `v10/restart-launcher.ps1` matava todo Node e foi removido.
 
 Skill de auditoria: `/auditar-mestre-pc` (`~\.grok\skills\auditar-mestre-pc`).
 

@@ -6,7 +6,7 @@
 #
 # Fluxo:
 #   1. Aguarda 10s (sistema completar o login)
-#   2. Garante Ollama rodando em localhost:11434
+#   2. Garante Ollama rodando em 127.0.0.1:11434
 #   3. Pre-aquece o modelo local padrao
 #   4. Garante launcher Mestre do PC rodando em :7777
 # ================================================================
@@ -15,7 +15,7 @@ $ErrorActionPreference = "SilentlyContinue"
 
 $LogFile    = Join-Path $PSScriptRoot "..\logs\startup.log"
 $OllamaExe  = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
-$OllamaApi  = "http://localhost:11434"
+$OllamaApi  = "http://127.0.0.1:11434"
 $LauncherTask = "MestreDoPC_Admin_Launcher"
 $MestreApi  = "http://127.0.0.1:7777"
 $Model      = "qwen2.5-coder:3b-instruct"   # local, funciona offline e sem login
