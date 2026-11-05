@@ -70,9 +70,14 @@ node build.js firefox
 .\ativar-atualizar-tudo.ps1
 ```
 
-CI (`.github/workflows/ci.yml`) runs on `windows-latest` against Node 20.x and 22.x:
-`npm ci && npm test` in `mcp-server/`, then `node --check` on `v10/launcher.js`,
-`mcp-server/index.js`, and `mcp-server/security.js`.
+CI (`.github/workflows/ci.yml`) runs on `windows-latest` against Node 22.x and 24.x:
+`npm ci --ignore-scripts` at the repo root and in `mcp-server/` (skips the
+`@qwen-code/cua-sdk` postinstall, which calls `Get-AuthenticodeSignature` and
+fails on Actions because `Microsoft.PowerShell.Security` does not load; local
+`npm ci` on the PC still runs scripts), then `npm test`, then `node --check`
+on `v10/launcher.js`, `v10/security/origin-policy.js`, `v10/mobile/app.js`,
+`v10/mobile/sw.js`, `mcp-server/index.js`, and `mcp-server/security.js`, plus
+`node --test v10/security/origin-policy.test.mjs`.
 
 Tests use Node's built-in test runner (no external framework). `mcp-server/test/`
 is split by concern:

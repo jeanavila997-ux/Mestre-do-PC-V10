@@ -24,7 +24,16 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Install MCP dependencies
         working-directory: mcp-server
-        run: npm ci
+        # Único lifecycle script do lock: postinstall de @qwen-code/cua-sdk
+        # (scripts/install-native.mjs). No Windows ele roda Get-AuthenticodeSignature
+        # no worker UIAccess. Nos runners do Actions o módulo
+        # Microsoft.PowerShell.Security não carrega (CouldNotAutoloadMatchingModule)
+        # e o npm ci sai 1. Não há flag no pacote que pule só essa checagem
+        # (QWEN_CUA_SDK_NATIVE_DIR ainda chama o mesmo cmdlet).
+        # A suíte importa o facade JS (@qwen-code/cua-sdk/computer-use) e não
+        # carrega o .exe nativo. No PC, npm ci em mcp-server segue com scripts
+        # e a checagem Authenticode permanece.
+        run: npm ci --ignore-scripts
       - name: Run MCP tests
         working-directory: mcp-server
         run: npm test

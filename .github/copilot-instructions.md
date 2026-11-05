@@ -114,7 +114,7 @@ The MCP test suite lives in `mcp-server/test/` and is organized by concern:
 - `ollama-smoke-script.test.js` — Ollama smoke checks
 - `project-smoke.test.js` — project structure smoke tests
 
-Run one file with `node --test test/<file>.js`. CI (`.github/workflows/ci.yml`) runs on Windows with Node 22.x and 24.x, executing `npm ci && npm test` in `mcp-server/` plus `node --check` on `v10/launcher.js`, `mcp-server/index.js`, and `mcp-server/security.js`.
+Run one file with `node --test test/<file>.js`. CI (`.github/workflows/ci.yml`) runs on Windows with Node 22.x and 24.x, executing `npm ci --ignore-scripts` at the repo root and in `mcp-server/` (the `@qwen-code/cua-sdk` postinstall calls `Get-AuthenticodeSignature` and fails on Actions; local `npm ci` still runs scripts), then `npm test`, plus `node --check` on `v10/launcher.js`, `v10/security/origin-policy.js`, `v10/mobile/app.js`, `v10/mobile/sw.js`, `mcp-server/index.js`, and `mcp-server/security.js`.
 
 > **The test suite does not isolate the machine.** Tests write to the real `logs/audit/`
 > directory (only `diagnosticar-saude.test.js` isolates it via `MESTRE_AUDIT_LOG_DIR`), and
