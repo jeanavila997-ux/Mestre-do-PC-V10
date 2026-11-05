@@ -77,7 +77,7 @@ pwsh -NoProfile -File scripts/deploy-vps.ps1               # scp + compose
 
 Atalho desktop: `.\start-mestre-v10.ps1`. Instalador: `install.ps1` (Admin) — cria **somente `.lnk`**. Código fica em `$InstallDir`.
 
-CI (`.github/workflows/ci.yml`): Node 22.x e 24.x, `npm ci` na raiz e em `mcp-server/`, `npm test`, `node --check` em launcher / origin-policy / mobile / mcp.
+CI (`.github/workflows/ci.yml`): Node 22.x e 24.x, `npm ci --ignore-scripts` na raiz e em `mcp-server/` (o postinstall do `@qwen-code/cua-sdk` quebra o Authenticode no runner Windows; no PC o `npm ci` local segue com scripts), `npm test`, `node --check` em launcher / origin-policy / mobile / mcp.
 
 ---
 
@@ -214,7 +214,7 @@ Skill de auditoria: `/auditar-mestre-pc` (`~\.grok\skills\auditar-mestre-pc`).
 
 O Cloud Agent é Linux. O painel HTTP sobe; jobs da whitelist não, porque o launcher chama `powershell.exe`.
 
-- Node da imagem já atende `engines` (`>=22.13`). Instale como o CI, e também o painel: `npm ci --ignore-scripts` na raiz, depois `npm ci --prefix mcp-server` e `npm ci --prefix v10`. O `--ignore-scripts` da raiz evita o `postinstall`, que reinstala o `mcp-server` fora do `npm ci`.
+- Node da imagem já atende `engines` (`>=22.13`). Instale como o CI, e também o painel: `npm ci --ignore-scripts` na raiz, depois `npm ci --ignore-scripts --prefix mcp-server` e `npm ci --prefix v10`. O `--ignore-scripts` da raiz evita o `postinstall`, que reinstala o `mcp-server` fora do `npm ci`. No MCP, o mesmo flag evita o postinstall do `@qwen-code/cua-sdk` (Authenticode no Windows do Actions). No PC do Jean, `npm ci` em `mcp-server` continua com scripts.
 - Suba com `node v10/launcher.js`. Só escuta `127.0.0.1:7777` (`MPC_HOST` diferente aborta). `GET /ping` devolve `status: ok`. `POST /run` sem `X-Mestre-Client` devolve 403.
 - No primeiro boot o launcher grava `MESTRE_LOCAL_MCP_TOKEN` em `.env.local` (gitignored). Não commite esse arquivo.
 - Antes de `npm test` em `mcp-server`, pare o processo da porta 7777. A suíte sobe launchers próprios e escreve em `logs/audit/`.
