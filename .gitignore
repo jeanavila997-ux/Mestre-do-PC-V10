@@ -48,6 +48,7 @@ desktop.ini
 .cline/
 .console-ninja/
 .playwright-cli/
+.codesight/default.json
 .testsprite/
 .pytest_cache/
 .coverage/
