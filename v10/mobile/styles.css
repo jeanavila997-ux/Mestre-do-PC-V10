@@ -35,6 +35,10 @@ body {
 }
 button, input, textarea, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
 img { display: block; }
 
 .top, main, .live-log { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
@@ -98,6 +102,7 @@ h2 { font-size: 1.15rem; }
   color: white;
 }
 .hint { color: var(--muted); font-size: 0.78rem; margin-top: 6px; word-break: break-word; }
+.auth-hint { color: var(--amber); margin: 8px 0 0; }
 .endpoint { margin-top: 10px; }
 .endpoint.open, .stack { display: grid; gap: 10px; }
 label { display: grid; gap: 6px; color: var(--muted); font-size: 0.82rem; }
