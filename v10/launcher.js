@@ -972,28 +972,29 @@ const server = http.createServer(async (req, res) => {
         return res.end(html);
       } catch { return sendJson(res, 404, { error: "index.html não encontrado" }); }
     }
-    if (path === "/favicon.png" || path === "/logo-mestre-v7-transparent.png") {
+    // Marca fica na raiz do repo; PWA e scripts ficam em v10/.
+    const rootStatic = {
+      "/favicon.png": { type: "image/png", dir: PROJECT_DIR },
+      "/logo-mestre-v7-transparent.png": { type: "image/png", dir: PROJECT_DIR },
+      "/icon-192.png": { type: "image/png", dir: __dirname },
+      "/icon-512.png": { type: "image/png", dir: __dirname },
+      "/sw.js": { type: "text/javascript; charset=utf-8", dir: __dirname },
+      "/manifest.json": { type: "application/manifest+json; charset=utf-8", dir: __dirname },
+      "/rede-dashboard.js": { type: "text/javascript; charset=utf-8", dir: __dirname },
+    };
+    const staticFile = rootStatic[path];
+    if (staticFile) {
       try {
-        const buf = await readFile(join(__dirname, "..", path.slice(1)));
+        const buf = await readFile(join(staticFile.dir, path.slice(1)));
         res.writeHead(200, {
-          "Content-Type": "image/png",
-          "Cache-Control": "public, max-age=604800, immutable",
+          "Content-Type": staticFile.type,
+          "X-Content-Type-Options": "nosniff",
+          "Cache-Control": staticFile.type.startsWith("image/")
+            ? "public, max-age=604800, immutable"
+            : "no-store",
         });
         return res.end(buf);
       } catch { return sendJson(res, 404, { error: "recurso não encontrado" }); }
-    }
-
-    // ===== CORREÇÃO V10.1.1: Servir rede-dashboard.js como JavaScript =====
-    if (path === "/rede-dashboard.js") {
-      try {
-        const js = await readFile(join(__dirname, "rede-dashboard.js"), "utf8");
-        res.writeHead(200, {
-          "Content-Type": "text/javascript; charset=utf-8",
-          "Cache-Control": "no-store",
-          "X-Content-Type-Options": "nosniff",
-        });
-        return res.end(js);
-      } catch { return sendJson(res, 404, { error: "rede-dashboard.js não encontrado" }); }
     }
 
     // ===== NOVO V11.2: Páginas .html estáticas do diretório v10 (ex: /novidades-v11.html) =====
