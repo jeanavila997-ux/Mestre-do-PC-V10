@@ -7,19 +7,21 @@ Fluxo (não quebra a arquitetura do projeto):
     agente Antigravity ──stdio──▶ mcp-server/index.js ──HTTP──▶ launcher 127.0.0.1:7777 ──▶ whitelist
 
 O agente NUNCA executa PowerShell direto: `run_command`, `create_file` e
-`edit_file` ficam negados por política. Toda ação administrativa passa pelo MCP
-do Mestre do PC, que só aceita operações de `v10/allowed-operations.json`.
+`edit_file` ficam desabilitados e negados por política. Toda ação administrativa
+passa pelo MCP do Mestre do PC, que só aceita operações de `v10/allowed-operations.json`.
 
-Segurança:
-- Modo padrão: só operações de leitura (verificar_/listar_/ver_/... e não
-  destrutivas) ficam visíveis e auto-aprovadas.
-- `--permitir-escrita`: expõe o resto da whitelist, mas cada chamada pede
-  confirmação no console (y/N). Operações `destructive: true` são destacadas.
+Modos de execução (auto-detectados):
+- Se `GEMINI_API_KEY` (ou `--api-key`) estiver definida e `--ollama` não for passado:
+  usa `LocalAgentConfig` (Gemini na nuvem, modelo padrão do SDK).
+- Caso contrário, usa automaticamente o Ollama local em `http://127.0.0.1:11434/v1`
+  via `LocalOpenAIAgentConfig(...).lightweight()`, detectando os modelos instalados
+  na máquina (priorizando `NEXO_MODEL` / `qwen3.5:4b`).
 
-Uso:
+Uso rápido:
+    python scripts/antigravity_mestre_agent.py
+    python scripts/antigravity_mestre_agent.py -p "Como está o uso de RAM e processos ativos?"
+    python scripts/antigravity_mestre_agent.py --interativo
     python scripts/antigravity_mestre_agent.py --verificar-config
-    python scripts/antigravity_mestre_agent.py -p "Como está a saúde do disco?"
-    python scripts/antigravity_mestre_agent.py --ollama --modelo-ollama llama3.1
 """
 
 from __future__ import annotations
@@ -29,6 +31,7 @@ import asyncio
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.request
 from pathlib import Path
@@ -52,14 +55,62 @@ for _stream in (sys.stdout, sys.stderr):
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MCP_SERVER_JS = REPO_ROOT / "mcp-server" / "index.js"
 WHITELIST_JSON = REPO_ROOT / "v10" / "allowed-operations.json"
+ENV_LOCAL_FILE = REPO_ROOT / ".env.local"
+
+
+def carregar_env_local() -> None:
+    """Carrega variáveis de `.env.local` sem sobrescrever o ambiente já definido."""
+    if not ENV_LOCAL_FILE.exists():
+        return
+    try:
+        for linha in ENV_LOCAL_FILE.read_text(encoding="utf-8").splitlines():
+            texto = linha.strip()
+            if not texto or texto.startswith("#") or "=" not in texto:
+                continue
+            chave, valor = texto.split("=", 1)
+            chave = chave.strip()
+            valor = valor.strip().strip("\"'")
+            if chave and chave not in os.environ:
+                os.environ[chave] = valor
+    except OSError:
+        pass
+
+
+carregar_env_local()
 
 # Regra dura do projeto: 127.0.0.1, nunca localhost.
 MESTRE_BASE_URL = os.environ.get("MESTRE_BASE_URL", "http://127.0.0.1:7777").rstrip("/")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
+if "localhost" in OLLAMA_URL:
+    OLLAMA_URL = OLLAMA_URL.replace("localhost", "127.0.0.1")
 
 PREFIXOS_LEITURA = (
-    "verificar_", "listar_", "ver_", "diagnosticar_", "obter_",
-    "mostrar_", "exibir_", "consultar_", "status_",
+    "verificar_", "listar_", "ver_", "diagnosticar_", "diagnostico_",
+    "obter_", "mostrar_", "exibir_", "consultar_", "status_",
+    "relatorio_", "info_", "testar_", "teste_",
+)
+
+# Atalhos essenciais de diagnóstico (mesma base de `BUILTIN_OPS` em v10/mobile/app.js)
+# usados por padrão no modo Ollama local para não sobrecarregar o contexto de modelos 4B/7B.
+TOOLS_ESSENCIAIS_DIAGNOSTICO = (
+    "relatorio_rapido_do_pc",
+    "ver_uso_atual_de_ram",
+    "listar_processos_por_uso_de_ram",
+    "info_ram",
+    "listar_processos_ativos",
+    "ver_dns_atual",
+    "testar_dns",
+    "teste_dns_resolucao",
+    "diagnostico_de_rede_completo",
+    "ver_adaptadores_de_rede",
+    "info_adaptadores_rede",
+    "verificar_status_do_windows_defender",
+    "listar_startups_do_sistema",
+    "verificar_processos_node_ativos",
+    "listar_atualizacoes_winget",
+    "verificar_espaco_em_disco",
+    "verificar_saude_disco_smart",
+    "verificar_servicos_criticos_windows",
 )
 
 MCP_SERVER_NAME = "mestre_pc"
@@ -68,6 +119,88 @@ MCP_SERVER_NAME = "mestre_pc"
 MARCADORES_ALTERACAO = re.compile(
     r"(?i)sfc\s+/scannow|/restorehealth|chkdsk\b[^;]*\s/[fr]\b|winget\s+(upgrade\s+--all|install)"
 )
+
+
+# ==============================================================================
+# Descoberta de modelos Ollama e status de portas
+# ==============================================================================
+
+def _http_ok(url: str, timeout: float = 2.0) -> tuple[bool, dict | str]:
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "MestreAntigravityAgent/1.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as res:
+            corpo = res.read().decode("utf-8", errors="replace")
+            try:
+                return True, json.loads(corpo)
+            except json.JSONDecodeError:
+                return True, corpo
+    except Exception as exc:  # noqa: BLE001 — diagnóstico, não propaga
+        return False, str(exc)
+
+
+def _porta_escutando_windows(porta: int) -> int | None:
+    """Fallback sem abrir socket: consulta a tabela TCP do Windows pelo PID."""
+    try:
+        proc = subprocess.run(
+            [
+                "powershell", "-NoProfile", "-Command",
+                f"$c = Get-NetTCPConnection -LocalPort {int(porta)} -State Listen "
+                "-ErrorAction SilentlyContinue | Select-Object -First 1; "
+                "if ($c) { $c.OwningProcess }",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=4,
+            check=False,
+        )
+        saida = proc.stdout.strip()
+        return int(saida) if saida.isdigit() else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def listar_modelos_ollama_instalados() -> list[str]:
+    """Obtém os modelos instalados no Ollama via HTTP `/api/tags` ou manifesto em disco."""
+    ok, info = _http_ok(f"{OLLAMA_URL}/api/tags")
+    if ok and isinstance(info, dict):
+        nomes = [
+            m.get("name") or m.get("model")
+            for m in info.get("models", [])
+            if m.get("name") or m.get("model")
+        ]
+        if nomes:
+            return nomes
+
+    manifest_dir = Path.home() / ".ollama" / "models" / "manifests" / "registry.ollama.ai" / "library"
+    if not manifest_dir.exists():
+        return []
+    modelos: list[str] = []
+    for arquivo in sorted(manifest_dir.rglob("*")):
+        if arquivo.is_file():
+            rel = arquivo.relative_to(manifest_dir).parts
+            if len(rel) == 2:
+                modelos.append(f"{rel[0]}:{rel[1]}")
+    return modelos
+
+
+def escolher_modelo_ollama(explicito: str | None) -> str:
+    """Seleciona o modelo Ollama mais adequado disponível na máquina."""
+    if explicito:
+        return explicito
+    instalados = listar_modelos_ollama_instalados()
+    preferidos = [
+        os.environ.get("NEXO_MODEL"),
+        os.environ.get("OLLAMA_MODEL"),
+        "qwen3.5:4b",
+        "qwen2.5-coder:3b-instruct",
+        "deepseek-coder:6.7b",
+    ]
+    for candidato in preferidos:
+        if candidato and candidato in instalados:
+            return candidato
+    if instalados:
+        return instalados[0]
+    return os.environ.get("NEXO_MODEL") or os.environ.get("OLLAMA_MODEL") or "qwen3.5:4b"
 
 
 # ==============================================================================
@@ -110,19 +243,6 @@ def classificar_operacoes(ops: dict[str, dict]) -> tuple[list[str], list[str], s
 # Ferramentas Python (custom tools)
 # ==============================================================================
 
-def _http_ok(url: str, timeout: float = 2.0) -> tuple[bool, dict | str]:
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "MestreAntigravityAgent/1.0"})
-        with urllib.request.urlopen(req, timeout=timeout) as res:
-            corpo = res.read().decode("utf-8", errors="replace")
-            try:
-                return True, json.loads(corpo)
-            except json.JSONDecodeError:
-                return True, corpo
-    except Exception as exc:  # noqa: BLE001 — diagnóstico, não propaga
-        return False, str(exc)
-
-
 def verificar_saude_launcher() -> str:
     """Verifica se o launcher do Mestre do PC (127.0.0.1:7777) está ativo.
 
@@ -131,6 +251,9 @@ def verificar_saude_launcher() -> str:
     ok, info = _http_ok(f"{MESTRE_BASE_URL}/ping")
     if ok and isinstance(info, dict):
         return f"Launcher ativo. Versão {info.get('version', '?')}, PID {info.get('pid', '?')}."
+    pid = _porta_escutando_windows(7777)
+    if pid:
+        return f"Launcher LISTENING na porta 7777 (PID {pid}) [sondagem HTTP bloqueada: {info}]."
     return (
         f"Launcher OFFLINE em {MESTRE_BASE_URL} ({info}). "
         "Peça ao usuário para rodar: pwsh mcp-server/start-launcher.ps1"
@@ -197,8 +320,30 @@ Regras:
 """
 
 
+def resolver_backend(args) -> tuple[str, str | None, str]:
+    """Decide entre ('gemini', api_key, modelo) ou ('ollama', None, modelo_ollama)."""
+    chave_gemini = getattr(args, "api_key", None) or os.environ.get("GEMINI_API_KEY")
+    usar_ollama = bool(getattr(args, "ollama", False)) or not chave_gemini
+    if usar_ollama:
+        modelo_ollama = escolher_modelo_ollama(getattr(args, "modelo_ollama", None))
+        return "ollama", None, modelo_ollama
+    return "gemini", chave_gemini, getattr(args, "modelo", None) or "(default do SDK)"
+
+
 def construir_config(args, leitura: list[str], escrita: list[str], destrutivas: set[str]):
-    expostas = leitura + (escrita if args.permitir_escrita else [])
+    backend, chave_gemini, modelo_escolhido = resolver_backend(args)
+
+    # No modo Ollama local, expomos por padrão o conjunto essencial de diagnóstico
+    # (~15 tools) para caber com folga na janela de contexto de modelos 4B/7B.
+    # Com --todas-leituras (ou no Gemini), todas as ~100 tools de leitura ficam visíveis.
+    todas_leituras = bool(getattr(args, "todas_leituras", False)) or backend == "gemini"
+    if todas_leituras:
+        leitura_ativa = leitura
+    else:
+        essenciais = [op_id for op_id in TOOLS_ESSENCIAIS_DIAGNOSTICO if op_id in leitura]
+        leitura_ativa = essenciais or leitura[:20]
+
+    expostas = leitura_ativa + (escrita if args.permitir_escrita else [])
 
     env_mcp = {k: v for k, v in os.environ.items() if k not in ("GEMINI_API_KEY", "GOOGLE_API_KEY")}
     env_mcp["MESTRE_BASE_URL"] = MESTRE_BASE_URL
@@ -234,35 +379,44 @@ def construir_config(args, leitura: list[str], escrita: list[str], destrutivas: 
         policy.deny("run_command"),
         policy.deny("create_file"),
         policy.deny("edit_file"),
-        policy.allow(mcp_server, leitura),                                   # leitura: automático
+        policy.allow(mcp_server, leitura_ativa),                             # leitura: automático
         policy.ask_user(mcp_server, handler=criar_handler_confirmacao(destrutivas)),  # resto: y/N
         policy.allow_all(),  # tools Python, view_file (limitado ao workspace), subagente
     ]
+
+    capabilities = types.CapabilitiesConfig(
+        enable_subagents=True,
+        max_subagent_depth=1,
+        allowed_subagents=["auditor_mestre"],
+        enabled_tools=[
+            types.BuiltinTools.VIEW_FILE,
+            types.BuiltinTools.SEARCH_DIR,
+            types.BuiltinTools.INVOKE_SUBAGENT,
+        ],
+    )
 
     comum = dict(
         system_instructions=INSTRUCOES,
         tools=[verificar_saude_launcher, registrar_evento_sessao, resumo_sessao],
         mcp_servers=[mcp_server],
         subagents=[auditor],
-        capabilities=types.CapabilitiesConfig(
-            enable_subagents=True,
-            max_subagent_depth=1,
-            allowed_subagents=["auditor_mestre"],
-        ),
+        capabilities=capabilities,
         policies=policies,
         workspaces=[str(REPO_ROOT)],  # adiciona workspace_only para view_file
         budget_config=types.BudgetConfig(max_tool_calls=args.max_tools),
     )
 
-    if args.ollama:
-        return "ollama", LocalOpenAIAgentConfig(
-            model=args.modelo_ollama,
+    if backend == "ollama":
+        cfg = LocalOpenAIAgentConfig(
+            model=modelo_escolhido,
             base_url=f"{OLLAMA_URL}/v1",
             **comum,
-        )
+        ).lightweight()
+        return f"ollama ({modelo_escolhido})", cfg
 
-    extra = {"model": args.modelo} if args.modelo else {}  # default do SDK quando omitido
-    return "gemini", LocalAgentConfig(api_key=os.environ.get("GEMINI_API_KEY"), **extra, **comum)
+    extra = {"model": args.modelo} if getattr(args, "modelo", None) else {}
+    cfg = LocalAgentConfig(api_key=chave_gemini, **extra, **comum)
+    return f"gemini ({modelo_escolhido})", cfg
 
 
 # ==============================================================================
@@ -274,55 +428,84 @@ def checar_pre_requisitos(args) -> None:
     if faltando:
         sys.exit(f"ERRO: arquivos ausentes: {', '.join(map(str, faltando))}")
 
-    if args.ollama:
+    backend, _, modelo_escolhido = resolver_backend(args)
+    if backend == "ollama":
         ok, info = _http_ok(f"{OLLAMA_URL}/api/tags")
-        if not ok:
+        pid_ollama = _porta_escutando_windows(11434) if not ok else None
+        if not ok and not pid_ollama:
             sys.exit(f"ERRO: Ollama offline em {OLLAMA_URL} ({info}). Rode `ollama serve`.")
-    elif not os.environ.get("GEMINI_API_KEY"):
-        sys.exit(
-            "ERRO: GEMINI_API_KEY não definida.\n"
-            "  Gere uma chave em https://aistudio.google.com/app/api-keys e rode:\n"
-            "    $env:GEMINI_API_KEY = '<sua-chave>'\n"
-            "  Ou use um modelo local:  --ollama"
-        )
+        instalados = listar_modelos_ollama_instalados()
+        if instalados and modelo_escolhido not in instalados:
+            sys.exit(
+                f"ERRO: Modelo Ollama '{modelo_escolhido}' não está instalado.\n"
+                f"  Modelos instalados na máquina: {', '.join(instalados)}\n"
+                f"  Use: --modelo-ollama {instalados[0]}"
+            )
 
 
 def verificar_config(args) -> None:
     """Monta a config sem abrir event loop nem chamar o modelo."""
     ops = carregar_whitelist()
     leitura, escrita, destrutivas = classificar_operacoes(ops)
+    instalados = listar_modelos_ollama_instalados()
+    backend_label, cfg = construir_config(args, leitura, escrita, destrutivas)
+    expostas = len(cfg.mcp_servers[0].enabled_tools or [])
     print(f"Whitelist: {len(ops)} operações | leitura: {len(leitura)} | "
           f"escrita: {len(escrita)} | destrutivas: {len(destrutivas)}")
-    print(f"Expostas ao agente: {len(leitura) + (len(escrita) if args.permitir_escrita else 0)}")
+    print(f"Modelos Ollama instalados: {', '.join(instalados) if instalados else '(nenhum detectado)'}")
+    print(f"Tools MCP expostas ao agente: {expostas}")
     print(f"Launcher: {verificar_saude_launcher()}")
-    backend, _ = construir_config(args, leitura, escrita, destrutivas)
-    print(f"Config OK (backend: {backend}).")
+    print(f"Config OK -> backend: {backend_label}")
 
 
 async def executar(args) -> None:
     ops = carregar_whitelist()
     leitura, escrita, destrutivas = classificar_operacoes(ops)
+    backend_label, config = construir_config(args, leitura, escrita, destrutivas)
+    expostas = len(config.mcp_servers[0].enabled_tools or [])
 
-    backend, config = construir_config(args, leitura, escrita, destrutivas)
-    print(f"[*] Backend: {backend} | tools MCP expostas: "
-          f"{len(leitura) + (len(escrita) if args.permitir_escrita else 0)}")
-    print(f"[Prompt] {args.prompt}\n---")
+    print(f"[*] Backend: {backend_label} | tools MCP expostas: {expostas}")
 
     async with Agent(config) as agent:
-        response = await agent.chat(args.prompt)
-        async for chunk in response:
-            print(chunk, end="", flush=True)
-        print("\n---")
+        if args.interativo:
+            print("[Modo interativo] Digite sua pergunta ou 'sair' para encerrar.\n")
+            while True:
+                try:
+                    pergunta = (await asyncio.to_thread(input, "Você > ")).strip()
+                except (EOFError, KeyboardInterrupt):
+                    print()
+                    break
+                if not pergunta or pergunta.lower() in ("sair", "exit", "quit"):
+                    break
+                resposta = await agent.chat(pergunta)
+                print("Agente > ", end="", flush=True)
+                async for chunk in resposta:
+                    print(chunk, end="", flush=True)
+                print("\n")
+        else:
+            print(f"[Prompt] {args.prompt}\n---")
+            response = await agent.chat(args.prompt)
+            async for chunk in response:
+                print(chunk, end="", flush=True)
+            print("\n---")
 
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Agente Antigravity SDK integrado ao Mestre do PC V10.")
     p.add_argument("-p", "--prompt",
-                   default="Faça um diagnóstico rápido de saúde do PC e me dê um resumo.")
-    p.add_argument("--ollama", action="store_true", help=f"Usa Ollama local ({OLLAMA_URL}).")
-    p.add_argument("--modelo-ollama", default=os.environ.get("OLLAMA_MODEL", "llama3.1"))
+                   default="Verifique a saúde do launcher e faça um resumo rápido do uso de RAM.")
+    p.add_argument("-i", "--interativo", action="store_true",
+                   help="Inicia chat interativo no terminal.")
+    p.add_argument("--api-key", default=None,
+                   help="Chave Gemini (ou defina GEMINI_API_KEY). Sem chave, usa Ollama local.")
+    p.add_argument("--ollama", action="store_true",
+                   help=f"Força uso do Ollama local ({OLLAMA_URL}).")
+    p.add_argument("--modelo-ollama", default=None,
+                   help="Modelo Ollama (auto-detecta qwen3.5:4b / instalados se omitido).")
     p.add_argument("--modelo", default=None,
                    help="Modelo Gemini explícito. Omitido = default do SDK.")
+    p.add_argument("--todas-leituras", action="store_true",
+                   help="No Ollama, expõe todas as ~100 operações de leitura (padrão: ~15 essenciais).")
     p.add_argument("--permitir-escrita", action="store_true",
                    help="Expõe operações que alteram o sistema (cada uma pede confirmação y/N).")
     p.add_argument("--max-tools", type=int, default=30, help="Teto de chamadas de tool por sessão.")
