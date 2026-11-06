@@ -71,10 +71,13 @@ node build.js firefox
 ```
 
 CI (`.github/workflows/ci.yml`) runs on `windows-latest` against Node 22.x and 24.x:
-`npm ci --ignore-scripts` at the repo root and in `mcp-server/` (skips the
-`@qwen-code/cua-sdk` postinstall, which calls `Get-AuthenticodeSignature` and
-fails on Actions because `Microsoft.PowerShell.Security` does not load; local
-`npm ci` on the PC still runs scripts), then `npm test`, then `node --check`
+`npm ci --ignore-scripts` at the repo root and in `mcp-server/`. The root
+install skips the `@qwen-code/cua-sdk` postinstall, which calls
+`Get-AuthenticodeSignature` and fails on Actions because
+`Microsoft.PowerShell.Security` does not load. `mcp-server` does not depend on
+that package; `v10/computer-use-client.js` resolves it from `v10/node_modules`
+or the repo root `node_modules`. Local `npm ci` on the PC still runs scripts.
+Then `npm test`, then `node --check`
 on `v10/launcher.js`, `v10/security/origin-policy.js`, `v10/mobile/app.js`,
 `v10/mobile/sw.js`, `mcp-server/index.js`, and `mcp-server/security.js`, plus
 `node --test v10/security/origin-policy.test.mjs`.
