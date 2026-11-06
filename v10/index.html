@@ -1015,752 +1015,37 @@
     </div>
     <div class="toast" id="toast">✅ Copiado!</div>
     <script>
-      const CATS = [
-      {
-        id: "cat0",
-        label: "0. Instalações",
-        cmds: [
-          ["Instalar Ollama (irm install.ps1)", "irm https://ollama.com/install.ps1 | iex"],
-      ["Clonar Firecrawl Skills (gh)", "Set-Location $env:USERPROFILE\\Projetos; if (Test-Path skills) { Write-Host \"Pasta skills já existe — atualizando\" -ForegroundColor Yellow; git -C skills pull } else { gh repo clone firecrawl/skills }"],
-      ["Instalar Firecrawl Skills (37)", "Set-Location $env:USERPROFILE\\Projetos\\Mestre-do-PC-V10; npx -y skills add https://github.com/firecrawl/skills.git --all -y"],
-          ["Instalar Google Chrome", "winget install Google.Chrome --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Chrome iniciada!\" -ForegroundColor Green"],
-          ["Instalar Mozilla Firefox", "winget install Mozilla.Firefox --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Firefox iniciada!\" -ForegroundColor Green"],
-          ["Instalar Microsoft Edge", "winget install Microsoft.Edge --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Edge iniciada!\" -ForegroundColor Green"],
-          ["Instalar VLC Media Player", "winget install VideoLAN.VLC --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do VLC iniciada!\" -ForegroundColor Green"],
-          ["Instalar 7-Zip", "winget install 7zip.7zip --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do 7-Zip iniciada!\" -ForegroundColor Green"],
-          ["Instalar Visual Studio Code", "winget install Microsoft.VisualStudioCode --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do VS Code iniciada!\" -ForegroundColor Green"],
-          ["Instalar Git", "winget install Git.Git --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Git iniciada!\" -ForegroundColor Green"],
-          ["Instalar Node.js LTS", "winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Node.js iniciada!\" -ForegroundColor Green"],
-          ["Instalar PowerShell 7", "winget install Microsoft.PowerShell --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do PowerShell 7 iniciada!\" -ForegroundColor Green"],
-          ["Instalar Discord", "winget install Discord.Discord --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Discord iniciada!\" -ForegroundColor Green"],
-          ["Instalar Spotify", "winget install Spotify.Spotify --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Spotify iniciada!\" -ForegroundColor Green"],
-          ["Instalar Notepad++", "winget install Notepad++.Notepad++ --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Notepad++ iniciada!\" -ForegroundColor Green"],
-          ["Instalar WinRAR", "winget install RARLab.WinRAR --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do WinRAR iniciada!\" -ForegroundColor Green"],
-          ["Instalar Python 3", "winget install Python.Python.3.12 --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Python iniciada!\" -ForegroundColor Green"],
-          ["Instalar Windows Terminal", "winget install Microsoft.WindowsTerminal --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Instalação do Windows Terminal iniciada!\" -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat_libs",
-        label: "📚 Bibliotecas",
-        subcategories: [
-          {
-            label: "🐍 Python",
-            cmds: [
-              ["pip install requests", "pip install --upgrade requests; Write-Host \"✅ requests instalado/atualizado!\" -ForegroundColor Green"],
-              ["pip install numpy + pandas", "pip install --upgrade numpy pandas; Write-Host \"✅ numpy e pandas instalados!\" -ForegroundColor Green"],
-              ["pip install matplotlib", "pip install --upgrade matplotlib; Write-Host \"✅ matplotlib instalado!\" -ForegroundColor Green"],
-              ["pip install psutil", "pip install --upgrade psutil; Write-Host \"✅ psutil instalado!\" -ForegroundColor Green"],
-              ["pip install openpyxl", "pip install --upgrade openpyxl; Write-Host \"✅ openpyxl instalado!\" -ForegroundColor Green"],
-              ["pip install pywin32", "pip install --upgrade pywin32; Write-Host \"✅ pywin32 instalado!\" -ForegroundColor Green"],
-              ["pip install pillow", "pip install --upgrade pillow; Write-Host \"✅ pillow instalado!\" -ForegroundColor Green"],
-              ["pip install scikit-learn", "pip install --upgrade scikit-learn; Write-Host \"✅ scikit-learn instalado!\" -ForegroundColor Green"],
-              ["pip install beautifulsoup4 + lxml", "pip install --upgrade beautifulsoup4 lxml; Write-Host \"✅ beautifulsoup4 e lxml instalados!\" -ForegroundColor Green"],
-              ["pip install selenium", "pip install --upgrade selenium; Write-Host \"✅ selenium instalado!\" -ForegroundColor Green"],
-              ["pip install flask", "pip install --upgrade flask; Write-Host \"✅ flask instalado!\" -ForegroundColor Green"],
-              ["pip install fastapi", "pip install --upgrade fastapi uvicorn; Write-Host \"✅ fastapi e uvicorn instalados!\" -ForegroundColor Green"],
-              ["pip install sqlalchemy", "pip install --upgrade sqlalchemy; Write-Host \"✅ sqlalchemy instalado!\" -ForegroundColor Green"],
-              ["pip install jupyter", "pip install --upgrade jupyter; Write-Host \"✅ jupyter instalado!\" -ForegroundColor Green"],
-              ["pip install python-dotenv", "pip install --upgrade python-dotenv; Write-Host \"✅ python-dotenv instalado!\" -ForegroundColor Green"],
-            ],
-          },
-          {
-            label: "🟩 Node.js",
-            cmds: [
-              ["npm install no projeto", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green"],
-              ["npm install -g typescript", "npm install -g typescript; Write-Host \"✅ TypeScript instalado globalmente!\" -ForegroundColor Green"],
-              ["npm install -g nodemon", "npm install -g nodemon; Write-Host \"✅ nodemon instalado globalmente!\" -ForegroundColor Green"],
-              ["npm install -g pnpm", "npm install -g pnpm; Write-Host \"✅ pnpm instalado globalmente!\" -ForegroundColor Green"],
-              ["npm install -g @angular/cli", "npm install -g @angular/cli; Write-Host \"✅ Angular CLI instalado globalmente!\" -ForegroundColor Green"],
-              ["npm install -g @nestjs/cli", "npm install -g @nestjs/cli; Write-Host \"✅ NestJS CLI instalado globalmente!\" -ForegroundColor Green"],
-              ["npm install -g eslint + prettier", "npm install -g eslint prettier; Write-Host \"✅ eslint e prettier instalados globalmente!\" -ForegroundColor Green"],
-              ["npm install -g pm2", "npm install -g pm2; Write-Host \"✅ pm2 instalado globalmente!\" -ForegroundColor Green"],
-              ["Instalar Chrome DevTools MCP", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; $pasta = Join-Path $env:MESTRE_PROJETO_PATH 'mcp-server'; Set-Location -LiteralPath $pasta; npm install chrome-devtools-mcp@1.12.0 --no-audit --no-fund; if ($LASTEXITCODE -eq 0) { Write-Host \"✅ Chrome DevTools MCP instalado em $pasta!\" -ForegroundColor Green; Write-Host \"ℹ️ Reinicie o MCP Server para ativar as tools chrome_*.\" -ForegroundColor Cyan } else { Write-Host \"❌ Falha ao instalar o Chrome DevTools MCP.\" -ForegroundColor Red }"],
-              ["Verificar Chrome DevTools MCP", "$pasta = Join-Path $env:MESTRE_PROJETO_PATH 'mcp-server'; $pkg = Join-Path $pasta 'node_modules\\chrome-devtools-mcp\\package.json'; if (Test-Path $pkg) { $v = (Get-Content $pkg -Raw | ConvertFrom-Json).version; Write-Host \"✅ Chrome DevTools MCP instalado — versão $v\" -ForegroundColor Green; Write-Host \"ℹ️ Para as tools chrome_*: reinicie o MCP Server.\" -ForegroundColor Cyan } else { Write-Host \"⚠️ Chrome DevTools MCP não encontrado em $pasta. Use o comando de instalação.\" -ForegroundColor Yellow }"],
-            ],
-          },
-          {
-            label: "🐚 PowerShell",
-            cmds: [
-              ["Install-Module Terminal-Icons", "Install-Module -Name Terminal-Icons -Scope CurrentUser -Force; Write-Host \"✅ Terminal-Icons instalado!\" -ForegroundColor Green"],
-              ["Install-Module PSReadLine", "Install-Module -Name PSReadLine -Force -SkipPublisherCheck; Write-Host \"✅ PSReadLine instalado!\" -ForegroundColor Green"],
-              ["Install-Module BurntToast", "Install-Module -Name BurntToast -Scope CurrentUser -Force; Write-Host \"✅ BurntToast instalado!\" -ForegroundColor Green"],
-              ["Install-Module PSWindowsUpdate", "Install-Module PSWindowsUpdate -Force -SkipPublisherCheck -AcceptLicense; Write-Host \"✅ PSWindowsUpdate instalado!\" -ForegroundColor Green"],
-            ],
-          },
-        ],
-      },
-      {
-        id: "cat_models",
-        label: "🤖 MODELOS",
-        subcategories: [
-          {
-            label: "💻 Código",
-            cmds: [
-              ["Pull qwen2.5-coder:3b-instruct (~1.9 GB)", "ollama pull qwen2.5-coder:3b-instruct"],
-              ["Pull qwen2.5-coder:7b (~4.7 GB)", "ollama pull qwen2.5-coder:7b"],
-              ["Pull qwen2.5-coder:14b (~9.0 GB)", "ollama pull qwen2.5-coder:14b"],
-              ["Pull kimi-k2.7-code:cloud (☁️ Cloud — 0 GB local)", "ollama pull kimi-k2.7-code:cloud"],
-              ["Pull deepseek-coder-v2 (~8.9 GB)", "ollama pull deepseek-coder-v2"],
-              ["Pull deepseek-coder:6.7b (~3.8 GB)", "ollama pull deepseek-coder:6.7b"],
-              ["Pull codellama:7b-code (~3.8 GB)", "ollama pull codellama:7b-code"],
-              ["Pull codellama:13b-code (~7.4 GB)", "ollama pull codellama:13b-code"],
-              ["Pull codegemma:2b-code (~1.6 GB)", "ollama pull codegemma:2b-code"],
-              ["Pull starcoder2:3b (~1.7 GB)", "ollama pull starcoder2:3b"],
-              ["Pull starcoder2:7b (~4.0 GB)", "ollama pull starcoder2:7b"],
-            ],
-          },
-          {
-            label: "👁️ Visão",
-            cmds: [
-              ["Pull llava-phi3 (~2.9 GB)", "ollama pull llava-phi3"],
-              ["Pull llava:13b (~8.0 GB)", "ollama pull llava:13b"],
-              ["Pull bakllava (~4.7 GB)", "ollama pull bakllava"],
-              ["Pull moondream (~1.7 GB)", "ollama pull moondream"],
-              ["Pull minicpm-v (~5.5 GB)", "ollama pull minicpm-v"],
-              ["Pull llama3.2-vision (~7.8 GB)", "ollama pull llama3.2-vision"],
-              ["Pull granite3.2-vision (~2.4 GB)", "ollama pull granite3.2-vision"],
-            ],
-          },
-          {
-            label: "📝 Texto",
-            cmds: [
-              ["Pull llama3.2 (~2.0 GB)", "ollama pull llama3.2"],
-              ["Pull llama3.1:8b (~4.9 GB)", "ollama pull llama3.1:8b"],
-              ["Pull qwen2.5:7b (~4.7 GB)", "ollama pull qwen2.5:7b"],
-              ["Pull qwen2.5:14b (~9.0 GB)", "ollama pull qwen2.5:14b"],
-              ["Pull mistral (~4.4 GB)", "ollama pull mistral"],
-              ["Pull mistral-nemo (~7.1 GB)", "ollama pull mistral-nemo"],
-              ["Pull gemma2:2b (~1.6 GB)", "ollama pull gemma2:2b"],
-              ["Pull gemma2:9b (~5.4 GB)", "ollama pull gemma2:9b"],
-              ["Pull phi4 (~9.1 GB)", "ollama pull phi4"],
-              ["Pull phi3.5:3.8b (~2.2 GB)", "ollama pull phi3.5:3.8b"],
-              ["Pull phi3:medium (~7.9 GB)", "ollama pull phi3:medium"],
-              ["Pull command-r7b (~5.1 GB)", "ollama pull command-r7b"],
-            ],
-          },
-          {
-            label: "🖼️ Imagem / Multimodal",
-            cmds: [
-              ["Pull llava (~4.7 GB)", "ollama pull llava"],
-              ["Pull llama3.2-vision (~7.8 GB)", "ollama pull llama3.2-vision"],
-              ["Pull granite3.2-vision (~2.4 GB)", "ollama pull granite3.2-vision"],
-              ["Pull llava-llama3 (~5.5 GB)", "ollama pull llava-llama3"],
-            ],
-          },
-          {
-            label: "🛠️ Ferramentas",
-            cmds: [
-              ["Pull llama3.2 (tools ~2.0 GB)", "ollama pull llama3.2"],
-              ["Pull llama3.1:8b (tools ~4.9 GB)", "ollama pull llama3.1:8b"],
-              ["Pull qwen2.5 (tools ~4.7 GB)", "ollama pull qwen2.5"],
-              ["Pull qwen2.5:14b (tools ~9.0 GB)", "ollama pull qwen2.5:14b"],
-              ["Pull mistral (tools ~4.4 GB)", "ollama pull mistral"],
-              ["Pull command-r7b (tools ~5.1 GB)", "ollama pull command-r7b"],
-              ["Pull athene-v2:latest (~47 GB — grande!)", "ollama pull athene-v2:latest"],
-              ["Pull nemotron-mini:4b (~2.7 GB)", "ollama pull nemotron-mini:4b"],
-              ["Pull hermes3 (~4.7 GB)", "ollama pull hermes3"],
-            ],
-          },
-          {
-            label: "🎓 Aprendizagem / Leve",
-            cmds: [
-              ["Pull tinyllama (~0.6 GB)", "ollama pull tinyllama"],
-              ["Pull qwen2.5:0.5b (~0.4 GB)", "ollama pull qwen2.5:0.5b"],
-              ["Pull qwen2.5:1.5b (~1.0 GB)", "ollama pull qwen2.5:1.5b"],
-              ["Pull qwen2.5:3b (~1.9 GB)", "ollama pull qwen2.5:3b"],
-              ["Pull phi3 (~2.2 GB)", "ollama pull phi3"],
-              ["Pull phi3.5:3.8b (~2.2 GB)", "ollama pull phi3.5:3.8b"],
-              ["Pull gemma2:2b-instruct-q4_0 (~1.6 GB)", "ollama pull gemma2:2b-instruct-q4_0"],
-              ["Pull smollm2:135m (~0.3 GB)", "ollama pull smollm2:135m"],
-            ],
-          },
-          {
-            label: "⚙️ Gerenciar",
-            cmds: [
-              ["Listar modelos Ollama", "try { $data=(Invoke-RestMethod -Uri \"http://127.0.0.1:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em 127.0.0.1:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
-              ["Remover modelo Ollama", "ollama rm NOME_MODELO"],
-              ["Ver informações de um modelo", "ollama show NOME_MODELO"],
-              ["Copiar modelo local", "ollama cp MODELO_ORIGEM MODELO_DESTINO"],
-              ["Criar modelo a partir de Modelfile", "ollama create NOME_MODELO -f \"C:\\caminho\\Modelfile\""],
-            ],
-          },
-        ],
-      },
-      {
-        id: "cat1",
-        label: "1. Limpeza Geral",
-        cmds: [
-          ["Limpeza Rápida Completa", "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Temp\\*\" -Recurse -Force -EA 0; Clear-RecycleBin -Force -EA 0; Write-Host \"✅ Limpeza concluída!\" -ForegroundColor Green"],
-          ["Limpar TEMP Usuário", "Remove-Item -Path \"$env:TEMP\\*\" -Recurse -Force -ErrorAction SilentlyContinue"],
-          ["Limpar TEMP do Windows", "Remove-Item -Path \"C:\\Windows\\Temp\\*\" -Recurse -Force -ErrorAction SilentlyContinue"],
-          ["Esvaziar Lixeira", "Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Host \"✅ Lixeira esvaziada!\" -ForegroundColor Green"],
-          ["Limpar Cache do Windows Update", "Stop-Service wuauserv -Force; Remove-Item \"C:\\Windows\\SoftwareDistribution\\Download\\*\" -Recurse -Force -EA 0; Start-Service wuauserv; Write-Host \"✅ Cache WU limpo!\" -ForegroundColor Green"],
-          ["Limpar Prefetch", "Remove-Item \"C:\\Windows\\Prefetch\\*\" -Force -EA 0; Write-Host \"✅ Prefetch limpo!\" -ForegroundColor Green"],
-          ["Limpar Minidump (crash logs)", "Remove-Item \"C:\\Windows\\Minidump\\*\" -Force -EA 0; Remove-Item \"$env:LOCALAPPDATA\\CrashDumps\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Dumps limpos!\" -ForegroundColor Green"],
-          ["Limpar Cache DNS", "ipconfig /flushdns; Write-Host \"✅ Cache DNS limpo!\" -ForegroundColor Green"],
-          ["Limpeza Profunda (tudo)", "Remove-Item \"$env:TEMP\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Temp\\*\" -Recurse -Force -EA 0; Remove-Item \"C:\\Windows\\Prefetch\\*\" -Force -EA 0; Clear-RecycleBin -Force -EA 0; ipconfig /flushdns; Write-Host \"✅ Limpeza profunda concluída!\" -ForegroundColor Green"],
-          ["Limpar Cache do Chrome", "Remove-Item \"$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:LOCALAPPDATA\\Google\\Chrome\\User Data\\Default\\Code Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Chrome limpo!\" -ForegroundColor Green"],
-          ["Limpar Cache do Teams", "Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\blob_storage\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\Microsoft\\Teams\\databases\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Teams limpo!\" -ForegroundColor Green"],
-          ["Limpar Arquivos Antigos do Downloads (>30 dias)", "Get-ChildItem \"$env:USERPROFILE\\Downloads\" -File | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item -Force -EA 0; Write-Host \"✅ Downloads antigos removidos!\" -ForegroundColor Green"],
-          ["Limpar Cache de Fontes", "Stop-Service FontCache -Force -EA 0; Remove-Item \"$env:WINDIR\\ServiceProfiles\\LocalService\\AppData\\Local\\FontCache\\*\" -Recurse -Force -EA 0; Start-Service FontCache; Write-Host \"✅ Cache de fontes limpo!\" -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat2",
-        label: "2. Limpeza Avançada",
-        cmds: [
-          ["Cleanmgr Modo Silencioso", "cleanmgr /sagerun:1; Write-Host \"✅ Limpeza de disco iniciada!\" -ForegroundColor Green"],
-          ["Configurar Cleanmgr Automático", "cleanmgr /sageset:1"],
-          ["Limpar Arquivos de Log do Windows", "Remove-Item \"C:\\Windows\\Logs\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Logs limpos!\" -ForegroundColor Green"],
-          ["Limpar EventViewer Logs", "Get-EventLog -List | ForEach-Object { Clear-EventLog -LogName $_.Log -EA 0 }; Write-Host \"✅ Logs de eventos limpos!\" -ForegroundColor Green"],
-          ["Limpar Cache do Microsoft Store", "wsreset.exe; Write-Host \"✅ Cache do Store limpo!\" -ForegroundColor Green"],
-          ["Limpar Cache do Navegador Edge", "Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Edge\\User Data\\Default\\Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Edge limpo!\" -ForegroundColor Green"],
-          ["Limpar Thumbnail Cache", "ie4uinit.exe -show; Remove-Item \"$env:LOCALAPPDATA\\Microsoft\\Windows\\Explorer\\thumbcache_*\" -Force -EA 0; Write-Host \"✅ Thumbnail cache limpo!\" -ForegroundColor Green"],
-          ["Compactar WinSxS (DISM)", "DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase"],
-          ["Limpar Arquivos Desnecessários do Sistema", "DISM /Online /Cleanup-Image /StartComponentCleanup"],
-          ["Limpar Cache do Spotify", "Remove-Item \"$env:APPDATA\\Spotify\\Storage\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Spotify limpo!\" -ForegroundColor Green"],
-          ["Limpar Cache do Discord", "Remove-Item \"$env:APPDATA\\discord\\Cache\\*\" -Recurse -Force -EA 0; Remove-Item \"$env:APPDATA\\discord\\Code Cache\\*\" -Recurse -Force -EA 0; Write-Host \"✅ Cache Discord limpo!\" -ForegroundColor Green"],
-          ["Remover Arquivos .tmp do Sistema", "Get-ChildItem C:\\ -Recurse -Filter *.tmp -EA 0 | Where-Object { !$_.PSIsContainer } | Remove-Item -Force -EA 0; Write-Host \"✅ Arquivos .tmp removidos!\" -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat3",
-        label: "3. Memória / RAM",
-        cmds: [
-          ["Liberar Memória RAM Imediatamente", "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers(); Write-Host \"✅ RAM liberada!\" -ForegroundColor Green"],
-          ["Ver Uso Atual de RAM","$ram = Get-CimInstance Win32_OperatingSystem; $livre = [math]::Round($ram.FreePhysicalMemory/1MB,2); $total = [math]::Round($ram.TotalVisibleMemorySize/1MB,2); Write-Host \"RAM Livre: $livre GB de $total GB\" -ForegroundColor Cyan"],
-          ["Listar Processos por Uso de RAM", "Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 15 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
-          ["Desativar SuperFetch (SysMain)", "Set-Service -Name \"SysMain\" -StartupType Disabled; Stop-Service -Name \"SysMain\" -Force; Write-Host \"✅ SysMain desativado!\" -ForegroundColor Green"],
-          ["Reativar SuperFetch (SysMain)", "Set-Service -Name \"SysMain\" -StartupType Automatic; Start-Service -Name \"SysMain\"; Write-Host \"✅ SysMain reativado!\" -ForegroundColor Green"],
-          ["Verificar Modo de Memória Virtual", "$cs = Get-ComputerInfo; Write-Host \"Paginação: $($cs.OsMaxProcessMemorySize) KB\" -ForegroundColor Cyan"],
-          ["Limpar Standby Memory (RAMMap)", "Write-Host \"Baixe RAMMap da Sysinternals para limpar Standby Memory manualmente.\" -ForegroundColor Yellow"],
-        ],
-      },
-      {
-        id: "cat4",
-        label: "4. Processos",
-        cmds: [
-          ["Listar Processos Ativos", "Get-Process | Sort-Object CPU -Descending | Select-Object -First 20 Name,Id,CPU,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,1)}} | Format-Table -AutoSize"],
-          ["Encerrar Processo por Nome","Stop-Process -Name \"§NOME_PROCESSO§\" -Force -EA 0; if ($?) { Write-Host \"✅ Processo §NOME_PROCESSO§ encerrado com sucesso!\" -ForegroundColor Green } else { Write-Host \"⚠️ Processo §NOME_PROCESSO§ não encontrado ou já encerrado.\" -ForegroundColor Yellow }"],
-          ["Encerrar Todos Chrome", "Stop-Process -Name \"chrome\" -Force -EA 0; Write-Host \"✅ Chrome encerrado!\" -ForegroundColor Green"],
-          ["Encerrar Todos Edge", "Stop-Process -Name \"msedge\" -Force -EA 0; Write-Host \"✅ Edge encerrado!\" -ForegroundColor Green"],
-          ["Listar Serviços em Execução", "Get-Service | Where-Object Status -eq \"Running\" | Sort-Object DisplayName | Format-Table -AutoSize"],
-          ["Listar Startups do Sistema", "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,User | Format-Table -AutoSize"],
-          ["Desativar Serviço por Nome","Set-Service -Name \"§NOME_SERVICO§\" -StartupType Disabled -EA 0; Stop-Service -Name \"§NOME_SERVICO§\" -Force -EA 0; if ($?) { Write-Host \"✅ Serviço §NOME_SERVICO§ desativado!\" -ForegroundColor Green } else { Write-Host \"⚠️ Serviço §NOME_SERVICO§ não encontrado.\" -ForegroundColor Yellow }"],
-          ["Reiniciar Explorer", "Stop-Process -Name explorer -Force; Start-Process explorer; Write-Host \"✅ Explorer reiniciado!\" -ForegroundColor Green"],
-          ["Ver tarefas agendadas", "Get-ScheduledTask | Where-Object State -eq \"Ready\" | Select-Object TaskName,TaskPath | Format-Table -AutoSize"],
-        ],
-      },
-      {
-        id: "cat5",
-        label: "5. Disco",
-        cmds: [
-          ["Verificar Espaço em Disco", "Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{N=\"Usado(GB)\";E={[math]::Round(($_.Used/1GB),2)}},@{N=\"Livre(GB)\";E={[math]::Round(($_.Free/1GB),2)}},@{N=\"Total(GB)\";E={[math]::Round((($_.Used+$_.Free)/1GB),2)}} | Format-Table -AutoSize"],
-          ["CHKDSK Verificação Rápida", "chkdsk C: /f /r; Write-Host \"✅ CHKDSK agendado para o próximo boot!\" -ForegroundColor Green"],
-          ["Otimizar / Desfragmentar Disco", "Optimize-Volume -DriveLetter C -Defrag -Verbose"],
-          ["Trim SSD", "Optimize-Volume -DriveLetter C -ReTrim -Verbose; Write-Host \"✅ TRIM executado!\" -ForegroundColor Green"],
-          ["Verificar Saúde do Disco (SMART)","Get-CimInstance -Namespace root/wmi -Class MSStorageDriver_FailurePredictStatus | Select-Object PredictFailure,Reason | Format-Table -AutoSize"],
-          ["Encontrar Pastas Gigantes (C:)", "Get-ChildItem C: -Directory | ForEach-Object { $s=(Get-ChildItem $_.FullName -Recurse -EA 0 | Measure-Object -Property Length -Sum).Sum; [PSCustomObject]@{Pasta=$_.Name;GB=[math]::Round($s/1GB,2)} } | Sort-Object GB -Desc | Select-Object -First 15 | Format-Table"],
-          ["Relatório de Disco (WinSAT)","winsat disk -drive C"],
-          ["Desativar Hibernação (libera espaço)", "powercfg -h off; Write-Host \"✅ Hibernação desativada, hiberfil.sys removido!\" -ForegroundColor Green"],
-          ["Ativar Hibernação", "powercfg -h on; Write-Host \"✅ Hibernação ativada!\" -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat6",
-        label: "6. Rede Básica",
-        cmds: [
-          ["Diagnóstico de Rede Completo", "ipconfig /all"],
-          ["Testar Conectividade com a Internet", "Test-Connection -ComputerName 8.8.8.8 -Count 4 | Format-Table -AutoSize"],
-          ["Velocidade de Download (Teste rápido)", "Invoke-WebRequest -Uri \"http://speedtest.tele2.net/1MB.zip\" -OutFile \"$env:TEMP\\test.zip\" -UseBasicParsing; Write-Host \"✅ Download concluído!\" -ForegroundColor Green"],
-          ["Flush e Renovar IP", "ipconfig /flushdns; ipconfig /release; ipconfig /renew; Write-Host \"✅ IP renovado!\" -ForegroundColor Green"],
-          ["Resetar Pilha TCP/IP", "netsh int ip reset; netsh winsock reset; Write-Host \"✅ TCP/IP resetado! Reinicie o PC.\" -ForegroundColor Green"],
-          ["Ver Conexões Ativas","netstat -ano | Select-String \"ESTABLISHED\""],
-          ["Ver Adaptadores de Rede", "Get-NetAdapter | Select-Object Name,Status,LinkSpeed,MacAddress | Format-Table -AutoSize"],
-          ["Testar DNS", "Resolve-DnsName google.com; Resolve-DnsName cloudflare.com"],
-          ["Ping para múltiplos servidores", "\"8.8.8.8\",\"1.1.1.1\",\"208.67.222.222\" | ForEach-Object { $r=Test-Connection $_ -Count 1 -EA 0; Write-Host \"$_ -> $($r.ResponseTime)ms\" }"],
-        ],
-      },
-      {
-        id: "cat7",
-        label: "7. Reparo do Sistema",
-        cmds: [
-          ["SFC Scan (Reparo de Arquivos)", "sfc /scannow"],
-          ["DISM Restaurar Saúde", "DISM /Online /Cleanup-Image /RestoreHealth"],
-          ["DISM Verificar Saúde", "DISM /Online /Cleanup-Image /CheckHealth"],
-          ["DISM Scan Saúde", "DISM /Online /Cleanup-Image /ScanHealth"],
-          ["Reparar Windows Update", "net stop wuauserv; net stop cryptSvc; net stop bits; net stop msiserver; Remove-Item \"C:\\Windows\\SoftwareDistribution\" -Recurse -Force -EA 0; net start wuauserv; net start cryptSvc; net start bits; net start msiserver; Write-Host \"✅ WU reparado!\" -ForegroundColor Green"],
-          ["Resetar Políticas de Grupo","secedit /configure /cfg %windir%\\inf\\defltbase.inf /db defltbase.sdb /verbose"],
-          ["Reparar .NET Framework", "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"],
-          ["Verificar Erros de Boot", "bootrec /scanos; bootrec /fixmbr; bootrec /fixboot; bootrec /rebuildbcd"],
-          ["Reparar Registro do Windows", "$ErrorActionPreference=\"SilentlyContinue\"; $reg=\"HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\"; Write-Host \"Versão: $((Get-ItemProperty $reg).ProductName)\" -ForegroundColor Cyan"],
-          ["Atualizar PowerShell para 7+", "winget install Microsoft.PowerShell --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Atualização do PowerShell iniciada!\" -ForegroundColor Green"],
-          ["Atualizar Terminais (CMD, PowerShell, Windows Terminal)", "winget upgrade Microsoft.WindowsTerminal --accept-source-agreements --accept-package-agreements; winget upgrade Microsoft.PowerShell --accept-source-agreements --accept-package-agreements; Write-Host \"✅ Atualização concluída.\" -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat_health",
-        label: "🩺 Saúde do PC",
-        cmds: [
-          ["Relatório rápido do PC","$os=Get-CimInstance Win32_OperatingSystem; $cpu=Get-CimInstance Win32_Processor | Select-Object -First 1; $disk=Get-PSDrive C; $ramLivre=[math]::Round($os.FreePhysicalMemory/1MB,2); $ramTotal=[math]::Round($os.TotalVisibleMemorySize/1MB,2); $diskLivre=[math]::Round($disk.Free/1GB,2); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,2); $boot=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $uptime=New-TimeSpan -Start $boot -End (Get-Date); Write-Host \"===== RELATORIO RAPIDO DO PC =====\" -ForegroundColor Cyan; Write-Host \"Computador: $env:COMPUTERNAME\"; Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\"; Write-Host \"CPU: $($cpu.Name)\"; Write-Host \"RAM: $ramLivre GB livre de $ramTotal GB\"; Write-Host \"Disco C: $diskLivre GB livre de $diskTotal GB\"; Write-Host \"Uptime: $($uptime.Days)d $($uptime.Hours)h\"; Write-Host \"\"; Write-Host \"Top 10 processos por RAM:\" -ForegroundColor Yellow; Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize; Write-Host \"\"; if(Test-Connection 8.8.8.8 -Count 1 -Quiet){Write-Host \"Internet: OK\" -ForegroundColor Green}else{Write-Host \"Internet: SEM CONEXAO\" -ForegroundColor Red}"],
-          ["Exportar diagnóstico para logs","$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; $file=Join-Path $logDir (\"diagnostico-\"+(Get-Date -Format \"yyyyMMdd-HHmmss\")+\".txt\"); $os=Get-CimInstance Win32_OperatingSystem; $disk=Get-PSDrive C; $top=Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Name,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Out-String; @(\"===== DIAGNOSTICO MESTRE DO PC =====\",\"Data: $(Get-Date)\",\"Computador: $env:COMPUTERNAME\",\"Windows: $($os.Caption) Build $($os.BuildNumber)\",\"RAM livre GB: $([math]::Round($os.FreePhysicalMemory/1MB,2))\",\"Disco C livre GB: $([math]::Round($disk.Free/1GB,2))\",\"\",$top) | Set-Content -Path $file -Encoding UTF8; Write-Host \"Diagnostico salvo em: $file\" -ForegroundColor Green"],
-          ["Listar modelos Ollama", "try { $data=(Invoke-RestMethod -Uri \"http://127.0.0.1:11434/api/tags\" -TimeoutSec 5); Write-Host \"Modelos Ollama instalados:\" -ForegroundColor Cyan; if(-not $data.models){ Write-Host \"Nenhum modelo retornado pelo Ollama.\" -ForegroundColor Yellow } else { $data.models | ForEach-Object { $cloud=if($_.name -match \"cloud\"){ \" [cloud]\" } else { \"\" }; Write-Host (\"- \" + $_.name + $cloud) } } } catch { Write-Host \"Ollama offline ou inacessivel em 127.0.0.1:11434\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
-          ["Testar Ollama (qwen3-coder-next:cloud)", "$model=\"qwen3-coder-next:cloud\"; try { $body=@{model=$model;messages=@(@{role=\"user\";content=\"Responda somente OK\"});stream=$false} | ConvertTo-Json -Depth 6; $res=Invoke-RestMethod -Uri \"http://127.0.0.1:11434/api/chat\" -Method POST -ContentType \"application/json\" -Body $body -TimeoutSec 30; Write-Host \"Modelo testado: $model\" -ForegroundColor Cyan; if($res.message.content){ Write-Host $res.message.content -ForegroundColor Green } else { Write-Host \"Ollama respondeu, mas sem conteudo de chat.\" -ForegroundColor Yellow } } catch { Write-Host \"Falha no teste do Ollama/modelo. Talvez o modelo nao suporte chat ou esteja offline.\" -ForegroundColor Yellow; Write-Host $_.Exception.Message }"],
-          ["Abrir pasta do projeto", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; Start-Process $project; Write-Host \"Pasta do projeto aberta: $project\" -ForegroundColor Green"],
-          ["Abrir pasta de logs", "$project=$env:MESTRE_PROJETO_PATH; if(-not $project){ throw \"MESTRE_PROJETO_PATH não definido.\" }; $logDir=Join-Path $project \"logs\"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null; Start-Process $logDir; Write-Host \"Pasta de logs aberta: $logDir\" -ForegroundColor Green"],
-          ["Abrir TEMP do usuário", "Start-Process $env:TEMP; Write-Host \"TEMP aberto: $env:TEMP\" -ForegroundColor Green"],
-          ["Abrir Startup do usuário", "$startup=[Environment]::GetFolderPath(\"Startup\"); Start-Process $startup; Write-Host \"Startup aberto: $startup\" -ForegroundColor Green"],
-          ["Ver tarefas MestreDoPC", "$names=@(\"MestreDoPC_Admin_Launcher\",\"MestreDoPC_Startup\"); $rows=foreach($name in $names){ $task=Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue; if($task){ $info=Get-ScheduledTaskInfo -TaskName $name -ErrorAction SilentlyContinue; [pscustomobject]@{Task=$name;State=$task.State;LastRun=$info.LastRunTime;LastResult=$info.LastTaskResult;NextRun=$info.NextRunTime} } else { [pscustomobject]@{Task=$name;State=\"Nao encontrada\";LastRun=\"\";LastResult=\"\";NextRun=\"\"} } }; $rows | Format-Table -AutoSize"],
-          ["Checkup Geral (Resumo Completo)","$os=Get-CimInstance Win32_OperatingSystem; $cpu=Get-CimInstance Win32_Processor; $disk=Get-PSDrive C; $ram=[math]::Round($os.FreePhysicalMemory/1MB,1); $totalRam=[math]::Round($os.TotalVisibleMemorySize/1MB,1); $diskFree=[math]::Round($disk.Free/1GB,1); $diskTotal=[math]::Round(($disk.Used+$disk.Free)/1GB,1); $up=[Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime); $days=([datetime]::Now-$up).Days; Write-Host \"=== CHECKUP DO PC ===\" -ForegroundColor Cyan; Write-Host \"CPU: $($cpu.Name)\" -ForegroundColor White; Write-Host \"RAM: $ram GB livre de $totalRam GB\" -ForegroundColor $(if($ram -lt 2){\"Red\"}else{\"Green\"}); Write-Host \"Disco C: $diskFree GB livre de $diskTotal GB\" -ForegroundColor $(if($diskFree -lt 20){\"Red\"}else{\"Green\"}); Write-Host \"Uptime: $days dias\" -ForegroundColor $(if($days -gt 7){\"Yellow\"}else{\"Green\"}); Write-Host \"Windows: $($os.Caption) Build $($os.BuildNumber)\" -ForegroundColor White"],
-          ["Verificar Saúde da Bateria", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'battery-report.html\'; powercfg /batteryreport /output \"$report\"; Write-Host \"✅ Relatório da bateria salvo em: $report\" -ForegroundColor Green"],
-          ["Relatório de Energia Completo", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output \"$report\"; Write-Host \"✅ Relatório de energia salvo em: $report (aguarde 60s para completar)!\" -ForegroundColor Green"],
-          ["Verificar Integridade do Sistema (SFC + DISM)", "Write-Host \"Etapa 1/2: DISM...\" -ForegroundColor Yellow; DISM /Online /Cleanup-Image /ScanHealth; Write-Host \"Etapa 2/2: SFC...\" -ForegroundColor Yellow; sfc /scannow; Write-Host \"✅ Verificação completa!\" -ForegroundColor Green"],
-          ["Verificar Atualizações Pendentes", "$updates = (New-Object -ComObject Microsoft.Update.Session).CreateUpdateSearcher().Search(\"IsInstalled=0\"); if($updates.Updates.Count -gt 0) { Write-Host \"$($updates.Updates.Count) atualizações pendentes:\" -ForegroundColor Yellow; $updates.Updates | ForEach-Object { Write-Host \"  - $($_.Title)\" } } else { Write-Host \"✅ Sistema atualizado!\" -ForegroundColor Green }"],
-          ["Verificar Versão da BIOS/UEFI","Get-CimInstance Win32_BIOS | Select-Object Manufacturer,Name,SMBIOSBIOSVersion,ReleaseDate | Format-List"],
-          ["Verificar Saúde do Disco (SMART)", "Get-PhysicalDisk | Select-Object FriendlyName,MediaType,HealthStatus,OperationalStatus,@{N=\"Tamanho(GB)\";E={[math]::Round($_.Size/1GB,1)}} | Format-Table -AutoSize"],
-          ["Listar Drivers Desatualizados","Get-CimInstance Win32_PnPSignedDriver | Where-Object {$_.DriverDate} | Select-Object DeviceName,DriverVersion,@{N=\"Data\";E={[Management.ManagementDateTimeConverter]::ToDateTime($_.DriverDate).ToString(\"dd/MM/yyyy\")}} | Sort-Object Data | Select-Object -First 15 | Format-Table -AutoSize"],
-          ["Verificar Erros Recentes do Sistema", "Get-WinEvent -FilterHashtable @{LogName=\"System\";Level=2;StartTime=(Get-Date).AddDays(-7)} -MaxEvents 15 -EA 0 | Select-Object TimeCreated,Id,Message | Format-Table -Wrap -AutoSize"],
-          ["Tempo de Boot do Windows", "$boot = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6005} -MaxEvents 1).TimeCreated; $ready = (Get-WinEvent -FilterHashtable @{LogName=\"System\";Id=6013} -MaxEvents 1 -EA 0); Write-Host \"Último boot: $boot\" -ForegroundColor Cyan"],
-        ],
-      },
-      {
-        id: "cat8",
-        label: "8. Diagnóstico",
-        cmds: [
-          ["Informações do Sistema", "Get-ComputerInfo | Select-Object WindowsProductName,WindowsVersion,OsArchitecture,CsName,CsProcessors,CsTotalPhysicalMemory | Format-List"],
-          ["Temperatura do CPU (WMI)","Get-CimInstance MSAcpi_ThermalZoneTemperature -Namespace \"root/wmi\" | ForEach-Object { Write-Host \"Zona: $($_.InstanceName) -> $(($_.CurrentTemperature - 2732)/10)°C\" }"],
-          ["Histórico de Erros do Sistema", "Get-EventLog -LogName System -EntryType Error -Newest 20 | Select-Object TimeGenerated,Source,Message | Format-Table -AutoSize"],
-          ["Uptime do Sistema","$boot=(Get-CimInstance Win32_OperatingSystem).LastBootUpTime; $up=[Management.ManagementDateTimeConverter]::ToDateTime($boot); Write-Host \"Ligado desde: $up ($(([datetime]::Now - $up).Days)d $(([datetime]::Now - $up).Hours)h)\" -ForegroundColor Cyan"],
-          ["Placa de Vídeo (GPU)","Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,@{N=\"VRAM(GB)\";E={[math]::Round($_.AdapterRAM/1GB,2)}} | Format-Table -AutoSize"],
-          ["Inventário de Software Instalado","Get-CimInstance Win32_Product | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
-          ["Verificar Drivers Problemáticos","Get-CimInstance Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,ConfigManagerErrorCode | Format-Table -AutoSize"],
-          ["Teste de Memória RAM (Agendar)","MdSched.exe"],
-          ["Relatório de Energia do Sistema", "$desktop = [Environment]::GetFolderPath(\'DesktopDirectory\'); $report = Join-Path $desktop \'energy-report.html\'; powercfg /energy /output \"$report\"; Write-Host \"✅ Relatório salvo em: $report\" -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat9",
-        label: "9. Desligamento",
-        cmds: [
-          ["Desligar Agora", "Stop-Computer -Force"],
-          ["Reiniciar Agora", "Restart-Computer -Force"],
-          ["Desligar em 60 segundos", "shutdown /s /t 60; Write-Host \"⏱️ PC desligará em 60s. Use shutdown /a para cancelar.\" -ForegroundColor Yellow"],
-          ["Cancelar Desligamento Agendado", "shutdown /a; Write-Host \"✅ Desligamento cancelado!\" -ForegroundColor Green"],
-          ["Suspender o PC", "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState(\"Suspend\",$false,$false)"],
-          ["Hibernar o PC", "shutdown /h"],
-          ["Sair da Conta do Usuário","logoff"],
-          ["Desligar em 30 minutos", "shutdown /s /t 1800; Write-Host \"⏱️ PC desligará em 30 minutos.\" -ForegroundColor Yellow"],
-          ["Reiniciar para BIOS/UEFI", "shutdown /r /fw /t 5; Write-Host \"🔄 Reiniciando para UEFI em 5s...\" -ForegroundColor Cyan"],
-        ],
-      },
-      {
-        id: "cat10",
-        label: "10. Git / Mestre do PC",
-        cmds: [
-          ["Git Status do Projeto", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git status"],
-          ["Git Add + Commit + Push", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git add -A; git commit -m \"feat: atualização automática $(Get-Date -Format dd/MM/yyyy)\"; git push; Write-Host \"✅ Push realizado!\" -ForegroundColor Green"],
-          ["Git Pull (Atualizar Local)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git pull; Write-Host \"✅ Repositório atualizado!\" -ForegroundColor Green"],
-          ["Git Log (Últimos 10)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git log --oneline -10"],
-          ["Ver Branch Atual", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git branch -v"],
-          ["Configurar Git (nome/email)", "git config --global user.name \"Jeanc\"; git config --global user.email \"seu@email.com\"; Write-Host \"✅ Git configurado!\" -ForegroundColor Green"],
-          ["Ver Configuração do Git", "git config --list --global"],
-          ["Clonar Repositório", "git clone https://github.com/USUARIO/REPO.git \"C:\\Projetos\\REPO\"; Write-Host \"✅ Clonado!\" -ForegroundColor Green"],
-          ["Git Stash (Salvar mudanças temporariamente)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git stash; Write-Host \"✅ Mudanças salvas no stash!\" -ForegroundColor Green"],
-          ["Git Stash Pop (Restaurar mudanças)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; git stash pop; Write-Host \"✅ Mudanças restauradas!\" -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat11",
-        label: "11. Remoção Específica",
-        cmds: [
-          ["Remover Bloatware Xbox", "Get-AppxPackage *xboxapp* | Remove-AppxPackage -EA 0; Get-AppxPackage *xboxidentityprovider* | Remove-AppxPackage -EA 0; Write-Host \"✅ Xbox apps removidos!\" -ForegroundColor Green"],
-          ["Remover Cortana", "Get-AppxPackage -AllUsers Microsoft.549981C3F5F10 | Remove-AppxPackage -EA 0; Write-Host \"✅ Cortana removida!\" -ForegroundColor Green"],
-          ["Remover Aplicativos Padrão Desnecessários", "\"Microsoft.3DBuilder\",\"Microsoft.BingNews\",\"Microsoft.BingWeather\",\"Microsoft.GetHelp\",\"Microsoft.Getstarted\",\"Microsoft.MixedReality.Portal\",\"Microsoft.SkypeApp\",\"Microsoft.Todos\",\"Microsoft.WindowsFeedbackHub\",\"Microsoft.ZuneMusic\",\"Microsoft.ZuneVideo\" | ForEach-Object { Get-AppxPackage $_ | Remove-AppxPackage -EA 0 }; Write-Host \"✅ Bloatware removido!\" -ForegroundColor Green"],
-          ["Desativar Anúncios na Tela de Bloqueio", "Set-ItemProperty \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\" -Name \"RotatingLockScreenOverlaysEnabled\" -Value 0; Write-Host \"✅ Anúncios desativados!\" -ForegroundColor Green"],
-          ["Desativar Sugestões no Menu Iniciar", "Set-ItemProperty \"HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\" -Name \"SystemPaneSuggestionsEnabled\" -Value 0; Write-Host \"✅ Sugestões desativadas!\" -ForegroundColor Green"],
-          ["Desinstalar OneDrive", "taskkill /f /im OneDrive.exe -EA 0; Start-Process \"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\" -ArgumentList \"/uninstall\" -Wait -EA 0; Write-Host \"✅ OneDrive desinstalado!\" -ForegroundColor Green"],
-          ["Remover Telemetria da Microsoft", "sc stop DiagTrack; sc config DiagTrack start= disabled; sc stop dmwappushservice; sc config dmwappushservice start= disabled; Write-Host \"✅ Telemetria desativada!\" -ForegroundColor Green"],
-          ["Listar Todos os Apps Instalados", "Get-AppxPackage -AllUsers | Select-Object Name,PackageFullName | Sort-Object Name | Format-Table -AutoSize"],
-        ],
-      },
-      {
-        id: "cat12",
-        label: "12. Segurança Geral",
-        cmds: [
-          ["Verificar Status do Windows Defender", "Get-MpComputerStatus | Select-Object AMRunningMode,AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureLastUpdated | Format-List"],
-          ["Atualizar Definições do Defender", "Update-MpSignature; Write-Host \"✅ Definições atualizadas!\" -ForegroundColor Green"],
-          ["Scan Rápido com Defender", "Start-MpScan -ScanType QuickScan; Write-Host \"✅ Scan rápido iniciado!\" -ForegroundColor Green"],
-          ["Scan Completo com Defender", "Start-MpScan -ScanType FullScan; Write-Host \"✅ Scan completo iniciado!\" -ForegroundColor Green"],
-          ["Verificar Firewall do Windows", "Get-NetFirewallProfile | Select-Object Name,Enabled | Format-Table"],
-          ["Ativar Firewall em todos os perfis", "Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True; Write-Host \"✅ Firewall ativado!\" -ForegroundColor Green"],
-          ["Ver Regras de Firewall Ativas", "Get-NetFirewallRule | Where-Object Enabled -eq True | Select-Object DisplayName,Direction,Action | Format-Table -AutoSize"],
-          ["Checar Portas Abertas","netstat -ano | Where-Object { $_ -match \"LISTENING\" } | Select-Object -First 20"],
-          ["Listar Processos Suspeitos (sem assinatura)", "Get-Process | Where-Object { -not (Get-AuthenticodeSignature $_.Path -EA 0).IsOSBinary } | Select-Object Name,Path,Id | Format-Table -AutoSize"],
-        ],
-      },
-      {
-        id: "cat13",
-        label: "13. Rede Segura",
-        cmds: [
-          ["DNS Cloudflare Seguro (1.1.1.1)", "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"1.1.1.1\",\"1.0.0.1\"; Write-Host \"✅ DNS Cloudflare definido!\" -ForegroundColor Green"],
-          ["DNS Google (8.8.8.8)", "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"8.8.8.8\",\"8.8.4.4\"; Write-Host \"✅ DNS Google definido!\" -ForegroundColor Green"],
-          ["DNS OpenDNS (Família)", "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ServerAddresses \"208.67.222.123\",\"208.67.220.123\"; Write-Host \"✅ DNS OpenDNS Family definido!\" -ForegroundColor Green"],
-          ["Restaurar DNS Automático (DHCP)", "Set-DnsClientServerAddress -InterfaceIndex ((Get-NetAdapter | Where-Object Status -eq \"Up\").InterfaceIndex) -ResetServerAddresses; Write-Host \"✅ DNS automático restaurado!\" -ForegroundColor Green"],
-          ["Bloquear Telemetria Microsoft no Hosts", "$hosts = \"C:\\Windows\\System32\\drivers\\etc\\hosts\"; $entries = @(\"0.0.0.0 telemetry.microsoft.com\",\"0.0.0.0 vortex.data.microsoft.com\",\"0.0.0.0 settings-win.data.microsoft.com\"); $entries | ForEach-Object { if (!(Select-String -Path $hosts -Pattern $_ -Quiet)) { Add-Content $hosts $_ } }; Write-Host \"✅ Telemetria bloqueada no hosts!\" -ForegroundColor Green"],
-          ["Ver DNS Atual", "Get-DnsClientServerAddress | Where-Object AddressFamily -eq 2 | Format-Table InterfaceAlias,ServerAddresses -AutoSize"],
-          ["Desativar IPv6", "Disable-NetAdapterBinding -Name \"*\" -ComponentID ms_tcpip6 -EA 0; Write-Host \"✅ IPv6 desativado!\" -ForegroundColor Green"],
-          ["Verificar VPN/Proxy ativo", "netsh winhttp show proxy; Get-ItemProperty \"HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\" | Select-Object ProxyEnable,ProxyServer"],
-        ],
-      },
-
-      {
-        id: "cat14",
-        label: "14. Performance & Jogos (NOVO)",
-        cmds: [
-          ["Ativar Modo Jogo (Game Mode)", "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AllowAutoGameMode' -Value 1; Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AutoGameModeEnabled' -Value 1; Write-Host '✅ Modo Jogo ativado!' -ForegroundColor Green"],
-          ["Desativar Modo Jogo", "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\GameBar' -Name 'AutoGameModeEnabled' -Value 0; Write-Host '✅ Modo Jogo desativado!' -ForegroundColor Green"],
-          ["Plano de Energia Alto Desempenho", "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c; Write-Host '✅ Alto desempenho ativado!' -ForegroundColor Green"],
-          ["Plano de Energia Equilibrado", "powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e; Write-Host '✅ Plano equilibrado ativado!' -ForegroundColor Green"],
-          ["Plano de Energia Economia", "powercfg /setactive a1841308-3541-4fab-bc81-f71556f20b4a; Write-Host '✅ Economia de energia ativada!' -ForegroundColor Green"],
-          ["Desativar Efeitos Visuais (Performance)", "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects' -Name 'VisualFXSetting' -Value 2; Write-Host '✅ Efeitos visuais otimizados para performance!' -ForegroundColor Green"],
-          ["Restaurar Efeitos Visuais (Padrão)", "Set-ItemProperty 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects' -Name 'VisualFXSetting' -Value 0; Write-Host '✅ Efeitos visuais restaurados!' -ForegroundColor Green"],
-          ["Desativar Animacoes do Windows", "Set-ItemProperty 'HKCU:\\Control Panel\\Desktop\\WindowMetrics' -Name 'MinAnimate' -Value 0; Write-Host '✅ Animacoes desativadas!' -ForegroundColor Green"],
-          ["Prioridade de CPU para Jogos (Temp)", "wmic process where name='javaw.exe' call setpriority 'high priority'; Write-Host '✅ Prioridade alta aplicada!' -ForegroundColor Green"],
-          ["Limpar Cache de Sombras (GPU)", "Get-ChildItem '$env:LOCALAPPDATA\\NVIDIA\\DXCache' -Recurse -EA 0 | Remove-Item -Force -EA 0; Get-ChildItem '$env:LOCALAPPDATA\\AMD\\DxCache' -Recurse -EA 0 | Remove-Item -Force -EA 0; Write-Host '✅ Cache de GPU limpo!' -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat15",
-        label: "15. Backup & Restauração (NOVO)",
-        cmds: [
-          ["Criar Ponto de Restauração", "Enable-ComputerRestore -Drive 'C:\\'; Checkpoint-Computer -Description 'Mestre do PC - Ponto Manual' -RestorePointType 'MODIFY_SETTINGS'; Write-Host '✅ Ponto de restauração criado!' -ForegroundColor Green"],
-          ["Listar Pontos de Restauração", "Get-ComputerRestorePoint | Select-Object CreationTime,Description,SequenceNumber | Format-Table -AutoSize"],
-          ["Restaurar do Último Ponto", "rstrui.exe; Write-Host 'Abrindo assistente de restauração...' -ForegroundColor Cyan"],
-          ["Backup de Drivers (Exportar)", "$dir='$env:USERPROFILE\\Desktop\\backup-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Export-WindowsDriver -Online -Destination $dir; Write-Host '✅ Drivers exportados para: $dir' -ForegroundColor Green"],
-          ["Backup do Registro (Completo)", "$file='$env:USERPROFILE\\Desktop\\backup-registro-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.reg'; reg export HKLM $file /y; reg export HKCU ($file + '.cu') /y; Write-Host '✅ Registro exportado: $file' -ForegroundColor Green"],
-          ["Criar Imagem de Recuperação (Windows)", "recimg /createimage 'C:\\RecoveryImage'; Write-Host '✅ Imagem de recuperação criada!' -ForegroundColor Green"],
-          ["Exportar Lista de Apps Instalados", "Get-AppxPackage -AllUsers | Select-Object Name,PackageFullName | Sort-Object Name | Export-Csv '$env:USERPROFILE\\Desktop\\apps-instalados.csv' -NoTypeInformation; Write-Host '✅ Lista exportada para a Área de Trabalho!' -ForegroundColor Green"],
-          ["Backup de Hosts", "Copy-Item 'C:\\Windows\\System32\\drivers\\etc\\hosts' '$env:USERPROFILE\\Desktop\\hosts.bak' -Force; Write-Host '✅ Backup do hosts criado!' -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat16",
-        label: "16. Atualizações Avançadas (NOVO)",
-        cmds: [
-          ["Pausar Windows Update (35 dias)", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -Value (Get-Date).ToString('yyyy-MM-dd'); Write-Host '✅ Windows Update pausado!' -ForegroundColor Green"],
-          ["Retomar Windows Update", "Remove-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings' -Name 'PauseFeatureUpdatesStartTime' -EA 0; Write-Host '✅ Windows Update retomado!' -ForegroundColor Green"],
-          ["Histórico de Atualizações", "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn | Format-Table -AutoSize"],
-          ["Desinstalar Atualização Específica","wusa /uninstall /kb:§NUMERO_KB§ /quiet /norestart; Write-Host \"Substitua NUMERO_KB pelo KB desejado.\" -ForegroundColor Yellow"],
-          ["Forçar Busca de Atualizações", "UsoClient StartScan; Write-Host '✅ Busca de atualizações iniciada!' -ForegroundColor Green"],
-          ["Instalar Atualizações Pendentes", "Install-Module PSWindowsUpdate -Force -AllowClobber -EA 0; Import-Module PSWindowsUpdate -EA 0; Install-WindowsUpdate -AcceptAll -AutoReboot; Write-Host '✅ Atualizações instaladas!' -ForegroundColor Green"],
-          ["Listar Atualizações Recusadas", "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Updates' -EA 0 | Format-List"],
-          ["Resetar Componentes do Windows Update", "net stop wuauserv; net stop cryptSvc; net stop bits; net stop msiserver; ren 'C:\\Windows\\SoftwareDistribution' 'SoftwareDistribution.bak'; ren 'C:\\Windows\\System32\\catroot2' 'catroot2.bak'; net start wuauserv; net start cryptSvc; net start bits; net start msiserver; Write-Host '✅ Componentes do WU resetados!' -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat17",
-        label: "17. Drivers (NOVO)",
-        cmds: [
-          ["Listar Todos os Drivers","Get-CimInstance Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Sort-Object DeviceName | Format-Table -AutoSize"],
-          ["Drivers com Problema","Get-CimInstance Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0 | Select-Object Name,DeviceID,ConfigManagerErrorCode | Format-Table -AutoSize"],
-          ["Exportar Lista de Drivers","Get-CimInstance Win32_PnPSignedDriver | Select-Object DeviceName,DriverVersion,DriverDate | Export-Csv '$env:USERPROFILE\\Desktop\\drivers.csv' -NoTypeInformation; Write-Host '✅ Lista exportada!' -ForegroundColor Green"],
-          ["Atualizar Driver por Hardware ID","pnputil /add-driver \"§CAMINHO_INF§\" /install; Write-Host \"Substitua CAMINHO.inf pelo caminho do driver.\" -ForegroundColor Yellow"],
-          ["Listar Drivers de Terceiros","Get-CimInstance Win32_PnPSignedDriver | Where-Object { -not $_.IsOSBinary } | Select-Object DeviceName,DriverVersion,Manufacturer | Format-Table -AutoSize"],
-          ["Remover Driver Antigo (pnputil)", "pnputil /enum-drivers; Write-Host 'Liste os drivers com o comando acima e use pnputil /delete-driver oemXX.inf' -ForegroundColor Yellow"],
-          ["Verificar Versão do Driver de Vídeo","Get-CimInstance Win32_VideoController | Select-Object Name,DriverVersion,DriverDate | Format-List"],
-          ["Backup de Drivers de Rede","$dir='$env:USERPROFILE\\Desktop\\backup-net-drivers'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceClass -eq 'NET' } | Export-Csv (Join-Path $dir 'net-drivers.csv') -NoTypeInformation; Write-Host '✅ Backup de drivers de rede criado!' -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat18",
-        label: "18. Privacidade & Telemetria (NOVO)",
-        cmds: [
-          ["Desativar Telemetria (DiagTrack)", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -Value 0 -EA 0; Write-Host '✅ Telemetria desativada!' -ForegroundColor Green"],
-          ["Restaurar Telemetria (Padrão)", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -Value 3 -EA 0; Write-Host '✅ Telemetria restaurada!' -ForegroundColor Green"],
-          ["Desativar ID de Publicidade", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -Name 'Enabled' -Value 0; Write-Host '✅ ID de publicidade desativado!' -ForegroundColor Green"],
-          ["Desativar Rastreamento de Localização", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name 'Location' -Value 0 -EA 0; Write-Host '✅ Rastreamento de localização desativado!' -ForegroundColor Green"],
-          ["Desativar Experiências Tailored", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name 'TailoredExperiencesWithDiagnosticDataEnabled' -Value 0 -EA 0; Write-Host '✅ Experiências personalizadas desativadas!' -ForegroundColor Green"],
-          ["Desativar Cortana", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Name 'AllowCortana' -Value 0 -EA 0; Write-Host '✅ Cortana desativada!' -ForegroundColor Green"],
-          ["Desativar Sugestões de Conteúdo", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager' -Name 'SubscribedContent-338388Enabled' -Value 0; Write-Host '✅ Sugestões de conteúdo desativadas!' -ForegroundColor Green"],
-          ["Bloquear Aplicativos em Segundo Plano", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications' -Name 'GlobalUserDisabled' -Value 1 -EA 0; Write-Host '✅ Apps em segundo plano bloqueados!' -ForegroundColor Green"],
-          ["Verificar Configurações de Privacidade", "Get-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -EA 0 | Select-Object Enabled; Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -EA 0 | Select-Object AllowTelemetry; Write-Host 'Configurações exibidas acima.' -ForegroundColor Cyan"],
-        ],
-      },
-      {
-        id: "cat_sec",
-        label: "🛡️ Segurança & Pentest",
-        subcategories: [
-          {
-            label: "🔍 Reconhecimento de Rede",
-            cmds: [
-              ["Scan de Portas (Port Query)","portqry -n 127.0.0.1 -p tcp -e 1-1024 2>&1; if ($LASTEXITCODE -ne 0) { Write-Host 'PortQry não encontrado. Use: winget install Microsoft.Portqry' -ForegroundColor Yellow }"],
-              ["Scan de Portas com Test-NetConnection", "1..1024 | ForEach-Object { $r = Test-NetConnection -ComputerName 127.0.0.1 -Port $_ -WarningAction SilentlyContinue; if ($r.TcpTestSucceeded) { Write-Host \"Porta $_ ABERTA\" -ForegroundColor Green } }"],
-              ["Listar Todas as Conexões TCP/UDP", "Get-NetTCPConnection | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess | Sort-Object State | Format-Table -AutoSize"],
-              ["Listar Conexões LISTENING", "Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | ForEach-Object { $p = Get-Process -Id $_.OwningProcess -EA 0; [PSCustomObject]@{Porta=$_.LocalPort;Processo=$p.Name;PID=$_.OwningProcess} } | Format-Table -AutoSize"],
-              ["Descobrir Hosts Ativos (ARP Scan)", "Get-NetNeighbor | Where-Object { $_.State -ne 'Unreachable' } | Select-Object IPAddress,LinkLayerAddress,State,InterfaceAlias | Format-Table -AutoSize"],
-              ["Mapear Rede Local (NetBIOS)","nbtstat -n; Write-Host '---'; nbtstat -c"],
-              ["Tabela de Roteamento (route print)", "route print"],
-              ["Resolver DNS Reverso (IP → Nome)","Resolve-DnsName -Name §IP_ALVO§ -ErrorAction SilentlyContinue | Select-Object Name,Type,NameHost | Format-Table -AutoSize"],
-            ],
-          },
-          {
-            label: "🔐 Análise de Vulnerabilidades",
-            cmds: [
-              ["Verificar Hotfixes Instalados", "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,Description,InstalledOn,InstalledBy | Format-Table -AutoSize"],
-              ["Buscar CVEs por Hotfix (NVD)","Start-Process \"https://nvd.nist.gov/vuln/search/results?query=§CODIGO_KB§\"; Write-Host 'Abrindo NVD para pesquisa...' -ForegroundColor Cyan"],
-              ["Verificar Serviços Vulneráveis (SMB v1)", "Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol | Select-Object FeatureName,State; if ((Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol).State -eq 'Enabled') { Write-Host '⚠️ SMBv1 ATIVO - Vulnerável a EternalBlue!' -ForegroundColor Red } else { Write-Host '✅ SMBv1 desativado' -ForegroundColor Green }"],
-              ["Desativar SMBv1 (EternalBlue)", "Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart; Write-Host '✅ SMBv1 desativado! Reinicie o PC.' -ForegroundColor Green"],
-              ["Verificar RDP Ativo", "Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections | Select-Object fDenyTSConnections; if ((Get-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections).fDenyTSConnections -eq 0) { Write-Host '⚠️ RDP ATIVO - Verifique segurança!' -ForegroundColor Yellow } else { Write-Host '✅ RDP desativado' -ForegroundColor Green }"],
-              ["Verificar Conta de Convidado (Guest)", "Get-LocalUser | Where-Object { $_.Name -eq 'Guest' } | Select-Object Name,Enabled; if ((Get-LocalUser -Name Guest -EA 0).Enabled) { Write-Host '⚠️ Conta Guest ATIVA!' -ForegroundColor Red } else { Write-Host '✅ Conta Guest desativada' -ForegroundColor Green }"],
-              ["Verificar Políticas de Senha", "net accounts"],
-              ["Listar Compartilhamentos Abertos", "Get-SmbShare | Select-Object Name,Path,Description,ConcurrentUserLimit | Format-Table -AutoSize"],
-              ["Verificar UAC Ativo", "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name EnableLUA | Select-Object EnableLUA; if ((Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name EnableLUA).EnableLUA -eq 1) { Write-Host '✅ UAC ativo' -ForegroundColor Green } else { Write-Host '⚠️ UAC DESATIVADO!' -ForegroundColor Red }"],
-            ],
-          },
-          {
-            label: "🔑 Análise de Senhas & Hashes",
-            cmds: [
-              ["Verificar Política de Senha (net accounts)", "net accounts"],
-              ["Listar Usuários Locais", "Get-LocalUser | Select-Object Name,Enabled,LastLogon,PasswordLastSet,PasswordRequired | Format-Table -AutoSize"],
-              ["Verificar Senhas Nunca Expiram", "Get-LocalUser | Where-Object { $_.PasswordNeverExpires -eq $true } | Select-Object Name,PasswordNeverExpires | Format-Table -AutoSize"],
-              ["Forçar Senha Forte (Política)", "net accounts /minpwlen:12 /maxpwage:30 /minpwage:1; Write-Host '✅ Política de senha configurada: mín 12 chars, expira em 30 dias' -ForegroundColor Green"],
-              ["Verificar Hashes de Arquivos (MD5/SHA256)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { Write-Host 'MD5:' (Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm MD5).Hash; Write-Host 'SHA256:' (Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm SHA256).Hash } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Credenciais Armazenadas (Vault)", "vaultcmd /list"],
-              ["Desativar Cache de Credenciais", "Set-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name 'CachedLogonsCount' -Value 0 -EA 0; Write-Host '✅ Cache de credenciais desativado!' -ForegroundColor Green"],
-            ],
-          },
-          {
-            label: "🌐 Segurança Web & Rede",
-            cmds: [
-              ["Verificar Proxy do Sistema","netsh winhttp show proxy"],
-              ["Verificar Certificados Raiz", "Get-ChildItem Cert:\\LocalMachine\\Root | Select-Object Subject,NotAfter,Thumbprint | Sort-Object NotAfter | Format-Table -AutoSize"],
-              ["Verificar Certificados Expirados", "Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) } | Select-Object Subject,NotAfter | Format-Table -AutoSize; if (-not (Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.NotAfter -lt (Get-Date) })) { Write-Host '✅ Nenhum certificado raiz expirado' -ForegroundColor Green }"],
-              ["Testar HTTPS de um Site","try { $r = Invoke-WebRequest -Uri \"§URL_TESTE§\" -Method Head -TimeoutSec 10; Write-Host 'Status:' $r.StatusCode; Write-Host 'Certificado válido' -ForegroundColor Green } catch { Write-Host 'Erro:' $_.Exception.Message -ForegroundColor Red }"],
-              ["Verificar Conexões HTTPS Ativas","Get-NetTCPConnection -State Established | Where-Object { $_.RemotePort -eq 443 } | Select-Object LocalAddress,RemoteAddress,RemotePort,OwningProcess | Format-Table -AutoSize"],
-              ["Listar Regras de Firewall de Entrada", "Get-NetFirewallRule -Direction Inbound -Enabled True | Select-Object DisplayName,Action,Profile | Sort-Object DisplayName | Format-Table -AutoSize"],
-              ["Bloquear IP Específico no Firewall","New-NetFirewallRule -DisplayName \"Block §IP_BLOQUEIO§\" -Direction Inbound -Action Block -RemoteAddress §IP_BLOQUEIO§; Write-Host \"✅ IP §IP_BLOQUEIO§ bloqueado!\" -ForegroundColor Green"],
-              ["Remover Regra de Bloqueio de IP","Remove-NetFirewallRule -DisplayName \"Block §IP_DESBLOQUEIO§\" -EA 0; Write-Host \"✅ IP §IP_DESBLOQUEIO§ desbloqueado!\" -ForegroundColor Green"],
-            ],
-          },
-          {
-            label: "🕵️ Forense & Análise",
-            cmds: [
-              ["Análise de Arquivo (file type)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { $bytes = [System.IO.File]::ReadAllBytes(\"§CAMINHO_ARQUIVO§\")[0..3]; $hex = ($bytes | ForEach-Object { $_.ToString('X2') }) -join ' '; Write-Host \"Assinatura (hex): $hex\" -ForegroundColor Cyan; Write-Host \"Tamanho: $((Get-Item \"§CAMINHO_ARQUIVO§\").Length) bytes\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Extrair Strings de Arquivo", "$file = Read-Host 'Caminho do arquivo'; if (Test-Path $file) { Select-String -Path $file -Pattern '[\x20-\x7E]{6,}' -AllMatches | ForEach-Object { $_.Matches.Value } | Select-Object -First 50 } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Metadados de Arquivo","if (Test-Path \"§CAMINHO_ARQUIVO§\") { Get-Item \"§CAMINHO_ARQUIVO§\" | Select-Object Name,Length,CreationTime,LastAccessTime,LastWriteTime,Attributes | Format-List } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Extrair Hash de Arquivo (Todos os Algoritmos)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { foreach ($algo in @('MD5','SHA1','SHA256','SHA384','SHA512')) { Write-Host \"$algo`: $((Get-FileHash \"§CAMINHO_ARQUIVO§\" -Algorithm $algo).Hash)\" -ForegroundColor Cyan } } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Listar Arquivos Modificados Recentemente (24h)","Get-ChildItem \"§DIRETORIO_ALVO§\" -Recurse -File -EA 0 | Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-24) } | Select-Object FullName,LastWriteTime,Length | Sort-Object LastWriteTime -Descending | Select-Object -First 30 | Format-Table -AutoSize"],
-              ["Verificar Logs de Segurança (Login Falhou)", "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='IP';E={$_.Properties[11].Value}},@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"],
-              ["Verificar Logins Bem-sucedidos", "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4624} -MaxEvents 20 -EA 0 | Select-Object TimeCreated,@{N='Usuario';E={$_.Properties[5].Value}} | Format-Table -AutoSize"],
-              ["Exportar Logs de Segurança para CSV", "$out = '$env:USERPROFILE\\Desktop\\security-logs.csv'; Get-WinEvent -FilterHashtable @{LogName='Security';Id=@(4624,4625)} -MaxEvents 100 -EA 0 | Select-Object TimeCreated,Id,@{N='Details';E={$_.Message.Substring(0,200)}} | Export-Csv $out -NoTypeInformation; Write-Host \"✅ Logs exportados: $out\" -ForegroundColor Green"],
-            ],
-          },
-          {
-            label: "📁 Permissões de Arquivos (chmod/chown)",
-            cmds: [
-              ["chmod 644 (Dono: RW, Outros: R)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(M)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(R)\"; Write-Host '✅ chmod 644 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 755 (Dono: RWX, Outros: RX)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(RX)\"; Write-Host '✅ chmod 755 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 600 (Apenas Dono: RW)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(M)\"; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Todos\" 2>$null; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 600 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 700 (Apenas Dono: RWX)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Todos\" 2>$null; icacls \"§CAMINHO_ARQUIVO§\" /remove \"Convidados\" 2>$null; Write-Host '✅ chmod 700 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 777 (Todos: RWX - PERIGOSO)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(F)\"; Write-Host '⚠️ chmod 777 aplicado: TODOS têm acesso total!' -ForegroundColor Yellow } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chmod 444 (Todos: Somente Leitura)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /inheritance:r; icacls \"§CAMINHO_ARQUIVO§\" /grant \"$env:USERNAME:(R)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"Todos:(R)\"; Write-Host '✅ chmod 444 aplicado' -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chown user:group (Alterar Dono e Grupo)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { takeown /f \"§CAMINHO_ARQUIVO§\" /a; icacls \"§CAMINHO_ARQUIVO§\" /setowner §NOME_DONO§; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_DONO§:(F)\"; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_GRUPO§:(F)\"; Write-Host \"✅ chown aplicado: dono=§NOME_DONO§, grupo=§NOME_GRUPO§\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["chown user (Alterar Apenas Dono)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" /setowner §NOME_DONO§; icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_DONO§:(F)\"; Write-Host \"✅ chown aplicado: dono alterado para §NOME_DONO§\" -ForegroundColor Green } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Permissões de Arquivo (icacls)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { icacls \"§CAMINHO_ARQUIVO§\" } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Verificar Permissões (ACL detalhada)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { (Get-Acl \"§CAMINHO_ARQUIVO§\").Access | Select-Object IdentityReference,FileSystemRights,AccessControlType,IsInherited | Format-Table -AutoSize } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Conceder Permissão Total (Full Control)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(F)\"; Write-Host \"✅ Permissão total concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
-              ["Conceder Permissão de Leitura (Read)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(R)\"; Write-Host \"✅ Permissão de leitura concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
-              ["Conceder Permissão de Escrita (Write/Modify)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(M)\"; Write-Host \"✅ Permissão de escrita concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
-              ["Conceder Permissão de Execução (Execute)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(X)\"; Write-Host \"✅ Permissão de execução concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
-              ["Conceder Leitura + Execução (RX)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(RX)\"; Write-Host \"✅ Permissão de leitura + execução concedida a §NOME_USUARIO§\" -ForegroundColor Green"],
-              ["Negar Acesso a Usuário (Deny)","icacls \"§CAMINHO_ARQUIVO§\" /deny \"§NOME_USUARIO§:(F)\"; Write-Host \"✅ Acesso negado a §NOME_USUARIO§\" -ForegroundColor Green"],
-              ["Remover Permissões de Usuário","icacls \"§CAMINHO_ARQUIVO§\" /remove §NOME_USUARIO§; Write-Host \"✅ Permissões de §NOME_USUARIO§ removidas\" -ForegroundColor Green"],
-              ["Resetar Permissões (Herdar do diretório pai)","icacls \"§CAMINHO_ARQUIVO§\" /reset; Write-Host '✅ Permissões resetadas (herdando do diretório pai)' -ForegroundColor Green"],
-              ["Desativar Herança de Permissões","icacls \"§CAMINHO_ARQUIVO§\" /inheritance:d; Write-Host '✅ Herança desativada - permissões copiadas' -ForegroundColor Green"],
-              ["Ativar Herança de Permissões","icacls \"§CAMINHO_ARQUIVO§\" /inheritance:e; Write-Host '✅ Herança ativada' -ForegroundColor Green"],
-              ["Verificar Proprietário do Arquivo (chown)","if (Test-Path \"§CAMINHO_ARQUIVO§\") { (Get-Acl \"§CAMINHO_ARQUIVO§\").Owner; Write-Host \"Proprietário: $((Get-Acl \"§CAMINHO_ARQUIVO§\").Owner)\" -ForegroundColor Cyan } else { Write-Host 'Arquivo não encontrado' -ForegroundColor Red }"],
-              ["Alterar Proprietário do Arquivo (takeown)","takeown /f \"§CAMINHO_ARQUIVO§\"; Write-Host '✅ Proprietário alterado para o usuário atual' -ForegroundColor Green"],
-              ["Alterar Proprietário para Administradores","takeown /f \"§CAMINHO_ARQUIVO§\" /a; icacls \"§CAMINHO_ARQUIVO§\" /grant Administradores:(F); Write-Host '✅ Proprietário alterado para Administradores' -ForegroundColor Green"],
-              ["Aplicar Permissões Recursivamente (pasta)","icacls \"§CAMINHO_ARQUIVO§\" /grant \"§NOME_USUARIO§:(§NIVEL_PERMISSAO§)\" /t /c; Write-Host \"✅ Permissão §NIVEL_PERMISSAO§ aplicada recursivamente a §NOME_USUARIO§\" -ForegroundColor Green"],
-              ["Backup de Permissões (ACL)","$bak = \"§CAMINHO_ARQUIVO§\" + '.acl.bak'; icacls \"§CAMINHO_ARQUIVO§\" /save $bak; Write-Host \"✅ Permissões salvas em: $bak\" -ForegroundColor Green"],
-              ["Restaurar Permissões (ACL)","icacls \"§DIRETORIO_ALVO§\" /restore \"§CAMINHO_ARQUIVO§\"; Write-Host '✅ Permissões restauradas' -ForegroundColor Green"],
-              ["Listar Arquivos Sem Dono (Orphaned ACLs)","Get-ChildItem \"§DIRETORIO_ALVO§\" -Recurse -File -EA 0 | ForEach-Object { try { $acl = Get-Acl $_.FullName -EA 0; if ($acl.Owner -match 'S-1-5') { [PSCustomObject]@{Arquivo=$_.FullName; Owner=$acl.Owner} } } catch {} } | Format-Table -AutoSize"],
-            ],
-          },
-          {
-            label: "⚡ Endurecimento do Sistema (Hardening)",
-            cmds: [
-              ["Desativar AutoRun/AutoPlay", "Set-ItemProperty 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\AutoplayHandlers' -Name 'DisableAutoplay' -Value 1 -EA 0; Write-Host '✅ AutoPlay desativado!' -ForegroundColor Green"],
-              ["Ativar Bloqueio de Script Powershell (Constrained)","Set-ExecutionPolicy AllSigned -Scope LocalMachine -Force; Write-Host '✅ PowerShell restrito a scripts assinados!' -ForegroundColor Green"],
-              ["Verificar Configuração de Execução de Scripts", "Get-ExecutionPolicy -List | Format-Table -AutoSize"],
-              ["Desativar PowerShell v2 (Reduz Superfície de Ataque)", "Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root -NoRestart -EA 0; Write-Host '✅ PowerShell v2 desativado!' -ForegroundColor Green"],
-              ["Ativar Auditoria de Logon", "auditpol /set /subcategory:'Logon' /success:enable /failure:enable; Write-Host '✅ Auditoria de logon ativada!' -ForegroundColor Green"],
-              ["Ativar Auditoria de Alterações de Arquivo", "auditpol /set /subcategory:'File System' /success:enable /failure:enable; Write-Host '✅ Auditoria de sistema de arquivos ativada!' -ForegroundColor Green"],
-              ["Configurar Política de Bloqueio de Conta", "net accounts /lockoutthreshold:5 /lockoutduration:30 /lockoutwindow:30; Write-Host '✅ Bloqueio após 5 tentativas, 30 min de bloqueio' -ForegroundColor Green"],
-              ["Desativar SMBv1 via Registro", "Set-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters' -Name 'SMB1' -Value 0 -EA 0; Write-Host '✅ SMBv1 desativado via registro!' -ForegroundColor Green"],
-              ["Renomear Conta de Administrador", "Rename-LocalUser -Name 'Administrator' -NewName 'AdminSeguro'; Write-Host '✅ Conta Administrator renomeada para AdminSeguro!' -ForegroundColor Green"],
-              ["Verificar BitLocker Ativo", "Get-BitLockerVolume | Select-Object MountPoint,VolumeStatus,ProtectionStatus,EncryptionPercentage | Format-Table -AutoSize"],
-              ["Ativar BitLocker (C:)", "Enable-BitLocker -MountPoint 'C:' -EncryptionMethod XtsAes256 -UsedSpaceOnly -TpmProtector; Write-Host '✅ BitLocker ativado em C:!' -ForegroundColor Green"],
-            ],
-          },
-        ],
-      },
-      {
-        id: "cat_terminal",
-        label: "💻 Terminal",
-        cmds: [
-          ["Abrir Windows Terminal", "Start-Process wt.exe; Write-Host \"✅ Windows Terminal aberto!\" -ForegroundColor Green"],
-          ["Abrir Windows Terminal no Projeto", "Start-Process wt.exe -ArgumentList \"-d\",\"$env:MESTRE_PROJETO_PATH\"; Write-Host \"✅ Windows Terminal aberto no projeto!\" -ForegroundColor Green"],
-          ["Abrir CMD no Projeto", "Start-Process cmd.exe -ArgumentList \"/K\",\"cd /d \"\"$env:MESTRE_PROJETO_PATH\"\"\"; Write-Host \"✅ CMD aberto no projeto!\" -ForegroundColor Green"],
-          ["Verificar Terminal Padrão do Windows", "try { $t = Get-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationConsole -EA Stop; Write-Host \"Terminal padrão configurado: $($t.DelegationConsole)\" } catch { Write-Host \"Nenhuma preferência de terminal padrão definida (usando padrão do sistema).\" -ForegroundColor Yellow }"],
-          ["Definir Windows Terminal como Padrão", "New-Item -Path \"HKCU:\\Console\\%%Startup\" -Force | Out-Null; Set-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationConsole -Value \"{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}\"; Set-ItemProperty -Path \"HKCU:\\Console\\%%Startup\" -Name DelegationTerminal -Value \"{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}\"; Write-Host \"✅ Windows Terminal definido como padrão!\" -ForegroundColor Green"],
-          ["Listar Variáveis de Ambiente (PATH)", "($env:Path -split ';') | Where-Object { $_ -ne \"\" } | ForEach-Object { Write-Host $_ }"],
-          ["Verificar Windows Terminal Instalado", "winget list --id Microsoft.WindowsTerminal"],
-          ["Listar Processos de Terminais Abertos", "Get-Process -Name wt,powershell,pwsh,cmd -ErrorAction SilentlyContinue | Select-Object Name,Id,StartTime | Format-Table -AutoSize"],
-          ["Reiniciar Windows Terminal", "Stop-Process -Name WindowsTerminal -Force -EA 0; Write-Host \"✅ Windows Terminal reiniciado (feche e abra novamente)!\" -ForegroundColor Green"],
-        ],
-      },
-      {
-        id: "cat_agentes_cli",
-        label: "20. Agentes CLI",
-        subcategories: [
-          {
-            label: "Status e instalação",
-            cmds: [
-              ["Status dos agentes CLI", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action status"],
-              ["Instalar / atualizar OpenCode (v2)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action install-opencode"],
-              ["Status llama.cpp (:8080)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action llamacpp-status"],
-            ],
-          },
-          {
-            label: "Abrir no terminal do Mestre",
-            cmds: [
-              ["Abrir OpenCode", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action opencode"],
-              ["Abrir Grok CLI", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action grok"],
-              ["Abrir OMP", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action omp"],
-              ["Abrir GitHub Copilot CLI", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action copilot"],
-              ["Abrir Claude Code", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action claude"],
-            ],
-          },
-        ],
-      },
-      {
-        id: "cat_nodejs",
-        label: "🟢 Node.js",
-        cmds: [
-          ["Verificar Versão do Node.js", "node -v; npm -v"],
-          ["Listar Pacotes Globais NPM", "npm list -g --depth=0"],
-          ["Atualizar NPM", "npm install -g npm@latest; Write-Host \"✅ NPM atualizado!\" -ForegroundColor Green"],
-          ["Limpar Cache do NPM", "npm cache clean --force; Write-Host \"✅ Cache do NPM limpo!\" -ForegroundColor Green"],
-          ["Verificar Processos Node.js Ativos", "Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
-          ["Verificar Dependências Desatualizadas (npm outdated)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm outdated"],
-          ["Auditar Segurança do Projeto (npm audit)", "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm audit"],
-          ["Instalar Pacote NPM (Global)", "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm install -g $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
-          ["Desinstalar Pacote NPM (Global)", "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm uninstall -g $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
-        ],
-      },
-      {
-        id: "cat_powershell",
-        label: "🔷 PowerShell",
-        cmds: [
-          ["Verificar Versão do PowerShell", "$PSVersionTable | Format-List"],
-          ["Listar Módulos PowerShell Instalados", "Get-Module -ListAvailable | Select-Object Name,Version | Sort-Object Name | Format-Table -AutoSize"],
-          ["Verificar Execution Policy", "Get-ExecutionPolicy -List | Format-Table -AutoSize"],
-          ["Definir Execution Policy (RemoteSigned)", "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host \"✅ Execution Policy definida como RemoteSigned!\" -ForegroundColor Green"],
-          ["Atualizar Ajuda do PowerShell", "Update-Help -Force -ErrorAction SilentlyContinue; Write-Host \"✅ Ajuda do PowerShell atualizada!\" -ForegroundColor Green"],
-          ["Verificar Perfil do PowerShell ($PROFILE)", "if (Test-Path $PROFILE) { Write-Host \"Perfil encontrado: $PROFILE\"; Get-Content $PROFILE } else { Write-Host \"Nenhum perfil do PowerShell configurado.\" -ForegroundColor Yellow }"],
-          ["Limpar Histórico do PowerShell", "$h = (Get-PSReadLineOption).HistorySavePath; Remove-Item -Path $h -Force -EA 0; Write-Host \"✅ Histórico do PowerShell limpo!\" -ForegroundColor Green"],
-          ["Listar Todas as Variáveis de Ambiente", "Get-ChildItem Env: | Sort-Object Name | Format-Table -AutoSize"],
-        ],
-      },
-      {
-        id: "cat_python",
-        label: "🐍 Python",
-        cmds: [
-          ["Verificar Versão do Python", "python --version"],
-          ["Verificar Versão do Pip", "pip --version"],
-          ["Listar Pacotes Pip Instalados", "pip list"],
-          ["Atualizar Pip", "python -m pip install --upgrade pip; Write-Host \"✅ Pip atualizado!\" -ForegroundColor Green"],
-          ["Verificar Pacotes Pip Desatualizados", "pip list --outdated"],
-          ["Verificar Processos Python Ativos", "Get-Process -Name python,python3,pythonw -ErrorAction SilentlyContinue | Select-Object Id,StartTime,@{N=\"RAM(MB)\";E={[math]::Round($_.WorkingSet64/1MB,2)}} | Format-Table -AutoSize"],
-          ["Limpar Cache do Pip", "pip cache purge; Write-Host \"✅ Cache do Pip limpo!\" -ForegroundColor Green"],
-          ["Instalar Pacote Pip", "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip install $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
-          ["Desinstalar Pacote Pip", "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip uninstall -y $pkg; Write-Host \"✅ Pacote $pkg desinstalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }"],
-          ["Criar Ambiente Virtual (venv)", "$nome = Read-Host \"Nome do ambiente virtual\"; if ($nome -match \"^[a-zA-Z0-9_-]{1,64}$\") { python -m venv $nome; Write-Host \"✅ Ambiente virtual '$nome' criado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome inválido.\" -ForegroundColor Red }"],
-        ],
-      },
-      {
-        id: "cat_web",
-        label: "🌐 Web / IA",
-        isNew: true,
-        cmds: [
-          ["Buscar na Web", "__WEB_SEARCH__"],
-          ["Buscar e Resumir Página", "__WEB_FETCH__"],
-          ["Consultar Fonte Oficial .gov.br", "__WEB_GOV__"],
-        ],
-      },
-      {
-        id: "cat_computer_use",
-        label: "🖱️ Computer Use",
-        isNew: true,
-        cmds: [
-          ["📋 Listar Aplicativos", "__CU_LIST_APPS__"],
-          ["🪟 Listar Janelas (por PID)", "__CU_LIST_WINDOWS__"],
-          ["👁️ Observar Janela (Árvore UX)", "__CU_OBSERVE__"],
-          ["🖱️ Clicar (Elemento/Coordenada)", "__CU_CLICK__"],
-          ["⌨️ Digitar Texto", "__CU_TYPE__"],
-          ["🔘 Pressionar Tecla", "__CU_PRESS_KEY__"],
-          ["📜 Scroll (Cima/Baixo)", "__CU_SCROLL__"],
-          ["📝 Definir Valor (Input)", "__CU_SET_VALUE__"],
-          ["🎯 Ação Secundária (Menu)", "__CU_SECONDARY_ACTION__"],
-          ["⚡ Hotkey (Atalho)", "__CU_HOTKEY__"],
-          ["🔒 Fechar Computer Use", "__CU_CLOSE__"],
-          ["📊 Status do Computer Use", "__CU_STATUS__"],
-        ],
-      },
-      {
-        id: "cat_browser",
-        label: "19. Navegador / DevTools",
-        isNew: true,
-        subcategories: [
-          {
-            label: "⚡ Speedtest",
-            cmds: [
-              ["Speedtest mini (Cloudflare/GitHub)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action speedtest-mini"],
-              ["Abrir Speedtest no navegador", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action open-speedtest"],
-            ],
-          },
-          {
-            label: "🧰 DevTools",
-            cmds: [
-              ["Configuração DevTools / CDP", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action config-devtools"],
-              ["Abrir páginas internas DevTools", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action open-devtools-pages"],
-              ["Analisar DevTools (CDP)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action analisar-devtools"],
-              ["Iniciar Edge com CDP", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action iniciar-edge-cdp"],
-            ],
-          },
-          {
-            label: "🧠 Memória virtual",
-            cmds: [
-              ["Memória dos processos do navegador", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action memoria-processos"],
-              ["Memória virtual do navegador", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action memoria-virtual"],
-            ],
-          },
-          {
-            label: "🚀 Velocidade e abas",
-            cmds: [
-              ["Melhorar velocidade do navegador", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action melhorar-velocidade"],
-              ["Listar abas (CDP)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action listar-abas"],
-              ["Fechar abas descartáveis (CDP)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action fechar-abas-descartaveis"],
-              ["Instalar extensão do Mestre (pasta)", "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\browser-devtools.ps1') -Action abrir-extensao-pasta"],
-            ],
-          },
-        ],
-      },
-
+      const UI_ONLY = [
+        {
+          id: "cat-web",
+          label: "🌐 Web / IA",
+          cmds: [
+            ["Buscar na Web", "__WEB_SEARCH__"],
+            ["Buscar e Resumir Página", "__WEB_FETCH__"],
+            ["Consultar Fonte Oficial .gov.br", "__WEB_GOV__"],
+          ],
+        },
+        {
+          id: "cat-computer-use",
+          label: "🖱️ Computer Use",
+          cmds: [
+            ["📋 Listar Aplicativos", "__CU_LIST_APPS__"],
+            ["🪟 Listar Janelas (por PID)", "__CU_LIST_WINDOWS__"],
+            ["👁️ Observar Janela (Árvore UX)", "__CU_OBSERVE__"],
+            ["🖱️ Clicar (Elemento/Coordenada)", "__CU_CLICK__"],
+            ["⌨️ Digitar Texto", "__CU_TYPE__"],
+            ["🔘 Pressionar Tecla", "__CU_PRESS_KEY__"],
+            ["📜 Scroll (Cima/Baixo)", "__CU_SCROLL__"],
+            ["📝 Definir Valor (Input)", "__CU_SET_VALUE__"],
+            ["🎯 Ação Secundária (Menu)", "__CU_SECONDARY_ACTION__"],
+            ["⚡ Hotkey (Atalho)", "__CU_HOTKEY__"],
+            ["🔒 Fechar Computer Use", "__CU_CLOSE__"],
+            ["📊 Status do Computer Use", "__CU_STATUS__"],
+          ],
+        },
       ];
-      // Render navigation
+      const opsById = new Map();
+      let homeCategories = [];
       const nav = document.getElementById("nav");
       function recolherMenuLateral() {
         document.body.classList.add("sidebar-collapsed");
@@ -1768,17 +1053,19 @@
       function expandirMenuLateral() {
         document.body.classList.remove("sidebar-collapsed");
       }
-      CATS.forEach((c, index) => {
-        const a = document.createElement("a");
-        a.className = "nav-item";
-        a.textContent = c.label;
-        a.dataset.index = String(index + 1);
-        a.title = c.label;
-        a.onclick = () => {
-          activateCategory(c.id, { scroll: true, collapseSidebar: true });
-        };
-        nav.appendChild(a);
-      });
+      function renderNav() {
+        nav.replaceChildren();
+        homeCategories.forEach((c, index) => {
+          const a = document.createElement("a");
+          a.className = "nav-item";
+          a.textContent = c.label;
+          a.dataset.index = String(index + 1);
+          a.dataset.cat = c.id;
+          a.title = c.label;
+          a.onclick = () => activateCategory(c.id, { scroll: true, collapseSidebar: true });
+          nav.appendChild(a);
+        });
+      }
       // ===== NOVO V10: Estado persistente (favoritos, histórico, tema) =====
       let favorites = JSON.parse(localStorage.getItem("mestre_v10_favs") || "[]");
       let cmdHistory = JSON.parse(localStorage.getItem("mestre_v10_history") || "[]");
@@ -1832,9 +1119,10 @@
         return new Promise((resolve) => { cmdConfirmResolver = resolve; });
       }
 
-      async function confirmBeforeExecution(code, source = "catalog") {
+      async function confirmBeforeExecution(code, source = "catalog", options = {}) {
         const fromAI = source === "ai";
-        if (!fromAI && !isDangerous(code)) return true;
+        const op = options.id ? opsById.get(options.id) : null;
+        if (!fromAI && !(op && op.destructive) && !isDangerous(code)) return true;
         const reason = fromAI
           ? "A IA sugeriu este comando. Revise-o antes de autorizar."
           : "Este comando pode alterar ou remover dados/configurações.";
@@ -1857,29 +1145,29 @@
           return { allowed: false, destructive: false, reason: "Não foi possível falar com o launcher: " + e.message };
         }
       }
-      // Render categories (padrão V7 + estrela de favorito + botão fila + botão live)
       const container = document.getElementById("categories");
-      function countCmds(c) {
-        let n = (c.cmds || []).length;
-        if (c.subcategories) n += c.subcategories.reduce((sum, s) => sum + (s.cmds || []).length, 0);
-        return n;
-      }
       function renderCards(list, prefix, isNew = false) {
         let cards = "";
         (list || []).forEach((cmd, i) => {
-          const uid = `${prefix}_${i}`;
-          const esc = cmd[1].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const opId = cmd[2] || "";
+          const uid = opId ? "op-" + String(opId).replace(/[^A-Za-z0-9_-]/g, "_") : prefix + "_" + i;
+          const esc = escapeHtml(cmd[1]);
+          const title = escapeHtml(cmd[0]);
           const isFav = favorites.includes(uid) ? "active" : "";
           const star = isFav ? "⭐" : "☆";
-          const danger = isDangerous(cmd[1]);
+          const op = opId ? opsById.get(opId) : null;
+          const danger = (op && op.destructive) || isDangerous(cmd[1]);
+          const off = !!(op && op.enabled === false);
           const dangerBadge = danger ? `<span class="danger-badge" title="Comando destrutivo — use com cuidado">⚠️ destrutivo</span>` : "";
+          const offBadge = off ? `<span class="danger-badge" title="Desativado na whitelist">⏸ desativado</span>` : "";
           const newClass = isNew ? "cmd-card-new" : "";
+          const opAttr = opId ? ` data-op-id="${escapeHtml(opId)}"` : "";
+          const dis = off ? " disabled" : "";
 
-          // Cards especiais de Web / IA não executam PowerShell
           if (cmd[1] === "__WEB_SEARCH__") {
             cards += `<div class="cmd-card ${newClass} cmd-card-web">
       <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
-      <h4>${cmd[0]}</h4>
+      <h4>${title}</h4>
       <code id="${uid}" style="display:none">${esc}</code>
       <p class="web-card-desc">Busca na web usando Ollama Cloud (se OLLAMA_API_KEY configurada) ou DuckDuckGo.</p>
       <div class="btn-row">
@@ -1891,7 +1179,7 @@
           if (cmd[1] === "__WEB_FETCH__") {
             cards += `<div class="cmd-card ${newClass} cmd-card-web">
       <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
-      <h4>${cmd[0]}</h4>
+      <h4>${title}</h4>
       <code id="${uid}" style="display:none">${esc}</code>
       <p class="web-card-desc">Busca na web e extrai/resume o conteúdo da primeira página encontrada.</p>
       <div class="btn-row">
@@ -1903,7 +1191,7 @@
           if (cmd[1] === "__WEB_GOV__") {
             cards += `<div class="cmd-card ${newClass} cmd-card-web">
       <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
-      <h4>${cmd[0]}</h4>
+      <h4>${title}</h4>
       <code id="${uid}" style="display:none">${esc}</code>
       <p class="web-card-desc">Consulta apenas domínios oficiais brasileiros (.gov.br, ibge.gov.br, embrapa.br, usp.br, etc.).</p>
       <div class="btn-row">
@@ -1915,40 +1203,34 @@
 
           cards += `<div class="cmd-card ${danger ? "danger" : ""} ${newClass}">
       <span class="fav-star ${isFav}" onclick="toggleFavorite('${uid}', this)">${star}</span>
-      ${dangerBadge}
-      <h4>${cmd[0]}</h4>
-      <code id="${uid}">${esc}</code>
+      ${dangerBadge}${offBadge}
+      <h4>${title}</h4>
+      <code id="${uid}"${opAttr}>${esc}</code>
       <div class="btn-row">
         <button class="btn btn-copy" onclick="copyById('${uid}')">📋 Copiar</button>
-        <button class="btn btn-run" onclick="runCmd('${uid}')">🚀 Executar</button>
-        <button class="btn btn-queue-add" onclick="addToQueue('${uid}')">📋 Fila</button>
-        <button class="btn btn-live" onclick="executeCmdLive('${uid}')">📺 Ao Vivo</button>
+        <button class="btn btn-run" onclick="runCmd('${uid}')"${dis}>🚀 Executar</button>
+        <button class="btn btn-queue-add" onclick="addToQueue('${uid}')"${dis}>📋 Fila</button>
+        <button class="btn btn-live" onclick="executeCmdLive('${uid}')"${dis}>📺 Ao Vivo</button>
       </div>
     </div>`;
         });
         return cards;
       }
-      const NEW_V11_CATEGORIES = ["cat14", "cat15", "cat16", "cat17", "cat18", "cat_sec", "cat_terminal", "cat_nodejs", "cat_powershell", "cat_python", "cat_web", "cat_computer_use", "cat_browser", "cat_agentes_cli"];
-      CATS.forEach((c) => {
-        const div = document.createElement("div");
-        div.className = "category";
-        div.id = c.id;
-        const total = countCmds(c);
-        const isNewCat = NEW_V11_CATEGORIES.includes(c.id);
-        const newBadge = isNewCat ? ` <span class="badge" style="background:rgba(0,255,136,0.2);color:#00ff88;border:1px solid rgba(0,255,136,0.4)">NOVO V11</span>` : "";
-        const badge = `<span class="badge">${total} cmds</span>${newBadge}`;
-        let content = "";
-        if (c.subcategories) {
-          c.subcategories.forEach((sub, idx) => {
-            content += `<div class="subcategory-header">${sub.label}</div>`;
-            content += renderCards(sub.cmds, `${c.id}_sub${idx}`, isNewCat);
-          });
-        } else {
-          content += renderCards(c.cmds, c.id, isNewCat);
-        }
-        div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${c.label}${badge} <span class="chevron">▼</span></div><div class="category-content">${content}</div>`;
-        container.appendChild(div);
-      });
+      function renderHome() {
+        container.replaceChildren();
+        homeCategories.forEach((c) => {
+          const div = document.createElement("div");
+          div.className = "category";
+          div.id = c.id;
+          const total = (c.cmds || []).length;
+          div.innerHTML = `<div class="category-header" onclick="toggleCat(this)">${escapeHtml(c.label)} <span class="badge">${total} cmds</span> <span class="chevron">▼</span></div><div class="category-content">${renderCards(c.cmds, c.id, false)}</div>`;
+          container.appendChild(div);
+        });
+        const first = container.querySelector(".category");
+        if (first) first.classList.add("active");
+        bindCategoryObserver();
+        renderFavorites();
+      }
       function activateCategory(id, options = {}) {
         const { scroll = true, collapseSidebar = false } = options;
         const target = document.getElementById(id);
@@ -1957,9 +1239,7 @@
           el.classList.toggle("active", el.id === id);
         });
         if (typeof nav !== "undefined") {
-          nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
-          const idx = CATS.findIndex((c) => c.id === id);
-          if (nav.children[idx]) nav.children[idx].classList.add("active");
+          nav.querySelectorAll(".nav-item").forEach((n) => n.classList.toggle("active", n.dataset.cat === id));
         }
         if (collapseSidebar) recolherMenuLateral();
         if (scroll) {
@@ -1991,14 +1271,54 @@
         "X-Mestre-Client": "v10-web",
       };
       let serverOnline = false;
+      function catDomId(name) {
+        const slug = String(name || "outros")
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        return "cat-" + (slug || "outros");
+      }
+      async function loadHomeCatalog() {
+        try {
+          const r = await fetch(API + "/operations", { headers: PRIVILEGED_HEADERS });
+          const d = await r.json();
+          if (!r.ok || !d.success) throw new Error(d.error || ("HTTP " + r.status));
+          const grouped = new Map();
+          opsById.clear();
+          for (const op of d.operations || []) {
+            const name = op.category || "Outros";
+            if (!grouped.has(name)) grouped.set(name, []);
+            grouped.get(name).push(op);
+            opsById.set(op.id, op);
+          }
+          const names = [];
+          for (const name of d.categorias || []) if (grouped.has(name)) names.push(name);
+          for (const name of grouped.keys()) if (!names.includes(name)) names.push(name);
+          const used = new Set();
+          homeCategories = names.map((name) => {
+            let id = catDomId(name);
+            while (used.has(id)) id += "-2";
+            used.add(id);
+            return {
+              id,
+              label: name,
+              cmds: grouped.get(name).map((op) => [op.title || op.id, op.command || op.pattern || "", op.id]),
+            };
+          });
+          for (const extra of UI_ONLY) homeCategories.push(extra);
+          renderNav();
+          renderHome();
+        } catch (e) {
+          homeCategories = UI_ONLY.slice();
+          renderNav();
+          renderHome();
+          showToast("Não foi possível carregar a whitelist: " + e.message, "#f85149");
+        }
+      }
       // ===== NOVO V10: voltarInicio() — clica na logo para voltar ao topo =====
       function voltarInicio() {
         window.scrollTo({ top: 0, behavior: "smooth" });
         nav.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
-        CATS.forEach((c) => {
-          const el = document.getElementById(c.id);
-          if (el) el.classList.remove("active");
-        });
+        document.querySelectorAll(".category").forEach((el) => el.classList.remove("active"));
         expandirMenuLateral();
         showToast("🔝 Voltou ao início");
       }
@@ -2046,8 +1366,13 @@
       function addToQueue(uid) {
         const codeEl = document.getElementById(uid);
         if (!codeEl) return;
+        const code = codeEl.innerText.trim();
+        if (code.startsWith("__CU_") || code.startsWith("__WEB_")) { showToast("Essa ação não entra na fila", "#f0a800"); return; }
+        const op = opsById.get(codeEl.dataset.opId || "");
+        if (op && op.enabled === false) { showToast("⏸ Comando desativado", "#f0a800"); return; }
+        if (op && op.type === "template") { showToast("⚠️ Template pede parâmetro — use Executar", "#f0a800"); return; }
         const title = codeEl.parentElement.querySelector("h4").textContent;
-        queue.push({ uid, title, cmd: codeEl.innerText.trim() });
+        queue.push({ uid, title, cmd: code, id: codeEl.dataset.opId || "" });
         saveQueue();
         renderQueue();
         showToast("📋 Adicionado à fila");
@@ -2079,8 +1404,8 @@
           const item = queue[i];
           showToast(`📋 [${i + 1}/${queue.length}] ${item.title}`, "#a200ff");
           try {
-            if (!await confirmBeforeExecution(item.cmd, "queue")) continue;
-            const data = await dispatchCommand(item.cmd, {});
+            if (!await confirmBeforeExecution(item.cmd, "queue", item.id ? { id: item.id } : {})) continue;
+            const data = await dispatchCommand(item.cmd, item.id ? { id: item.id } : {});
             addOutputEntry(item.cmd, data.output || "", data.success === true && data.state === "completed");
             cmdHistory.push({ title: item.title, cmd: item.cmd, output: data.output || "", success: data.success, date: new Date().toISOString() });
             localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-200)));
@@ -2130,13 +1455,19 @@
         const codeEl = document.getElementById(uid);
         if (!codeEl) return;
         const code = codeEl.innerText.trim();
+        if (code.startsWith("__CU_") || code.startsWith("__WEB_")) { showToast("Use o botão da própria ação", "#f0a800"); return; }
+        const opId = codeEl.dataset.opId || "";
+        const op = opsById.get(opId);
+        if (op && op.enabled === false) { showToast("⏸ Comando desativado", "#f0a800"); return; }
+        if (op && op.type === "template") { showToast("⚠️ Template pede parâmetro — use Executar", "#f0a800"); return; }
         if (!serverOnline) { showToast("❌ Launcher offline. Execute o Launcher primeiro.", "#f85149"); return; }
-        if (!await confirmBeforeExecution(code, "live")) return;
+        if (!await confirmBeforeExecution(code, "live", opId ? { id: opId } : {})) return;
         const title = codeEl.parentElement.querySelector("h4").textContent;
         openTerminalModal(title);
         setTerminalLive("[enviando comando para o launcher...]\n", true);
         try {
-          const submitRes = await fetch(API + "/run", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ cmd: code }), signal: AbortSignal.timeout(10000) });
+          const liveBody = opId ? { id: opId } : { cmd: code };
+          const submitRes = await fetch(API + "/run", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify(liveBody), signal: AbortSignal.timeout(10000) });
           const submitData = await submitRes.json();
           if (!submitRes.ok || submitData.success !== true || submitData.jobId == null) { setTerminalLive("❌ " + (submitData.output || "Falha ao enviar o comando."), false); return; }
           const data = await livePollJob(submitData.jobId, (s) => setTerminalLive(s.output || "[executando...]", true));
@@ -2206,7 +1537,36 @@
         return found;
       }
       let _pendingCmd = null;
-      function cancelParam() { document.getElementById("paramOverlay").style.display = "none"; _pendingCmd = null; }
+      let _pendingOp = null;
+      function cancelParam() {
+        document.getElementById("paramOverlay").style.display = "none";
+        _pendingCmd = null;
+        _pendingOp = null;
+      }
+      function renderTemplateFields(op) {
+        const keys = Object.keys(op.params || {});
+        document.getElementById("paramTitle").textContent = op.title || "Parâmetros";
+        const fields = document.getElementById("paramFields");
+        fields.replaceChildren();
+        keys.forEach((key, i) => {
+          const wrap = document.createElement("div");
+          wrap.className = "param-field";
+          wrap.style.marginBottom = "14px";
+          const desc = document.createElement("p");
+          desc.className = "param-desc";
+          desc.textContent = op.description ? op.description + " (" + key + ")" : key;
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "param-input";
+          input.placeholder = key;
+          input.dataset.param = key;
+          input.id = "paramField_" + i;
+          if (i === 0) input.onkeydown = (e) => { if (e.key === "Enter") confirmParam(); };
+          wrap.appendChild(desc);
+          wrap.appendChild(input);
+          fields.appendChild(wrap);
+        });
+      }
       function renderParamFields(tokens) {
         document.getElementById("paramTitle").textContent = tokens.length === 1 ? TOKEN_DEFS[tokens[0]].title : "Parâmetros necessários";
         const container = document.getElementById("paramFields");
@@ -2232,6 +1592,31 @@
         });
       }
       async function confirmParam() {
+        if (_pendingOp) {
+          const op = _pendingOp;
+          const params = {};
+          const inputs = [...document.querySelectorAll("#paramFields input")];
+          for (const input of inputs) {
+            const key = input.dataset.param;
+            const val = input.value.trim();
+            let re;
+            try { re = new RegExp(op.params[key]); }
+            catch { re = /^[a-zA-Z0-9_. -]{1,128}$/; }
+            if (!key || !val || !re.test(val)) {
+              alert("Valor inválido para " + (key || "parâmetro") + ".");
+              input.focus();
+              return;
+            }
+            params[key] = val;
+          }
+          document.getElementById("paramOverlay").style.display = "none";
+          const code = _pendingCmd;
+          const id = op.id;
+          _pendingOp = null;
+          _pendingCmd = null;
+          await executeCmd(code, { id, params });
+          return;
+        }
         const inputs = [...document.querySelectorAll("#paramFields input")];
         const replacements = [];
         for (const input of inputs) {
@@ -2314,7 +1699,8 @@
       function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
       // ===== dispatchCommand() (padrão V7) =====
       async function dispatchCommand(code, options = {}) {
-        const submitRes = await fetch(API + "/run", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify({ cmd: code }), signal: AbortSignal.timeout(options.submitTimeoutMs || 10000) });
+        const body = options.id ? { id: options.id, ...(options.params ? { params: options.params } : {}) } : { cmd: code };
+        const submitRes = await fetch(API + "/run", { method: "POST", headers: PRIVILEGED_HEADERS, body: JSON.stringify(body), signal: AbortSignal.timeout(options.submitTimeoutMs || 10000) });
         const submitData = await submitRes.json();
         if (submitRes.ok === false || submitData.success !== true || submitData.accepted !== true || submitData.jobId == null) throw new Error(submitData.output || "Falha ao enviar o comando.");
         const timeoutMs = options.timeoutMs || 900000;
@@ -2334,16 +1720,28 @@
       // ===== runCmd() (padrão V7) =====
       async function runCmd(uid) {
         const codeEl = document.getElementById(uid);
+        if (!codeEl) return;
         const code = codeEl.innerText.trim();
 
-        // Detecta comandos Computer Use
         if (code.startsWith("__CU_")) {
           await handleCUCommand(code);
           return;
         }
 
+        const opId = codeEl.dataset.opId || "";
+        const op = opId ? opsById.get(opId) : null;
+        if (op && op.enabled === false) { showToast("⏸ Comando desativado", "#f0a800"); return; }
+        if (op && op.type === "template" && op.params && Object.keys(op.params).length) {
+          _pendingOp = op;
+          _pendingCmd = code;
+          renderTemplateFields(op);
+          document.getElementById("paramOverlay").style.display = "flex";
+          setTimeout(() => document.getElementById("paramField_0")?.focus(), 80);
+          return;
+        }
         const tokens = findTokens(code);
         if (tokens.length > 0) {
+          _pendingOp = null;
           _pendingCmd = code;
           renderParamFields(tokens);
           document.getElementById("paramOverlay").style.display = "flex";
@@ -2352,12 +1750,12 @@
         }
         try { await navigator.clipboard.writeText(code); } catch {}
         if (!serverOnline) { showToast("⚠️ Servidor offline. Comando copiado — cole no PowerShell Admin.", "#f0a800"); return; }
-        await executeCmd(code);
+        await executeCmd(code, opId ? { id: opId } : {});
       }
       // ===== executeCmd() (padrão V7) + histórico =====
-      async function executeCmd(code) {
+      async function executeCmd(code, options = {}) {
         if (serverOnline === false) { try { await navigator.clipboard.writeText(code); } catch {} showToast("⚠️ Servidor offline. Comando copiado.", "#f0a800"); return; }
-        if (!await confirmBeforeExecution(code)) return;
+        if (!await confirmBeforeExecution(code, "catalog", options)) return;
         const panel = document.getElementById("outputPanel");
         const content = document.getElementById("outputContent");
         panel.style.display = "block";
@@ -2366,12 +1764,12 @@
         panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
         showToast("🚀 Enviando para o PowerShell Admin...", "#00d4ff");
         try {
-          const data = await dispatchCommand(code, { onProgress(status) { content.textContent = "⏳ Comando em execução..." + (status.activeJobs > 1 ? " | Fila: " + status.activeJobs : ""); } });
+          const data = await dispatchCommand(code, { ...options, onProgress(status) { content.textContent = "⏳ Comando em execução..." + (status.activeJobs > 1 ? " | Fila: " + status.activeJobs : ""); } });
           const ok = data.success === true && data.state === "completed";
           content.textContent = data.output || (ok ? "(sem output)" : "Comando finalizado sem saída.");
           content.style.color = ok ? "#e6edf3" : "#f85149";
           addOutputEntry(code, data.output || "", ok);
-          cmdHistory.push({ title: code.slice(0, 60), cmd: code, output: data.output || "", success: data.success, date: new Date().toISOString() });
+          cmdHistory.push({ title: (options.id || code).slice(0, 60), cmd: code, output: data.output || "", success: data.success, date: new Date().toISOString() });
           localStorage.setItem("mestre_v10_history", JSON.stringify(cmdHistory.slice(-200)));
           showToast(ok ? "✅ Comando executado." : "❌ Erro na execução", ok ? "var(--accent2)" : "#f85149");
           checkServer();
@@ -3204,38 +2602,31 @@
         });
       });
       // ===== Highlight de navegação por scroll (padrão V7) =====
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            const id = e.target.id;
-            nav.querySelectorAll(".nav-item").forEach((n, i) => { n.classList.toggle("active", CATS[i]?.id === id); });
-          }
-        });
-      }, { threshold: 0.3 });
-      document.querySelectorAll(".category").forEach((el) => observer.observe(el));
+      let categoryObserver = null;
+      function bindCategoryObserver() {
+        if (!categoryObserver) {
+          categoryObserver = new IntersectionObserver((entries) => {
+            entries.forEach((e) => {
+              if (!e.isIntersecting) return;
+              const id = e.target.id;
+              nav.querySelectorAll(".nav-item").forEach((n) => n.classList.toggle("active", n.dataset.cat === id));
+            });
+          }, { threshold: 0.3 });
+        }
+        document.querySelectorAll(".category").forEach((el) => categoryObserver.observe(el));
+      }
       // ===== NOVO V10: Atalhos de teclado =====
       document.addEventListener("keydown", (e) => {
         if (e.ctrlKey && e.key === "k") { e.preventDefault(); document.getElementById("searchInput").focus(); }
         if (e.ctrlKey && e.key === "/") { e.preventDefault(); mestreChat.open(); }
-        if (e.key === "Escape") { mestreChat.close(); closeTerminalModal(); document.getElementById("paramOverlay").style.display = "none"; document.getElementById("webOverlay").style.display = "none"; }
+        if (e.key === "Escape") { mestreChat.close(); closeTerminalModal(); cancelParam(); closeWebModal(); }
       });
       // ===== BOOT com polling otimizado =====
       renderFavorites();
       renderQueue();
       renderOutputHistory();
       refreshAll();
-      // ===== CORREÇÃO V10.1: Expandir primeira categoria automaticamente =====
-      (() => {
-        const firstCat = document.getElementById("cat0");
-        if (firstCat) {
-          firstCat.classList.add("active");
-          const firstHeader = firstCat.querySelector(".category-header");
-          if (firstHeader) {
-            const chevron = firstHeader.querySelector(".chevron");
-            if (chevron) chevron.style.transform = "rotate(180deg)";
-          }
-        }
-      })();
+      loadHomeCatalog();
 
       // Polling otimizado: ciclo único sequencial, sem sobreposição,
       // pausa quando a aba está oculta e sobe o intervalo em erro.
