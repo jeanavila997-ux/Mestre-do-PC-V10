@@ -172,11 +172,62 @@ def listar_modelos_ollama_instalados() -> list[str]:
     return modelos
 
 
+def _garantir_qwen35_sem_clip(instalados: list[str]) -> list[str]:
+    """Cria `qwen3.5:4b-text` (sem o projetor visual mmproj.gguf) se só `qwen3.5:4b` existir."""
+    if "qwen3.5:4b-text" in instalados or "qwen3.5:4b" not in instalados:
+        return instalados
+    manifest = (
+        Path.home() / ".ollama" / "models" / "manifests"
+        / "registry.ollama.ai" / "library" / "qwen3.5" / "4b"
+    )
+    if not manifest.exists():
+        return instalados
+    try:
+        dados = json.loads(manifest.read_text(encoding="utf-8"))
+        digest = next(
+            (camada.get("digest", "") for camada in dados.get("layers", [])
+             if camada.get("mediaType") == "application/vnd.ollama.image.model"),
+            "",
+        )
+        if not digest.startswith("sha256:"):
+            return instalados
+        blob = Path.home() / ".ollama" / "models" / "blobs" / digest.replace(":", "-")
+        if not blob.exists():
+            return instalados
+        import tempfile
+        modelfile_conteudo = (
+            f"FROM {blob}\n"
+            "TEMPLATE {{ .Prompt }}\n"
+            "RENDERER qwen3.5\n"
+            "PARSER qwen3.5\n"
+            "PARAMETER num_ctx 8192\n"
+            "PARAMETER presence_penalty 1.5\n"
+            "PARAMETER temperature 0.3\n"
+            "PARAMETER top_k 20\n"
+            "PARAMETER top_p 0.95\n"
+        )
+        with tempfile.NamedTemporaryFile("w", suffix=".Modelfile", delete=False, encoding="utf-8") as tmp:
+            tmp.write(modelfile_conteudo)
+            tmp_path = Path(tmp.name)
+        try:
+            res = subprocess.run(
+                ["ollama", "create", "qwen3.5:4b-text", "-f", str(tmp_path)],
+                capture_output=True, text=True, timeout=30, check=False,
+            )
+            if res.returncode == 0:
+                return ["qwen3.5:4b-text", *instalados]
+        finally:
+            tmp_path.unlink(missing_ok=True)
+    except Exception:  # noqa: BLE001
+        pass
+    return instalados
+
+
 def escolher_modelo_ollama(explicito: str | None) -> str:
     """Seleciona o modelo Ollama mais adequado disponível na máquina."""
     if explicito:
         return explicito
-    instalados = listar_modelos_ollama_instalados()
+    instalados = _garantir_qwen35_sem_clip(listar_modelos_ollama_instalados())
     # qwen3.5:4b-text usa o mesmo blob GGUF de qwen3.5:4b, mas sem o projetor CLIP
     # (mmproj.gguf) que estoura VRAM / falha no llama-server em GPUs com <4 GB livres.
     preferidos = [
@@ -345,8 +396,9 @@ def construir_config(args, leitura: list[str], escrita: list[str], destrutivas: 
         command="node",
         args=[str(MCP_SERVER_JS)],
         env=env_mcp,
-        enabled_tools=expostas,  # só o necessário entra no contexto
-        timeout_seconds=900,     # mesmo teto de job do launcher (15 min)
+        enabled_tools=expostas,        # só o necessário entra no contexto
+        force_all_tools_eager=True,    # expõe as tools diretamente ao modelo (sem lazy lookup)
+        timeout_seconds=900,           # mesmo teto de job do launcher (15 min)
     )
 
     auditor = types.SubagentConfig(
