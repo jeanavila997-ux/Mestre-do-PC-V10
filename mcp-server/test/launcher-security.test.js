@@ -49,7 +49,17 @@ test("launcher Node serve a V10 e bloqueia POSTs externos", async (t) => {
   const page = await fetch(base + "/");
   assert.equal(page.status, 200);
   assert.match(page.headers.get("content-security-policy") || "", /frame-ancestors 'none'/);
-  assert.match(await page.text(), /Mestre do PC V10/);
+  const html = await page.text();
+  assert.match(html, /Mestre do PC V10/);
+  const ping = await (await fetch(base + "/ping")).json();
+  const pkg = JSON.parse(await readFile(join(root, "v10", "package.json"), "utf8"));
+  const versionInHtml = new RegExp(`id="appVersion">${pkg.version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</span>`);
+  assert.equal(ping.version, pkg.version);
+  assert.match(html, versionInHtml);
+  assert.equal(html.includes(">NOVO V11<"), false);
+  const section = await fetch(base + "/diagnostico");
+  assert.equal(section.status, 200);
+  assert.match(await section.text(), versionInHtml);
 
   const noHeader = await fetch(base + "/run", {
     method: "POST",

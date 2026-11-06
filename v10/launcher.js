@@ -35,6 +35,7 @@ import {
 } from "./memory-manager.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const APP_VERSION = JSON.parse(readFileSync(join(__dirname, "package.json"), "utf8")).version;
 const PORT = process.env.MPC_PORT ? Number(process.env.MPC_PORT) : 7777;
 const HOST = process.env.MPC_HOST || "127.0.0.1";
 if (HOST !== "127.0.0.1") {
@@ -752,7 +753,7 @@ const server = http.createServer(async (req, res) => {
         admin: isElevated,
         state: getRunningJobCount() > 0 ? "busy" : "idle",
         activeJobs: getRunningJobCount(),
-        version: "10.1.0",
+        version: APP_VERSION,
         pid: process.pid,
       }, allowedOrigin);
     }
@@ -760,7 +761,7 @@ const server = http.createServer(async (req, res) => {
     if (path === "/mcp-status") {
       return sendJson(res, 200, {
         status: "unknown",
-        version: "10.1.0",
+        version: APP_VERSION,
         modelProfile: process.env.OLLAMA_MODEL_PROFILE || "balanced",
         model: process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct",
       }, allowedOrigin);
@@ -972,7 +973,7 @@ const server = http.createServer(async (req, res) => {
 
     if (path === "/" || path === "/index.html") {
       try {
-        const html = await readFile(join(__dirname, "index.html"), "utf8");
+        const html = (await readFile(join(__dirname, "index.html"), "utf8")).replaceAll("__APP_VERSION__", APP_VERSION);
         res.writeHead(200, {
           "Content-Type": "text/html; charset=utf-8",
           "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
@@ -994,7 +995,6 @@ const server = http.createServer(async (req, res) => {
       } catch { return sendJson(res, 404, { error: "recurso não encontrado" }); }
     }
 
-    // ===== CORREÇÃO V10.1.1: Servir rede-dashboard.js como JavaScript =====
     if (path === "/rede-dashboard.js") {
       try {
         const js = await readFile(join(__dirname, "rede-dashboard.js"), "utf8");
@@ -1007,7 +1007,7 @@ const server = http.createServer(async (req, res) => {
       } catch { return sendJson(res, 404, { error: "rede-dashboard.js não encontrado" }); }
     }
 
-    // ===== NOVO V11.2: Páginas .html estáticas do diretório v10 (ex: /novidades-v11.html) =====
+    // Páginas .html estáticas do diretório v10.
     // Regex restringe a um único nome de arquivo seguro (sem path traversal).
     if (req.method === "GET" && /^\/[a-z0-9-]+\.html$/i.test(path)) {
       try {
@@ -1110,11 +1110,10 @@ const server = http.createServer(async (req, res) => {
       } catch { return sendJson(res, 404, { error: "recurso do chat-integrado não encontrado" }); }
     }
 
-    // ===== NOVO V11.2: SPA fallback — rotas de seção (ex: /8.diagnostico) servem index.html =====
-    // Rotas de API acima já retornaram; qualquer GET sem extensão de arquivo é rota de seção.
+    // Rotas de API acima já retornaram; qualquer GET sem extensão de arquivo é rota de seção e devolve index.html.
     if (req.method === "GET" && !path.includes(".")) {
       try {
-        const html = await readFile(join(__dirname, "index.html"), "utf8");
+        const html = (await readFile(join(__dirname, "index.html"), "utf8")).replaceAll("__APP_VERSION__", APP_VERSION);
         res.writeHead(200, {
           "Content-Type": "text/html; charset=utf-8",
           "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
