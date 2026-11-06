@@ -90,7 +90,7 @@ npm run ia -- "Analise a arquitetura do Mestre do PC"
 Também é possível escolher o modelo ou receber o JSON completo:
 
 ```powershell
-npm run ia -- "Explique este erro" --model qwen2.5-coder:1.5b
+npm run ia -- "Explique este erro" --model qwen3.5:4b
 npm run ia -- "Resuma este projeto" --json
 ```
 

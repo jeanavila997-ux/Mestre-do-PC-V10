@@ -22,7 +22,7 @@ Opções do comando ia:
 
 Exemplos:
   npm run ia -- "Analise a arquitetura do Mestre do PC"
-  npm run ia -- "Explique este erro" --model qwen2.5-coder:1.5b
+  npm run ia -- "Explique este erro" --model qwen3.5:4b
 `);
 }
 
@@ -54,7 +54,7 @@ function obterConfig() {
   return {
     ollamaUrl: process.env.OLLAMA_URL ?? "http://127.0.0.1:11434",
     apiKey: process.env.OLLAMA_API_KEY ?? "",
-    model: process.env.OLLAMA_MODEL ?? "qwen2.5-coder:1.5b",
+    model: process.env.OLLAMA_MODEL ?? "qwen3.5:4b-text",
     system: process.env.MESTRE_IA_SYSTEM_PROMPT ?? "Você é o assistente local do Mestre do PC. Responda em português do Brasil.",
     timeoutMs: numero(process.env.OLLAMA_TIMEOUT_MS, 120000, Number.parseInt),
     numCtx: numero(process.env.OLLAMA_NUM_CTX, 8192, Number.parseInt),
