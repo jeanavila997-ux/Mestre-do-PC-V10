@@ -164,7 +164,7 @@ Key flows:
 | `MESTRE_SOUL_DIR` | *(empty)* | Base directory for agent persona files served by `/soul*` (used by tests to isolate writes; defaults: `v10/chat/Soul.md` and `%USERPROFILE%/SOUL.md`) |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama API base (auto-switches to `https://ollama.com/api` when `OLLAMA_API_KEY` is set) |
 | `OLLAMA_API_KEY` | *(empty)* | Enables Ollama Cloud mode + auth header |
-| `OLLAMA_MODEL` | `qwen2.5-coder:1.5b` | Default model |
+| `OLLAMA_MODEL` | `qwen3.5:4b-text` | Default model |
 | `OLLAMA_MODEL_PROFILE` | *(empty)* | Selects a preset from `mcp-server/model-profiles.json` (fast, balanced, agent, coding, reasoning) |
 | `OLLAMA_NUM_CTX` | `8192` | Context window (tokens) |
 | `OLLAMA_TEMPERATURE` | `0.7` | Sampling temperature |
