@@ -21,7 +21,6 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@qwen-code/cua-sdk": "^0.20.4",
-    "@supabase/supabase-js": "^2.118.0",
     "@wonderwhy-er/desktop-commander": "^0.3.1",
     "mysql2": "^3.11.0"
   },

@@ -55,7 +55,7 @@ test("install.ps1 prefere pwsh ao se auto-elevar", () => {
 });
 
 test("os .bat gerados para o cliente preferem pwsh", () => {
-  const src = readFileSync(join(root, "scripts", "build-package.js"), "utf8");
+  const src = readFileSync(join(root, "scripts", "build-package.cjs"), "utf8");
 
   const deteccoes = src.match(/where pwsh/g) ?? [];
   assert.equal(
@@ -64,7 +64,7 @@ test("os .bat gerados para o cliente preferem pwsh", () => {
     "esperado um 'where pwsh' no .bat do instalador e outro no do desinstalador"
   );
 
-  for (const alvo of ["instalar", "desinstalar"]) {
+  for (const alvo of ["install", "uninstall"]) {
     assert.match(
       src,
       new RegExp(`pwsh -NoProfile[^\\n]*${alvo}\\.ps1`),
