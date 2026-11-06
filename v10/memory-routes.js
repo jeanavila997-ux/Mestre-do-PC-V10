@@ -37,7 +37,7 @@ export async function handleMemoryRoutes(req, res, url, { isAuthorized, allowedO
     const body = await readBody(req);
     const { type, title, content, metadata } = body;
     if (!content) {
-      sendJsonResponse(res, 400, { error: "Conteúdo é obrigatório." });
+      sendJsonResponse(res, 400, { error: "Conteúdo é obrigatório." }, allowedOrigin);
       return true;
     }
     const memory = await createMemory(type, title, content, metadata);
@@ -70,7 +70,7 @@ export async function handleMemoryRoutes(req, res, url, { isAuthorized, allowedO
     const id = path.split("/").pop();
     const memory = await getMemory(id);
     if (!memory) {
-      sendJsonResponse(res, 404, { error: "Memória não encontrada." });
+      sendJsonResponse(res, 404, { error: "Memória não encontrada." }, allowedOrigin);
       return true;
     }
     sendJsonResponse(res, 200, { success: true, memory }, allowedOrigin);
@@ -87,7 +87,7 @@ export async function handleMemoryRoutes(req, res, url, { isAuthorized, allowedO
     const body = await readBody(req);
     const memory = await updateMemory(id, body);
     if (!memory) {
-      sendJsonResponse(res, 404, { error: "Memória não encontrada." });
+      sendJsonResponse(res, 404, { error: "Memória não encontrada." }, allowedOrigin);
       return true;
     }
     sendJsonResponse(res, 200, { success: true, memory }, allowedOrigin);
@@ -151,7 +151,7 @@ export async function handleMemoryRoutes(req, res, url, { isAuthorized, allowedO
     const content = body.content;
     
     if (!content) {
-      sendJsonResponse(res, 400, { error: "Conteúdo é obrigatório." });
+      sendJsonResponse(res, 400, { error: "Conteúdo é obrigatório." }, allowedOrigin);
       return true;
     }
     
@@ -212,7 +212,7 @@ async function readBody(req, maxBytes = 2 * 1024 * 1024) {
 /**
  * Envia resposta JSON
  */
-function sendJsonResponse(res, status, data, allowOrigin = "*") {
+function sendJsonResponse(res, status, data, allowOrigin) {
   const body = JSON.stringify(data);
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",

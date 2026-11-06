@@ -22,17 +22,6 @@ import { handleComputerUseRoutes } from "./computer-use-routes.js";
 import { handleProviderRoutes } from "./providers-routes.js";
 import { isAllowedWebOrigin, isNppOrigin, isTrustedClientOrigin, parseExtraOrigins } from "./security/origin-policy.js";
 import { isLocalMcpEnabled, validateLocalMcpToken, ensureLocalMcpToken, isLegacyMcpAllowed } from "../mcp-server/auth/local-token.js";
-import { 
-  createMemory, 
-  listMemories, 
-  getMemory, 
-  updateMemory, 
-  deleteMemory, 
-  exportMemories, 
-  importMemories,
-  searchRelevantMemories,
-  MemoryType 
-} from "./memory-manager.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.MPC_PORT ? Number(process.env.MPC_PORT) : 7777;
