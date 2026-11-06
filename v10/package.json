@@ -1,6 +1,6 @@
 {
   "name": "mestre-do-pc-v10",
-  "version": "10.0.0",
+  "version": "11.2.1",
   "type": "module",
   "private": true,
   "description": "Painel local e launcher administrativo do Mestre do PC V10.",
