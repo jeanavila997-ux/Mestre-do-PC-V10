@@ -741,7 +741,7 @@ const server = http.createServer(async (req, res) => {
         admin: isElevated,
         state: getRunningJobCount() > 0 ? "busy" : "idle",
         activeJobs: getRunningJobCount(),
-        version: "10.1.0",
+        version: "11.2.1",
         pid: process.pid,
       }, allowedOrigin);
     }
@@ -749,7 +749,7 @@ const server = http.createServer(async (req, res) => {
     if (path === "/mcp-status") {
       return sendJson(res, 200, {
         status: "unknown",
-        version: "10.1.0",
+        version: "11.2.1",
         modelProfile: process.env.OLLAMA_MODEL_PROFILE || "balanced",
         model: process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct",
       }, allowedOrigin);
