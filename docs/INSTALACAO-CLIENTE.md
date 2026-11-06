@@ -33,7 +33,7 @@ irm https://ollama.com/install.ps1 | iex
 # Ou baixe o instalador gráfico: https://ollama.com/download/OllamaSetup.exe
 ```
 - Roda como app nativo em background, sem precisar de admin.
-- API em `http://localhost:11434`.
+- API em `http://127.0.0.1:11434`.
 - Requer Windows 10 22H2+. Suporta NVIDIA e AMD Radeon.
 
 ### 🐧 Linux
@@ -113,7 +113,7 @@ docker exec -it ollama ollama pull qwen2.5-coder:3b-instruct
 **Notas:**
 - O volume `ollama:/root/.ollama` persiste os modelos entre reinicializações.
 - No Windows com Docker Desktop, certifique-se de que a opção **WSL 2** está habilitada.
-- O container expõe a API em `http://localhost:11434` (mesmo endpoint do Ollama nativo).
+- O container expõe a API em `http://127.0.0.1:11434` (mesmo endpoint do Ollama nativo).
 
 ### Baixar um modelo (todas as plataformas)
 ```bash
@@ -321,7 +321,7 @@ ollama ps      # PROCESSOR: 100% GPU / 100% CPU / misto
 
 ### Pré-carregar modelo (resposta instantânea no primeiro chat)
 ```bash
-curl http://localhost:11434/api/chat -d '{"model":"qwen2.5-coder:3b-instruct","keep_alive":"10m"}'
+curl http://127.0.0.1:11434/api/chat -d '{"model":"qwen2.5-coder:3b-instruct","keep_alive":"10m"}'
 ```
 
 ## 9. Solução de problemas

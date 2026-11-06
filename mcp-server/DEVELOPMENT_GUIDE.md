@@ -380,7 +380,7 @@ Antes de abrir PR:
 ollama serve
 
 # Testar conexão
-curl http://localhost:11434/api/tags
+curl http://127.0.0.1:11434/api/tags
 
 # Verificar modelo
 ollama list
