@@ -69,7 +69,7 @@ Comandos defensivos disponíveis no terminal:
 
 ### 🤖 Análise com Ollama
 
-Envia o diagnóstico para o Ollama local (`localhost:11434`) e exibe uma explicação em português sobre o estado da rede e possíveis soluções.
+Envia o diagnóstico para o Ollama local (`127.0.0.1:11434`) e exibe uma explicação em português sobre o estado da rede e possíveis soluções.
 
 **Modelo padrão**: `qwen2.5-coder:3b`
 
@@ -166,7 +166,7 @@ fetch('http://127.0.0.1:7777/api/executar', {
 - Não modifica configurações de rede
 - Não desconecta dispositivos
 - Não requer privilégios administrativos
-- Requer Ollama rodando em `localhost:11434` para análise IA
+- Requer Ollama rodando em `127.0.0.1:11434` para análise IA
 
 ---
 

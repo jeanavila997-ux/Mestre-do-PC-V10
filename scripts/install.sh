@@ -83,19 +83,19 @@ else
 fi
 
 # Iniciar Ollama em background se não estiver rodando
-if ! curl -s http://localhost:11434/api/tags >/dev/null 2>&1; then
+if ! curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
   warn "Ollama não está rodando. Iniciando em background..."
   if command -v ollama >/dev/null 2>&1; then
     nohup ollama serve > /tmp/ollama-mestre.log 2>&1 &
     sleep 3
-    if curl -s http://localhost:11434/api/tags >/dev/null 2>&1; then
-      ok "Ollama ativo em http://localhost:11434"
+    if curl -s http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+      ok "Ollama ativo em http://127.0.0.1:11434"
     else
       warn "Ollama pode precisar de alguns segundos. Verifique com: ollama serve"
     fi
   fi
 else
-  ok "Ollama já está ativo em http://localhost:11434"
+  ok "Ollama já está ativo em http://127.0.0.1:11434"
 fi
 
 # Baixar modelo padrão (opcional)
