@@ -75,6 +75,29 @@ Ou execute o script de inicialização rápida:
 
 ---
 
+## 🤖 MESTRE EXTENSSAO — CLI local com IA
+
+A CLI usa o Ollama configurado em `.env.local`, responde em português e grava
+logs rotativos em `logs/mestre-cli.log`. Para ativar, copie `.env.example` para
+`.env.local` e ajuste o modelo desejado.
+
+```powershell
+Copy-Item .env.example .env.local
+npm run cli:status
+npm run ia -- "Analise a arquitetura do Mestre do PC"
+```
+
+Também é possível escolher o modelo ou receber o JSON completo:
+
+```powershell
+npm run ia -- "Explique este erro" --model qwen2.5-coder:1.5b
+npm run ia -- "Resuma este projeto" --json
+```
+
+Use `npm run test:cli` para validar somente a MESTRE EXTENSSAO.
+
+---
+
 ## 🛡️ Segurança e Whitelist
 
 O launcher executa exclusivamente comandos cadastrados na whitelist em [`v10/allowed-operations.json`](v10/allowed-operations.json).

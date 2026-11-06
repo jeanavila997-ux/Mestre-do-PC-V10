@@ -7,7 +7,8 @@
     "postinstall": "npm --prefix mcp-server install --no-audit --no-fund",
     "start": "cd mcp-server && node index.js",
     "dev": "cd mcp-server && npm start",
-    "test": "cd mcp-server && npm test",
+    "test": "node --test test/mestre-cli.test.js && npm --prefix mcp-server test",
+    "test:cli": "node --test test/mestre-cli.test.js",
     "validate": "cd mcp-server && npm run validate",
     "mobile:start": "npm --prefix mobile/gateway start",
     "mobile:setup": "npm --prefix mobile/gateway run setup",
@@ -15,7 +16,9 @@
     "deploy:hostinger": "pwsh scripts/deploy-hostinger.ps1",
     "deploy:vps": "pwsh -NoProfile -File scripts/deploy-vps.ps1",
     "build:package": "node scripts/build-package.cjs",
-    "install:computer-use": "node scripts/install-computer-use.js"
+    "install:computer-use": "node scripts/install-computer-use.js",
+    "ia": "node scripts/mestre-cli.js ia",
+    "cli:status": "node scripts/mestre-cli.js status"
   },
   "keywords": [
     "mcp",
