@@ -93,7 +93,6 @@ node --check v10\launcher.js
 
 ### Validation scripts
 ```powershell
-.\validate_all.ps1
 .\validate-v11.ps1
 ```
 

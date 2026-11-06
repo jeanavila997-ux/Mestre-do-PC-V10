@@ -62,7 +62,6 @@ Dependências externas reais do JavaScript:
 | Script | Requisitos |
 |---|---|
 | `prompt-guard-server.py` | `transformers`, `torch` |
-| `scripts/langchain_mestre_agent.py` | `langchain` |
 | `docs/prompts/install_nvidia_skills.py` | — |
 | `v10/notepad-plus-plus/MestreDoPC.py` | Python 2 + `win32com` |
 

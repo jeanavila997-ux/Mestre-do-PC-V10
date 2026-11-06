@@ -53,7 +53,6 @@ node scripts\test_ollama.mjs
 
 # Legacy validation scripts (kept for reference)
 .\validate-v11.ps1               # PowerShell syntax/style only
-.\validate_all.ps1                # JSON/HTML smoke only
 
 # PowerShell parse check for a single file
 [System.Management.Automation.Language.Parser]::ParseFile("MestreDoPC-Launcher.ps1", [ref]$null, [ref]$null)

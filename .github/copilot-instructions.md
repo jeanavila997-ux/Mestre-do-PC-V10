@@ -88,9 +88,6 @@ node --check v10\operation-registry.js
 # Validate PowerShell scripts (all .ps1 files under the project root)
 .\validate-v11.ps1
 
-# Project-wide smoke validation (JSON/HTML checks)
-.\validate_all.ps1
-
 # Ollama connectivity/model smoke check
 node scripts\test_ollama.mjs
 

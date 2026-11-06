@@ -37,15 +37,6 @@ pip install -qU langchain-ollama requests numpy
 
 ---
 
-## 🚀 Como Iniciar
-
-Para ligar o agente, execute o script na raiz do projeto:
-```bash
-python langchain_mestre_agent.py
-```
-
----
-
 ## 📖 Exemplos de Uso
 
 | O que você diz | O que o Agente faz |
