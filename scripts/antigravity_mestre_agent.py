@@ -91,26 +91,15 @@ PREFIXOS_LEITURA = (
 )
 
 # Atalhos essenciais de diagnóstico (mesma base de `BUILTIN_OPS` em v10/mobile/app.js)
-# usados por padrão no modo Ollama local para não sobrecarregar o contexto de modelos 4B/7B.
+# usados por padrão no modo Ollama local para caber rápido no contexto de modelos 4B/7B.
 TOOLS_ESSENCIAIS_DIAGNOSTICO = (
     "relatorio_rapido_do_pc",
     "ver_uso_atual_de_ram",
     "listar_processos_por_uso_de_ram",
-    "info_ram",
     "listar_processos_ativos",
     "ver_dns_atual",
-    "testar_dns",
-    "teste_dns_resolucao",
-    "diagnostico_de_rede_completo",
-    "ver_adaptadores_de_rede",
-    "info_adaptadores_rede",
     "verificar_status_do_windows_defender",
-    "listar_startups_do_sistema",
     "verificar_processos_node_ativos",
-    "listar_atualizacoes_winget",
-    "verificar_espaco_em_disco",
-    "verificar_saude_disco_smart",
-    "verificar_servicos_criticos_windows",
 )
 
 MCP_SERVER_NAME = "mestre_pc"
@@ -188,7 +177,10 @@ def escolher_modelo_ollama(explicito: str | None) -> str:
     if explicito:
         return explicito
     instalados = listar_modelos_ollama_instalados()
+    # qwen3.5:4b-text usa o mesmo blob GGUF de qwen3.5:4b, mas sem o projetor CLIP
+    # (mmproj.gguf) que estoura VRAM / falha no llama-server em GPUs com <4 GB livres.
     preferidos = [
+        "qwen3.5:4b-text",
         os.environ.get("NEXO_MODEL"),
         os.environ.get("OLLAMA_MODEL"),
         "qwen3.5:4b",
@@ -200,7 +192,7 @@ def escolher_modelo_ollama(explicito: str | None) -> str:
             return candidato
     if instalados:
         return instalados[0]
-    return os.environ.get("NEXO_MODEL") or os.environ.get("OLLAMA_MODEL") or "qwen3.5:4b"
+    return "qwen3.5:4b-text"
 
 
 # ==============================================================================
