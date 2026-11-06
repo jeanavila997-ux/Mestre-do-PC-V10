@@ -201,7 +201,8 @@ async function checkHtmlSmoke(path) {
     const content = await readFile(path, "utf8");
     const checks = [];
     checks.push({ name: "html exists", ok: content.length > 0 });
-    checks.push({ name: "has CATS array", ok: content.includes("const CATS") });
+    checks.push({ name: "loads /operations", ok: content.includes('fetch(API + "/operations"') });
+    checks.push({ name: "no hardcoded CATS", ok: !content.includes("const CATS") });
     checks.push({ name: "has renderCards function", ok: content.includes("function renderCards") });
     checks.push({ name: "no window.confirm", ok: !content.includes("window.confirm(") });
     const failed = checks.filter((c) => !c.ok);

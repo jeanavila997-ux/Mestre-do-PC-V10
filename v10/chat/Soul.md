@@ -73,7 +73,6 @@ Repositório Git:    https://github.com/jeanavila997-ux/Mestre-do-PC-V10.git
 | `v10/chat-integrado/chat-skills.json` | Catálogo curado de 28 skills de engenharia, debug, revisão, UI/UX, segurança, Electron e Cloudflare |
 | `v10/operation-registry.js` e `v10/operation-routes.js` | Single source of truth e API REST (`/operations/*`) para a whitelist de comandos |
 | `v10/allowed-operations.json` | Whitelist oficial com **506 entradas ativas** (**440 operações fixas** + **66 templates parametrizados**, sendo **117 destrutivas**) em **40 categorias** |
-| `v10/learned-operations.json` | Arquivo reservado para operações aprendidas (`{"operations": [], "templates": []}`) |
 | `v10/memory-manager.js` e `v10/memory-routes.js` | Motor e rotas `/memories/*` que gravam em `v10/data/memories/chat-memories.json` |
 | `mcp-server/index.js` e `mcp-server/model-profiles.json` | Servidor MCP principal e definição dos 7 perfis de modelo |
 
