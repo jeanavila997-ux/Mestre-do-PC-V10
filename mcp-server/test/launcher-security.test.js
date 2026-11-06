@@ -123,6 +123,31 @@ test("launcher Node aceita id+params e rejeita comandos não cadastrados", async
   assert.equal(free.status, 403);
 });
 
+test("arquivos estáticos da raiz respondem com o mime certo", async (t) => {
+  const base = await startLauncherWith(t, {});
+  const expected = {
+    "/sw.js": "text/javascript; charset=utf-8",
+    "/manifest.json": "application/manifest+json; charset=utf-8",
+    "/icon-192.png": "image/png",
+    "/icon-512.png": "image/png",
+    "/favicon.png": "image/png",
+    "/logo-mestre-v7-transparent.png": "image/png",
+    "/rede-dashboard.js": "text/javascript; charset=utf-8",
+    "/chat/chat-styles.css": "text/css; charset=utf-8",
+  };
+  for (const [filePath, mime] of Object.entries(expected)) {
+    const response = await fetch(base + filePath);
+    assert.equal(response.status, 200, filePath);
+    assert.equal(response.headers.get("content-type"), mime, filePath);
+    const body = Buffer.from(await response.arrayBuffer());
+    assert.ok(body.length > 0, filePath);
+    if (mime === "image/png") assert.equal(body.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", filePath);
+  }
+  const sw = await (await fetch(base + "/sw.js")).text();
+  assert.match(sw, /\/chat\/chat-styles\.css/);
+  assert.doesNotMatch(sw, /chat-module\.css/);
+});
+
 test("/run-status exige o mesmo cliente autorizado que inicia jobs", async (t) => {
   const port = await reservePort();
   const base = `http://127.0.0.1:${port}`;

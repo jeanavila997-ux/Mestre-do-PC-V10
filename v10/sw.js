@@ -1,4 +1,4 @@
-const CACHE_NAME = "mestre-do-pc-v11-pwa-v2";
+const CACHE_NAME = "mestre-do-pc-v11-pwa-v3";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -13,7 +13,7 @@ const STATIC_ASSETS = [
   "/chat-integrado/chat-integrado-boot.js",
   "/chat-integrado/chat-utils.js",
   "/chat/chat-module.js",
-  "/chat/chat-module.css",
+  "/chat/chat-styles.css",
   "/rede-dashboard.js",
   "/manifest.json",
   "/icon-192.png",
