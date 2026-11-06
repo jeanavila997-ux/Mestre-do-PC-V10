@@ -185,7 +185,7 @@
       "source": "firecrawl/skills",
       "sourceType": "github",
       "skillPath": "skills/core/firecrawl-research-index/SKILL.md",
-      "computedHash": "f8db73d3688e8a04e564ce7c5f42fa2f6ce8dd084b2c0b35896e230e744f6dd3"
+      "computedHash": "46d0ac75c064cacc9d510401524f9efce7e6331c744b19f1fe208842243b7856"
     },
     "firecrawl-research-papers": {
       "source": "firecrawl/skills",
@@ -197,7 +197,7 @@
       "source": "firecrawl/skills",
       "sourceType": "github",
       "skillPath": "skills/core/firecrawl-scrape/SKILL.md",
-      "computedHash": "ef8220ade41b871f9192476a9113a81f7a47d6675cf5c3b5e3a1cd6e83b15b18"
+      "computedHash": "afe6aaaab20f7dbdff65976ff9fe82fb56a0f202a2f694a2c15637315b22322d"
     },
     "firecrawl-search": {
       "source": "firecrawl/skills",

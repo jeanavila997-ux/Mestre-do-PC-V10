@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "geradoEm": "2026-11-05T13:21:52",
+    "host": "DESKTOP-O7T3I00",
+    "script": "C:\\Users\\Jean\\Projetos\\Mestre-do-PC-V10\\skills-globais\\03-rede\\analise-wifi-lan\\analisar-rede-mestre.ps1"
+  },
+  "wifi": {
+    "Raw": "\r\nH├í 1 interface no sistema: \r\n\r\n    Nome                   : Wi-Fi\r\n    Descri├º├úo            : Killer(R) Wi-Fi 6 AX1650i 160MHz Wireless Network Adapter (201NGW)\r\n    GUID                   : 9374c2e9-4f73-4d0d-8f08-8ed85289a94a\r\n    Endere├ºo f├¡sico       : 76:53:6c:f2:e3:2b\r\n    Tipo de interface         : Prim├írio\r\n    Estado                  : Conectado\r\n    SSID                   : LUCAS_5G\r\n    AP BSSID               : 6c:d8:19:d2:9e:64\r\n    Banda                   : 5 GHz\r\n    Canal                : 149\r\n    Codifica├º├úo Akm Conectada : [ akm = 00-0f-ac:02, cipher = 00-0f-ac:04 ]\r\n    Tipo de rede           : Infraestrutura\r\n    Tipo de r├ídio             : 802.11ax\r\n    Autentica├º├úo         : WPA2-Personal\r\n    Criptografia                 : CCMP\r\n    Modo de conex├úo        : Conex├úo Autom├ítica\r\n    Taxa de recep├º├úo (Mbps)    : 1081\r\n    Taxa de transmiss├úo (Mbps)   : 961\r\n    Sinal                 : 85% \r\n    Rssi                   : -47\r\n    Perfil                : LUCAS_5G \r\n    QoS MSCS Configurado: 0\r\n    Mapa QoS Configurado : 0\r\n    Mapa QoS Permitido pela Pol├¡tica : 0\r\n\r\n",
+    "SSID": "LUCAS_5G",
+    "BSSID": "6c:d8:19:d2:9e:64",
+    "Banda": "5 GHz",
+    "Canal": "149",
+    "Sinal": "85%",
+    "RSSI": "-47",
+    "RxMbps": null,
+    "TxMbps": null,
+    "Perfil": "LUCAS_5G",
+    "Estado": "Conectado",
+    "Radio": null,
+    "Auth": null
+  },
+  "ipv4": [
+    "192.168.1.19"
+  ],
+  "gateway": [
+    "192.168.1.1"
+  ],
+  "dns": [
+    "192.168.1.1"
+  ],
+  "latencia": [
+    {
+      "avgMs": 1.2,
+      "host": "192.168.1.1"
+    },
+    {
+      "avgMs": 50.5,
+      "host": "1.1.1.1"
+    },
+    {
+      "avgMs": 59.5,
+      "host": "8.8.8.8"
+    }
+  ],
+  "speed": null,
+  "isp": {
+    "ip": "170.83.174.100",
+    "hostname": "semfronteiras.net.br",
+    "city": "Rio Branco",
+    "region": "Acre",
+    "country": "BR",
+    "loc": "-9.9747,-67.8100",
+    "org": "AS266475 SEM FRONTEIRAS TELECOMUNICACOES LTDA",
+    "postal": "69900-000",
+    "timezone": "America/Rio_Branco",
+    "readme": "https://ipinfo.io/missingauth"
+  },
+  "usuarios": {
+    "domain": "WORKGROUP",
+    "host": "DESKTOP-O7T3I00",
+    "locais": [
+      {
+        "Name": "Administrador",
+        "Enabled": false,
+        "LastLogon": null
+      },
+      {
+        "Name": "Convidado",
+        "Enabled": false,
+        "LastLogon": null
+      },
+      {
+        "Name": "DefaultAccount",
+        "Enabled": false,
+        "LastLogon": null
+      },
+      {
+        "Name": "Jean",
+        "Enabled": true,
+        "LastLogon": "2026-11-04T21:35:19.119999-05:00"
+      },
+      {
+        "Name": "WDAGUtilityAccount",
+        "Enabled": false,
+        "LastLogon": null
+      }
+    ],
+    "sessao": "DESKTOP-O7T3I00\\Jean"
+  },
+  "mestrePing": null,
+  "arpRaw": "\r\nInterface: 192.168.1.19 --- 0x10\r\n  Endereço IP           Endereço físico       Tipo\r\n  192.168.1.1           6c-d7-19-d2-9e-60     dinâmico  \r\n  192.168.1.10          d0-84-b0-97-d6-2d     dinâmico  \r\n  192.168.1.255         ff-ff-ff-ff-ff-ff     estático  \r\n  224.0.0.22            01-00-5e-00-00-16     estático  \r\n  224.0.0.251           01-00-5e-00-00-fb     estático  \r\n  224.0.0.252           01-00-5e-00-00-fc     estático  \r\n  239.255.255.250       01-00-5e-7f-ff-fa     estático  \r\n  255.255.255.255       ff-ff-ff-ff-ff-ff     estático  \r\n\r\nInterface: 169.254.83.107 --- 0x1d\r\n  Endereço IP           Endereço físico       Tipo\r\n  169.254.255.255                             estático  \r\n  224.0.0.22                                  estático  \r\n  224.0.0.251                                 estático  \r\n  239.255.255.250                             estático  \r\n",
+  "profilesRaw": "\r\nPerfis na interface Wi-Fi:\r\n\r\nPerfis da pol├¡tica de grupo (somente leitura)\r\n---------------------------------\r\n    <Nenhum>\r\n\r\nPerfis do usu├írio\r\n-------------\r\nTodos os Perfis de Usu├írios: LUCAS_5G\r\nTodos os Perfis de Usu├írios: LUCAS\r\n\r\n",
+  "nearbyRaw": " \r\nNome da interface: Wi-Fi \r\nH├í 13 redes vis├¡veis no momento. \r\n\r\nSSID 1 : \r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA3-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : ea:63:ae:53:ac:84\r\n         Sinal             : 24%  \r\n         Tipo de R├ídio         : 802.11ac\r\n         Banda               : 5 GHz\r\n         Canal            : 153 \r\n         Detalhes            :  (H2E n├úo suportado) \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 6 12 24\r\n         Outras taxas (Mbps): 9 18 36 48 54\r\n    BSSID 2                 : 3a:e7:c0:aa:67:40\r\n         Sinal             : 24%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 8 \r\n         Detalhes            :  (H2E n├úo suportado) \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 6 12 24\r\n         Outras taxas (Mbps): 9 18 36 48 54\r\n    BSSID 3                 : ea:63:ae:43:ac:84\r\n         Sinal             : 50%  \r\n         Tipo de R├ídio         : 802.11ac\r\n         Banda               : 2,4 GHz\r\n         Canal            : 6 \r\n         Detalhes            :  (H2E n├úo suportado) \r\n         Carga Bss:\r\n             Esta├º├Áes Conectadas:         0\r\n             Utiliza├º├úo do canal:        80 (31 %)\r\n             Capacidade m├®dia dispon├¡vel:  31250 (1000000 us/s)\r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n    BSSID 4                 : ea:63:ae:63:ac:84\r\n         Sinal             : 33%  \r\n         Tipo de R├ídio         : 802.11ac\r\n         Banda               : 2,4 GHz\r\n         Canal            : 6 \r\n         Detalhes            :  (H2E n├úo suportado) \r\n         Carga Bss:\r\n             Esta├º├Áes Conectadas:         0\r\n             Utiliza├º├úo do canal:        75 (29 %)\r\n             Capacidade m├®dia dispon├¡vel:  31250 (1000000 us/s)\r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 2 : Elizangela\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 3c:bd:69:c4:ae:99\r\n         Sinal             : 20%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 9 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 3 : YYNARA WORTH\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 84:07:fa:14:cc:98\r\n         Sinal             : 26%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 6 \r\n         Carga Bss:\r\n             Esta├º├Áes Conectadas:         4\r\n             Utiliza├º├úo do canal:        34 (13 %)\r\n             Capacidade m├®dia dispon├¡vel:  0 (0 us/s)\r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 4 : AP_4073066617\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 30:ea:e7:f7:92:8c\r\n         Sinal             : 33%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 2 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 5 : Starlink\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : ea:63:ae:33:ac:84\r\n         Sinal             : 24%  \r\n         Tipo de R├ídio         : 802.11ac\r\n         Banda               : 5 GHz\r\n         Canal            : 153 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 6 12 24\r\n         Outras taxas (Mbps): 9 18 36 48 54\r\n    BSSID 2                 : ea:63:ae:23:ac:84\r\n         Sinal             : 38%  \r\n         Tipo de R├ídio         : 802.11ac\r\n         Banda               : 2,4 GHz\r\n         Canal            : 6 \r\n         Carga Bss:\r\n             Esta├º├Áes Conectadas:         0\r\n             Utiliza├º├úo do canal:        75 (29 %)\r\n             Capacidade m├®dia dispon├¡vel:  31250 (1000000 us/s)\r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 6 : LUCAS_5G\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 6c:d8:19:d2:9e:64\r\n         Sinal             : 90%  \r\n         Tipo de R├ídio         : 802.11ax\r\n         Banda               : 5 GHz\r\n         Canal            : 149 \r\n         Carga Bss:\r\n             Esta├º├Áes Conectadas:         2\r\n             Utiliza├º├úo do canal:        3 (1 %)\r\n             Capacidade m├®dia dispon├¡vel:  0 (0 us/s)\r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 6 24\r\n         Outras taxas (Mbps): 9 12 18 36 48 54\r\n\r\nSSID 7 : Dankar OIFIBRA 5G\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 44:00:4d:85:f8:fc\r\n         Sinal             : 14%  \r\n         Tipo de R├ídio         : 802.11ac\r\n         Banda               : 5 GHz\r\n         Canal            : 36 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 6 12 24\r\n         Outras taxas (Mbps): 9 18 36 48 54\r\n\r\nSSID 8 : LUCIANA\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : d0:84:b0:97:d6:2e\r\n         Sinal             : 38%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 11 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 9 : AP_3191060371\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 70:e9:d8:98:b8:26\r\n         Sinal             : 31%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 9 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 10 : AP_4072744143\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 30:ea:e7:f7:8b:fe\r\n         Sinal             : 24%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 2 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 11 : Freitas&Veloso\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 84:46:fe:6e:1e:84\r\n         Sinal             : 20%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 1 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 12 : Dankar OIFIBRA 2G\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 44:00:4d:85:f8:f8\r\n         Sinal             : 65%  \r\n         Tipo de R├ídio         : 802.11n\r\n         Banda               : 2,4 GHz\r\n         Canal            : 1 \r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\nSSID 13 : LUCAS\r\n    Tipo de rede            : Infraestrutura\r\n    Autentica├º├úo            : WPA2-Personal\r\n    Criptografia            : CCMP\r\n    BSSID 1                 : 6c:d8:19:d2:9e:60\r\n         Sinal             : 92%  \r\n         Tipo de R├ídio         : 802.11ax\r\n         Banda               : 2,4 GHz\r\n         Canal            : 1 \r\n         Carga Bss:\r\n             Esta├º├Áes Conectadas:         9\r\n             Utiliza├º├úo do canal:        78 (30 %)\r\n             Capacidade m├®dia dispon├¡vel:  0 (0 us/s)\r\n         MSCS QoS com Suporte : 0\r\n         Mapa QoS com Suporte : 0\r\n         Taxas b├ísicas (Mbps): 1 2 5.5 11\r\n         Outras taxas (Mbps): 6 9 12 18 24 36 48 54\r\n\r\n"
+}
