@@ -24,6 +24,7 @@ import { isAllowedWebOrigin, isNppOrigin, isTrustedClientOrigin, parseExtraOrigi
 import { isLocalMcpEnabled, validateLocalMcpToken, ensureLocalMcpToken, isLegacyMcpAllowed } from "../mcp-server/auth/local-token.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const APP_VERSION = JSON.parse(readFileSync(join(__dirname, "package.json"), "utf8")).version;
 const PORT = process.env.MPC_PORT ? Number(process.env.MPC_PORT) : 7777;
 const HOST = process.env.MPC_HOST || "127.0.0.1";
 if (HOST !== "127.0.0.1") {
@@ -796,7 +797,7 @@ const server = http.createServer(async (req, res) => {
         admin: isElevated,
         state: getRunningJobCount() > 0 ? "busy" : "idle",
         activeJobs: getRunningJobCount(),
-        version: "11.2.1",
+        version: APP_VERSION,
         pid: process.pid,
       }, allowedOrigin);
     }
@@ -804,7 +805,7 @@ const server = http.createServer(async (req, res) => {
     if (path === "/mcp-status") {
       return sendJson(res, 200, {
         status: "unknown",
-        version: "11.2.1",
+        version: APP_VERSION,
         modelProfile: process.env.OLLAMA_MODEL_PROFILE || "balanced",
         model: process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct",
       }, allowedOrigin);
@@ -1016,7 +1017,7 @@ const server = http.createServer(async (req, res) => {
 
     if (path === "/" || path === "/index.html") {
       try {
-        const html = await readFile(join(__dirname, "index.html"), "utf8");
+        const html = (await readFile(join(__dirname, "index.html"), "utf8")).replaceAll("__APP_VERSION__", APP_VERSION);
         res.writeHead(200, {
           "Content-Type": "text/html; charset=utf-8",
           "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
@@ -1159,7 +1160,7 @@ const server = http.createServer(async (req, res) => {
     // Rotas de API acima já retornaram; qualquer GET sem extensão de arquivo é rota de seção.
     if (req.method === "GET" && !path.includes(".")) {
       try {
-        const html = await readFile(join(__dirname, "index.html"), "utf8");
+        const html = (await readFile(join(__dirname, "index.html"), "utf8")).replaceAll("__APP_VERSION__", APP_VERSION);
         res.writeHead(200, {
           "Content-Type": "text/html; charset=utf-8",
           "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",

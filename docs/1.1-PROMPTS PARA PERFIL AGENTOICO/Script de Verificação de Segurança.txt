@@ -1,0 +1,34 @@
+**Script de Verificação de Segurança de Rede Wi-Fi**
+
+Aqui estão as sugestões de ações para verificar a segurança da rede Wi-Fi:
+
+**Ação 1: Verificar Status da Rede e Conexão**
+
+```powershell
+Get-NetAdapter | Where-Object {$_.Name -eq "Wi-Fi"} | Select-Object -ExpandProperty Status
+Test-Connection -Computer "roboroadrouter.com" -Count 1 -Quiet
+```
+
+Essa ação verifica o status da adaptação Wi-Fi e testa a conexão com o roteador.
+
+**Ação 2: Verificar Configuração de Segurança**
+
+```powershell
+Get-NetFirewallProfile | Where-Object {$_.Name -eq "Wi-Fi"} | Select-Object -ExpandProperty Enabled
+Get-NetFirewallRule | Where-Object {$_.Name -like "*Wi-Fi*"} | Select-Object -ExpandProperty Enabled
+```
+
+Essa ação verifica se a conexão Wi-Fi está habilitada e se há regras de firewall configuradas para a rede Wi-Fi.
+
+**Ação 3: Verificar DNS e DNSSEC (opcional)**
+
+```powershell
+Get-NetDnsClientServerAddress | Select-Object -ExpandProperty Address
+Test-Connection -Computer "dns.google.com" -Count 1 -Quiet
+```
+
+Essa ação verifica os endereços DNS configurados e testa a conexão com um servidor DNS.
+
+**Importante:** Antes de executar qualquer comando, certifique-se de que você tenha permissão de administrador e que o sistema esteja atualizado com as últimas atualizações de segurança.
+
+**Segurança:** Nessa ação, o comando `Test-Connection` é considerado "seguro" porque é uma ação de diagnóstico e não altera o sistema. O comando `Get-NetFirewallProfile` e `Get-NetFirewallRule` podem ser considerados "moderados" porque podem alterar o comportamento de firewall, mas são necessários para verificar a configuração de segurança. O comando `Get-NetDnsClientServerAddress` é considerado "seguro" porque é uma ação de diagnóstico e não altera o sistema.

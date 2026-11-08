@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Mestre do PC — Multi-LLM MCP Strategy</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #ffffff;
+            --fg: #1f2937;
+            --border: #e5e7eb;
+            --code-bg: #f3f4f6;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1f2937;
+                --fg: #f3f4f6;
+                --border: #374151;
+                --code-bg: #111827;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--fg);
+            background: var(--bg);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1, h2, h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        h1 { font-size: 2.5rem; color: var(--primary); border-bottom: 3px solid var(--primary); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.8rem; color: var(--primary-dark); }
+        h3 { font-size: 1.3rem; color: var(--secondary); }
+
+        .metadata {
+            background: var(--code-bg);
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover { background: var(--code-bg); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-new { background: var(--warning); color: white; }
+        .badge-priority { background: var(--danger); color: white; }
+        .badge-phase { background: var(--secondary); color: white; }
+        .badge-status { background: var(--primary); color: white; }
+
+        code {
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: "Courier New", monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .section-intro {
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+        }
+
+        .highlight {
+            background: rgba(251, 191, 36, 0.2);
+            padding: 1rem;
+            border-left: 4px solid var(--warning);
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .architecture-diagram {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            white-space: pre;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .roadmap {
+            margin: 2rem 0;
+        }
+
+        .roadmap-phase {
+            border-left: 4px solid var(--primary);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .roadmap-phase h3 {
+            margin-top: 0;
+        }
+
+        .float-right {
+            float: right;
+            margin-left: 1rem;
+        }
+
+        @media print {
+            body { max-width: 100%; }
+            .copy-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Mestre do PC V10 — Análise Estratégica Multi-LLM</h1>
+
+    <div class="metadata">
+        <strong>Data da Análise:</strong> 23 de agosto de 2026<br>
+        <strong>Versão Projeto:</strong> V10/V11<br>
+        <strong>Foco:</strong> Integração MCP com múltiplos LLMs (Claude, OpenAI, Gemini, Ollama local)<br>
+        <strong>Status:</strong> <span class="badge badge-status">Planejamento Estratégico</span>
+    </div>
+
+    <h2>📊 1. Visão Geral do Projeto</h2>
+
+    <div class="section-intro">
+        O <strong>Mestre do PC V10/V11</strong> é uma solução integrada de diagnóstico e manutenção Windows com foco em:
+        <ul>
+            <li>Backend MCP local (Node.js) que expõe ~33+ ferramentas de diagnóstico/manutenção</li>
+            <li>Launcher elevado (PowerShell 5.1 ou Node.js) que executa comandos whitelistados</li>
+            <li>Interface web SPA (HTML/JS) em `http://127.0.0.1:7777`</li>
+            <li>Integração IA via Ollama (local/cloud) com suporte a múltiplos modelos</li>
+            <li>Extensão de navegador (Manifest V3) para integração com browsers</li>
+        </ul>
+    </div>
+
+    <h2>📁 2. Análise da Estrutura Atual</h2>
+
+    <h3>2.1 Arquitetura de Componentes</h3>
+
+    <div class="architecture-diagram">
+┌─────────────────────────────────────────────────────┐
+│  Cliente MCP (Claude Desktop, Codex, etc)           │
+│  ou Browser (http://127.0.0.1:7777)                 │
+└──────────────────┬──────────────────────────────────┘
+                   │ stdio (MCP) / HTTP
+                   ▼
+┌──────────────────────────────────────┐
+│ mcp-server/index.js                   │
+│ (Node.js, não elevado)                │
+│ • Expõe ~33+ ferramentas              │
+│ • Integra Ollama (IA)                 │
+│ • Valida segurança                    │
+└──────────────┬───────────────────────┘
+               │ POST /run (HTTP)
+               ▼
+┌──────────────────────────────────────┐
+│ MestreDoPC-Launcher.ps1               │
+│ (PowerShell, ELEVADO)                 │
+│ ou v10/launcher.js                    │
+│ • HTTP server :7777                   │
+│ • Executa commands whitelistados      │
+│ • Gerencia jobs                       │
+└──────────────┬───────────────────────┘
+               │ Execute PowerShell job
+               ▼
+         PowerShell.exe
+         (whitelisted only)
+    </div>
+
+    <h3>2.2 Principais Componentes</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Componente</th>
+                <th>Localização</th>
+                <th>Responsabilidade</th>
+                <th>Stack</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>MCP Server</strong></td>
+                <td><code>mcp-server/index.js</code></td>
+                <td>Expõe ferramentas via MCP protocol</td>
+                <td>Node.js + @modelcontextprotocol/sdk</td>
+            </tr>
+            <tr>
+                <td><strong>Security Layer</strong></td>
+                <td><code>mcp-server/security.js</code></td>
+                <td>Sanitização, prompt injection, validação</td>
+                <td>JavaScript</td>
+            </tr>
+            <tr>
+                <td><strong>Launcher (PS)</strong></td>
+                <td><code>MestreDoPC-Launcher.ps1</code></td>
+                <td>Backend elevado, executa comandos</td>
+                <td>PowerShell 5.1</td>
+            </tr>
+            <tr>
+                <td><strong>Launcher (Node)</strong></td>
+                <td><code>v10/launcher.js</code></td>
+                <td>Backend alternativo Node (dev)</td>
+                <td>Node.js</td>
+            </tr>
+            <tr>
+                <td><strong>Whitelist</strong></td>
+                <td><code>v10/allowed-operations.json</code></td>
+                <td>Define operações permitidas (segurança)</td>
+                <td>JSON</td>
+            </tr>
+            <tr>
+                <td><strong>UI Web</strong></td>
+                <td><code>v10/index.html</code></td>
+                <td>Interface SPA do usuário</td>
+                <td>HTML5 + Vanilla JS</td>
+            </tr>
+            <tr>
+                <td><strong>Browser Extension</strong></td>
+                <td><code>browser-extension/</code></td>
+                <td>Integração navegador (Manifest V3)</td>
+                <td>Chrome/Firefox</td>
+            </tr>
+            <tr>
+                <td><strong>Audit Logger</strong></td>
+                <td><code>mcp-server/audit-logger.js</code></td>
+                <td>Logs de auditoria rotativos</td>
+                <td>Node.js</td>
+            </tr>
+            <tr>
+                <td><strong>Prompt Guard</strong></td>
+                <td><code>mcp-server/prompt-guard-server.py</code></td>
+                <td>Detecção prompt injection (opcional)</td>
+                <td>Python</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2.3 Ferramentas MCP Atualmente Disponíveis</h3>
+
+    <p>O servidor MCP expõe aproximadamente <strong>40+ ferramentas</strong> em categorias:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Categoria</th>
+                <th>Exemplos de Ferramentas</th>
+                <th>Ambiente</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Diagnóstico</strong></td>
+                <td>diagnostico_completo, verificar_espaco_disco, verificar_saude_disco, monitorar_uso_ram</td>
+                <td>Local</td>
+            </tr>
+            <tr>
+                <td><strong>Manutenção</strong></td>
+                <td>reparar_arquivos_sfc, reparar_imagem_dism, limpeza_rapida_completa</td>
+                <td>Local</td>
+            </tr>
+            <tr>
+                <td><strong>Drivers & Hardware</strong></td>
+                <td>driver_listar_todos_instalados, temperatura_cpu_leitura_direta, ssd_otimizar_trim</td>
+                <td>Local</td>
+            </tr>
+            <tr>
+                <td><strong>Segurança</strong></td>
+                <td>verificar_defender, scan_defender_rapido, auditar_seguranca_npm</td>
+                <td>Local</td>
+            </tr>
+            <tr>
+                <td><strong>Rede</strong></td>
+                <td>diagnostico_rede, renovar_ip, ver_uso_rede</td>
+                <td>Local</td>
+            </tr>
+            <tr>
+                <td><strong>Package Management</strong></td>
+                <td>verificar_dependencias_desatualizadas_npm, auditar_seguranca_npm</td>
+                <td>Local</td>
+            </tr>
+            <tr>
+                <td><strong>Git & Versionamento</strong></td>
+                <td>git_status, git_pull, gerar_snapshot_git</td>
+                <td>Local</td>
+            </tr>
+            <tr>
+                <td><strong>IA & Chat</strong></td>
+                <td>perguntar_ia, perguntar_ia_com_contexto, resolver_problema_passo_a_passo</td>
+                <td>Ollama (local/cloud)</td>
+            </tr>
+            <tr>
+                <td><strong>Integrações</strong></td>
+                <td>enviar_webhook_discord, enviar_webhook_slack, integracao_teams</td>
+                <td>Externo</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>🎯 3. Planos de Melhoria Já Identificados</h2>
+
+    <h3>3.1 Proposta: OpenAI Agents SDK (docs/multi_llm_integration.md)</h3>
+
+    <div class="card">
+        <div class="card-title">📌 Status: Planejado (não implementado)</div>
+        <p>
+            Integração opcional do <strong>OpenAI Agents SDK</strong> para análise avançada de problemas do PC.
+            <br><br>
+            <strong>Contrato Sugerido:</strong>
+        </p>
+        <table>
+            <tr>
+                <td><strong>Objetivo</strong></td>
+                <td>Analisar relatos de problema e gerar planos seguros</td>
+            </tr>
+            <tr>
+                <td><strong>Entrada</strong></td>
+                <td>Texto do usuário + métricas locais (quando autorizado)</td>
+            </tr>
+            <tr>
+                <td><strong>Saída</strong></td>
+                <td>Diagnóstico, evidências, passos, ações que exigem aprovação</td>
+            </tr>
+            <tr>
+                <td><strong>Ferramentas</strong></td>
+                <td>Leituras MCP; manutenção apenas após aprovação</td>
+            </tr>
+            <tr>
+                <td><strong>Runtime</strong></td>
+                <td>Serviço Python separado, com `/health`, não substitui Ollama/MCP</td>
+            </tr>
+        </table>
+        <p style="margin-top: 1rem;">
+            <strong>Critérios antes de implementar:</strong>
+        </p>
+        <ol>
+            <li>Escolher se complementará ou substituirá apenas o chat da interface</li>
+            <li>Definir quais ferramentas MCP serão somente leitura</li>
+            <li>Configurar chave por fluxo seguro (nunca em arquivos versionados)</li>
+            <li>Adicionar testes de aprovação, rejeição de comandos, ausência de chave</li>
+            <li>Validar localmente antes de implantação</li>
+        </ol>
+    </div>
+
+    <h3>3.2 Proposta: Integração Microsoft Entra (docs/microsoft_integration_plan.md)</h3>
+
+    <div class="card">
+        <div class="card-title">🔐 Status: Planejado (não implementado)</div>
+        <p>
+            Integração empresarial com Microsoft Entra ID, Graph API e Teams para SSO corporativo
+            e notificações operacionais.
+        </p>
+
+        <h4>Roadmap de 6 Semanas:</h4>
+        <ul>
+            <li><strong>Semana 1:</strong> Desenho IAM + registro app Entra + PoC login</li>
+            <li><strong>Semana 2:</strong> Middleware validação token + política deny-by-default</li>
+            <li><strong>Semana 3:</strong> Autorização por grupos + testes de acesso negativo</li>
+            <li><strong>Semana 4:</strong> Graph client resiliente + observabilidade</li>
+            <li><strong>Semana 5:</strong> Notificações Teams + deduplicação de alertas</li>
+            <li><strong>Semana 6:</strong> Webhooks + hardening + testes de carga e segurança</li>
+        </ul>
+
+        <div class="highlight">
+            <strong>⚠️ Nota Importante:</strong> Por padrão (out-of-the-box), o servidor MCP roda
+            localmente sem qualquer dependência ou obrigatoriedade de conta Microsoft ou internet.
+            Com `ENABLE_MICROSOFT_AUTH=true`, a autenticação passa a ser validada de forma estrita.
+        </div>
+    </div>
+
+    <h3>3.3 Proposta: RAG (Retrieval-Augmented Generation)</h3>
+
+    <div class="card">
+        <div class="card-title">📚 Status: Planejado (não implementado)</div>
+        <p>
+            Integração de RAG com Azure AI Search para melhorar contexto das respostas de IA,
+            buscando em documentos e logs locais do PC antes de consultar LLM.
+        </p>
+        <p>
+            <strong>Ambiente Variáveis:</strong>
+        </p>
+        <pre><code>USE_AZURE_AI_SEARCH_SERVICE=true
+AZURE_AI_SEARCH_INDEX_NAME=index_sample
+AZURE_AI_EMBED_DEPLOYMENT_NAME=text-embedding-3-small</code></pre>
+    </div>
+
+    <h2>💡 4. Análise & Recomendações para Multi-LLM</h2>
+
+    <h3>4.1 Situação Atual</h3>
+
+    <div class="success">
+        <strong>✅ O que funciona bem:</strong>
+        <ul>
+            <li>Integração <strong>Ollama local/cloud</strong> já implementada e operacional</li>
+            <li>MCP protocol standard (v1.30.0 de @modelcontextprotocol/sdk)</li>
+            <li>Segurança robusta: whitelist, sanitização, prompt injection detection</li>
+            <li>Separação clara entre MCP (não elevado) e launcher (elevado)</li>
+            <li>Modelos locais com perfis pré-configurados (fast, balanced, agent, coding, reasoning)</li>
+        </ul>
+    </div>
+
+    <div class="highlight">
+        <strong>❌ Limitações atuais:</strong>
+        <ul>
+            <li>Locked-in apenas em Ollama: não suporta Claude API, OpenAI, Gemini, etc. nativamente</li>
+            <li>Sem abstração de provider: todas as llamadas estão hard-coded para Ollama</li>
+            <li>Sem fallback automático entre providers</li>
+            <li>Sem suporte para streaming/agentic loops de outros LLMs</li>
+            <li>RAG/OpenAI Agents SDK ainda não implementados</li>
+        </ul>
+    </div>
+
+    <h3>4.2 Recomendações Estratégicas</h3>
+
+    <h4>Princípio #1: Provider Abstraction Layer</h4>
+    <div class="card">
+        <p>
+            Criar camada de abstração que desacopla o MCP do provider específico de IA.
+        </p>
+        <pre><code>mcp-server/
+  providers/
+    base-provider.js        // Interface abstrata
+    ollama-provider.js      // Implementação Ollama
+    claude-provider.js      // 🆕 Implementação Claude API
+    openai-provider.js      // 🆕 Implementação OpenAI
+    gemini-provider.js      // 🆕 Implementação Google Gemini
+    provider-factory.js     // Factory pattern</code></pre>
+
+        <p style="margin-top: 1rem;">
+            <strong>Benefício:</strong> Trocar providers com uma linha de configuração,
+            suportar fallback automático, e até usar múltiplos providers em paralelo.
+        </p>
+    </div>
+
+    <h4>Princípio #2: Configuration-Driven Provider Selection</h4>
+    <div class="card">
+        <p>
+            Variável de ambiente única para escolher provider:
+        </p>
+        <pre><code># .env ou variáveis de ambiente
+
+# Opção 1: Ollama (padrão, local)
+AI_PROVIDER=ollama
+OLLAMA_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=qwen2.5-coder:1.5b
+
+# Opção 2: Claude API
+AI_PROVIDER=claude
+ANTHROPIC_API_KEY=sk-ant-...
+CLAUDE_MODEL=claude-opus-4-1-20250805
+
+# Opção 3: OpenAI
+AI_PROVIDER=openai
+OPENAI_API_KEY=sk-proj-...
+OPENAI_MODEL=gpt-4o
+
+# Opção 4: Google Gemini
+AI_PROVIDER=gemini
+GOOGLE_API_KEY=AIzaSy...
+GEMINI_MODEL=gemini-2.0-flash
+
+# Opção 5: Fallback chain (tenta cada um até sucesso)
+AI_PROVIDER=fallback
+AI_PROVIDER_CHAIN=claude,openai,ollama
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-proj-...
+OLLAMA_URL=http://127.0.0.1:11434</code></pre>
+
+        <p style="margin-top: 1rem;">
+            <strong>Benefício:</strong> Usuário escolhe o melhor provider para seu caso de uso
+            sem alterar código. Fallback automático se um provider cair.
+        </p>
+    </div>
+
+    <h4>Princípio #3: Unified Tool Schema</h4>
+    <div class="card">
+        <p>
+            Todos os providers implementam a mesma interface de ferramentas:
+        </p>
+        <pre><code>interface AIProvider {
+  // Consulta simples
+  async query(prompt: string, context?: string): Promise&lt;string&gt;
+
+  // Consulta com ferramentas (para agentes)
+  async agentic_loop(
+    system_prompt: string,
+    user_message: string,
+    available_tools: Tool[],
+    max_iterations?: number
+  ): Promise&lt;AgenticLoopResult&gt;
+
+  // RAG: Query com contexto adicional
+  async rag_query(
+    query: string,
+    documents: string[],
+    instructions?: string
+  ): Promise&lt;string&gt;
+
+  // Chain-of-Thought
+  async chain_of_thought(problem: string): Promise&lt;ChainResult&gt;
+
+  // Comparar múltiplos modelos (novo)
+  async compare_models(query: string, models?: string[]): Promise&lt;ComparisonResult&gt;
+
+  // Health check
+  async health(): Promise&lt;HealthStatus&gt;
+}</code></pre>
+
+        <p style="margin-top: 1rem;">
+            <strong>Benefício:</strong> Tools do MCP não precisam saber qual LLM está sendo usado.
+            Switching entre providers é transparente.
+        </p>
+    </div>
+
+    <h4>Princípio #4: Progressive Enhancement</h4>
+    <div class="card">
+        <p>
+            Implementar features avançadas de forma gradual, sem quebrar compatibilidade:
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Ollama</th>
+                    <th>Claude</th>
+                    <th>OpenAI</th>
+                    <th>Gemini</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Query Simples</strong></td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>Presente</td>
+                </tr>
+                <tr>
+                    <td><strong>Tool Use / Agentic</strong></td>
+                    <td>✅ (parcial)</td>
+                    <td>✅ (completo)</td>
+                    <td>✅ (completo)</td>
+                    <td>✅ (completo)</td>
+                    <td>Novo</td>
+                </tr>
+                <tr>
+                    <td><strong>Streaming</strong></td>
+                    <td>⚠️ (via curl)</td>
+                    <td>✅ (nativo)</td>
+                    <td>✅ (nativo)</td>
+                    <td>✅ (nativo)</td>
+                    <td>Novo</td>
+                </tr>
+                <tr>
+                    <td><strong>Vision/Imagens</strong></td>
+                    <td>❌</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>Novo</td>
+                </tr>
+                <tr>
+                    <td><strong>Function Calling</strong></td>
+                    <td>❌</td>
+                    <td>✅ (Tool Use)</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>Novo</td>
+                </tr>
+                <tr>
+                    <td><strong>Batch Processing</strong></td>
+                    <td>❌</td>
+                    <td>✅ (Batch API)</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                    <td>Novo</td>
+                </tr>
+                <tr>
+                    <td><strong>Prompt Caching</strong></td>
+                    <td>❌</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                    <td>Novo</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>4.3 Arquitetura Proposta (Phase-based)</h3>
+
+    <div class="roadmap">
+        <div class="roadmap-phase">
+            <h4>🔵 Phase 0: Abstraction Foundation (2-3 semanas)</h4>
+            <p>Criar base sem quebrar compatibilidade Ollama existente.</p>
+            <ul>
+                <li>Refatorar <code>mcp-server/index.js</code> para usar provider abstraction</li>
+                <li>Criar <code>providers/base-provider.js</code> (interface)</li>
+                <li>Implementar <code>providers/ollama-provider.js</code> (migração do código existente)</li>
+                <li>Criar <code>providers/provider-factory.js</code></li>
+                <li>Testes: garantir que Ollama continua funcionando 100%</li>
+            </ul>
+        </div>
+
+        <div class="roadmap-phase">
+            <h4>🟢 Phase 1: Claude API Support (2-3 semanas)</h4>
+            <p>Suporte ao Claude como provider alternativo.</p>
+            <ul>
+                <li>Implementar <code>providers/claude-provider.js</code> usando @anthropic-ai/sdk</li>
+                <li>Suporte a tool_use (function calling nativo do Claude)</li>
+                <li>Suporte a vision (análise de imagens)</li>
+                <li>Implementar fallback: Claude → Ollama se API_KEY não configurada</li>
+                <li>Docs: como configurar ANTHROPIC_API_KEY</li>
+                <li>Testes: teste de agentic loop com Claude</li>
+            </ul>
+        </div>
+
+        <div class="roadmap-phase">
+            <h4>🟡 Phase 2: OpenAI & Gemini Support (2-3 semanas)</h4>
+            <p>Suporte multi-provider via OpenAI SDK e Google Generative AI.</p>
+            <ul>
+                <li>Implementar <code>providers/openai-provider.js</code> (OpenAI + Azure)</li>
+                <li>Implementar <code>providers/gemini-provider.js</code> (Google Gemini)</li>
+                <li>Suporte a batch processing (OpenAI Batch API para economia)</li>
+                <li>Suporte a streaming (todos os providers)</li>
+                <li>Config: seleção via AI_PROVIDER=openai, etc.</li>
+            </ul>
+        </div>
+
+        <div class="roadmap-phase">
+            <h4>🟠 Phase 3: Advanced Features (3-4 semanas)</h4>
+            <p>Recursos avançados que aproveitem capacidades de cada provider.</p>
+            <ul>
+                <li>RAG Integration: Azure Search, Pinecone, ou local (em disco)</li>
+                <li>Streaming responses: UI web + WebSocket</li>
+                <li>Vision support: análise de logs em forma de imagens</li>
+                <li>Batch processing: economia de custos (OpenAI 50%, Claude Batch 50%)</li>
+                <li>Multi-model comparison: comparar respostas lado a lado</li>
+                <li>Prompt engineering studio: optimize prompts por provider</li>
+            </ul>
+        </div>
+
+        <div class="roadmap-phase">
+            <h4>🔴 Phase 4: OpenAI Agents SDK & Microsoft Entra (4-5 semanas)</h4>
+            <p>Integração de agentes avançados e SSO empresarial.</p>
+            <ul>
+                <li>OpenAI Agents SDK: serviço Python separado para análise avançada</li>
+                <li>Microsoft Entra: SSO corporativo + autorização por grupos</li>
+                <li>Teams integration: notificações e alerts operacionais</li>
+                <li>Webhook support: eventos reativos via Graph change notifications</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>🏗️ 5. Estrutura de Arquivos Proposta</h2>
+
+    <div class="card">
+        <pre><code>Mestre-do-PC-V10-clean/
+├── mcp-server/
+│   ├── index.js                      (refatorado para usar providers)
+│   ├── package.json                  (+ @anthropic-ai/sdk, openai, @google/generative-ai)
+│   ├── providers/                    🆕
+│   │   ├── base-provider.js          (interface abstrata)
+│   │   ├── ollama-provider.js        (migração do código existente)
+│   │   ├── claude-provider.js        🆕 Claude API
+│   │   ├── openai-provider.js        🆕 OpenAI + Azure
+│   │   ├── gemini-provider.js        🆕 Google Gemini
+│   │   └── provider-factory.js       (factory pattern)
+│   ├── rag/                          🆕 (Phase 3)
+│   │   ├── azure-search-rag.js
+│   │   ├── local-rag.js
+│   │   └── rag-manager.js
+│   ├── streaming/                    🆕 (Phase 3)
+│   │   ├── stream-handler.js
+│   │   └── websocket-server.js
+│   ├── security.js                   (mantém-se igual)
+│   ├── audit-logger.js               (mantém-se igual)
+│   ├── test/
+│   │   ├── ...existing tests...
+│   │   ├── provider-factory.test.js  🆕
+│   │   ├── claude-provider.test.js   🆕
+│   │   ├── openai-provider.test.js   🆕
+│   │   ├── gemini-provider.test.js   🆕
+│   │   └── multi-provider.test.js    🆕
+│   └── config/
+│       ├── provider-profiles.json    🆕 (modelos pré-config por provider)
+│       └── model-profiles.json       (mantém-se igual)
+├── docs/
+│   ├── MULTI_LLM_ARCHITECTURE.md     🆕
+│   ├── PROVIDER_SETUP_GUIDE.md       🆕 (como configurar cada provider)
+│   ├── FALLBACK_STRATEGY.md          🆕
+│   ├── RAG_INTEGRATION.md            🆕
+│   ├── multi_llm_integration.md      (já existe)
+│   └── microsoft_integration_plan.md (já existe)
+├── v10/
+│   ├── index.html                    (pode adicionar UI de seleção de provider)
+│   ├── launcher.js
+│   └── allowed-operations.json
+└── agents-sdk/                       🆕 (Phase 4)
+    ├── agent.py                      (OpenAI Agents SDK)
+    ├── main.py
+    ├── pyproject.toml
+    └── evals/</code></pre>
+    </div>
+
+    <h2>🔌 6. Integração com Awesome Copilot Agents</h2>
+
+    <p>O projeto <strong>awesome-copilot-agents</strong> oferece muitos recursos que podem ser
+    integrados ao Mestre do PC:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Recurso</th>
+                <th>Localização</th>
+                <th>Aplicação no Mestre do PC</th>
+                <th>Priority</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Custom Agents</strong></td>
+                <td><code>agents/</code> (AI Development Mode)</td>
+                <td>Criar agentes especializados: Diagnosticador, Arquiteto de Reparo, Revisor de Segurança</td>
+                <td><span class="badge badge-priority">Alta</span></td>
+            </tr>
+            <tr>
+                <td><strong>Agent Skills</strong></td>
+                <td><code>skills/</code> (SKILL.md)</td>
+                <td>Criar skill para "PC Diagnostic" + "PC Maintenance" portável</td>
+                <td><span class="badge badge-priority">Alta</span></td>
+            </tr>
+            <tr>
+                <td><strong>Prompts & Instructions</strong></td>
+                <td><code>prompts/</code>, <code>instructions/</code></td>
+                <td>Documentar prompts ótimos para diagnóstico e manutenção Windows</td>
+                <td><span class="badge badge-priority">Média</span></td>
+            </tr>
+            <tr>
+                <td><strong>Workflow Templates</strong></td>
+                <td>AI Development Instructions (PRD → Architect → CleanCode → Debug)</td>
+                <td>Aplicar workflow ao design de novas features do Mestre</td>
+                <td><span class="badge badge-priority">Média</span></td>
+            </tr>
+            <tr>
+                <td><strong>General MCPs</strong></td>
+                <td>Knowledge Graph, Filesystem, Fetch, Sequential Thinking, GitHub</td>
+                <td>Combinar Mestre MCP com Sequential Thinking para diagnósticos complexos</td>
+                <td><span class="badge badge-priority">Média</span></td>
+            </tr>
+            <tr>
+                <td><strong>Development MCPs</strong></td>
+                <td>Playwright, Context7</td>
+                <td>Adicionar Context7 para melhorar documentação de APIs Windows</td>
+                <td><span class="badge badge-priority">Baixa</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>📋 7. Checklist de Implementação (Priority-based)</h2>
+
+    <div class="card">
+        <h3>🔴 Fase 0: Foundations (Semanas 1-3)</h3>
+        <ul>
+            <li>[ ] Criar <code>providers/base-provider.js</code> (interface)</li>
+            <li>[ ] Refatorar Ollama para <code>providers/ollama-provider.js</code></li>
+            <li>[ ] Criar <code>providers/provider-factory.js</code></li>
+            <li>[ ] Atualizar <code>mcp-server/index.js</code> para usar factory</li>
+            <li>[ ] Adicionar testes: <code>provider-factory.test.js</code></li>
+            <li>[ ] Docs: <code>MULTI_LLM_ARCHITECTURE.md</code></li>
+            <li>[ ] Validar 100% compatibilidade com Ollama existente</li>
+            <li>[ ] PR review + merge</li>
+        </ul>
+
+        <h3>🟢 Fase 1: Claude API (Semanas 4-6)</h3>
+        <ul>
+            <li>[ ] Implementar <code>providers/claude-provider.js</code></li>
+            <li>[ ] Suporte a tool_use (Claude function calling)</li>
+            <li>[ ] Suporte a vision (imagens)</li>
+            <li>[ ] Testes: <code>claude-provider.test.js</code></li>
+            <li>[ ] Fallback chain: Claude → Ollama</li>
+            <li>[ ] Docs: <code>PROVIDER_SETUP_GUIDE.md</code> (seção Claude)</li>
+            <li>[ ] Adicionar <code>@anthropic-ai/sdk</code> ao package.json</li>
+        </ul>
+
+        <h3>🟡 Fase 2: OpenAI & Gemini (Semanas 7-9)</h3>
+        <ul>
+            <li>[ ] Implementar <code>providers/openai-provider.js</code></li>
+            <li>[ ] Implementar <code>providers/gemini-provider.js</code></li>
+            <li>[ ] Batch processing support (OpenAI Batch API)</li>
+            <li>[ ] Streaming support (todos os providers)</li>
+            <li>[ ] Testes multi-provider</li>
+            <li>[ ] Adicionar <code>openai</code> e <code>@google/generative-ai</code> ao package.json</li>
+        </ul>
+
+        <h3>🟠 Fase 3: Advanced Features (Semanas 10-13)</h3>
+        <ul>
+            <li>[ ] RAG Framework (base abstrata)</li>
+            <li>[ ] Integração Azure AI Search (ou Pinecone)</li>
+            <li>[ ] Streaming UI (WebSocket no v10/index.html)</li>
+            <li>[ ] Vision integration (análise de screenshots/logs)</li>
+            <li>[ ] Multi-model comparison tool</li>
+        </ul>
+
+        <h3>🔴 Fase 4: Enterprise (Semanas 14-18)</h3>
+        <ul>
+            <li>[ ] OpenAI Agents SDK (Python service)</li>
+            <li>[ ] Microsoft Entra ID integration</li>
+            <li>[ ] Teams webhooks</li>
+            <li>[ ] Graph change notifications</li>
+        </ul>
+    </div>
+
+    <h2>🎓 8. Benefícios Esperados</h2>
+
+    <div class="success">
+        <h3>Para Desenvolvedores</h3>
+        <ul>
+            <li><strong>Code Reusability:</strong> Plugin pattern permite adicionar novos providers em ~200 linhas</li>
+            <li><strong>Testing:</strong> Cada provider testado independentemente + testes de integração</li>
+            <li><strong>Fallback:</strong> Configuração automática de fallback reduz downtime</li>
+        </ul>
+    </div>
+
+    <div class="success">
+        <h3>Para Usuários</h3>
+        <ul>
+            <li><strong>Flexibilidade:</strong> Escolher melhor LLM para seu caso (local, barato, poderoso, etc.)</li>
+            <li><strong>Economia:</strong> Batch processing (OpenAI 50%), Prompt Caching (Claude 90%)</li>
+            <li><strong>Privacidade:</strong> Opção de rodar 100% local com Ollama</li>
+            <li><strong>Confiabilidade:</strong> Fallback automático se um provider cair</li>
+        </ul>
+    </div>
+
+    <div class="success">
+        <h3>Para Arquitetura</h3>
+        <ul>
+            <li><strong>Future-proof:</strong> Fácil adicionar novos providers (Anthropic Cloud, xAI Grok, etc.)</li>
+            <li><strong>Decoupling:</strong> MCP não precisa saber qual LLM está sendo usado</li>
+            <li><strong>Modularity:</strong> RAG, streaming, vision são features ortogonais</li>
+        </ul>
+    </div>
+
+    <h2>✅ 9. Conclusão & Próximos Passos</h2>
+
+    <p class="section-intro">
+        O Mestre do PC V10/V11 possui uma <strong>base sólida e segura</strong> para integração MCP.
+        Com <strong>abstração de providers</strong>, é possível suportar múltiplos LLMs mantendo 100%
+        compatibilidade com Ollama existente e preparando o caminho para recursos empresariais
+        (Entra ID, Teams, RAG, Agents SDK).
+    </p>
+
+    <div class="card" style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--secondary);">
+        <h3 style="color: var(--secondary); margin-top: 0;">🚀 Recomendação Estratégica</h3>
+        <ol style="font-size: 1.05rem;">
+            <li><strong>Começar imediatamente com Phase 0</strong> (abstração de providers) — é o fundamento necessário para tudo mais</li>
+            <li><strong>Priorizar Claude API na Phase 1</strong> — melhor custo-benefício para experiência de desenvolvedor</li>
+            <li><strong>Considerar RAG (Phase 3)</strong> — agregador de valor para diagnósticos mais contextualizados</li>
+            <li><strong>Deixar Entra/Teams para Phase 4</strong> — depende de caso de uso empresarial</li>
+            <li><strong>Integrar com awesome-copilot-agents</strong> — criar Agent Skill portável para PC Diagnostics</li>
+        </ol>
+    </div>
+
+    <div class="highlight">
+        <strong>⏱️ Estimativa Total:</strong> 18-24 semanas (4-6 meses) para todas as 4 fases,
+        ou 6-9 semanas (1.5-2 meses) para Phase 0-1 (MVP multi-LLM).
+    </div>
+
+    <h2>📚 Referências & Recursos</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Recurso</th>
+                <th>Link</th>
+                <th>Relevância</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>MCP Specification</td>
+                <td><code>https://modelcontextprotocol.io</code></td>
+                <td>Foundation para tool integration</td>
+            </tr>
+            <tr>
+                <td>Anthropic Claude API</td>
+                <td><code>https://claude.ai/api</code></td>
+                <td>Claude provider implementation</td>
+            </tr>
+            <tr>
+                <td>OpenAI API Reference</td>
+                <td><code>https://platform.openai.com/docs</code></td>
+                <td>OpenAI provider + Batch API</td>
+            </tr>
+            <tr>
+                <td>Google Generative AI</td>
+                <td><code>https://ai.google.dev</code></td>
+                <td>Gemini provider implementation</td>
+            </tr>
+            <tr>
+                <td>Ollama API</td>
+                <td><code>https://ollama.ai</code></td>
+                <td>Existing Ollama provider</td>
+            </tr>
+            <tr>
+                <td>Awesome Copilot Agents</td>
+                <td><code>https://github.com/Code-and-Sorts/awesome-copilot-agents</code></td>
+                <td>Skills, agents, instructions templates</td>
+            </tr>
+            <tr>
+                <td>Microsoft Entra Platform</td>
+                <td><code>https://learn.microsoft.com/en-us/entra</code></td>
+                <td>SSO + RBAC integration (Phase 4)</td>
+            </tr>
+            <tr>
+                <td>OpenAI Agents SDK</td>
+                <td><code>https://github.com/openai/openai-agents-python</code></td>
+                <td>Advanced agents (Phase 4)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 4rem; padding-top: 2rem; border-top: 2px solid var(--border); text-align: center; font-size: 0.9rem; color: var(--fg); opacity: 0.7;">
+        <p>📄 Documento gerado em 23 de agosto de 2026 | Versão 1.0 | Status: Estratégia Inicial</p>
+        <p>Para questões ou contribuições, abra uma issue no repositório Mestre-do-PC-V10-clean.</p>
+    </div>
+</body>
+</html>
