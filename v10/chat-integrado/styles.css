@@ -1218,3 +1218,14 @@ body.sidebar-collapsed .main { margin-left: 0 }
   border-top: 1px solid var(--border);
 }
 .models-menu .menu-item.unavailable { opacity: .72; }
+.models-menu .model-chain { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px; }
+.models-menu .model-chain-row {
+  display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 8px;
+  padding: 6px 10px; font-size: 12px; color: var(--text-muted);
+}
+.models-menu .model-chain-row select {
+  width: 100%; min-width: 0; padding: 6px 8px; border-radius: 8px;
+  background: rgba(8, 14, 24, 0.7); border: 1px solid var(--border); color: var(--text);
+  font-size: 12px; font-family: ui-monospace, Consolas, monospace;
+}
+.models-menu .model-chain-row select:focus-visible { outline: 2px solid var(--accent2); outline-offset: 1px; }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "mestre-do-pc-v11-pwa-v3";
+const CACHE_NAME = "mestre-do-pc-v11-pwa-v5";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
@@ -19,7 +19,7 @@ const STATIC_ASSETS = [
   "/icon-192.png",
   "/icon-512.png",
   "/favicon.png",
-  "/logo-mestre-v7-transparent.png"
+  "/logo-mestre-transparent.png"
 ];
 
 self.addEventListener("install", (event) => {

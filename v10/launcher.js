@@ -404,17 +404,28 @@ async function proxyOllamaStream(path, req, res, allowOrigin = BASE_URL, maxBody
     if (blocked) return sendJson(res, 400, blocked, allowOrigin);
   }
   let upstream;
+  // Se o cliente desistir (Parar, troca de modelo, timeout), cancela também
+  // a geração no Ollama — senão o runner fica ocupado e trava os próximos modelos.
+  const upstreamAbort = new AbortController();
+  const onClientClose = () => {
+    if (!res.writableEnded) upstreamAbort.abort();
+  };
+  res.on("close", onClientClose);
   try {
     upstream = await fetch(OLLAMA_URL + path, {
       method: req.method,
       headers: { "Content-Type": "application/json" },
       body: req.method === "POST" ? JSON.stringify(body) : undefined,
+      signal: upstreamAbort.signal,
     });
   } catch (e) {
+    res.off("close", onClientClose);
+    if (upstreamAbort.signal.aborted) return; // cliente já desconectou
     return sendJson(res, 502, { error: "Ollama offline: " + e.message }, allowOrigin);
   }
   if (!upstream.ok || !upstream.body) {
     const text = await upstream.text().catch(() => "");
+    res.off("close", onClientClose);
     return sendJson(res, upstream.status || 502, { error: text || "Ollama error" }, allowOrigin);
   }
   res.writeHead(upstream.status, {
@@ -433,6 +444,7 @@ async function proxyOllamaStream(path, req, res, allowOrigin = BASE_URL, maxBody
   } catch (e) {
     // cliente desconectou ou erro de stream — ignora silenciosamente
   } finally {
+    res.off("close", onClientClose);
     res.end();
   }
 }
@@ -579,15 +591,19 @@ async function handleNppAction(action, payload) {
 }
 
 // Métricas do sistema via PowerShell (para o dashboard V10).
-function getSystemStatus(res, allowedOrigin = BASE_URL) {
-  const empty = { cpu: 0, ramFree: 0, ramTotal: 0, diskFree: 0, diskUsed: 0, uptimeSec: 0 };
-  let settled = false;
-  const finish = (data) => {
-    if (settled) return;
-    settled = true;
-    sendJson(res, 200, data, allowedOrigin);
-  };
-  const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `
+// Cache de 5s + single-flight: cada poll da UI não paga spawn+WMI (~2-5s medidos).
+// Timeout server-side: resposta nunca fica pendurada; PowerShell órfão é morto em 8s.
+const SYSTEM_STATUS_TTL_MS = 5000;
+const SYSTEM_STATUS_PS_TIMEOUT_MS = 8000;
+const SYSTEM_STATUS_RESPONSE_TIMEOUT_MS = 10000;
+const SYSTEM_STATUS_EMPTY = { cpu: 0, ramFree: 0, ramTotal: 0, diskFree: 0, diskUsed: 0, uptimeSec: 0 };
+let systemStatusCache = { data: null, at: 0 };
+let systemStatusInflight = null;
+
+function collectSystemStatus() {
+  return new Promise((resolve) => {
+    let out = "";
+    const ps = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `
 $os = Get-WmiObject Win32_OperatingSystem
 $ramFree = [math]::Round($os.FreePhysicalMemory/1MB, 2)
 $ramTotal = [math]::Round($os.TotalVisibleMemorySize/1MB, 2)
@@ -599,14 +615,50 @@ $boot = [Management.ManagementDateTimeConverter]::ToDateTime($os.LastBootUpTime)
 $uptime = [int]((Get-Date) - $boot).TotalSeconds
 @{cpu=[math]::Round($cpu,1);ramFree=$ramFree;ramTotal=$ramTotal;diskFree=$diskFree;diskUsed=$diskUsed;uptimeSec=$uptime} | ConvertTo-Json -Compress
 `], { windowsHide: true, env: cleanPSEnv() });
-  let out = "";
-  ps.stdout.on("data", (d) => (out += d.toString()));
-  ps.stderr.on("data", (d) => (out += d.toString()));
-  ps.on("close", () => {
-    try { finish(JSON.parse(out.trim())); }
-    catch { finish(empty); }
+    const killTimer = setTimeout(() => { try { ps.kill(); } catch {} }, SYSTEM_STATUS_PS_TIMEOUT_MS);
+    killTimer.unref();
+    ps.stdout.on("data", (d) => (out += d.toString()));
+    ps.stderr.on("data", (d) => (out += d.toString()));
+    ps.on("close", () => {
+      clearTimeout(killTimer);
+      try { resolve(JSON.parse(out.trim())); } catch { resolve(null); }
+    });
+    ps.on("error", () => { clearTimeout(killTimer); resolve(null); });
   });
-  ps.on("error", () => finish(empty));
+}
+
+function ensureSystemStatusCollection() {
+  if (!systemStatusInflight) {
+    systemStatusInflight = collectSystemStatus()
+      .then((data) => {
+        if (data) systemStatusCache = { data, at: Date.now() };
+        systemStatusInflight = null;
+        return data;
+      })
+      .catch(() => {
+        systemStatusInflight = null;
+        return null;
+      });
+  }
+  return systemStatusInflight;
+}
+
+function getSystemStatus(res, allowedOrigin = BASE_URL) {
+  let settled = false;
+  const finish = (data) => {
+    if (settled) return;
+    settled = true;
+    sendJson(res, 200, data, allowedOrigin);
+  };
+  const fresh = systemStatusCache.data && Date.now() - systemStatusCache.at < SYSTEM_STATUS_TTL_MS;
+  if (fresh) return finish(systemStatusCache.data);
+  const fallback = () => systemStatusCache.data || SYSTEM_STATUS_EMPTY;
+  const timer = setTimeout(() => finish(fallback()), SYSTEM_STATUS_RESPONSE_TIMEOUT_MS);
+  timer.unref();
+  ensureSystemStatusCollection().then((data) => {
+    clearTimeout(timer);
+    finish(data || fallback());
+  });
 }
 
 const MOBILE_CSP = [
@@ -975,7 +1027,7 @@ const server = http.createServer(async (req, res) => {
     // Marca fica na raiz do repo; PWA e scripts ficam em v10/.
     const rootStatic = {
       "/favicon.png": { type: "image/png", dir: PROJECT_DIR },
-      "/logo-mestre-v7-transparent.png": { type: "image/png", dir: PROJECT_DIR },
+      "/logo-mestre-transparent.png": { type: "image/png", dir: PROJECT_DIR },
       "/icon-192.png": { type: "image/png", dir: __dirname },
       "/icon-512.png": { type: "image/png", dir: __dirname },
       "/sw.js": { type: "text/javascript; charset=utf-8", dir: __dirname },

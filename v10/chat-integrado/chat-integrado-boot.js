@@ -31,6 +31,13 @@ document.getElementById("itemClear").addEventListener("click", () => {
   document.getElementById("btnClearNav").click();
 });
 
+const btnChavesApiNav = document.getElementById("btnChavesApiNav");
+if (btnChavesApiNav) {
+  btnChavesApiNav.addEventListener("click", () => {
+    window.open("/chaves-api.html", "_blank");
+  });
+}
+
 // Check launcher status
 async function checkStatus() {
   try {

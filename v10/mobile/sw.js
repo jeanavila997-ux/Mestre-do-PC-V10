@@ -1,4 +1,4 @@
-const CACHE = "mestre-mobile-v12-shell-1";
+const CACHE = "mestre-mobile-v12-shell-5";
 const SHELL = [
   "index.html",
   "styles.css",

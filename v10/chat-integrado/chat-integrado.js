@@ -101,6 +101,8 @@ const state = {
   modeloAtivo: "",
   provedorAtivo: "",
   opencodeGo: null,
+  modelosDisponiveis: [],
+  modeloChain: [],
   isWaiting: false,
   voiceRecognition: null,
   abortController: null,
@@ -690,47 +692,96 @@ async function streamOllamaReply(userText) {
   if (useOpenCodeGo && !state.opencodeGo?.hasKey) {
     throw new Error("OpenCode Go não configurado. Defina OPENCODE_GO_API_KEY.");
   }
+
+  const chain = useOpenCodeGo
+    ? [state.opencodeGo?.model || state.modeloAtivo].filter(Boolean)
+    : getModelChain();
+  if (!chain.length) {
+    throw new Error(useOpenCodeGo
+      ? "Nenhum modelo OpenCode Go configurado."
+      : "Nenhum modelo selecionado. Abra 🔀 e escolha um modelo.");
+  }
+
+  let lastError = null;
+
+  try {
+    for (let i = 0; i < chain.length; i++) {
+      const model = chain[i];
+      if (i > 0) updateStreamingMessage(`⏳ ${chain[i - 1]} falhou — tentando ${model}…`);
+      const controller = new AbortController();
+      state.abortController = controller;
+      try {
+        const text = await streamModelOnce(model, messages, controller, useOpenCodeGo);
+        if (!useOpenCodeGo) {
+          state.modeloAtivo = model;
+          updateModelBadge();
+        }
+        return text;
+      } catch (err) {
+        if (err.name === "AbortError" && !err.timedOut) throw err;
+        if (controller.signal.aborted && !err.timedOut) throw err;
+        if (err.opencodeGo) throw err;
+        lastError = err;
+        console.warn(`[chat] modelo "${model}" falhou:`, err.message);
+      }
+    }
+    throw lastError || new Error("Nenhum modelo conseguiu responder.");
+  } finally {
+    state.abortController = null;
+  }
+}
+
+async function streamModelOnce(model, messages, controller, useOpenCodeGo) {
   const body = useOpenCodeGo
     ? {
         provider: "opencode-go",
-        model: state.opencodeGo?.model || state.modeloAtivo,
+        model: state.opencodeGo?.model || model,
         messages,
         stream: true,
         sessionId: state.conversaId || "",
       }
     : {
-        model: state.modeloAtivo || "qwen2.5-coder:3b-instruct",
+        model,
         messages,
         stream: true,
         options: state.profileOptions || undefined,
       };
 
-  state.abortController = new AbortController();
-  const signal = state.abortController.signal;
-
-  const resp = await fetch(BASE + (useOpenCodeGo ? "/providers/chat" : "/ollama/chat"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
-    body: JSON.stringify(body),
-    signal,
-  });
-
-  if (!resp.ok) {
-    const errText = await resp.text();
-    let message = errText.slice(0, 200);
-    try {
-      const parsed = JSON.parse(errText);
-      if (parsed?.error) message = String(parsed.error);
-    } catch { /* corpo não-JSON */ }
-    throw new Error(useOpenCodeGo ? message : `Ollama HTTP ${resp.status}: ${message}`);
-  }
-
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let fullText = "";
-  let buffer = "";
+  let lastChunkAt = Date.now();
+  let timedOut = false;
+  const watchdog = setInterval(() => {
+    if (Date.now() - lastChunkAt > 60000 && !controller.signal.aborted) {
+      timedOut = true;
+      controller.abort();
+    }
+  }, 5000);
 
   try {
+    const resp = await fetch(BASE + (useOpenCodeGo ? "/providers/chat" : "/ollama/chat"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      let message = errText.slice(0, 200);
+      try {
+        const parsed = JSON.parse(errText);
+        if (parsed?.error) message = String(parsed.error);
+      } catch { /* corpo não-JSON */ }
+      const httpError = new Error(useOpenCodeGo ? message : `Ollama HTTP ${resp.status}: ${message}`);
+      if (useOpenCodeGo) httpError.opencodeGo = true;
+      throw httpError;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+    let buffer = "";
+    let thinking = false;
+
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -740,37 +791,76 @@ async function streamOllamaReply(userText) {
 
       for (const line of lines) {
         if (!line.trim()) continue;
-        try {
-          if (useOpenCodeGo) {
-            const delta = readOpenAiDelta(line);
-            if (!delta) continue;
-            fullText += delta;
-            updateStreamingMessage(fullText);
-            continue;
+        if (useOpenCodeGo) {
+          let delta = "";
+          try {
+            delta = readOpenAiDelta(line);
+          } catch (err) {
+            if (err instanceof SyntaxError) continue; // linha incompleta, ignora
+            throw err;
           }
+          lastChunkAt = Date.now();
+          if (!delta) continue;
+          fullText += delta;
+          updateStreamingMessage(fullText);
+          continue;
+        }
+        try {
           const chunk = JSON.parse(line);
+          if (chunk.error) throw new Error(typeof chunk.error === "string" ? chunk.error : "Erro no modelo");
+          lastChunkAt = Date.now();
+          if (chunk.message?.thinking && !fullText) { thinking = true; updateStreamingMessage("🧠 pensando…"); }
           if (chunk.message?.content) {
             fullText += chunk.message.content;
             updateStreamingMessage(fullText);
           }
-          if (chunk.done) break;
+          if (chunk.done) {
+            if (!fullText.trim() && thinking) {
+              const empty = new Error(`"${model}" só gerou raciocínio interno, sem resposta.`);
+              empty.timedOut = false;
+              throw empty;
+            }
+            return fullText;
+          }
         } catch (err) {
-          if (err?.opencodeGo) throw err;
-          /* linha incompleta, ignora */
+          if (err instanceof SyntaxError) continue; // linha incompleta, ignora
+          throw err;
         }
       }
     }
+
+    if (!fullText.trim()) throw new Error("Resposta vazia do modelo");
+    return fullText;
   } catch (err) {
-    if (err.name === "AbortError") {
-      updateStreamingMessage(fullText + "\n\n⏹ _geração interrompida_");
-      throw new Error("Geração interrompida pelo usuário.");
+    if (timedOut) {
+      const timeoutErr = new Error(`Tempo esgotado no modelo "${model}"`);
+      timeoutErr.timedOut = true;
+      throw timeoutErr;
     }
     throw err;
   } finally {
-    state.abortController = null;
+    clearInterval(watchdog);
   }
+}
 
-  return fullText;
+function getModelChain() {
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem("mestre.modelChain") || "[]"); } catch { saved = []; }
+  if (!Array.isArray(saved)) saved = [];
+  const raw = [
+    saved[0] || state.modeloAtivo || "",
+    saved[1] || "",
+    saved[2] || "",
+  ];
+  const seen = new Set();
+  return raw
+    .map((v) => String(v || "").trim())
+    .filter((v) => v && !seen.has(v) && seen.add(v));
+}
+
+function saveModelChain(chain) {
+  state.modeloChain = chain;
+  try { localStorage.setItem("mestre.modelChain", JSON.stringify(chain)); } catch { /* modo privado */ }
 }
 
 function readOpenAiDelta(line) {
@@ -1440,6 +1530,10 @@ async function loadProfiles() {
     state.modeloAtivo = data.modelo_local || data.modelo_ativo || "";
     state.profileOptions = data.opcoes || {};
     try { const salvo = localStorage.getItem("mestre.perfilAtivo"); const sp = salvo && state.perfis.find(x => x.id === salvo); if (sp && sp.id !== state.perfilAtivo) { state.perfilAtivo = sp.id; if (sp.model) state.modeloAtivo = sp.model; } } catch {}
+    try {
+      const models = await apiGet("/api/models");
+      state.modelosDisponiveis = Array.isArray(models.modelos_disponiveis) ? models.modelos_disponiveis : [];
+    } catch { state.modelosDisponiveis = []; }
   } catch { /* launcher pode estar reiniciando */ }
   await loadChatProviders();
   try {
@@ -1484,6 +1578,7 @@ function renderProfilesMenu() {
     menu.appendChild(item);
   }
   appendOpenCodeGo(menu);
+  menu.appendChild(buildModelChainBlock());
 }
 
 function tell(message) {
@@ -1529,6 +1624,71 @@ function appendOpenCodeGo(menu) {
   menu.appendChild(item);
 }
 
+function knownModels() {
+  const set = new Set();
+  for (const m of state.modelosDisponiveis || []) if (m) set.add(String(m));
+  for (const p of state.perfis || []) if (p.model) set.add(String(p.model));
+  if (state.modeloAtivo) set.add(String(state.modeloAtivo));
+  for (const m of getModelChain()) set.add(m);
+  return [...set];
+}
+
+function buildModelChainBlock() {
+  const wrap = document.createElement("div");
+  wrap.className = "model-chain";
+  const title = document.createElement("div");
+  title.className = "models-title";
+  title.textContent = "Modelo e fallbacks";
+  wrap.appendChild(title);
+  const models = knownModels();
+  const chain = getModelChain();
+  const labels = ["Principal", "2º se falhar", "3º se falhar"];
+  const selects = [];
+  labels.forEach((labelText, idx) => {
+    const row = document.createElement("label");
+    row.className = "model-chain-row";
+    const span = document.createElement("span");
+    span.textContent = labelText;
+    const sel = document.createElement("select");
+    sel.setAttribute("aria-label", `Modelo ${labelText.toLowerCase()}`);
+    if (idx > 0) {
+      const none = document.createElement("option");
+      none.value = "";
+      none.textContent = "— nenhum —";
+      sel.appendChild(none);
+    }
+    for (const m of models) {
+      const opt = document.createElement("option");
+      opt.value = m;
+      opt.textContent = m;
+      sel.appendChild(opt);
+    }
+    const current = chain[idx] || (idx === 0 ? state.modeloAtivo : "");
+    if (current && !models.includes(current)) {
+      const opt = document.createElement("option");
+      opt.value = current;
+      opt.textContent = current;
+      sel.appendChild(opt);
+    }
+    sel.value = current || "";
+    selects.push(sel);
+    row.append(span, sel);
+    wrap.appendChild(row);
+  });
+  const apply = () => {
+    const chosen = selects.map((s) => s.value.trim());
+    saveModelChain(chosen);
+    if (chosen[0]) {
+      state.modeloAtivo = chosen[0];
+      document.body.dataset.modelo = state.modeloAtivo;
+      updateModelBadge();
+    }
+    if (typeof showToast === "function") showToast("Modelo e fallbacks salvos");
+  };
+  selects.forEach((sel) => sel.addEventListener("change", apply));
+  return wrap;
+}
+
 async function activateProfile(p, item) {
   const menu = $("modelsMenu");
   if (p.id === state.perfilAtivo) {
@@ -1568,8 +1728,8 @@ function positionModelsMenu() {
   const r = btn.getBoundingClientRect(), m = 12, gap = 8;
   const w = Math.min(340, window.innerWidth - m * 2);
   const below = window.innerHeight - r.bottom - m - gap, above = r.top - m - gap;
-  const openDown = below >= 260 || below >= above;
-  const maxH = Math.max(160, Math.min(420, openDown ? below : above));
+  const openDown = below >= 320 || below >= above;
+  const maxH = Math.max(200, Math.min(520, openDown ? below : above));
   menu.style.width = w + "px";
   menu.style.maxHeight = maxH + "px";
   menu.style.left = Math.max(m, Math.min(r.left, window.innerWidth - w - m)) + "px";
@@ -1597,14 +1757,24 @@ function closeModelsMenu() {
   refreshAria();
 }
 
+function closeAllMenus() {
+  $$(".popup-menu").forEach(m => m.classList.remove("show"));
+  $("toolsPanel")?.classList.remove("show");
+  $("skillsLibraryPanel")?.classList.remove("show");
+  $("memoriesPanel")?.classList.remove("show");
+  hideSkillsMenu();
+  refreshAria();
+}
+
 (function wireModelsMenuKeys() {
   document.addEventListener("keydown", (ev) => {
     const menu = $("modelsMenu");
     if (!menu || !menu.classList.contains("show")) return;
+    if (ev.key === "Escape") { ev.preventDefault(); closeModelsMenu(); $("btnModelSelect")?.focus(); return; }
+    if (document.activeElement && document.activeElement.tagName === "SELECT") return;
     const items = [...menu.querySelectorAll(".menu-item")];
     const i = items.indexOf(document.activeElement);
-    if (ev.key === "Escape") { ev.preventDefault(); closeModelsMenu(); $("btnModelSelect")?.focus(); }
-    else if (ev.key === "ArrowDown") { ev.preventDefault(); items[(i + 1) % items.length]?.focus(); }
+    if (ev.key === "ArrowDown") { ev.preventDefault(); items[(i + 1) % items.length]?.focus(); }
     else if (ev.key === "ArrowUp") { ev.preventDefault(); items[(i - 1 + items.length) % items.length]?.focus(); }
   });
   window.addEventListener("resize", () => { if ($("modelsMenu")?.classList.contains("show")) positionModelsMenu(); });
@@ -1666,6 +1836,22 @@ async function loadSyncStatus() {
       badge.textContent = "Sync: local";
     }
   } catch { /* ignora */ }
+}
+
+// ── Grok Bot status ─────────────────────────────────────────────────
+
+async function loadGrokBotStatus() {
+  try {
+    const status = await apiGet("/api/grokbot/status");
+    const grokBtn = $("grokbotTopBtn");
+    if (grokBtn && status) {
+      grokBtn.title = `Grok Bot: ${status.ok ? "Conectado" : "Desconectado"}`;
+    }
+    return status;
+  } catch (err) {
+    console.debug("[chat-integrado] GrokBot status:", err?.message || err);
+    return null;
+  }
 }
 
 // ── Send message ────────────────────────────────────────────────────
@@ -1739,10 +1925,13 @@ async function sendMessage() {
     }
   } catch (err) {
     removeTyping();
-    if (streamRafId) { cancelAnimationFrame(streamRafId); streamRafId = 0; }
-    pendingStreamText = null;
-    streamingBodyEl = null;
-    if (err.message !== "Geração interrompida pelo usuário.") {
+    const aborted = err.name === "AbortError" || err.message === "Geração interrompida pelo usuário.";
+    if (aborted) {
+      if (streamingBodyEl) finalizeStreamingMessage();
+    } else {
+      if (streamRafId) { cancelAnimationFrame(streamRafId); streamRafId = 0; }
+      pendingStreamText = null;
+      streamingBodyEl = null;
       addMessage(`❌ Erro: ${err.message}`, "ai");
     }
   } finally {
@@ -1941,15 +2130,6 @@ export async function initChatIntegrado() {
   });
 
   // Popup menus
-  function closeAllMenus() {
-    $$(".popup-menu").forEach(m => m.classList.remove("show"));
-    $("toolsPanel").classList.remove("show");
-    $("skillsLibraryPanel").classList.remove("show");
-    $("memoriesPanel").classList.remove("show");
-    hideSkillsMenu();
-    refreshAria();
-  }
-
   $("btnPlus").addEventListener("click", (e) => {
     e.stopPropagation();
     const menu = $("plusMenu");

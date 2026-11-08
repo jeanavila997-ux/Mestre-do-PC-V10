@@ -5,7 +5,7 @@
   const PAGE_SIZE = 40;
   const PUBLIC_ANDROID_URL = "https://jeanavila997-ux.github.io/Mestre-do-PC-V10/mobile/";
   const PUBLIC_VPS_URL = "https://mestre.72-62-11-116.sslip.io/mobile/";
-  const CLOUD_MODELS = ["gpt-4o-mini", "gcli/grok-4.7-build-fast", "qwen2.5-coder:3b-instruct"];
+  const CLOUD_MODELS = ["gpt-4o-mini", "gcli/grok-4.7-build-fast"];
   const PRESETS = [
     { id: "desktop", label: "PC Desktop", detail: "DESKTOP-O7T3I00" },
     { id: "vps", label: "VPS", detail: "72.62.11.116" },
@@ -111,9 +111,11 @@
     shown: PAGE_SIZE,
     opsOffline: false,
     messages: [],
+    contextSummary: "",
     conversas: {},
     streaming: false,
     chatAbort: null,
+    lastModelUsed: "",
     masterPrompt: "",
     memories: [],
     install: null,
@@ -147,6 +149,8 @@
         router: "http://127.0.0.1:20128",
       },
       model: "qwen2.5-coder:3b-instruct",
+      modelFallback1: "",
+      modelFallback2: "",
       speak: false,
       autoSend: false,
       mobileToken: "",
@@ -154,11 +158,14 @@
     };
     const saved = readJson(SETTINGS_KEY, null);
     if (!saved || typeof saved !== "object") return defaults;
-    return {
+    const merged = {
       ...defaults,
       ...saved,
       targets: { ...defaults.targets, ...(saved.targets || {}) },
     };
+    merged.modelFallback1 = typeof merged.modelFallback1 === "string" ? merged.modelFallback1 : "";
+    merged.modelFallback2 = typeof merged.modelFallback2 === "string" ? merged.modelFallback2 : "";
+    return merged;
   }
 
   function saveSettings() {
@@ -776,31 +783,105 @@
     }
   }
 
+  async function copyText(text) {
+    const t = String(text || "");
+    if (!t) return false;
+    try { await navigator.clipboard.writeText(t); return true; }
+    catch {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = t; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); return true;
+      } catch { return false; }
+    }
+  }
+
+  async function saveChatMemory(titulo, conteudo) {
+    const content = String(conteudo || "").trim();
+    if (!content) return false;
+    try {
+      await api("/api/memorias", {
+        method: "POST",
+        body: { titulo: String(titulo || "Chat").slice(0, 120), conteudo: content },
+        timeout: 10000,
+      });
+      return true;
+    } catch (e) {
+      toast(e.message || "Falha ao salvar memória");
+      return false;
+    }
+  }
+
   function addBubble(role, text) {
     const item = document.createElement("article");
     item.className = `bubble ${role}`;
+    item.dataset.role = role;
+    const head = document.createElement("div");
+    head.className = "bubble-head";
     const who = document.createElement("span");
     who.textContent = role === "user" ? "Você" : role === "assistant" ? "Mestre" : "Sistema";
+    head.appendChild(who);
     const body = document.createElement("p");
     body.textContent = text;
-    item.append(who, body);
+    item.append(head, body);
+
+    if (role === "assistant") {
+      const actions = document.createElement("div");
+      actions.className = "msg-actions";
+      const mkBtn = (label, title, onClick) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.textContent = label; b.title = title; b.setAttribute("aria-label", title);
+        b.addEventListener("click", onClick);
+        return b;
+      };
+      actions.append(
+        mkBtn("📋", "Copiar resposta", async () => {
+          const ok = await copyText(body.textContent);
+          toast(ok ? "Resposta copiada" : "Não foi possível copiar");
+        }),
+        mkBtn("💾", "Salvar resposta na memória", async () => {
+          if (item.dataset.saved) return toast("Resposta já salva");
+          const ok = await saveChatMemory("💬 Chat — resposta", body.textContent);
+          if (ok) { item.dataset.saved = "1"; toast("Salva nas memórias"); }
+        }),
+        mkBtn("⭐", "Favoritar resposta", async () => {
+          item.classList.toggle("favorited");
+          if (item.classList.contains("favorited") && !item.dataset.faved) {
+            const ok = await saveChatMemory("⭐ Favorito — chat", body.textContent);
+            if (ok) item.dataset.faved = "1";
+          }
+          toast(item.classList.contains("favorited") ? "Resposta favoritada" : "Favorito removido");
+        }),
+      );
+      head.appendChild(actions);
+    }
+
     $("messages").append(item);
     item.scrollIntoView({ block: "end" });
+    body._bubble = item;
     return body;
   }
 
-  function renderModels() {
-    const select = $("model");
-    const current = state.settings.model;
-    const names = [...new Set([current, ...CLOUD_MODELS, ...(state.models || [])])];
+  function fillModelSelect(selectId, current, includeNone = false) {
+    const select = $(selectId);
+    if (!select) return;
+    const base = includeNone ? ["", ...CLOUD_MODELS, ...(state.models || [])] : [current, ...CLOUD_MODELS, ...(state.models || [])];
+    if (current && !base.includes(current)) base.splice(includeNone ? 1 : 0, 0, current);
+    const names = [...new Set(base)];
     select.replaceChildren();
     for (const name of names) {
       const option = document.createElement("option");
       option.value = name;
-      option.textContent = name;
-      if (name === current) option.selected = true;
+      option.textContent = name || "— nenhum —";
+      if (name === (current || "")) option.selected = true;
       select.append(option);
     }
+  }
+
+  function renderModels() {
+    fillModelSelect("model", state.settings.model, false);
+    fillModelSelect("model-fallback-1", state.settings.modelFallback1 || "", true);
+    fillModelSelect("model-fallback-2", state.settings.modelFallback2 || "", true);
   }
 
   async function loadModels() {
@@ -815,6 +896,16 @@
       }
     } catch { /* a lista local continua disponível */ }
     state.models = found;
+    if (found.length) {
+      const current = state.settings.model;
+      const known = found.includes(current) || CLOUD_MODELS.includes(current);
+      if (!known) {
+        state.settings.model = found[0];
+        if (!state.settings.modelFallback1) state.settings.modelFallback1 = found[1] || "";
+        if (!state.settings.modelFallback2) state.settings.modelFallback2 = found[2] || "";
+        saveSettings();
+      }
+    }
     renderModels();
   }
 
@@ -860,32 +951,41 @@
     } catch { /* a conversa local continua na tela */ }
   }
 
-  function chatAttempts() {
+  function chatAttemptsForModel(model) {
     const attempts = [];
-    if (state.settings.openaiKey) {
+    const m = String(model || state.settings.model || "").trim();
+    if (state.settings.openaiKey && m.startsWith("gpt-")) {
       attempts.push({
         url: "https://api.openai.com/v1/chat/completions",
         flavor: "openai",
         headers: { Authorization: `Bearer ${state.settings.openaiKey}` },
-        model: String(state.settings.model || "").startsWith("gpt-") ? state.settings.model : "gpt-4o-mini",
+        model: m,
       });
     }
     if (isRouterTarget()) {
       attempts.push(
-        { url: `${apiBase()}/v1/chat/completions`, flavor: "openai" },
-        { url: `${apiBase()}/api/chat`, flavor: "ollama" },
+        { url: `${apiBase()}/v1/chat/completions`, flavor: "openai", model: m },
+        { url: `${apiBase()}/api/chat`, flavor: "ollama", model: m },
       );
     } else {
-      attempts.push({ url: `${apiBase()}/ollama/chat`, flavor: "ollama" });
+      attempts.push({ url: `${apiBase()}/ollama/chat`, flavor: "ollama", model: m });
     }
     return attempts;
   }
 
-  async function readStream(response, flavor, onDelta) {
+  function modelChain() {
+    const seen = new Set();
+    return [state.settings.model, state.settings.modelFallback1, state.settings.modelFallback2]
+      .map((v) => String(v || "").trim())
+      .filter((v) => v && !seen.has(v) && seen.add(v));
+  }
+
+  async function readStream(response, flavor, onDelta, onChunk) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
     let full = "";
+    let thinking = "";
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -911,50 +1011,89 @@
           streamError.streamError = true;
           throw streamError;
         }
+        if (onChunk) onChunk();
         const delta = flavor === "openai"
           ? (chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content) || ""
           : (chunk.message && chunk.message.content) || chunk.response || "";
+        if (flavor !== "openai" && chunk.message && chunk.message.thinking) {
+          thinking += chunk.message.thinking;
+          if (!full) onDelta("🧠 pensando…");
+        }
         if (delta) {
           full += delta;
           onDelta(full);
         }
       }
     }
+    if (!full.trim() && thinking.trim()) {
+      const empty = new Error("O modelo só gerou raciocínio interno e nenhuma resposta. Tentando o próximo modelo.");
+      empty.empty = true;
+      throw empty;
+    }
     return full;
   }
 
   async function streamChat(messages, onDelta) {
+    const chain = modelChain();
     let lastError = new Error("Chat indisponível");
-    for (const attempt of chatAttempts()) {
-      state.chatAbort = new AbortController();
-      try {
-        const response = await fetch(attempt.url, {
-          method: "POST",
-          signal: state.chatAbort.signal,
-          headers: {
-            "Content-Type": "application/json",
-            "X-Mestre-Client": "v10-web",
-            ...(state.settings.mobileToken ? { "X-Mestre-Mobile-Token": state.settings.mobileToken } : {}),
-            ...(attempt.headers || {}),
-          },
-          body: JSON.stringify(attempt.flavor === "openai"
-            ? { model: attempt.model || state.settings.model, messages, stream: true }
-            : { model: state.settings.model, messages, stream: true }),
-        });
-        if (!response.ok) {
-          const text = await response.text();
-          const error = new Error(text.slice(0, 180) || `HTTP ${response.status}`);
-          error.status = response.status;
-          throw error;
+    for (let mi = 0; mi < chain.length; mi++) {
+      const model = chain[mi];
+      if (mi > 0) onDelta(`⏳ Falha no modelo anterior, tentando ${model}…`);
+      for (const attempt of chatAttemptsForModel(model)) {
+        state.chatAbort = new AbortController();
+        let lastChunkAt = Date.now();
+        let timedOut = false;
+        const watchdog = setInterval(() => {
+          if (Date.now() - lastChunkAt > 60000 && !state.chatAbort.signal.aborted) {
+            timedOut = true;
+            state.chatAbort.abort();
+          }
+        }, 5000);
+        try {
+          const response = await fetch(attempt.url, {
+            method: "POST",
+            signal: state.chatAbort.signal,
+            headers: {
+              "Content-Type": "application/json",
+              "X-Mestre-Client": "v10-web",
+              ...(state.settings.mobileToken ? { "X-Mestre-Mobile-Token": state.settings.mobileToken } : {}),
+              ...(attempt.headers || {}),
+            },
+            body: JSON.stringify(attempt.flavor === "openai"
+              ? { model: attempt.model || model, messages, stream: true }
+              : { model: attempt.model || model, messages, stream: true }),
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            const error = new Error(text.slice(0, 180) || `HTTP ${response.status}`);
+            error.status = response.status;
+            throw error;
+          }
+          if (mi > 0) onDelta(""); // limpa aviso de fallback antes do stream real
+          const out = await readStream(response, attempt.flavor, onDelta, () => { lastChunkAt = Date.now(); });
+          state.lastModelUsed = model;
+          return out;
+        } catch (error) {
+          if (timedOut) {
+            lastError = new Error(`Tempo esgotado no modelo ${model}`);
+            break;
+          }
+          if (error.name === "AbortError" || error.streamError) throw error;
+          lastError = error;
+          if (error.status && error.status !== 404 && error.status !== 405) break; // erro real: tenta próximo modelo da cadeia
+        } finally {
+          clearInterval(watchdog);
         }
-        return await readStream(response, attempt.flavor, onDelta);
-      } catch (error) {
-        if (error.name === "AbortError" || error.streamError) throw error;
-        lastError = error;
-        if (error.status && error.status !== 404 && error.status !== 405) throw error;
       }
+      // esgotou endpoints deste modelo -> próximo modelo
     }
     throw lastError;
+  }
+
+  function chatSystemPrompt() {
+    return state.contextSummary
+      ? `${SYSTEM_PROMPT}\n\nContexto resumido da conversa anterior (use como memória; não repita ao usuário):\n${state.contextSummary}`
+      : SYSTEM_PROMPT;
   }
 
   async function sendChat(text) {
@@ -966,20 +1105,88 @@
     persistMessage("user", content);
     const bubble = addBubble("assistant", "…");
     state.streaming = true;
+    state.lastModelUsed = "";
     $("send").textContent = "Parar";
     try {
-      const messages = [{ role: "system", content: SYSTEM_PROMPT }, ...state.messages.slice(-12)];
+      const messages = [{ role: "system", content: chatSystemPrompt() }, ...state.messages.slice(-12)];
       const answer = await streamChat(messages, (partial) => { bubble.textContent = partial; });
       const finalText = answer || "(sem resposta)";
       bubble.textContent = finalText;
       state.messages.push({ role: "assistant", content: finalText });
       persistMessage("assistant", finalText);
+      if (state.lastModelUsed && state.lastModelUsed !== state.settings.model) {
+        toast(`Respondido por ${state.lastModelUsed} (fallback)`);
+      }
       if (state.settings.speak) speak(finalText);
     } catch (error) {
       const message = error.name === "AbortError" ? "Geração interrompida." : (error.message || "Falha no chat");
       const partial = bubble.textContent && bubble.textContent !== "…" ? bubble.textContent : "";
       bubble.textContent = partial ? `${partial}\n\n${message}` : message;
       addBubble("system", message);
+    } finally {
+      state.streaming = false;
+      state.chatAbort = null;
+      $("send").textContent = "Enviar";
+    }
+  }
+
+  async function runChatTask(promptText, outBubble) {
+    const messages = [{ role: "system", content: chatSystemPrompt() }, { role: "user", content: promptText }];
+    return await streamChat(messages, (partial) => { outBubble.textContent = partial; });
+  }
+
+  async function summarizeChat() {
+    if (state.streaming) return toast("Aguarde a resposta atual terminar");
+    if (state.messages.length < 2) return toast("Conversa curta demais para resumir");
+    state.streaming = true;
+    $("send").textContent = "Parar";
+    const bubble = addBubble("assistant", "📝 Resumindo…");
+    try {
+      const transcript = state.messages.slice(-40).map((m) => `${m.role === "user" ? "Usuário" : "Assistente"}: ${m.content}`).join("\n");
+      const summary = await runChatTask(
+        "Resuma esta conversa em português, em tópicos curtos, preservando decisões, comandos, IDs e contexto importante:\n\n" + transcript,
+        bubble,
+      );
+      bubble.textContent = summary || "(sem resumo)";
+      toast("Resumo gerado");
+    } catch (error) {
+      const msg = error.name === "AbortError" ? "Resumo interrompido." : (error.message || "Falha ao resumir");
+      bubble.textContent = msg;
+      toast(msg);
+    } finally {
+      state.streaming = false;
+      state.chatAbort = null;
+      $("send").textContent = "Enviar";
+    }
+  }
+
+  async function compactChat() {
+    if (state.streaming) return toast("Aguarde a resposta atual terminar");
+    if (state.messages.length < 2) return toast("Conversa curta demais para compactar");
+    state.streaming = true;
+    $("send").textContent = "Parar";
+    const bubble = addBubble("assistant", "🆕 Compactando contexto…");
+    try {
+      const transcript = state.messages.slice(-60).map((m) => `${m.role === "user" ? "Usuário" : "Assistente"}: ${m.content}`).join("\n");
+      const summary = await runChatTask(
+        "Compacte esta conversa em um CONTEXTO DE MEMÓRIA curto (português). Preserve: objetivo, decisões, arquivos/comandos/IDs citados, pendências. Sem saudação.\n\n" + transcript,
+        bubble,
+      );
+      const finalSummary = (summary || "").trim();
+      if (!finalSummary) throw new Error("Resumo vazio");
+      await saveChatMemory("🧠 Contexto compactado — " + new Date().toLocaleString("pt-BR"), finalSummary);
+      state.contextSummary = finalSummary;
+      state.messages = [];
+      state.conversas[conversaKey()] = null;
+      $("messages").replaceChildren();
+      addBubble("system", "Contexto compactado salvo na memória. Novo chat iniciado com o resumo como contexto.");
+      addBubble("assistant", "Pronto. Continue daqui — estou usando o contexto compactado.");
+      toast("Chat compactado com memória de contexto");
+      showTab("chat");
+    } catch (error) {
+      const msg = error.name === "AbortError" ? "Compactação interrompida." : (error.message || "Falha ao compactar");
+      bubble.textContent = msg;
+      toast(msg);
     } finally {
       state.streaming = false;
       state.chatAbort = null;
@@ -1683,6 +1890,8 @@
     };
     $("send").addEventListener("click", onChatSend);
     $("chat-form").addEventListener("submit", onChatSend);
+    if ($("chat-summarize")) $("chat-summarize").addEventListener("click", summarizeChat);
+    if ($("chat-compact")) $("chat-compact").addEventListener("click", compactChat);
     $("chat-input").addEventListener("keydown", (event) => {
       if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
       event.preventDefault();
@@ -1694,6 +1903,14 @@
     }, true);
     $("model").addEventListener("change", () => {
       state.settings.model = $("model").value;
+      saveSettings();
+    });
+    if ($("model-fallback-1")) $("model-fallback-1").addEventListener("change", () => {
+      state.settings.modelFallback1 = $("model-fallback-1").value;
+      saveSettings();
+    });
+    if ($("model-fallback-2")) $("model-fallback-2").addEventListener("change", () => {
+      state.settings.modelFallback2 = $("model-fallback-2").value;
       saveSettings();
     });
     $("speak").addEventListener("change", () => {

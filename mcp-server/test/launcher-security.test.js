@@ -131,7 +131,7 @@ test("arquivos estáticos da raiz respondem com o mime certo", async (t) => {
     "/icon-192.png": "image/png",
     "/icon-512.png": "image/png",
     "/favicon.png": "image/png",
-    "/logo-mestre-v7-transparent.png": "image/png",
+    "/logo-mestre-transparent.png": "image/png",
     "/rede-dashboard.js": "text/javascript; charset=utf-8",
     "/chat/chat-styles.css": "text/css; charset=utf-8",
   };

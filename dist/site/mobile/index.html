@@ -81,10 +81,22 @@
         <p id="chat-meta" class="hint">Conectando ao chat do Mestre…</p>
         <div class="model-row">
           <label class="grow">Modelo
-            <select id="model"></select>
+            <select id="model" aria-label="Modelo principal"></select>
           </label>
           <label class="check"><input id="speak" type="checkbox" /> Falar</label>
           <label class="check"><input id="auto-send" type="checkbox" /> Enviar ao ditar</label>
+        </div>
+        <div class="model-fallbacks" aria-label="Modelos de fallback">
+          <label class="grow">Fallback 1
+            <select id="model-fallback-1" aria-label="Segundo modelo em caso de erro"><option value="">— nenhum —</option></select>
+          </label>
+          <label class="grow">Fallback 2
+            <select id="model-fallback-2" aria-label="Terceiro modelo em caso de erro"><option value="">— nenhum —</option></select>
+          </label>
+        </div>
+        <div class="chat-actions" role="toolbar" aria-label="Ações do chat">
+          <button type="button" id="chat-summarize" class="chip-action">📝 Resumir</button>
+          <button type="button" id="chat-compact" class="chip-action" title="Resume o contexto, salva memória e inicia chat novo">🆕 Compactar</button>
         </div>
         <div id="messages" class="messages" aria-live="polite"></div>
         <form id="chat-form" class="composer">

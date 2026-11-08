@@ -12,7 +12,7 @@
 import { checkPromptInjection, sanitizeToolArgument } from "../../mcp-server/security.js";
 import { auditLog, queryAuditLog, exportAuditReport, AuditLevel } from "../../mcp-server/audit-logger.js";
 import { searchWeb, fetchWebPage, isGovBrDomain } from "./web-search.js";
-import { callGrokBotTool, callGrokRouterChat } from "./grokbot-bridge.js";
+import { callGrokBotTool, callGrokRouterChat, isRouter9Model, DEFAULT_GROK_MODEL } from "./grokbot-bridge.js";
 import { refreshLocalMcpTokenFromFile } from "../../mcp-server/auth/local-token.js";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";

@@ -22,7 +22,7 @@
 ./icon.ico
 ./install.ps1
 ./install.sh
-./logo-mestre-v7-transparent.png
+./logo-mestre-transparent.png
 ./mcp-server/README.md
 ./mcp-server/index.js
 ./mcp-server/package-lock.json

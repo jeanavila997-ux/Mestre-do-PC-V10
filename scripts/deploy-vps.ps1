@@ -90,7 +90,7 @@ foreach ($item in @(
     "LICENSE",
     "icon.ico",
     "favicon.png",
-    "logo-mestre-v7-transparent.png",
+    "logo-mestre-transparent.png",
     "INSTALAR.bat"
 )) {
     Copy-Tree $item

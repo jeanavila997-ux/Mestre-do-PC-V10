@@ -96,6 +96,13 @@ function generateMemoryId() {
  * @returns {object} Memória criada
  */
 export async function createMemory(type, title, content, metadata = {}) {
+  if (typeof type === "object" && type !== null) {
+    const opts = type;
+    type = opts.type;
+    content = opts.content || opts.text || "";
+    title = opts.title || (content ? content.slice(0, 50) : "Sem título");
+    metadata = { tags: opts.tags || [], source: opts.source || "chat", ...(opts.metadata || {}) };
+  }
   const data = await loadMemoriesFile();
   
   const memory = {

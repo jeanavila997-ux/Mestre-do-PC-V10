@@ -40,7 +40,9 @@ Write-Host "✅ Processos antigos encerrados." -ForegroundColor Green
 
 # Inicia o novo launcher (Node.js)
 Write-Host "🚀 Iniciando novo launcher (Node.js)..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -Command `"cd '$PSScriptRoot\v10'; npm start`""
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$v10Dir = Join-Path $projectRoot "v10"
+Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -Command `"cd '$v10Dir'; npm start`""
 
 Start-Sleep -Seconds 3
 
@@ -66,5 +68,5 @@ while ($checking -and $attempts -lt $maxAttempts) {
 
 if ($checking) {
     Write-Host "❌ Launcher não respondeu após $maxAttempts tentativas." -ForegroundColor Red
-    Write-Host "📝 Verifique os logs em: C:\Users\Jeanc\Mestre-do-PC-V10-clean\v10\" -ForegroundColor Yellow
+    Write-Host "📝 Verifique os logs em: $v10Dir\" -ForegroundColor Yellow
 }

@@ -170,8 +170,8 @@ function build() {
   ]) {
     copyRequiredFile(relativePath);
   }
-  if (fs.existsSync(path.join(baseDir, 'logo-mestre-v7-transparent.png'))) {
-    copyRequiredFile('logo-mestre-v7-transparent.png', 'logo.png');
+  if (fs.existsSync(path.join(baseDir, 'logo-mestre-transparent.png'))) {
+    copyRequiredFile('logo-mestre-transparent.png', 'logo.png');
   }
 
   copyRequiredFile('scripts/Register-MestreTask.ps1');
@@ -210,8 +210,8 @@ function build() {
     fs.rmSync(path.join(siteDir, generatedName), { force: true });
   }
   fs.copyFileSync(requirePath('icon.ico'), path.join(siteDir, 'icon.ico'));
-  if (fs.existsSync(path.join(baseDir, 'logo-mestre-v7-transparent.png'))) {
-    fs.copyFileSync(path.join(baseDir, 'logo-mestre-v7-transparent.png'), path.join(siteDir, 'logo.png'));
+  if (fs.existsSync(path.join(baseDir, 'logo-mestre-transparent.png'))) {
+    fs.copyFileSync(path.join(baseDir, 'logo-mestre-transparent.png'), path.join(siteDir, 'logo.png'));
   }
   if (fs.existsSync(path.join(baseDir, 'favicon.png'))) {
     fs.copyFileSync(path.join(baseDir, 'favicon.png'), path.join(siteDir, 'favicon.png'));
