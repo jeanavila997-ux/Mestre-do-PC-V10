@@ -14,7 +14,7 @@ test("script inline da V10 compila e inicializa regras antes da renderizacao", a
   assert.doesNotThrow(() => new Function(inlineScripts[0][1]));
 
   const declaration = html.indexOf("const DANGER_PATTERNS");
-  const firstUse = html.indexOf("const danger = isDangerous");
+  const firstUse = html.indexOf("isDangerous(cmd[1])");
   assert.ok(declaration >= 0 && firstUse >= 0 && declaration < firstUse);
   assert.match(html, /Stop-Computer\|Restart-Computer\|logoff/);
   assert.match(html, /SetSuspendState/);
@@ -23,10 +23,14 @@ test("script inline da V10 compila e inicializa regras antes da renderizacao", a
 
 test("V10 usa caminho de projeto do ambiente e cabeçalho privilegiado", async () => {
   const html = await readFile(join(root, "v10", "index.html"), "utf8");
-  assert.match(html, /\$env:MESTRE_PROJETO_PATH/);
+  // Desde o #60 os comandos ficam no catálogo (/operations), não no index.html.
+  const catalog = await readFile(join(root, "v10", "allowed-operations.json"), "utf8");
+  assert.match(catalog, /\$env:MESTRE_PROJETO_PATH/);
   assert.match(html, /"X-Mestre-Client": "v10-web"/);
-  assert.doesNotMatch(html, /C:\\\\MestreDoPC_V7/);
-  assert.doesNotMatch(html, /C:\\\\Users\\\\Jeanc\\\\MestreDoPC_V7/);
+  for (const src of [html, catalog]) {
+    assert.doesNotMatch(src, /C:\\\\MestreDoPC_V7/);
+    assert.doesNotMatch(src, /C:\\\\Users\\\\Jeanc\\\\MestreDoPC_V7/);
+  }
 });
 
 test("V10 exibe status do perfil de modelo na interface", async () => {

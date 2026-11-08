@@ -25,9 +25,10 @@ test("catálogo inclui llama.cpp e provedores extras", () => {
 test("script e menu de agentes CLI existem", async () => {
   assert.equal(existsSync(join(root, "scripts", "cli-agents.ps1")), true);
   const html = await readFile(join(root, "v10", "index.html"), "utf8");
-  assert.match(html, /id: "cat_agentes_cli"/);
   assert.match(html, /openAgent\('opencode'\)/);
   const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
+  // Desde o #60 a categoria vem do catálogo (/operations), não do index.html.
+  assert.ok(catalog.operations.some((o) => o.category === "Agentes CLI"), "categoria Agentes CLI ausente");
   const ids = catalog.operations.map((o) => o.id);
   for (const id of ["cli_agentes_status", "cli_agentes_instalar_opencode", "cli_agentes_abrir_opencode"]) {
     assert.ok(ids.includes(id), id);

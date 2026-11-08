@@ -63,10 +63,13 @@ test("catálogo tem sessão Navegador com os 12 comandos novos", async () => {
   assert.equal(byId.get("browser_fechar_abas_descartaveis").destructive, true);
 });
 
-test("index.html declara cat_browser e os -Action do script", async () => {
-  const html = await readFile(join(root, "v10", "index.html"), "utf8");
-  assert.match(html, /id: "cat_browser"/);
-  assert.match(html, /19\. Navegador \/ DevTools/);
+// Desde o #60 a home renderiza o catálogo a partir de /operations
+// (v10/allowed-operations.json); as categorias não ficam mais no index.html.
+test("catálogo declara a categoria Navegador e os -Action do script", async () => {
+  const catalog = JSON.parse(await readFile(join(root, "v10", "allowed-operations.json"), "utf8"));
+  const ops = catalog.operations.filter((o) => o.category === "Navegador");
+  assert.ok(ops.length > 0, "categoria Navegador ausente do catálogo");
+  const html = ops.map((o) => o.command).join("\n");
   for (const action of [
     "speedtest-mini",
     "open-speedtest",
