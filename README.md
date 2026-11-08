@@ -98,6 +98,20 @@ Use `npm run test:cli` para validar somente a MESTRE EXTENSSAO.
 
 ---
 
+## OpenCode Go no chat
+
+O chat integrado pode usar o [OpenCode Go](https://opencode.ai/v2/docs/console/go/) (assinatura v2) como provedor. A chamada fica no launcher, no mesmo cliente HTTP dos outros provedores compatíveis com OpenAI: `POST {base}/chat/completions` com `Authorization: Bearer`.
+
+Copie as variáveis para `.env.local` (nunca commite a chave):
+
+| Variável | Função |
+|---|---|
+| `OPENCODE_GO_API_KEY` | Chave do console (`oc_sk_…`). Sem ela o provedor fica **não configurado**. |
+| `OPENCODE_GO_BASE_URL` | Opcional. Padrão: `https://opencode.ai/inference/go/openai/v1`. |
+| `OPENCODE_GO_MODEL` | Opcional. Padrão: `kimi-k2.7-code`. |
+
+No chat, abra o seletor de modelo e escolha **OpenCode Go**. A página **Configurar API** (`/chaves-api.html`) mostra o mesmo estado. O Go exige o header `x-opencode-session`; o launcher envia um id estável por conversa.
+
 ## 🛡️ Segurança e Whitelist
 
 O launcher executa exclusivamente comandos cadastrados na whitelist em [`v10/allowed-operations.json`](v10/allowed-operations.json).

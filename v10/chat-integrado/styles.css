@@ -1212,3 +1212,9 @@ body.sidebar-collapsed .main { margin-left: 0 }
 .models-menu .menu-item:focus-visible, .models-menu .menu-item.kbd { background: var(--hover-bg); color: var(--accent); }
 .models-menu .menu-item[aria-disabled="true"] { opacity: .5; pointer-events: none; }
 .models-menu .models-empty { padding: 12px; font-size: 12px; color: var(--text-muted); }
+.models-menu .models-section {
+  margin: 6px -6px 4px; padding: 10px 12px 8px;
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+.models-menu .menu-item.unavailable { opacity: .72; }

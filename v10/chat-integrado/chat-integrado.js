@@ -99,6 +99,8 @@ const state = {
   perfis: [],
   perfilAtivo: "balanced",
   modeloAtivo: "",
+  provedorAtivo: "",
+  opencodeGo: null,
   isWaiting: false,
   voiceRecognition: null,
   abortController: null,
@@ -684,17 +686,29 @@ async function streamOllamaReply(userText) {
     ),
   ];
 
-  const body = {
-    model: state.modeloAtivo || "qwen2.5-coder:3b-instruct",
-    messages,
-    stream: true,
-    options: state.profileOptions || undefined,
-  };
+  const useOpenCodeGo = state.provedorAtivo === "opencode-go";
+  if (useOpenCodeGo && !state.opencodeGo?.hasKey) {
+    throw new Error("OpenCode Go não configurado. Defina OPENCODE_GO_API_KEY.");
+  }
+  const body = useOpenCodeGo
+    ? {
+        provider: "opencode-go",
+        model: state.opencodeGo?.model || state.modeloAtivo,
+        messages,
+        stream: true,
+        sessionId: state.conversaId || "",
+      }
+    : {
+        model: state.modeloAtivo || "qwen2.5-coder:3b-instruct",
+        messages,
+        stream: true,
+        options: state.profileOptions || undefined,
+      };
 
   state.abortController = new AbortController();
   const signal = state.abortController.signal;
 
-  const resp = await fetch(BASE + "/ollama/chat", {
+  const resp = await fetch(BASE + (useOpenCodeGo ? "/providers/chat" : "/ollama/chat"), {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
     body: JSON.stringify(body),
@@ -703,7 +717,12 @@ async function streamOllamaReply(userText) {
 
   if (!resp.ok) {
     const errText = await resp.text();
-    throw new Error(`Ollama HTTP ${resp.status}: ${errText.slice(0, 200)}`);
+    let message = errText.slice(0, 200);
+    try {
+      const parsed = JSON.parse(errText);
+      if (parsed?.error) message = String(parsed.error);
+    } catch { /* corpo não-JSON */ }
+    throw new Error(useOpenCodeGo ? message : `Ollama HTTP ${resp.status}: ${message}`);
   }
 
   const reader = resp.body.getReader();
@@ -722,6 +741,13 @@ async function streamOllamaReply(userText) {
       for (const line of lines) {
         if (!line.trim()) continue;
         try {
+          if (useOpenCodeGo) {
+            const delta = readOpenAiDelta(line);
+            if (!delta) continue;
+            fullText += delta;
+            updateStreamingMessage(fullText);
+            continue;
+          }
           const chunk = JSON.parse(line);
           if (chunk.message?.content) {
             fullText += chunk.message.content;
@@ -742,6 +768,16 @@ async function streamOllamaReply(userText) {
   }
 
   return fullText;
+}
+
+function readOpenAiDelta(line) {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("data:")) return "";
+  const payload = trimmed.slice(5).trim();
+  if (!payload || payload === "[DONE]") return "";
+  const parsed = JSON.parse(payload);
+  const delta = parsed.choices?.[0]?.delta?.content;
+  return typeof delta === "string" ? delta : "";
 }
 
 function stopStreaming() {
@@ -1378,6 +1414,15 @@ async function addMemoria() {
 
 // ── Profiles ────────────────────────────────────────────────────────
 
+async function loadChatProviders() {
+  try {
+    const data = await apiGet("/providers");
+    state.opencodeGo = (data.providers || []).find((p) => p.id === "opencode-go") || null;
+  } catch {
+    state.opencodeGo = null;
+  }
+}
+
 async function loadProfiles() {
   try {
     const data = await apiGet("/api/profiles");
@@ -1386,10 +1431,17 @@ async function loadProfiles() {
     state.modeloAtivo = data.modelo_local || data.modelo_ativo || "";
     state.profileOptions = data.opcoes || {};
     try { const salvo = localStorage.getItem("mestre.perfilAtivo"); const sp = salvo && state.perfis.find(x => x.id === salvo); if (sp && sp.id !== state.perfilAtivo) { state.perfilAtivo = sp.id; if (sp.model) state.modeloAtivo = sp.model; } } catch {}
-    renderProfilesMenu();
-    updateModelBadge();
-    await ensureModel();
   } catch { /* launcher pode estar reiniciando */ }
+  await loadChatProviders();
+  try {
+    if (localStorage.getItem("mestre.provedorAtivo") === "opencode-go" && state.opencodeGo) {
+      state.provedorAtivo = "opencode-go";
+      if (state.opencodeGo.model) state.modeloAtivo = state.opencodeGo.model;
+    }
+  } catch {}
+  renderProfilesMenu();
+  updateModelBadge();
+  try { await ensureModel(); } catch { /* ollama pode estar offline */ }
 }
 
 function renderProfilesMenu() {
@@ -1405,10 +1457,9 @@ function renderProfilesMenu() {
     empty.className = "models-empty";
     empty.textContent = "Nenhum perfil disponível (Ollama offline?)";
     menu.appendChild(empty);
-    return;
   }
-  for (const p of state.perfis) {
-    const ativo = p.id === state.perfilAtivo;
+  for (const p of state.perfis || []) {
+    const ativo = state.provedorAtivo !== "opencode-go" && p.id === state.perfilAtivo;
     const item = document.createElement("div");
     item.className = "menu-item" + (ativo ? " selected" : "");
     item.setAttribute("role", "option");
@@ -1423,6 +1474,50 @@ function renderProfilesMenu() {
     item.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); activateProfile(p, item); } });
     menu.appendChild(item);
   }
+  appendOpenCodeGo(menu);
+}
+
+function tell(message) {
+  if (typeof showToast === "function") showToast(message);
+  else alert(message);
+}
+
+function appendOpenCodeGo(menu) {
+  const go = state.opencodeGo;
+  if (!go) return;
+  const title = document.createElement("div");
+  title.className = "models-section";
+  title.textContent = "Provedores";
+  menu.appendChild(title);
+  const configured = !!go.hasKey;
+  const ativo = state.provedorAtivo === "opencode-go";
+  const item = document.createElement("div");
+  item.className = "menu-item" + (ativo ? " selected" : "") + (configured ? "" : " unavailable");
+  item.setAttribute("role", "option");
+  item.setAttribute("aria-selected", String(ativo));
+  item.tabIndex = -1;
+  item.dataset.id = "opencode-go";
+  const check = document.createElement("span"); check.className = "mi-check"; check.textContent = ativo ? "✓" : "";
+  const label = document.createElement("span"); label.className = "mi-label"; label.textContent = go.name || "OpenCode Go";
+  const model = document.createElement("small");
+  model.textContent = configured ? (go.model || "") : "não configurado";
+  model.title = configured ? "OPENCODE_GO_MODEL" : "Defina OPENCODE_GO_API_KEY";
+  item.append(check, label, model);
+  const choose = () => {
+    if (!configured) {
+      tell("OpenCode Go não configurado. Defina OPENCODE_GO_API_KEY no .env.local.");
+      return;
+    }
+    state.provedorAtivo = "opencode-go";
+    state.modeloAtivo = go.model || "";
+    try { localStorage.setItem("mestre.provedorAtivo", "opencode-go"); } catch {}
+    updateModelBadge();
+    closeModelsMenu();
+    renderProfilesMenu();
+  };
+  item.addEventListener("click", choose);
+  item.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); choose(); } });
+  menu.appendChild(item);
 }
 
 async function activateProfile(p, item) {
@@ -1433,9 +1528,10 @@ async function activateProfile(p, item) {
     const result = await apiPost("/api/profiles/activate", { perfil: p.id });
     if (!result || result.error || !result.modelo) throw new Error(result?.error || "Falha ao ativar perfil");
     state.perfilAtivo = p.id;
+    state.provedorAtivo = "";
     state.modeloAtivo = result.modelo;
     if (result.opcoes) state.profileOptions = result.opcoes;
-    try { localStorage.setItem("mestre.perfilAtivo", p.id); } catch {}
+    try { localStorage.setItem("mestre.perfilAtivo", p.id); localStorage.removeItem("mestre.provedorAtivo"); } catch {}
     updateModelBadge();
     closeModelsMenu();
   } catch (err) {
@@ -1466,6 +1562,10 @@ function positionModelsMenu() {
 function openModelsMenu() {
   const menu = $("modelsMenu");
   closeAllMenus();
+  loadChatProviders().finally(() => {
+    renderProfilesMenu();
+    updateModelBadge();
+  });
   renderProfilesMenu();
   menu.classList.add("show");
   positionModelsMenu();
@@ -1494,6 +1594,12 @@ function closeModelsMenu() {
 function updateModelBadge() {
   const badge = $("btnModelSelect");
   const span = badge.querySelector("span");
+  if (state.provedorAtivo === "opencode-go" && state.opencodeGo) {
+    const nome = state.opencodeGo.name || "OpenCode Go";
+    span.textContent = state.opencodeGo.hasKey ? `🔀 ${nome}` : `🔀 ${nome} · não configurado`;
+    document.body.dataset.modelo = state.opencodeGo.model || "";
+    return;
+  }
   if (state.perfilAtivo && state.perfis.length) {
     const p = state.perfis.find(x => x.id === state.perfilAtivo);
     span.textContent = `🔀 ${p?.label || state.perfilAtivo}`;

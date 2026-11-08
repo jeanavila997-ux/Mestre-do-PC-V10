@@ -1,11 +1,14 @@
 // Mestre do PC V11 — Camada única de provedores de IA
 // Ativos: grok (xAI), 9router. Fallback local: ollama. Demais: "em breve".
+import { randomBytes } from "node:crypto";
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = process.env.MPC_PROVIDERS_FILE || join(__dirname, "..", "data", "providers.json");
+const OPENCODE_GO_BASE = "https://opencode.ai/inference/go/openai/v1";
+const PROCESS_SESSION = "ses_mestre_" + randomBytes(8).toString("hex");
 
 export const CATALOG = {
   grok:      { name: "Grok (xAI)",      type: "openai",     baseUrl: "https://api.x.ai/v1",           model: "grok-4.7",                   envKey: "XAI_API_KEY",        implemented: true },
@@ -14,6 +17,19 @@ export const CATALOG = {
   llamacpp:  { name: "llama.cpp",        type: "openai",     baseUrl: "http://127.0.0.1:8080/v1",      model: "",                         envKey: null,                 implemented: true, local: true },
   lmstudio:  { name: "LM Studio",        type: "openai",     baseUrl: "http://127.0.0.1:1234/v1",      model: "",                         envKey: null,                 implemented: true, local: true },
   opencode:  { name: "OpenCode (Zen)",   type: "openai",     baseUrl: "https://opencode.ai/zen/v1",    model: "",                         envKey: "OPENCODE_API_KEY",   implemented: true },
+  "opencode-go": {
+    name: "OpenCode Go",
+    type: "openai",
+    baseUrl: OPENCODE_GO_BASE,
+    model: "kimi-k2.7-code",
+    envKey: "OPENCODE_GO_API_KEY",
+    envBaseUrl: "OPENCODE_GO_BASE_URL",
+    envModel: "OPENCODE_GO_MODEL",
+    modelsUrl: "https://opencode.ai/inference/go/v1/models",
+    userAgent: "MestreDoPC/11.2.1",
+    sessionHeader: "x-opencode-session",
+    implemented: true,
+  },
   openai:    { name: "OpenAI",           type: "openai",     baseUrl: "https://api.openai.com/v1",     model: "gpt-4o-mini",              envKey: "OPENAI_API_KEY",     implemented: true },
   claude:    { name: "Claude / Claude Code", type: "anthropic", baseUrl: "https://api.anthropic.com/v1", model: "claude-sonnet-4",       envKey: "ANTHROPIC_API_KEY",  implemented: true },
   gemini:    { name: "Gemini",           type: "openai",     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.5-flash", envKey: "GEMINI_API_KEY", implemented: true },
@@ -36,19 +52,67 @@ export function mask(key) {
   return key.length <= 8 ? "••••" : key.slice(0, 4) + "••••" + key.slice(-4);
 }
 
+function httpBase(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  let url;
+  try { url = new URL(raw); } catch { return ""; }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+  return url.toString().replace(/\/+$/, "");
+}
+
+function normalizeOpenCodeGoBase(url) {
+  const trimmed = String(url || "").replace(/\/+$/, "");
+  if (trimmed === "https://opencode.ai/inference/go") return OPENCODE_GO_BASE;
+  return trimmed;
+}
+
+function envText(name, max = 128) {
+  const value = String(process.env[name] || "").trim();
+  if (!value || value.length > max || /[\r\n]/.test(value)) return "";
+  return value;
+}
+
+function sessionValue(raw) {
+  const cleaned = String(raw || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 120);
+  if (!cleaned) return PROCESS_SESSION;
+  return cleaned.startsWith("ses_") ? cleaned : "ses_" + cleaned;
+}
+
+export function notConfiguredMessage(p) {
+  return p.envKey
+    ? `${p.name} não configurado. Defina ${p.envKey}.`
+    : `${p.name} não configurado.`;
+}
+
 export function getProvider(id) {
   const base = CATALOG[id];
   if (!base) return null;
   const saved = (load().providers || {})[id] || {};
   const apiKey = saved.apiKey || (base.envKey ? process.env[base.envKey] || "" : "");
+  const envBase = base.envBaseUrl ? httpBase(process.env[base.envBaseUrl]) : "";
+  let baseUrl = saved.baseUrl || envBase || base.baseUrl;
+  if (id === "opencode-go") baseUrl = normalizeOpenCodeGoBase(baseUrl);
+  const model = saved.model || (base.envModel ? envText(base.envModel) : "") || base.model;
+  const needsKey = !base.local && base.type !== "ollama" && base.type !== "firecrawl";
   return {
     id, ...base,
-    baseUrl: saved.baseUrl || base.baseUrl,
-    model: saved.model || base.model,
+    baseUrl,
+    model,
     enabled: saved.enabled ?? (!!base.local || !!apiKey),
     apiKey,
     local: !!base.local,
+    needsKey,
+    configured: !needsKey || !!apiKey,
   };
+}
+
+function assertReady(id) {
+  const p = getProvider(id);
+  if (!p) throw new Error("Provedor desconhecido: " + id);
+  if (!p.implemented) throw new Error(p.name + ": em breve");
+  if (p.needsKey && !p.apiKey) throw new Error(notConfiguredMessage(p));
+  return p;
 }
 
 export function listProviders() {
@@ -59,7 +123,8 @@ export function listProviders() {
       const p = getProvider(id);
       return { id, name: p.name, implemented: p.implemented, enabled: p.enabled, baseUrl: p.baseUrl,
                model: p.model, hasKey: !!p.apiKey, keyMasked: mask(p.apiKey), envKey: p.envKey,
-               local: !!p.local, needsKey: !p.local && p.type !== "ollama" && p.type !== "firecrawl" };
+               local: !!p.local, needsKey: p.needsKey, configured: p.configured,
+               status: p.configured ? "configured" : "not_configured" };
     }),
   };
 }
@@ -85,11 +150,22 @@ export function setDefault(id) {
   const data = load(); data.defaultProvider = id; save(data); return listProviders();
 }
 
-function headers(p) {
+function headers(p, sessionId) {
   const h = { "Content-Type": "application/json" };
   if (p.type === "anthropic") { if (p.apiKey) h["x-api-key"] = p.apiKey; h["anthropic-version"] = "2023-06-01"; }
   else if (p.apiKey) h.Authorization = "Bearer " + p.apiKey;
+  if (p.userAgent) h["User-Agent"] = p.userAgent;
+  if (p.sessionHeader) h[p.sessionHeader] = sessionValue(sessionId);
   return h;
+}
+
+function modelsEndpoint(p) {
+  const base = String(p.baseUrl || "").replace(/\/+$/, "");
+  const catalogBase = p.id === "opencode-go"
+    ? normalizeOpenCodeGoBase(CATALOG[p.id]?.baseUrl || "")
+    : String(CATALOG[p.id]?.baseUrl || "").replace(/\/+$/, "");
+  if (p.modelsUrl && base === catalogBase) return p.modelsUrl;
+  return base + "/models";
 }
 
 export async function listModels(id) {
@@ -108,9 +184,11 @@ export async function listModels(id) {
     if (!r.ok) throw new Error("HTTP " + r.status);
     return ((await r.json()).models || []).map((m) => m.name);
   }
-  const r = await fetch(p.baseUrl + "/models", { headers: headers(p), signal: AbortSignal.timeout(10000) });
+  if (p.needsKey && !p.apiKey) throw new Error(notConfiguredMessage(p));
+  const r = await fetch(modelsEndpoint(p), { headers: headers(p), signal: AbortSignal.timeout(10000) });
   if (!r.ok) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
-  return ((await r.json()).data || []).map((m) => m.id);
+  const body = await r.json();
+  return (body.data || body.models || []).map((m) => m.id || m.name).filter(Boolean);
 }
 
 export async function testProvider(id) {
@@ -124,8 +202,9 @@ export async function testProvider(id) {
 }
 
 // Chat não-streaming. messages = [{role, content}]
-export async function chat(messages, { provider, model, temperature } = {}) {
-  const order = [provider || listProviders().defaultProvider, "grok", "9router", "openai", "gemini", "claude", "opencode", "groq", "mistral", "deepseek", "openrouter", "llamacpp", "lmstudio", "ollama"]
+export async function chat(messages, { provider, model, temperature, sessionId } = {}) {
+  if (provider) assertReady(provider);
+  const order = [provider || listProviders().defaultProvider, "grok", "9router", "openai", "gemini", "claude", "opencode", "opencode-go", "groq", "mistral", "deepseek", "openrouter", "llamacpp", "lmstudio", "ollama"]
     .filter((v, i, a) => v && a.indexOf(v) === i);
   let lastErr;
   for (const id of order) {
@@ -137,7 +216,7 @@ export async function chat(messages, { provider, model, temperature } = {}) {
       if (p.type === "anthropic") {
         const sys = messages.filter((m) => m.role === "system").map((m) => m.content).join("\n");
         const msgs = messages.filter((m) => m.role !== "system");
-        const r = await fetch(p.baseUrl + "/messages", { method: "POST", headers: headers(p),
+        const r = await fetch(p.baseUrl + "/messages", { method: "POST", headers: headers(p, sessionId),
           body: JSON.stringify({ model: useModel, max_tokens: 4096, ...(sys ? { system: sys } : {}), messages: msgs }),
           signal: AbortSignal.timeout(120000) });
         if (!r.ok) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
@@ -145,13 +224,13 @@ export async function chat(messages, { provider, model, temperature } = {}) {
         return { provider: id, model: useModel, content: (j.content || []).map((c) => c.text || "").join("") };
       }
   if (p.type === "ollama") {
-        const r = await fetch(p.baseUrl + "/api/chat", { method: "POST", headers: headers(p),
+        const r = await fetch(p.baseUrl + "/api/chat", { method: "POST", headers: headers(p, sessionId),
           body: JSON.stringify({ model: useModel, messages, stream: false }), signal: AbortSignal.timeout(120000) });
         if (!r.ok) throw new Error("HTTP " + r.status);
         const j = await r.json();
         return { provider: id, model: useModel, content: j.message?.content || "" };
       }
-      const r = await fetch(p.baseUrl + "/chat/completions", { method: "POST", headers: headers(p),
+      const r = await fetch(p.baseUrl + "/chat/completions", { method: "POST", headers: headers(p, sessionId),
         body: JSON.stringify({ model: useModel, messages, temperature: temperature ?? 0.7, stream: false }),
         signal: AbortSignal.timeout(120000) });
       if (!r.ok) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
@@ -163,11 +242,11 @@ export async function chat(messages, { provider, model, temperature } = {}) {
 }
 
 // Streaming OpenAI-compatível (SSE) repassado ao cliente; Ollama usa proxy existente.
-export async function chatStream(messages, res, { provider, model } = {}) {
+export async function chatStream(messages, res, { provider, model, sessionId } = {}) {
   const id = provider || listProviders().defaultProvider;
-  const p = getProvider(id);
-  if (!p || !p.implemented || p.type !== "openai") throw new Error("Streaming disponível para provedores compatíveis com OpenAI (Grok, 9Router, llama.cpp, LM Studio, Groq, Mistral, DeepSeek, OpenRouter, OpenAI, Gemini, OpenCode)");
-  const r = await fetch(p.baseUrl + "/chat/completions", { method: "POST", headers: headers(p),
+  const p = assertReady(id);
+  if (p.type !== "openai") throw new Error("Streaming disponível para provedores compatíveis com OpenAI (Grok, 9Router, llama.cpp, LM Studio, Groq, Mistral, DeepSeek, OpenRouter, OpenAI, Gemini, OpenCode, OpenCode Go)");
+  const r = await fetch(p.baseUrl + "/chat/completions", { method: "POST", headers: headers(p, sessionId),
     body: JSON.stringify({ model: model || p.model, messages, stream: true }) });
   if (!r.ok || !r.body) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
   res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" });
