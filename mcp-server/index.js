@@ -24,6 +24,7 @@ import { isLocalMcpEnabled, refreshLocalMcpTokenFromFile } from "./auth/local-to
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MESTRE_BASE_URL = (process.env.MESTRE_BASE_URL || "http://127.0.0.1:7777").replace(/\/+$/, "");
+const MESTRE_PYTHON = process.env.MESTRE_PYTHON || "python";
 // Token local enviado ao launcher para autenticar o cliente "mcp". O launcher
 // é fail-closed: sem token, ele recusa este cliente. Se o .env.local ainda não
 // tem o token, o launcher o gera no boot; por isso relemos o arquivo a cada
@@ -2175,7 +2176,7 @@ result = {
 print(json.dumps(result, ensure_ascii=False))
 `
       const result = await new Promise((resolve, reject) => {
-        const proc = spawn("C:/Users/Jean/AppData/Local/Programs/Python/Python313/python.exe", ["-c", pythonScript, imagePath], {
+        const proc = spawn(MESTRE_PYTHON, ["-c", pythonScript, imagePath], {
           timeout: 90000,
         });
         let stdout = "", stderr = "";
@@ -2258,7 +2259,7 @@ result = {
 print(json.dumps(result, ensure_ascii=False))
 `
       const result = await new Promise((resolve, reject) => {
-        const proc = spawn("C:/Users/Jean/AppData/Local/Programs/Python/Python313/python.exe", ["-c", pythonScript, imagePath, instrucao], {
+        const proc = spawn(MESTRE_PYTHON, ["-c", pythonScript, imagePath, instrucao], {
           timeout: 90000,
         });
         let stdout = "", stderr = "";
