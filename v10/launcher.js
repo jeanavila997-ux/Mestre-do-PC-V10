@@ -701,7 +701,7 @@ const server = http.createServer(async (req, res) => {
   try {
     // ── Chaves de API & Provedores: rotas /providers* ───────────────
     if (path === "/providers" || path.startsWith("/providers/")) {
-      const handled = await handleProviderRoutes(req, res, url, { sendJson, readBody, allowedOrigin });
+      const handled = await handleProviderRoutes(req, res, url, { sendJson, readBody, allowedOrigin, isAuthorized });
       if (handled) return;
     }
 

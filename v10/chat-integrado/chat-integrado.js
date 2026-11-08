@@ -754,7 +754,10 @@ async function streamOllamaReply(userText) {
             updateStreamingMessage(fullText);
           }
           if (chunk.done) break;
-        } catch { /* linha incompleta, ignora */ }
+        } catch (err) {
+          if (err?.opencodeGo) throw err;
+          /* linha incompleta, ignora */
+        }
       }
     }
   } catch (err) {
@@ -776,6 +779,12 @@ function readOpenAiDelta(line) {
   const payload = trimmed.slice(5).trim();
   if (!payload || payload === "[DONE]") return "";
   const parsed = JSON.parse(payload);
+  const apiError = parsed.error?.message || (typeof parsed.error === "string" ? parsed.error : "");
+  if (apiError) {
+    const err = new Error(String(apiError));
+    err.opencodeGo = true;
+    throw err;
+  }
   const delta = parsed.choices?.[0]?.delta?.content;
   return typeof delta === "string" ? delta : "";
 }
@@ -1522,7 +1531,17 @@ function appendOpenCodeGo(menu) {
 
 async function activateProfile(p, item) {
   const menu = $("modelsMenu");
-  if (p.id === state.perfilAtivo) { closeModelsMenu(); return; }
+  if (p.id === state.perfilAtivo) {
+    if (state.provedorAtivo === "opencode-go") {
+      state.provedorAtivo = "";
+      if (p.model) state.modeloAtivo = p.model;
+      try { localStorage.removeItem("mestre.provedorAtivo"); } catch {}
+      updateModelBadge();
+      renderProfilesMenu();
+    }
+    closeModelsMenu();
+    return;
+  }
   menu.querySelectorAll(".menu-item").forEach(i => i.setAttribute("aria-disabled", "true"));
   try {
     const result = await apiPost("/api/profiles/activate", { perfil: p.id });

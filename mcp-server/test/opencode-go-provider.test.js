@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -139,6 +139,65 @@ test("base oficial do plano Go e URL inválida não quebram o provedor", async (
   }
 });
 
+test("base salva só aceita https em opencode.ai; a env pode apontar outro host", async () => {
+  const saved = snapshotEnv();
+  delete process.env.OPENCODE_GO_BASE_URL;
+  process.env.OPENCODE_GO_API_KEY = "oc_sk_test_placeholder";
+  const dir = mkdtempSync(join(tmpdir(), "opencode-go-base-"));
+  const file = join(dir, "providers.json");
+  process.env.MPC_PROVIDERS_FILE = file;
+  try {
+    const mod = await import(`../../v10/providers/index.js?base=${Date.now()}-${Math.random()}`);
+    assert.throws(
+      () => mod.updateProvider("opencode-go", { baseUrl: "https://evil.example/v1" }),
+      /opencode\.ai/,
+    );
+    assert.throws(
+      () => mod.updateProvider("opencode-go", { baseUrl: "http://opencode.ai/inference/go/openai/v1" }),
+      /https/,
+    );
+    assert.throws(
+      () => mod.updateProvider("opencode-go", { baseUrl: "https://opencode.ai.evil.com/v1" }),
+      /opencode\.ai/,
+    );
+    mod.updateProvider("opencode-go", { baseUrl: "https://opencode.ai/inference/go" });
+    assert.equal(mod.getProvider("opencode-go").baseUrl, DEFAULT_BASE);
+
+    writeFileSync(file, JSON.stringify({
+      providers: { "opencode-go": { baseUrl: "http://evil.example/v1" } },
+    }));
+    assert.equal(mod.getProvider("opencode-go").baseUrl, DEFAULT_BASE);
+
+    process.env.OPENCODE_GO_BASE_URL = "https://proxy.example/openai/v1";
+    assert.equal(mod.getProvider("opencode-go").baseUrl, "https://proxy.example/openai/v1");
+  } finally {
+    restoreEnv(saved);
+  }
+});
+
+test("provedor explícito não usa o próximo da fila quando a chamada falha", async () => {
+  const saved = snapshotEnv();
+  process.env.OPENCODE_GO_API_KEY = "oc_sk_test_placeholder";
+  delete process.env.OPENCODE_GO_BASE_URL;
+  const originalFetch = globalThis.fetch;
+  const urls = [];
+  globalThis.fetch = async (url) => {
+    urls.push(String(url));
+    return new Response("falhou", { status: 502 });
+  };
+  try {
+    const mod = await loadIsolated();
+    await assert.rejects(
+      () => mod.chat([{ role: "user", content: "oi" }], { provider: "opencode-go" }),
+      /opencode-go: HTTP 502/,
+    );
+    assert.deepEqual(urls, [DEFAULT_BASE + "/chat/completions"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnv(saved);
+  }
+});
+
 test("o seletor do chat e a página de chaves mostram o estado não configurado", async () => {
   const chat = await readFile(join(root, "v10", "chat-integrado", "chat-integrado.js"), "utf8");
   const page = await readFile(join(root, "v10", "chaves-api.html"), "utf8");
@@ -188,7 +247,29 @@ test("POST /providers/chat sem chave responde 400 e o launcher continua no ar", 
   t.after(() => child.kill());
   await waitForServer(base);
 
-  const listed = await fetch(base + "/providers");
+  const anon = await fetch(base + "/providers");
+  assert.equal(anon.status, 403);
+  const anonChat = await fetch(base + "/providers/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ provider: "opencode-go", messages: [{ role: "user", content: "oi" }] }),
+  });
+  assert.equal(anonChat.status, 403);
+  assert.match((await anonChat.json()).error, /não autorizado/);
+
+  const spoof = await fetch(base + "/providers/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Mestre-Client": "v10-web",
+      Origin: "https://evil.example",
+    },
+    body: JSON.stringify({ provider: "opencode-go", messages: [{ role: "user", content: "oi" }] }),
+  });
+  assert.equal(spoof.status, 403);
+
+  const headers = { "Content-Type": "application/json", "X-Mestre-Client": "v10-web", Origin: base };
+  const listed = await fetch(base + "/providers", { headers });
   assert.equal(listed.status, 200);
   const catalog = await listed.json();
   const go = catalog.providers.find((p) => p.id === "opencode-go");
@@ -197,7 +278,7 @@ test("POST /providers/chat sem chave responde 400 e o launcher continua no ar", 
 
   const res = await fetch(base + "/providers/chat", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Mestre-Client": "v10-web" },
+    headers,
     body: JSON.stringify({
       provider: "opencode-go",
       stream: true,
@@ -207,5 +288,16 @@ test("POST /providers/chat sem chave responde 400 e o launcher continua no ar", 
   assert.equal(res.status, 400);
   const body = await res.json();
   assert.match(body.error, /não configurado/);
+
+  const notText = await fetch(base + "/providers/chat", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      provider: "opencode-go",
+      messages: [{ role: "user", content: [{ type: "text", text: "oi" }] }],
+    }),
+  });
+  assert.equal(notText.status, 400);
+  assert.match((await notText.json()).error, /texto/);
   assert.equal((await fetch(base + "/ping")).ok, true);
 });

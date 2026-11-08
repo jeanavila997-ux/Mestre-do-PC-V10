@@ -5,7 +5,8 @@ import { listProviders, updateProvider, setDefault, testProvider, listModels, ch
 function blockedInjection(messages) {
   const list = Array.isArray(messages) ? messages : [];
   const lastUser = [...list].reverse().find((m) => m?.role === "user");
-  if (!lastUser || typeof lastUser.content !== "string") return null;
+  if (!lastUser) return null;
+  if (typeof lastUser.content !== "string") return { error: "Conteúdo da mensagem deve ser texto." };
   const verdict = checkPromptInjection(lastUser.content);
   if (verdict.classification !== "malicioso") return null;
   return {
@@ -21,10 +22,14 @@ function isLoopback(req) {
   return a === "127.0.0.1" || a === "::1" || a === "::ffff:127.0.0.1";
 }
 
-export async function handleProviderRoutes(req, res, url, { sendJson, readBody, allowedOrigin }) {
+export async function handleProviderRoutes(req, res, url, { sendJson, readBody, allowedOrigin, isAuthorized }) {
   const path = url.pathname;
   if (!(path === "/providers" || path.startsWith("/providers/"))) return false;
   if (!isLoopback(req)) { sendJson(res, 403, { error: "Somente localhost." }, allowedOrigin); return true; }
+  if (typeof isAuthorized !== "function" || !isAuthorized(req)) {
+    sendJson(res, 403, { error: "Cliente não autorizado." }, allowedOrigin);
+    return true;
+  }
   try {
     if (path === "/providers" && req.method === "GET") return sendJson(res, 200, listProviders(), allowedOrigin), true;
     if (path === "/providers/default" && req.method === "POST") {
@@ -48,6 +53,10 @@ export async function handleProviderRoutes(req, res, url, { sendJson, readBody, 
     }
     sendJson(res, 404, { error: "Rota não encontrada" }, allowedOrigin); return true;
   } catch (e) {
+    if (res.headersSent) {
+      try { res.end(); } catch { /* stream já iniciado */ }
+      return true;
+    }
     sendJson(res, 400, { error: e.message }, allowedOrigin); return true;
   }
 }
