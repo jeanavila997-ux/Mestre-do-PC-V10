@@ -58,7 +58,16 @@ function httpBase(value) {
   let url;
   try { url = new URL(raw); } catch { return ""; }
   if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+  if (url.username || url.password) return "";
   return url.toString().replace(/\/+$/, "");
+}
+
+function isOpenCodeAiHttps(value) {
+  let url;
+  try { url = new URL(String(value || "").trim()); } catch { return false; }
+  if (url.protocol !== "https:" || url.username || url.password) return false;
+  const host = url.hostname.toLowerCase();
+  return host === "opencode.ai" || host.endsWith(".opencode.ai");
 }
 
 function normalizeOpenCodeGoBase(url) {
@@ -92,7 +101,13 @@ export function getProvider(id) {
   const apiKey = saved.apiKey || (base.envKey ? process.env[base.envKey] || "" : "");
   const envBase = base.envBaseUrl ? httpBase(process.env[base.envBaseUrl]) : "";
   let baseUrl = saved.baseUrl || envBase || base.baseUrl;
-  if (id === "opencode-go") baseUrl = normalizeOpenCodeGoBase(baseUrl);
+  if (id === "opencode-go") {
+    // A env é o único jeito de apontar outro host. URL salva na UI só entra se for https em opencode.ai.
+    if (envBase) baseUrl = envBase;
+    else if (isOpenCodeAiHttps(saved.baseUrl)) baseUrl = saved.baseUrl;
+    else baseUrl = base.baseUrl;
+    baseUrl = normalizeOpenCodeGoBase(baseUrl);
+  }
   const model = saved.model || (base.envModel ? envText(base.envModel) : "") || base.model;
   const needsKey = !base.local && base.type !== "ollama" && base.type !== "firecrawl";
   return {
@@ -134,7 +149,14 @@ export function updateProvider(id, patch = {}) {
   const data = load();
   data.providers = data.providers || {};
   const cur = data.providers[id] || {};
-  for (const k of ["baseUrl", "model"]) if (patch[k] !== undefined) { const v = String(patch[k]).trim(); if (v) cur[k] = v; else delete cur[k]; }
+  for (const k of ["baseUrl", "model"]) if (patch[k] !== undefined) {
+    const v = String(patch[k]).trim();
+    if (!v) { delete cur[k]; continue; }
+    if (k === "baseUrl" && id === "opencode-go" && !isOpenCodeAiHttps(v)) {
+      throw new Error("Base URL do OpenCode Go deve usar https e o host opencode.ai. Para outro host, defina OPENCODE_GO_BASE_URL.");
+    }
+    cur[k] = v;
+  }
   if (patch.enabled !== undefined) cur.enabled = !!patch.enabled;
   if (patch.reset) { data.providers[id] = {}; save(data); return listProviders(); }
   if (typeof patch.apiKey === "string" && patch.apiKey && !patch.apiKey.includes("••")) cur.apiKey = patch.apiKey.trim();
@@ -204,8 +226,8 @@ export async function testProvider(id) {
 // Chat não-streaming. messages = [{role, content}]
 export async function chat(messages, { provider, model, temperature, sessionId } = {}) {
   if (provider) assertReady(provider);
-  const order = [provider || listProviders().defaultProvider, "grok", "9router", "openai", "gemini", "claude", "opencode", "opencode-go", "groq", "mistral", "deepseek", "openrouter", "llamacpp", "lmstudio", "ollama"]
-    .filter((v, i, a) => v && a.indexOf(v) === i);
+  const fallback = [listProviders().defaultProvider, "grok", "9router", "openai", "gemini", "claude", "opencode", "opencode-go", "groq", "mistral", "deepseek", "openrouter", "llamacpp", "lmstudio", "ollama"];
+  const order = (provider ? [provider] : fallback).filter((v, i, a) => v && a.indexOf(v) === i);
   let lastErr;
   for (const id of order) {
     const p = getProvider(id);
@@ -236,9 +258,9 @@ export async function chat(messages, { provider, model, temperature, sessionId }
       if (!r.ok) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
       const j = await r.json();
       return { provider: id, model: useModel, content: j.choices?.[0]?.message?.content || "" };
-    } catch (e) { lastErr = new Error(id + ": " + e.message); }
+    } catch (e) { lastErr = new Error(id + ": " + e.message); if (provider) break; }
   }
-  throw lastErr || new Error("Nenhum provedor ativo com chave configurada.");
+  throw lastErr || new Error(provider ? provider + ": provedor indisponível." : "Nenhum provedor ativo com chave configurada.");
 }
 
 // Streaming OpenAI-compatível (SSE) repassado ao cliente; Ollama usa proxy existente.
@@ -246,10 +268,29 @@ export async function chatStream(messages, res, { provider, model, sessionId } =
   const id = provider || listProviders().defaultProvider;
   const p = assertReady(id);
   if (p.type !== "openai") throw new Error("Streaming disponível para provedores compatíveis com OpenAI (Grok, 9Router, llama.cpp, LM Studio, Groq, Mistral, DeepSeek, OpenRouter, OpenAI, Gemini, OpenCode, OpenCode Go)");
-  const r = await fetch(p.baseUrl + "/chat/completions", { method: "POST", headers: headers(p, sessionId),
-    body: JSON.stringify({ model: model || p.model, messages, stream: true }) });
-  if (!r.ok || !r.body) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
-  res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" });
-  for await (const chunk of r.body) res.write(chunk);
-  res.end();
+  const clientGone = new AbortController();
+  const onClose = () => { if (!res.writableEnded) clientGone.abort(); };
+  if (typeof res.on === "function") res.on("close", onClose);
+  const signal = AbortSignal.any([AbortSignal.timeout(120000), clientGone.signal]);
+  let started = false;
+  try {
+    const r = await fetch(p.baseUrl + "/chat/completions", { method: "POST", headers: headers(p, sessionId),
+      body: JSON.stringify({ model: model || p.model, messages, stream: true }), signal });
+    if (!r.ok || !r.body) throw new Error("HTTP " + r.status + " " + (await r.text()).slice(0, 200));
+    res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "X-Content-Type-Options": "nosniff" });
+    started = true;
+    for await (const chunk of r.body) {
+      if (res.writableEnded || res.destroyed) break;
+      res.write(chunk);
+    }
+  } catch (e) {
+    if (started || res.headersSent) return;
+    if (e?.name === "AbortError" || e?.name === "TimeoutError") throw new Error("Tempo esgotado ou conexão encerrada.");
+    throw e;
+  } finally {
+    if (typeof res.off === "function") res.off("close", onClose);
+    if (started && !res.writableEnded) {
+      try { res.end(); } catch { /* cliente já encerrou */ }
+    }
+  }
 }

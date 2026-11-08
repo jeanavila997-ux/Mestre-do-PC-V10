@@ -107,7 +107,7 @@ Copie as variáveis para `.env.local` (nunca commite a chave):
 | Variável | Função |
 |---|---|
 | `OPENCODE_GO_API_KEY` | Chave do console (`oc_sk_…`). Sem ela o provedor fica **não configurado**. |
-| `OPENCODE_GO_BASE_URL` | Opcional. Padrão: `https://opencode.ai/inference/go/openai/v1`. |
+| `OPENCODE_GO_BASE_URL` | Opcional. Padrão: `https://opencode.ai/inference/go/openai/v1`. É o único jeito de apontar outro host. A URL salva na tela só é aceita em `https` com host `opencode.ai`. |
 | `OPENCODE_GO_MODEL` | Opcional. Padrão: `kimi-k2.7-code`. |
 
 No chat, abra o seletor de modelo e escolha **OpenCode Go**. A página **Configurar API** (`/chaves-api.html`) mostra o mesmo estado. O Go exige o header `x-opencode-session`; o launcher envia um id estável por conversa.
