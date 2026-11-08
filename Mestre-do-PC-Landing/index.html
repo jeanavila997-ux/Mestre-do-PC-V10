@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mestre do PC - Seu Assistente de Manutenção Windows</title>
+  <meta name="description" content="Mestre do PC V10 - A ferramenta definitiva para manutenção, otimização e diagnóstico do seu computador Windows.">
+  <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00d4ff;
+      --secondary: #00ff88;
+      --accent: #a200ff;
+      --dark: #05070a;
+      --darker: #030405;
+      --card: #0d1117;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+      --gradient-purple: linear-gradient(135deg, var(--accent), var(--primary));
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .bg-animation::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(0, 255, 136, 0.06) 0%, transparent 50%),
+                  radial-gradient(circle at 40% 40%, rgba(162, 0, 255, 0.04) 0%, transparent 40%);
+      animation: bgMove 20s ease-in-out infinite;
+    }
+
+    @keyframes bgMove {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(2%, 2%) rotate(1deg); }
+      66% { transform: translate(-1%, 1%) rotate(-1deg); }
+    }
+
+    /* Grid Pattern */
+    .grid-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: -1;
+    }
+
+    /* Particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+      50% { transform: translateY(-20px) translateX(10px); opacity: 0.6; }
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      background: rgba(5, 7, 10, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      font-size: 2rem;
+    }
+
+    .logo span {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+      position: relative;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient);
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .btn-nav {
+      padding: 10px 24px;
+      background: var(--gradient);
+      color: var(--dark) !important;
+      border-radius: 50px;
+      font-weight: 600;
+      transition: transform 0.3s, box-shadow 0.3s !important;
+    }
+
+    .btn-nav:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-nav::after {
+      display: none !important;
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 40px 80px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-content {
+      max-width: 900px;
+      animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 50px;
+      font-size: 0.9rem;
+      color: var(--primary);
+      margin-bottom: 24px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(0, 212, 255, 0); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #fff 0%, #a0a0a0 50%, #fff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero h1 .highlight {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.8;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 16px 36px;
+      border-radius: 60px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--gradient);
+      color: var(--dark);
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 40px rgba(0, 212, 255, 0.5);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-3px);
+    }
+
+    /* Hero Visual */
+    .hero-visual {
+      margin-top: 60px;
+      position: relative;
+      animation: fadeInUp 1s ease-out 0.3s backwards;
+    }
+
+    .hero-mockup {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 20px;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                  0 0 100px rgba(0, 212, 255, 0.1);
+      position: relative;
+    }
+
+    .mockup-header {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mockup-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .mockup-dot.red { background: #ff5f56; }
+    .mockup-dot.yellow { background: #ffbd2e; }
+    .mockup-dot.green { background: #27c93f; }
+
+    .mockup-content {
+      padding: 30px;
+      text-align: left;
+      background: linear-gradient(180deg, var(--card) 0%, var(--dark) 100%);
+    }
+
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .mockup-card {
+      background: rgba(0, 212, 255, 0.05);
+      border: 1px solid rgba(0, 212, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .mockup-card .icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .mockup-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .mockup-card .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .mockup-btns {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .mockup-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      color: var(--secondary);
+    }
+
+    /* Sections */
+    section {
+      padding: 100px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-header h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .section-header h2 .highlight {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 32px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient);
+      transform: scaleX(0);
+      transition: transform 0.4s;
+    }
+
+    .feature-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(0, 212, 255, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    /* How It Works */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 40px;
+      position: relative;
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+    }
+
+    .step-number {
+      width: 80px;
+      height: 80px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin: 0 auto 24px;
+      box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+    }
+
+    .step h3 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+    }
+
+    .step p {
+      color: var(--text-muted);
+    }
+
+    /* Pricing */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .pricing-card {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 24px;
+      padding: 40px;
+      text-align: center;
+      position: relative;
+      transition: all 0.4s;
+    }
+
+    .pricing-card.featured {
+      border-color: var(--primary);
+      transform: scale(1.05);
+      box-shadow: 0 0 60px rgba(0, 212, 255, 0.2);
+    }
+
+    .pricing-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .pricing-card.featured:hover {
+      transform: scale(1.05) translateY(-10px);
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gradient);
+      color: var(--dark);
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .pricing-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .pricing-card .price {
+      font-size: 3rem;
+      font-weight: 900;
+      margin: 20px 0;
+    }
+
+    .pricing-card .price span {
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .pricing-features {
+      list-style: none;
+      margin: 30px 0;
+      text-align: left;
+    }
+
+    .pricing-features li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--secondary);
+      font-weight: 700;
+    }
+
+    .pricing-card .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Testimonials */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .testimonial-card {
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 32px;
+    }
+
+    .testimonial-text {
+      font-size: 1.1rem;
+      font-style: italic;
+      margin-bottom: 24px;
+      line-height: 1.8;
+      color: var(--text);
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .testimonial-avatar {
+      width: 50px;
+      height: 50px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .testimonial-info h4 {
+      font-weight: 600;
+    }
+
+    .testimonial-info span {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(162, 0, 255, 0.1) 100%);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 40px;
+      padding: 80px 40px;
+      text-align: center;
+      margin: 60px auto;
+      max-width: 1000px;
+    }
+
+    .cta-section h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    .cta-section p {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      margin-bottom: 40px;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--darker);
+      padding: 60px 40px 30px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+    }
+
+    .footer-brand p {
+      color: var(--text-muted);
+      margin-top: 16px;
+      max-width: 300px;
+    }
+
+    .footer-links h4 {
+      font-size: 1rem;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .footer-links ul {
+      list-style: none;
+    }
+
+    .footer-links li {
+      margin-bottom: 12px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 40px auto 0;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Mobile Menu */
+    .mobile-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    .mobile-toggle span {
+      width: 24px;
+      height: 2px;
+      background: var(--text);
+      transition: all 0.3s;
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        padding: 15px 20px;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--card);
+        flex-direction: column;
+        padding: 20px;
+        gap: 16px;
+        border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .mobile-toggle {
+        display: flex;
+      }
+
+      .hero {
+        padding: 100px 20px 60px;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .hero p {
+        font-size: 1rem;
+      }
+
+      section {
+        padding: 60px 20px;
+      }
+
+      .mockup-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .footer-brand p {
+        max-width: 100%;
+      }
+
+      .pricing-card.featured {
+        transform: scale(1);
+      }
+    }
+
+    /* Scroll animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--secondary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Effects -->
+  <div class="bg-animation"></div>
+  <div class="grid-pattern"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="#" class="logo">
+      <span class="logo-icon">🛡️</span>
+      <span>Mestre do PC</span>
+    </a>
+    <div class="mobile-toggle" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="#features">Recursos</a>
+      <a href="#how-it-works">Como Funciona</a>
+      <a href="#pricing">Preços</a>
+      <a href="#testimonials">Depoimentos</a>
+      <a href="http://127.0.0.1:7777/login" class="btn-nav">Entrar</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>✨</span>
+        <span>V10 Ultimate Plus</span>
+      </div>
+      <h1>
+        Mantenha seu PC<br>
+        <span class="highlight">Perfeito</span> sempre
+      </h1>
+      <p>
+        A ferramenta definitiva para manutenção, otimização e diagnóstico do Windows. 
+        Limpeza, memória, rede, segurança e muito mais — tudo em um lugar.
+      </p>
+      <div class="hero-buttons">
+        <a href="http://127.0.0.1:7777/login" class="btn btn-primary">
+          <span>🚀</span>
+          <span>Começar Agora</span>
+        </a>
+        <a href="#features" class="btn btn-secondary">
+          <span>📋</span>
+          <span>Saiba Mais</span>
+        </a>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-mockup">
+          <div class="mockup-header">
+            <div class="mockup-dot red"></div>
+            <div class="mockup-dot yellow"></div>
+            <div class="mockup-dot green"></div>
+          </div>
+          <div class="mockup-content">
+            <div class="mockup-grid">
+              <div class="mockup-card">
+                <div class="icon">🖥️</div>
+                <div class="value">23%</div>
+                <div class="label">CPU</div>
+              </div>
+              <div class="mockup-card">
+                <div class="icon">📊</div>
+                <div class="value">6.4 GB</div>
+                <div class="label">RAM Livre</div>
+              </div>
+              <div class="mockup-card">
+                <div class="icon">💾</div>
+                <div class="value">245 GB</div>
+                <div class="label">Disco Livre</div>
+              </div>
+              <div class="mockup-card">
+                <div class="icon">⏱️</div>
+                <div class="value">3d 5h</div>
+                <div class="label">Uptime</div>
+              </div>
+            </div>
+            <div class="mockup-btns">
+              <button class="mockup-btn">🧹 Limpeza Rápida</button>
+              <button class="mockup-btn">🧠 Liberar RAM</button>
+              <button class="mockup-btn">🔧 Diagnóstico</button>
+              <button class="mockup-btn">🛡️ Segurança</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features">
+    <div class="section-header reveal">
+      <h2>Recursos <span class="highlight">Poderosos</span></h2>
+      <p>Tudo o que você precisa para manter seu PC funcionando como novo</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🧹</div>
+        <h3>Limpeza Inteligente</h3>
+        <p>Remova arquivos temporários, cache do navegador, logs antigos e muito mais com um clique. Recupere gigabytes de espaço em disco.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">🧠</div>
+        <h3>Otimização de RAM</h3>
+        <p>Monitore o uso de memória em tempo real e libere RAM de processos travados ou que consomem recursos excessivos.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">🖥️</div>
+        <h3>Diagnóstico Completo</h3>
+        <p>Análise detalhada de CPU, disco, rede e componentes. Identifique problemas antes que eles se tornem graves.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">🌐</div>
+        <h3>Rede e Internet</h3>
+        <p>Teste velocidade, limpe DNS, resolva problemas de conectividade e otimize suas configurações de rede.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔒</div>
+        <h3>Segurança</h3>
+        <p>Gerencie firewall, verifique atualizações do Windows Defender e proteja seu sistema contra ameaças.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">🤖</div>
+        <h3>Assistente IA</h3>
+        <p>Integração com Ollama para sugestões inteligentes de manutenção baseadas no estado do seu sistema.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">📦</div>
+        <h3>Instalador de Apps</h3>
+        <p>Instale seus programas favoritos com um clique. Chrome, Firefox, VS Code, Node.js e muito mais.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">💾</div>
+        <h3>Gerenciamento de Disco</h3>
+        <p>Visualize uso de espaço, encontre pastas grandes, desfragmente e otimize seu disco rígido ou SSD.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon">⚡</div>
+        <h3>Performance</h3>
+        <p>Ative modos de alto desempenho, desative serviços desnecessários e otimize para jogos e trabalho.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works">
+    <div class="section-header reveal">
+      <h2>Como <span class="highlight">Funciona</span></h2>
+      <p>Comece em minutos, mantenha seu PC perfeito para sempre</p>
+    </div>
+
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-number">1</div>
+        <h3>Cadastre-se</h3>
+        <p>Crie sua conta gratuita em segundos. Sem cartão de crédito.</p>
+      </div>
+
+      <div class="step reveal">
+        <div class="step-number">2</div>
+        <h3>Execute</h3>
+        <p>Escolha entre dezenas de comandos de manutenção pré-configurados.</p>
+      </div>
+
+      <div class="step reveal">
+        <div class="step-number">3</div>
+        <h3>Resultado</h3>
+        <p>Veja seu PC ficar mais rápido, limpo e seguro instantaneamente.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing">
+    <div class="section-header reveal">
+      <h2>Planos <span class="highlight">Simples</span></h2>
+      <p>Escolha o plano ideal para você</p>
+    </div>
+
+    <div class="pricing-grid">
+      <div class="pricing-card reveal">
+        <h3>Gratuito</h3>
+        <div class="price">R$ 0<span>/mês</span></div>
+        <ul class="pricing-features">
+          <li>50 comandos de manutenção</li>
+          <li>Dashboard básico</li>
+          <li>Relatório mensal</li>
+          <li>Suporte por email</li>
+        </ul>
+        <a href="http://127.0.0.1:7777/register" class="btn btn-secondary">Cadastrar Grátis</a>
+      </div>
+
+      <div class="pricing-card featured reveal">
+        <div class="pricing-badge">Mais Popular</div>
+        <h3>Pro</h3>
+        <div class="price">R$ 29<span>/mês</span></div>
+        <ul class="pricing-features">
+          <li>Todos os comandos ilimitados</li>
+          <li>Dashboard avançado</li>
+          <li>Assistente IA completo</li>
+          <li>Agendamento automático</li>
+          <li>Relatórios ilimitados</li>
+          <li>Suporte prioritário</li>
+        </ul>
+        <a href="http://127.0.0.1:7777/register" class="btn btn-primary">Assinar Pro</a>
+      </div>
+
+      <div class="pricing-card reveal">
+        <h3>Empresas</h3>
+        <div class="price">R$ 99<span>/mês</span></div>
+        <ul class="pricing-features">
+          <li>Tudo do plano Pro</li>
+          <li>Até 50 computadores</li>
+          <li>Gerenciamento centralizado</li>
+          <li>API personalizada</li>
+          <li>Suporte 24/7</li>
+          <li>SLA garantido</li>
+        </ul>
+        <a href="http://127.0.0.1:7777/register" class="btn btn-secondary">Falar com Vendas</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section id="testimonials">
+    <div class="section-header reveal">
+      <h2>O que dizem <span class="highlight">usuários</span></h2>
+      <p>Milhares de pessoas já transformaram seus PCs</p>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card reveal">
+        <p class="testimonial-text">
+          "Finalmente uma ferramenta que funciona! Liberei 15GB de espaço em disco e meu PC ficou muito mais rápido. Recomendo demais!"
+        </p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">JM</div>
+          <div class="testimonial-info">
+            <h4>João Mendes</h4>
+            <span>Desenvolvedor Web</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card reveal">
+        <p class="testimonial-text">
+          "Uso todo dia no trabalho. A integração com IA me ajuda a resolver problemas que levariam horas em minutos. Essencial!"
+        </p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">AC</div>
+          <div class="testimonial-info">
+            <h4>Ana Costa</h4>
+            <span>Tech Lead</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card reveal">
+        <p class="testimonial-text">
+          "Gerencio 30 PCs na empresa. Com o plano Empresas, economizei horas de trabalho manual por semana. ROI imediato!"
+        </p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">RL</div>
+          <div class="testimonial-info">
+            <h4>Rafael Lima</h4>
+            <span>CEO, Startup Tech</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section reveal">
+    <h2>Pronto para <span class="highlight">otimizar</span> seu PC?</h2>
+    <p>Junte-se a milhares de usuários satisfeitos e mantenha seu computador sempre perfeito.</p>
+    <div class="hero-buttons">
+      <a href="http://127.0.0.1:7777/register" class="btn btn-primary">
+        <span>🚀</span>
+        <span>Criar Conta Grátis</span>
+      </a>
+      <a href="http://127.0.0.1:7777/login" class="btn btn-secondary">
+        <span>🔐</span>
+        <span>Já tenho conta</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <span class="logo-icon">🛡️</span>
+          <span>Mestre do PC</span>
+        </a>
+        <p>A ferramenta definitiva para manutenção e otimização do Windows. Feito com ❤️ para você.</p>
+      </div>
+
+      <div class="footer-links">
+        <h4>Produto</h4>
+        <ul>
+          <li><a href="#features">Recursos</a></li>
+          <li><a href="#pricing">Preços</a></li>
+          <li><a href="#">Documentação</a></li>
+          <li><a href="#">Changelog</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#">Sobre nós</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Carreiras</a></li>
+          <li><a href="#">Contato</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacidade</a></li>
+          <li><a href="#">Termos</a></li>
+          <li><a href="#">Licença</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 Mestre do PC. Todos os direitos reservados. Feito no Brasil 🇧🇷</p>
+    </div>
+  </footer>
+
+  <script>
+    // Create particles
+    function createParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (4 + Math.random() * 4) + 's';
+        if (Math.random() > 0.5) {
+          particle.style.background = 'var(--secondary)';
+        }
+        container.appendChild(particle);
+      }
+    }
+    createParticles();
+
+    // Mobile menu toggle
+    function toggleMenu() {
+      document.getElementById('navLinks').classList.toggle('active');
+    }
+
+    // Scroll reveal
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

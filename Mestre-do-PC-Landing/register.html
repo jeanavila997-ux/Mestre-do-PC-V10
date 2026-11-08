@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Mestre do PC</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00d4ff;
+      --secondary: #00ff88;
+      --accent: #a200ff;
+      --dark: #05070a;
+      --card: #0d1117;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --danger: #f85149;
+      --warning: #f0a800;
+      --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        radial-gradient(circle at 30% 70%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 70% 30%, rgba(0, 255, 136, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(162, 0, 255, 0.05) 0%, transparent 50%);
+      animation: bgPulse 10s ease-in-out infinite;
+    }
+
+    @keyframes bgPulse {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-2%, 2%); }
+    }
+
+    .grid-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: -1;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo a {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .logo-icon {
+      font-size: 2.5rem;
+    }
+
+    .logo span {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .auth-card {
+      background: var(--card);
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .auth-header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .auth-header a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .auth-header a:hover {
+      color: var(--secondary);
+    }
+
+    /* Plan Selection */
+    .plan-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .plan-option {
+      position: relative;
+    }
+
+    .plan-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .plan-option label {
+      display: block;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .plan-option input:checked + label {
+      border-color: var(--primary);
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .plan-option label:hover {
+      border-color: rgba(0, 212, 255, 0.3);
+    }
+
+    .plan-name {
+      font-weight: 600;
+      font-size: 1rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .plan-price {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--gradient);
+      color: var(--dark);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .plan-option input:checked + label .plan-badge {
+      display: block;
+    }
+
+    /* Form */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper .icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      transition: color 0.3s;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px 14px 48px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s;
+      outline: none;
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+
+    .form-group input:focus + .icon {
+      color: var(--primary);
+    }
+
+    /* Password strength */
+    .password-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .strength-bar {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+
+    .strength-bar.active.weak {
+      background: var(--danger);
+    }
+
+    .strength-bar.active.medium {
+      background: var(--warning);
+    }
+
+    .strength-bar.active.strong {
+      background: var(--secondary);
+    }
+
+    .strength-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Password toggle */
+    .password-toggle {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+
+    .password-toggle:hover {
+      color: var(--primary);
+    }
+
+    /* Checkbox */
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .checkbox-wrapper span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .checkbox-wrapper a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .checkbox-wrapper a:hover {
+      color: var(--secondary);
+    }
+
+    /* Button */
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: var(--gradient);
+      color: var(--dark);
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
+    }
+
+    /* Alert */
+    .alert {
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .alert.error {
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      color: var(--danger);
+    }
+
+    .alert.success {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      color: var(--secondary);
+    }
+
+    .alert.show {
+      display: flex;
+    }
+
+    /* Footer */
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .auth-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .auth-footer a:hover {
+      color: var(--secondary);
+    }
+
+    .back-home {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+      z-index: 10;
+    }
+
+    .back-home:hover {
+      color: var(--primary);
+    }
+
+    .btn.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 520px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-card {
+        padding: 30px 24px;
+      }
+
+      .plan-selector {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-pattern"></div>
+
+  <a href="index.html" class="back-home">
+    ← Voltar ao site
+  </a>
+
+  <div class="auth-container">
+    <div class="logo">
+      <a href="index.html">
+        <span class="logo-icon">🛡️</span>
+        <span>Mestre do PC</span>
+      </a>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>Criar sua conta 🚀</h1>
+        <p>Comece grátis ou escolha um plano</p>
+      </div>
+
+      <div id="alert" class="alert"></div>
+
+      <form id="registerForm" onsubmit="handleRegister(event)">
+        <div class="plan-selector">
+          <div class="plan-option">
+            <input type="radio" name="plan" id="planFree" value="free" checked>
+            <label for="planFree">
+              <span class="plan-badge">Recomendado</span>
+              <span class="plan-name">Gratuito</span>
+              <span class="plan-price">R$ 0/mês</span>
+            </label>
+          </div>
+          <div class="plan-option">
+            <input type="radio" name="plan" id="planPro" value="pro">
+            <label for="planPro">
+              <span class="plan-name">Pro</span>
+              <span class="plan-price">R$ 29/mês</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">Nome</label>
+            <div class="input-wrapper">
+              <span class="icon">👤</span>
+              <input type="text" id="firstName" placeholder="João" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Sobrenome</label>
+            <div class="input-wrapper">
+              <span class="icon">👤</span>
+              <input type="text" id="lastName" placeholder="Silva" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <div class="input-wrapper">
+            <span class="icon">📧</span>
+            <input type="email" id="email" placeholder="seu@email.com" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <div class="input-wrapper">
+            <span class="icon">🔒</span>
+            <input type="password" id="password" placeholder="Mínimo 8 caracteres" required minlength="8" oninput="checkPasswordStrength()">
+            <button type="button" class="password-toggle" onclick="togglePassword('password')">👁️</button>
+          </div>
+          <div class="password-strength">
+            <div class="strength-bar" id="strength1"></div>
+            <div class="strength-bar" id="strength2"></div>
+            <div class="strength-bar" id="strength3"></div>
+            <div class="strength-bar" id="strength4"></div>
+          </div>
+          <div class="strength-text" id="strengthText"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirmar Senha</label>
+          <div class="input-wrapper">
+            <span class="icon">🔒</span>
+            <input type="password" id="confirmPassword" placeholder="Repita a senha" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</button>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <label class="checkbox-wrapper">
+            <input type="checkbox" id="terms" required>
+            <span>Eu concordo com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a></span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="registerBtn">
+          <span>🚀</span>
+          <span>Criar Conta Grátis</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="auth-footer">
+      Já tem uma conta? <a href="login.html">Entre aqui</a>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword(inputId) {
+      const input = document.getElementById(inputId);
+      const toggle = input.nextElementSibling;
+      if (input.type === 'password') {
+        input.type = 'text';
+        toggle.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        toggle.textContent = '👁️';
+      }
+    }
+
+    function checkPasswordStrength() {
+      const password = document.getElementById('password').value;
+      const bars = [
+        document.getElementById('strength1'),
+        document.getElementById('strength2'),
+        document.getElementById('strength3'),
+        document.getElementById('strength4')
+      ];
+      const text = document.getElementById('strengthText');
+
+      let strength = 0;
+      
+      if (password.length >= 8) strength++;
+      if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+      if (/\d/.test(password)) strength++;
+      if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+
+      bars.forEach((bar, index) => {
+        bar.className = 'strength-bar';
+        if (index < strength) {
+          bar.classList.add('active');
+          if (strength === 1) bar.classList.add('weak');
+          else if (strength === 2) bar.classList.add('medium');
+          else bar.classList.add('strong');
+        }
+      });
+
+      const labels = ['', 'Fraca', 'Média', 'Boa', 'Forte'];
+      text.textContent = strength > 0 ? `Senha ${labels[strength]}` : '';
+    }
+
+    function showAlert(message, type = 'error') {
+      const alert = document.getElementById('alert');
+      alert.className = `alert ${type} show`;
+      alert.innerHTML = `<span>${type === 'error' ? '❌' : '✅'}</span><span>${message}</span>`;
+      
+      setTimeout(() => {
+        alert.classList.remove('show');
+      }, 5000);
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const plan = document.querySelector('input[name="plan"]:checked').value;
+      const terms = document.getElementById('terms').checked;
+      const btn = document.getElementById('registerBtn');
+      
+      // Validation
+      if (!firstName || !lastName || !email || !password || !confirmPassword) {
+        showAlert('Por favor, preencha todos os campos.');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showAlert('As senhas não coincidem.');
+        return;
+      }
+
+      if (password.length < 8) {
+        showAlert('A senha deve ter pelo menos 8 caracteres.');
+        return;
+      }
+
+      if (!terms) {
+        showAlert('Você precisa aceitar os termos para continuar.');
+        return;
+      }
+
+      btn.classList.add('loading');
+      btn.innerHTML = '<span></span><span>Cadastrando...</span>';
+      
+      // Simular cadastro
+      setTimeout(() => {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<span>🚀</span><span>Criar Conta Grátis</span>';
+        
+        showAlert('Conta criada com sucesso! Redirecionando...', 'success');
+        
+        // Salvar no localStorage para demo
+        localStorage.setItem('mestre_user', JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          plan
+        }));
+        
+        // Redirecionar
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
