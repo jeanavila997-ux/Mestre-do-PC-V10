@@ -165,13 +165,16 @@ function isDirectLoopback(req) {
 
 function crossOriginMobileTokenOk(req) {
   const expected = process.env.MESTRE_MOBILE_TOKEN || "";
-  if (!expected) return true;
   const origin = req.headers.origin || "";
   const sameLauncher = !origin || isAllowedWebOrigin(origin, BASE_URL);
   // O Desktop local entra direto em 127.0.0.1, sem proxy. Túnel e proxy
   // (x-forwarded-for / cf-connecting-ip) ou um socket que não é loopback
   // precisam do token, mesmo sem Origin ou com a origem do próprio launcher.
   if (sameLauncher && isDirectLoopback(req)) return true;
+  // Fail-closed: sem MESTRE_MOBILE_TOKEN, nada que não seja loopback direto
+  // passa. Antes, com MPC_HOST=0.0.0.0 e sem token, qualquer máquina da rede
+  // chamava /run só mandando X-Mestre-Client: v10-web e omitindo o Origin.
+  if (!expected) return false;
   return sameToken(req.headers["x-mestre-mobile-token"] || "", expected);
 }
 
