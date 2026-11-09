@@ -2983,6 +2983,15 @@
       "destructive": false,
       "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; & pwsh -NoProfile -File (Join-Path $env:MESTRE_PROJETO_PATH 'scripts\\cli-agents.ps1') -Action claude",
       "description": "Abre o Claude Code nativo no terminal do Mestre."
+    },
+    {
+      "id": "skill_typesafe_ai",
+      "title": "skill typesafe-ai",
+      "category": "skills",
+      "destructive": false,
+      "command": "npx skills add typesafe-ai/skills --skill typesafe-ai",
+      "description": "instalar skills typesafe",
+      "enabled": true
     }
   ],
   "templates": [
