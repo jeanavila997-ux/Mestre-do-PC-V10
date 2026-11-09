@@ -79,17 +79,16 @@ test("computer-use routes reject oversized JSON bodies", async () => {
 
 test("computer-use client exports route contract and calls matching SDK methods", async () => {
   const calls = [];
+  const results = {
+    list_apps: { apps: [{ pid: 7 }] },
+    list_windows: { windows: [] },
+    get_window_state: { elements: [] },
+  };
   const fake = {
-    listApps: async (opts) => (calls.push(["listApps", opts]), [{ pid: 7 }]),
-    listWindows: async (opts) => (calls.push(["listWindows", opts]), []),
-    observeWindow: async (opts) => (calls.push(["observeWindow", opts]), { elements: [] }),
-    click: async (opts) => (calls.push(["click", opts]), { effect: "confirmed" }),
-    typeText: async (opts) => (calls.push(["typeText", opts]), { effect: "confirmed" }),
-    pressKey: async (opts) => (calls.push(["pressKey", opts]), { effect: "confirmed" }),
-    scroll: async (opts) => (calls.push(["scroll", opts]), { effect: "confirmed" }),
-    setValue: async (opts) => (calls.push(["setValue", opts]), { effect: "confirmed" }),
-    performSecondaryAction: async (opts) => (calls.push(["performSecondaryAction", opts]), { effect: "confirmed" }),
-    hotkey: async (opts) => (calls.push(["hotkey", opts]), { effect: "confirmed" }),
+    appCall: async (tool, args, opts) => {
+      calls.push([tool, args, opts]);
+      return { text: "", structured: results[tool] ?? { effect: "confirmed" } };
+    },
     close: async () => { calls.push(["close"]); },
   };
   const { ComputerUse } = await loadClientComputerUse();
@@ -109,9 +108,14 @@ test("computer-use client exports route contract and calls matching SDK methods"
     await client.hotkey({ pid: 7, windowId: 9, keys: ["CTRL", "C"] });
 
     assert.deepEqual(calls.map(([name]) => name), [
-      "listApps", "listWindows", "observeWindow", "click", "typeText", "pressKey",
-      "scroll", "setValue", "performSecondaryAction", "hotkey",
+      "list_apps", "list_windows", "get_window_state", "click", "type_text", "press_key",
+      "scroll", "set_value", "perform_secondary_action", "hotkey",
     ]);
+    const readOnly = Object.fromEntries(calls.filter(([name]) => name !== "close").map(([name, , opts]) => [name, opts.readOnly]));
+    assert.deepEqual(readOnly, {
+      list_apps: true, list_windows: true, get_window_state: true, click: false, type_text: false,
+      press_key: false, scroll: false, set_value: false, perform_secondary_action: false, hotkey: false,
+    });
     assert.deepEqual(client.getStatus(), {
       connected: true,
       initialized: true,
