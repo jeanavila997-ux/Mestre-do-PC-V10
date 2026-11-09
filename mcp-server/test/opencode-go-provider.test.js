@@ -237,6 +237,7 @@ test("POST /providers/chat sem chave responde 400 e o launcher continua no ar", 
     env: {
       ...process.env,
       MPC_PORT: String(port),
+      MPC_PROVIDERS_FILE: join(mkdtempSync(join(tmpdir(), "opencode-go-spawn-")), "providers.json"),
       OPENCODE_GO_API_KEY: "",
       OPENCODE_GO_BASE_URL: "",
       OPENCODE_GO_MODEL: "",
