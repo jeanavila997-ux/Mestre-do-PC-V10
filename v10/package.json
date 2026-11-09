@@ -19,12 +19,18 @@
     "node": ">=22.13.0"
   },
   "dependencies": {
+    "@astryxdesign/core": "^0.7.11",
+    "@astryxdesign/theme-neutral": "^0.7.11",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@qwen-code/cua-sdk": "^0.27.0",
+    "@stylexjs/stylex": "^0.19.1",
     "@wonderwhy-er/desktop-commander": "^0.3.1",
     "mysql2": "^3.11.0"
   },
   "allowScripts": {
     "@wonderwhy-er/desktop-commander@0.3.1": true
+  },
+  "devDependencies": {
+    "@astryxdesign/cli": "^0.7.11"
   }
 }
