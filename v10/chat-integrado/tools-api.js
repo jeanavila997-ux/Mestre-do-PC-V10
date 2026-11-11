@@ -13,6 +13,7 @@ import { checkPromptInjection, sanitizeToolArgument } from "../../mcp-server/sec
 import { auditLog, queryAuditLog, exportAuditReport, AuditLevel } from "../../mcp-server/audit-logger.js";
 import { searchWeb, fetchWebPage, isGovBrDomain } from "./web-search.js";
 import { callGrokBotTool, callGrokRouterChat, isRouter9Model, DEFAULT_GROK_MODEL } from "./grokbot-bridge.js";
+import { reaStatus, reaDoctor, reaAnalyzeAppJs } from "../rea-bridge.js";
 import { refreshLocalMcpTokenFromFile } from "../../mcp-server/auth/local-token.js";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -561,6 +562,18 @@ export const TOOLS_API = {
   grokbot__optimize_pc: async (args = {}) => callGrokBotTool("grokbot__optimize_pc", args),
   grokbot__sync_memories: async (args = {}) => callGrokBotTool("grokbot__sync_memories", args),
   grokbot__delegate_task: async (args = {}) => callGrokBotTool("grokbot__delegate_task", args),
+
+  // ── Engenharia Reversa (REA) — análise de artefato entregue ────────
+  // Read-only: lê o alvo e devolve Evidência. Nunca executa o alvo.
+  rea_status: async () => ({ rea: await reaStatus() }),
+
+  rea_doctor: async () => reaDoctor(),
+
+  rea_analisar_app_js: async ({ caminho, target } = {}) => {
+    const alvo = String(caminho || target || "").trim();
+    if (!alvo) return { error: "Informe 'caminho' com o caminho absoluto do app (.asar ou pasta extraída)." };
+    return reaAnalyzeAppJs({ target: alvo });
+  },
 };
 
 // Lista de nomes de ferramentas para descoberta

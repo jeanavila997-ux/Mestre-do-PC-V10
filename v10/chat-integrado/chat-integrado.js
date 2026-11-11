@@ -86,6 +86,9 @@ const TOOL_DESCRIPTIONS = {
   consultar_logs_auditoria: { icon: "📝", desc: "Consultar logs de auditoria" },
   exportar_relatorio_auditoria: { icon: "📤", desc: "Exportar relatório de auditoria" },
   gerar_snapshot_git: { icon: "📸", desc: "Gerar snapshot Git" },
+  rea_status: { icon: "🔬", desc: "REA: status da integração" },
+  rea_doctor: { icon: "🩺", desc: "REA: diagnóstico de motores" },
+  rea_analisar_app_js: { icon: "🧩", desc: "REA: analisar app JavaScript/Electron" },
 };
 
 // ── Estado global ───────────────────────────────────────────────────
@@ -1249,6 +1252,8 @@ async function handleToolClick(toolName) {
     "grokbot__status",
     "grokbot__optimize_pc",
     "grokbot__sync_memories",
+    "rea_status",
+    "rea_doctor",
   ];
 
   if (noArgTools.includes(toolName)) {
@@ -1292,6 +1297,7 @@ async function handleToolClick(toolName) {
     gerar_snapshot_git: "Digite a fase/descrição do snapshot (opcional):",
     grokbot__chat: "Digite sua pergunta para o Grok Bot (Grok 4.7 via 9Router):",
     grokbot__delegate_task: "Digite o título/objetivo da tarefa para a fila do Grok Bot:",
+    rea_analisar_app_js: "Caminho absoluto do app a analisar (.asar ou pasta extraída):",
   };
 
   const promptText = promptMap[toolName] || `Argumentos para ${toolName}:`;
@@ -1351,6 +1357,7 @@ async function handleToolClick(toolName) {
       case "gerar_snapshot_git": args = { fase: input }; break;
       case "grokbot__chat": args = { pergunta: input }; break;
       case "grokbot__delegate_task": args = { titulo: input }; break;
+      case "rea_analisar_app_js": args = { caminho: input }; break;
       default: args = { input };
     }
 
@@ -1956,6 +1963,7 @@ const QUICK_CATEGORIES = [
   { label: "Revisar código", msg: "", skill: "code-review" },
   { label: "React/Next.js", msg: "", skill: "react-nextjs" },
   { label: "Explicar GitHub", msg: "", skill: "github-project-explainer" },
+  { label: "🔬 Engenharia reversa", msg: "", skill: "engenharia-reversa" },
   { label: "🛠️ Ferramentas", msg: "", action: "showTools" },
 ];
 

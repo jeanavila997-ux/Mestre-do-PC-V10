@@ -4455,6 +4455,33 @@
         "nome": "^[A-Za-z0-9 ._-]{1,128}$"
       },
       "description": "Mostra o status e o tipo de início de um serviço. Use 'nome' com o Name do serviço (ex: Spooler)."
+    },
+    {
+      "id": "eng_reversa_status",
+      "title": "REA: Status da Integração",
+      "category": "Engenharia Reversa (REA)",
+      "destructive": false,
+      "command": "node \"$env:MESTRE_PROJETO_PATH\\scripts\\rea-cli.mjs\" status",
+      "description": "Mostra como o REA está sendo chamado (instalado, no PATH ou via npx), a versão detectada e as raízes de alvo permitidas."
+    },
+    {
+      "id": "eng_reversa_doctor",
+      "title": "REA: Diagnóstico (doctor)",
+      "category": "Engenharia Reversa (REA)",
+      "destructive": false,
+      "command": "node \"$env:MESTRE_PROJETO_PATH\\scripts\\rea-cli.mjs\" doctor",
+      "description": "Roda 'rea doctor --json' para conferir motores, registro MCP e pré-requisitos. Read-only. Na primeira execução via npx baixa o pacote (precisa de rede)."
+    },
+    {
+      "id": "eng_reversa_analisar_app_js",
+      "title": "REA: Analisar App JavaScript/Electron",
+      "category": "Engenharia Reversa (REA)",
+      "destructive": false,
+      "pattern": "node \"$env:MESTRE_PROJETO_PATH\\scripts\\rea-cli.mjs\" analyze-js \"{{CAMINHO}}\"",
+      "params": {
+        "caminho": "^[A-Za-z]:[\\\\/][A-Za-z0-9 ._\\\\/()\\-]{1,240}$"
+      },
+      "description": "Analisa um app entregue (pasta extraída, .asar ou build JavaScript) e devolve a Evidência do REA em JSON. Informe 'caminho' absoluto. O app analisado nunca é executado."
     }
   ]
 }

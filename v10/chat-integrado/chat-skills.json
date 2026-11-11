@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "items": [
     {
       "id": "arquiteto-de-prompts",
@@ -557,6 +557,25 @@
         "https"
       ],
       "body": "Para acesso remoto com link ativo, prefira Cloudflare Tunnel em vez de abrir porta na VPS. O Tunnel publica HTTPS no hostname escolhido e aponta para 127.0.0.1 na origem. No Mini Gestor, esse hostname é o endereço colado no setup.html. Consulte a documentação viva da Cloudflare para Workers, WAF e Tunnel; não invente flags. Skill global: cloudflare/skills@cloudflare. Não use skills de VPS Docker com poucas instalações."
+    },
+    {
+      "id": "engenharia-reversa",
+      "title": "Engenharia Reversa de Artefato (REA)",
+      "category": "Engenharia Reversa",
+      "description": "Analisa app entregue (ASAR/Electron/JavaScript empacotado, pacotes, binários) com o REA e devolve relatório com Evidência em vez de achismo. Use quando a resposta depende do artefato, não do código-fonte.",
+      "tags": [
+        "rea",
+        "engenharia-reversa",
+        "reverse-engineering",
+        "asar",
+        "electron",
+        "decompilar",
+        "binario",
+        "apk",
+        "evidencia"
+      ],
+      "kind": "knowledge",
+      "body": "# Engenharia Reversa com REA (nativo no Mestre do PC)\n\n## Quando usar\n- A pergunta depende do ARTEFATO ENTREGUE: app Electron/ASAR, árvore JavaScript empacotada, pacote (zip/apk/msix), binário.\n- Você precisa provar comportamento, versão, endpoints, feature flag ou o que mudou entre builds — e o código-fonte não está disponível ou não é a fonte da verdade.\n- Alguém pergunta \"o que esse app faz de verdade\", \"de onde vem esse request\", \"esse instalador chama o quê\".\n\n## Quando NÃO usar\n- Repositório de código-fonte completo: leia o código com ferramentas normais. Rodar REA ali é desperdício, e a própria skill do REA proíbe.\n- Pergunta de opinião ou arquitetura sem artefato em mãos.\n- Alvo que não existe em disco nesta máquina.\n\n## Ferramentas nativas (já ligadas)\n| Ferramenta | Para que serve |\n|---|---|\n| `rea_status` | como o REA está sendo chamado (local / PATH / npx), versão e raízes permitidas |\n| `rea_doctor` | `rea doctor --json`: confirma motores, registro MCP e pré-requisitos |\n| `rea_analisar_app_js` | `analyze-javascript-application <caminho> --json`: Evidência do app |\n\nOutros caminhos, mesma autorização do launcher:\n- HTTP: `GET /rea/status`, `POST /rea/doctor`, `POST /rea/analyze {target}` → 202 `{jobId}`, `GET /rea/job?id=`.\n- CLI: `node scripts/rea-cli.mjs status|doctor|analyze-js \"<caminho>\"`.\n- MCP: as operações `eng_reversa_*` da whitelist viram tools MCP automaticamente.\n\n## Regras de alvo\n- Caminho ABSOLUTO e existente; caminho relativo é recusado.\n- Raízes permitidas: pasta do projeto, perfil do usuário, TEMP e Program Files. Para liberar outra: `REA_ALLOWED_ROOTS` (separadas por `;`).\n- O REA LÊ o alvo. Nada nesta integração executa o app analisado.\n\n## Método (não pule etapa)\n1. Rode `rea_status`. Se `mode` for `npx`, avise que a primeira execução baixa `rea-agents@6.8.0` e precisa de rede.\n2. Confirme com o usuário o caminho do artefato e a pergunta que a análise precisa responder.\n3. Rode `rea_analisar_app_js` com o caminho absoluto. Se o alvo for grande, comece confirmando que respondeu o bastante (o `--json` já traz a Evidência completa).\n4. Responda à pergunta original; não despeje o JSON cru.\n5. Separe SEMPRE: **observado** (com `evidence_id`/caminho), **inferido** (dedução sua) e **desconhecido** (o que o artefato não respondeu).\n6. Preserve as limitações declaradas pelo REA. Busca negativa vale para o escopo pesquisado — não prova ausência global.\n\n## Se o REA não estiver disponível\n- `rea_doctor` falhou por rede ou registro: rode `npx -y rea-agents@6.8.0 doctor --json` e leia o motivo. Não repita a mesma chamada sem mudar nada.\n- Sem as tools MCP no cliente atual, use o CLI (`analyze-javascript-application`). É o fallback documentado, não prova de instalação.\n- Binário nativo (PE/ELF/APK) exige o servidor MCP do REA com Ghidra; o launcher não cobre esse caminho. Diga isso em vez de inventar resultado.\n\n## Formato da entrega\n- Resumo de 3 a 6 linhas respondendo à pergunta.\n- Evidências em tabela: `id | tipo | achado`.\n- Riscos e incertezas.\n- Próximo passo concreto (comando ou tool a rodar)."
     }
   ]
 }

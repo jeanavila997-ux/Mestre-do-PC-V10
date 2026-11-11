@@ -120,6 +120,8 @@ Testes que sobem o launcher: importar `mcp-server/test/helpers/launcher-test-env
 | `v10/launcher.js` | Backend HTTP. Cache-Control: `no-store`. |
 | `v10/allowed-operations.json` | Whitelist. |
 | `v10/operation-registry.js` | Resolve `{id}` / `{id,params}` / `{cmd}`. |
+| `v10/rea-bridge.js` | Ponte do REA (engenharia reversa): alvo validado, análise read-only, auditoria. |
+| `v10/rea-routes.js` | Rotas `/rea/*` (status, doctor, analyze + job). |
 | `v10/index.html` | SPA desktop, sem bundler. |
 | `v10/mobile/` | PWA. Ao mudar, copie para `dist/site/mobile/`. |
 | `v10/chat/` | Persona (`Soul.md`) e módulo legado só de `example-integration.html`. A home não monta esse módulo. |

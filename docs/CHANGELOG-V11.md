@@ -1,5 +1,26 @@
 # Mestre do PC V11 - Changelog
 
+## Não lançado — Engenharia Reversa (REA) nativa
+
+### 🔬 Nova capacidade
+
+- Skill `engenharia-reversa` em `v10/chat-integrado/chat-skills.json`: aparece na biblioteca de Skills, no atalho `/` e na cápsula `🔬 Engenharia reversa` do chat. O corpo traz o método do REA (quando usar, quando **não** usar, regras de alvo, disciplina de evidência observado/inferido/desconhecido).
+- `v10/rea-bridge.js` + `v10/rea-routes.js`: ponte nativa com o REA. Rotas `GET /rea/status`, `POST /rea/doctor`, `POST /rea/analyze` (+ job em `GET /rea/job`).
+- Tools do chat: `rea_status`, `rea_doctor`, `rea_analisar_app_js` (painel Ferramentas).
+- Menu de comandos: categoria **Engenharia Reversa (REA)** com `eng_reversa_status`, `eng_reversa_doctor` e o template `eng_reversa_analisar_app_js` (`{{CAMINHO}}`). O registry gera as tools MCP sozinho.
+- `scripts/rea-cli.mjs`: CLI usado pela whitelist e por testes.
+
+### 🔒 Segurança
+
+- Análise é **read-only**: o artefato é lido, nunca executado.
+- Alvo exige caminho absoluto dentro de raízes permitidas (projeto, perfil, TEMP, Program Files; extras em `REA_ALLOWED_ROOTS`). Caminho com `"`, `&`, `|`, `<`, `>`, `^`, `%`, `!` é recusado duas vezes (template + ponte).
+- `rea_analyze` e `rea_doctor` gravam nível `SECURITY` em `logs/audit/`; saída e tempo são limitados.
+
+### ✅ Testes
+
+- `mcp-server/test/rea-bridge.test.js` (5): status, alvo relativo/inexistente/fora das raízes, metacaracteres, alvo válido.
+- `mcp-server/test/rea-operations.test.js` (4): operações da whitelist, resolução do template, recusa de injeção, skill do chat.
+
 ## Versão 11.2.1 - Cliente MCP fail-closed
 
 ### 🔒 Segurança
