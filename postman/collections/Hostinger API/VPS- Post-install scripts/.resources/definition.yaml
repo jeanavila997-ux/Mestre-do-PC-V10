@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: Post-install scripts"
+description: This category allows you to create, update, delete, and retrieve scripts that can be used for automated tasks after the operating system installation. Use case includes setting up software, configuring settings, or running custom commands.
+order: 25000

@@ -1,0 +1,38 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/firewall/:firewallId/rules"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: firewallId
+      value: <integer>
+      description: (Required) Firewall ID
+  body:
+    type: json
+    content: |-
+      {
+        "protocol": "PostgreSQL",
+        "port": "<string>",
+        "source": "any",
+        "source_detail": "<string>"
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "correlation_id": "<string>"
+      }
+order: 4000

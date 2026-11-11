@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Attach existing public keys from your account to a specified virtual machine.
+
+  Multiple keys can be attached to a single virtual machine.
+
+  Use this endpoint to enable SSH key authentication for VPS instances.
+url: "{{baseUrl}}/api/vps/v1/public-keys/attach/:virtualMachineId"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+body:
+  type: json
+  content: |-
+    {
+      "ids": [
+        "<integer>",
+        "<integer>"
+      ]
+    }
+settings: {}
+examples: ./.resources/Attach public key.resources/examples
+order: 1000

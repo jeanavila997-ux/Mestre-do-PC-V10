@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Update a specific post-install script.
+
+  Use this endpoint to modify existing automation scripts.
+url: "{{baseUrl}}/api/vps/v1/post-install-scripts/:postInstallScriptId"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: postInstallScriptId
+    value: <integer>
+    description: (Required) Post-install script ID
+body:
+  type: json
+  content: |-
+    {
+      "name": "<string>",
+      "content": "<string>"
+    }
+settings: {}
+examples: ./.resources/Update post-install script.resources/examples
+order: 2000

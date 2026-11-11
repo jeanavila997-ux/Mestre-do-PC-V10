@@ -1,0 +1,7 @@
+$kind: collection
+name: "DNS: Snapshot"
+description: |-
+  Manage DNS snapshots for your domains.
+  This category includes endpoints for viewing and restoring snapshots of your domain DNS zone.
+  Snapshot is a point-in-time copy of your DNS zone, allowing you to restore your domain's DNS settings to a previous state.
+order: 5000

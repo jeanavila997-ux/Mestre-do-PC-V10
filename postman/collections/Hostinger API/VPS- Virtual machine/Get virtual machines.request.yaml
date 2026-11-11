@@ -1,0 +1,12 @@
+$kind: http-request
+description: |-
+  Retrieve all available virtual machines.
+
+  Use this endpoint to view available VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Get virtual machines.resources/examples
+order: 5000

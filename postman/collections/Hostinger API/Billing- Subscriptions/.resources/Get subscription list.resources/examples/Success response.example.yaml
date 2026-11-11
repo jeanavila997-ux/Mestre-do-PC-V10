@@ -1,0 +1,49 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/billing/v1/subscriptions"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "<string>",
+          "name": "<string>",
+          "status": "future",
+          "billing_period": "<integer>",
+          "billing_period_unit": "<string>",
+          "currency_code": "<string>",
+          "total_price": "<integer>",
+          "renewal_price": "<integer>",
+          "is_auto_renewed": "<boolean>",
+          "created_at": "<dateTime>",
+          "expires_at": "<dateTime>",
+          "next_billing_at": "<dateTime>"
+        },
+        {
+          "id": "<string>",
+          "name": "<string>",
+          "status": "cancelled",
+          "billing_period": "<integer>",
+          "billing_period_unit": "<string>",
+          "currency_code": "<string>",
+          "total_price": "<integer>",
+          "renewal_price": "<integer>",
+          "is_auto_renewed": "<boolean>",
+          "created_at": "<dateTime>",
+          "expires_at": "<dateTime>",
+          "next_billing_at": "<dateTime>"
+        }
+      ]
+order: 1000

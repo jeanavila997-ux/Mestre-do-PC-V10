@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Delete a PTR (Pointer) record for a specified virtual machine.
+
+  Once deleted, reverse DNS lookups to the virtual machine's IP address will no longer return the previously configured hostname.
+
+  Use this endpoint to remove reverse DNS configuration from VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/ptr/:ipAddressId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: ipAddressId
+    value: <integer>
+    description: (Required) IP Address ID
+settings: {}
+examples: ./.resources/Delete PTR record.resources/examples
+order: 2000

@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Retrieve a paginated list of websites (main and addon types) accessible to the authenticated client.
+
+  This endpoint returns websites from your hosting accounts as well as websites from other client hosting accounts that have shared access with you.
+
+  Use the available query parameters to filter results by username, order ID, enabled status, or domain name for more targeted results.
+url: "{{baseUrl}}/api/hosting/v1/websites?page=<integer>&per_page=25&username=<string>&order_id=<integer>&is_enabled=<boolean>&domain=<string>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: <integer>
+    description: Page number
+  - key: per_page
+    value: "25"
+    description: Number of items per page
+  - key: username
+    value: <string>
+    description: Filter by specific username
+  - key: order_id
+    value: <integer>
+    description: Order ID
+  - key: is_enabled
+    value: <boolean>
+    description: Filter by enabled status
+  - key: domain
+    value: <string>
+    description: Filter by domain name (exact match)
+settings: {}
+examples: ./.resources/List websites.resources/examples
+order: 1000

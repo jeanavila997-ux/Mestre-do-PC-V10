@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve DNS snapshots for a domain.
+
+  Use this endpoint to view available DNS backup points for restoration.
+url: "{{baseUrl}}/api/dns/v1/snapshots/:domain"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+settings: {}
+examples: ./.resources/Get DNS snapshot list.resources/examples
+order: 2000

@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Activate a firewall for a specified virtual machine.
+
+  Only one firewall can be active for a virtual machine at a time.
+
+  Use this endpoint to apply firewall rules to VPS instances.
+url: "{{baseUrl}}/api/vps/v1/firewall/:firewallId/activate/:virtualMachineId"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: firewallId
+    value: <integer>
+    description: (Required) Firewall ID
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Activate firewall.resources/examples
+order: 1000

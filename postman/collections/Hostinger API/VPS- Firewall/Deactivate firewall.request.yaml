@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Deactivate a firewall for a specified virtual machine.
+
+  Use this endpoint to remove firewall protection from VPS instances.
+url: "{{baseUrl}}/api/vps/v1/firewall/:firewallId/deactivate/:virtualMachineId"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: firewallId
+    value: <integer>
+    description: (Required) Firewall ID
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Deactivate firewall.resources/examples
+order: 2000

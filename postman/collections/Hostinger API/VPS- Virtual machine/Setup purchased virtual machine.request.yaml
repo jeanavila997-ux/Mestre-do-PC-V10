@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Setup newly purchased virtual machine with `initial` state.
+
+  Use this endpoint to configure and initialize purchased VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/setup"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+body:
+  type: json
+  content: |-
+    {
+      "data_center_id": "<integer>",
+      "template_id": "<integer>",
+      "post_install_script_id": "<integer>",
+      "password": "<string>",
+      "hostname": "<string>",
+      "install_monarx": false,
+      "enable_backups": true,
+      "ns1": "<string>",
+      "ns2": "<string>",
+      "public_key": {
+        "name": "<string>",
+        "key": "<string>"
+      }
+    }
+settings: {}
+examples: ./.resources/Setup purchased virtual machine.resources/examples
+order: 13000

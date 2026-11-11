@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: Virtual machine"
+description: Core virtual machine management functionality. Endpoints in this category let you retrieve machine details, configure settings (hostname, nameservers, passwords), and perform operations like start, stop, restart, or recreate.
+order: 29000

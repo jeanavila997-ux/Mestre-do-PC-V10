@@ -1,0 +1,4 @@
+$kind: collection
+name: "Domains: Portfolio"
+description: Retrieve and manage your domain portfolio. This category lets you list all domains linked to your account, including their creation and expiration details.
+order: 10000

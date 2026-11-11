@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Stop recovery mode for a specified virtual machine.
+
+  If virtual machine is not in recovery mode, this operation will fail.
+
+  Use this endpoint to exit system rescue mode and return VPS to normal operation.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/recovery"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Stop recovery mode.resources/examples
+order: 2000

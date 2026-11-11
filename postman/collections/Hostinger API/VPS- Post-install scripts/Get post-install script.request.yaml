@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve post-install script by its ID.
+
+  Use this endpoint to view specific automation script details.
+url: "{{baseUrl}}/api/vps/v1/post-install-scripts/:postInstallScriptId"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: postInstallScriptId
+    value: <integer>
+    description: (Required) Post-install script ID
+settings: {}
+examples: ./.resources/Get post-install script.resources/examples
+order: 1000

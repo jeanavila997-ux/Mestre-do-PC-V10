@@ -1,0 +1,54 @@
+$kind: http-request
+description: |-
+  Update DNS records for the selected domain.
+
+  Using `overwrite = true` will replace existing records with the provided ones. 
+  Otherwise existing records will be updated and new records will be added.
+
+  Use this endpoint to modify domain DNS configuration.
+url: "{{baseUrl}}/api/dns/v1/zones/:domain"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+body:
+  type: json
+  content: |-
+    {
+      "zone": [
+        {
+          "name": "<string>",
+          "records": [
+            {
+              "content": "<string>"
+            },
+            {
+              "content": "<string>"
+            }
+          ],
+          "type": "A",
+          "ttl": "<integer>"
+        },
+        {
+          "name": "<string>",
+          "records": [
+            {
+              "content": "<string>"
+            },
+            {
+              "content": "<string>"
+            }
+          ],
+          "type": "CNAME",
+          "ttl": "<integer>"
+        }
+      ],
+      "overwrite": true
+    }
+settings: {}
+examples: ./.resources/Update DNS records.resources/examples
+order: 2000

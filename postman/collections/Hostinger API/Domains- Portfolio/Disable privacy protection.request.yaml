@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Disable privacy protection for the domain.
+
+  When privacy protection is disabled, domain owner's personal information is visible in public WHOIS database.
+
+  Use this endpoint to make domain owner's information publicly visible.
+url: "{{baseUrl}}/api/domains/v1/portfolio/:domain/privacy-protection"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+settings: {}
+examples: ./.resources/Disable privacy protection.resources/examples
+order: 7000

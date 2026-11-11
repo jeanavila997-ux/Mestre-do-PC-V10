@@ -1,0 +1,50 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/backups?page=<integer>"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: page
+      value: <integer>
+      description: Page number
+  pathVariables:
+    - key: virtualMachineId
+      value: <integer>
+      description: (Required) Virtual Machine ID
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": [
+          {
+            "id": "<integer>",
+            "size": "<integer>",
+            "restore_time": "<integer>",
+            "location": "<string>",
+            "created_at": "<dateTime>"
+          },
+          {
+            "id": "<integer>",
+            "size": "<integer>",
+            "restore_time": "<integer>",
+            "location": "<string>",
+            "created_at": "<dateTime>"
+          }
+        ],
+        "meta": {
+          "current_page": "<integer>",
+          "per_page": "<integer>",
+          "total": "<integer>"
+        }
+      }
+order: 1000

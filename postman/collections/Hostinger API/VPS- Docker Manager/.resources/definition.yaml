@@ -1,0 +1,8 @@
+$kind: collection
+name: "VPS: Docker Manager"
+description: |-
+  Manage Docker Compose projects directly on your VPS instances. This feature is only available for VPS instances using Docker OS templates and is currently experimental - breaking changes may occur in future updates.
+  It enables you to programmatically deploy projects from docker-compose.yml files by providing either a URL (including GitHub repositories) or the compose file contents directly.
+  Control project lifecycle (start/stop/restart/update/delete) and retrieve runtime information including container lists, project details, and aggregated logs.
+  All operations are scoped to a specific virtual machine for multi-tenant management.
+order: 23000

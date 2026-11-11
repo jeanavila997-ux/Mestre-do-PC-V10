@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: Recovery"
+description: Initiate or stop recovery mode to perform system rescue operations. This category enables you to boot a virtual machine into a state suitable for repairing file systems or recovering data.
+order: 33000

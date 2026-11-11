@@ -1,0 +1,38 @@
+$kind: http-request
+description: |-
+  Delete DNS records for the selected domain.
+
+  To filter which records to delete, add the `name` of the record and `type` to the filter. 
+  Multiple filters can be provided with single request.
+
+  If you have multiple records with the same name and type, and you want to delete only part of them,
+  refer to the `Update zone records` endpoint.
+
+  Use this endpoint to remove specific DNS records from domains.
+url: "{{baseUrl}}/api/dns/v1/zones/:domain"
+method: DELETE
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+body:
+  type: json
+  content: |-
+    {
+      "filters": [
+        {
+          "name": "<string>",
+          "type": "CNAME"
+        },
+        {
+          "name": "<string>",
+          "type": "MX"
+        }
+      ]
+    }
+settings: {}
+examples: ./.resources/Delete DNS records.resources/examples
+order: 3000

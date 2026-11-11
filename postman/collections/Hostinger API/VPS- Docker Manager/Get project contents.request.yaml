@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Retrieves the complete project information including the docker-compose.yml file contents, project metadata, and current deployment status. 
+
+  This endpoint provides the full configuration and state details of a specific Docker Compose project. 
+
+  Use this to inspect project settings, review the compose file, or check the overall project health.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: projectName
+    value: <string>
+    description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+settings: {}
+examples: ./.resources/Get project contents.resources/examples
+order: 2000

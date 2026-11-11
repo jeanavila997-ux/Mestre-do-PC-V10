@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Retrieve a list of datacenters available for setting up hosting plans based on available datacenter capacity and hosting plan of your order.
+  The first item in the list is the best match for your specific order requirements.
+url: "{{baseUrl}}/api/hosting/v1/datacenters?order_id=<integer>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: order_id
+    value: <integer>
+    description: (Required) Order ID
+settings: {}
+examples: ./.resources/List available datacenters.resources/examples
+order: 1000

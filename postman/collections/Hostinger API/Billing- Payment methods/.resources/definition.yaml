@@ -1,0 +1,4 @@
+$kind: collection
+name: "Billing: Payment methods"
+description: Review and manage the payment methods linked to your Hostinger account. Enjoy a secure and convenient overview for handling billing and transactions.
+order: 3000

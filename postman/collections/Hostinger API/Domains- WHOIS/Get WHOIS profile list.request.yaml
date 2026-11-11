@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve WHOIS contact profiles.
+
+  Use this endpoint to view available contact profiles for domain registration.
+url: "{{baseUrl}}/api/domains/v1/whois?tld=<string>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: tld
+    value: <string>
+    description: Filter by TLD (without leading dot)
+settings: {}
+examples: ./.resources/Get WHOIS profile list.resources/examples
+order: 3000

@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Disable auto-renewal for a subscription.
+
+  Use this endpoint when disable auto-renewal for a subscription.
+url: "{{baseUrl}}/api/billing/v1/subscriptions/:subscriptionId/auto-renewal/disable"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: subscriptionId
+    value: <string>
+    description: (Required) Subscription ID
+settings: {}
+examples: ./.resources/Disable auto-renewal.resources/examples
+order: 2000

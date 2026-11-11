@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Delete a payment method from your account.
+
+  Use this endpoint to remove unused payment methods from user accounts.
+url: "{{baseUrl}}/api/billing/v1/payment-methods/:paymentMethodId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: paymentMethodId
+    value: <integer>
+    description: (Required) Payment method ID
+settings: {}
+examples: ./.resources/Delete payment method.resources/examples
+order: 2000

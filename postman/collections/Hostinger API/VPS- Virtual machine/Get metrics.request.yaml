@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Retrieve historical metrics for a specified virtual machine.
+
+  It includes the following metrics: 
+  - CPU usage
+  - Memory usage
+  - Disk usage
+  - Network usage
+  - Uptime
+
+  Use this endpoint to monitor VPS performance and resource utilization over time.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/metrics?date_from=&date_to="
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: date_from
+    value: ""
+    description: "(Required) "
+  - key: date_to
+    value: ""
+    description: "(Required) "
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Get metrics.resources/examples
+order: 7000

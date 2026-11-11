@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Retrieve a paginated list of orders accessible to the authenticated client.
+
+  This endpoint returns orders of your hosting accounts as well as orders of other client hosting accounts that have shared access with you.
+
+  Use the available query parameters to filter results by order statuses or specific order IDs for more targeted results.
+url: "{{baseUrl}}/api/hosting/v1/orders?page=<integer>&per_page=25&statuses=suspended&statuses=suspended&order_ids=<integer>&order_ids=<integer>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: <integer>
+    description: Page number
+  - key: per_page
+    value: "25"
+    description: Number of items per page
+  - key: statuses
+    value: suspended
+    description: Filter by order statuses
+  - key: statuses
+    value: suspended
+    description: Filter by order statuses
+  - key: order_ids
+    value: <integer>
+    description: Filter by specific order IDs
+  - key: order_ids
+    value: <integer>
+    description: Filter by specific order IDs
+settings: {}
+examples: ./.resources/List orders.resources/examples
+order: 1000

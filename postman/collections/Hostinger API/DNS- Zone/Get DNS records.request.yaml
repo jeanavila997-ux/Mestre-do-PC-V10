@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve DNS zone records for a specific domain.
+
+  Use this endpoint to view current DNS configuration for domain management.
+url: "{{baseUrl}}/api/dns/v1/zones/:domain"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+settings: {}
+examples: ./.resources/Get DNS records.resources/examples
+order: 1000

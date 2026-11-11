@@ -1,0 +1,12 @@
+$kind: http-request
+description: |-
+  Retrieve available OS templates for virtual machines.
+
+  Use this endpoint to view operating system options before creating or recreating VPS instances.
+url: "{{baseUrl}}/api/vps/v1/templates"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Get templates.resources/examples
+order: 2000

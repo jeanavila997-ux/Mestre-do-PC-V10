@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Retrieve catalog items available for order.
+
+  Prices in catalog items is displayed as cents (without floating point), e.g: float `17.99` is displayed as integer `1799`.
+
+  Use this endpoint to view available services and pricing before placing orders.
+url: "{{baseUrl}}/api/billing/v1/catalog?category=VPS&name=<string>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: category
+    value: VPS
+    description: Filter catalog items by category (This can only be one of DOMAIN,VPS)
+  - key: name
+    value: <string>
+    description: Filter catalog items by name. Use `*` for wildcard search, e.g. `.COM*` to find .com domain
+settings: {}
+examples: ./.resources/Get catalog item list.resources/examples
+order: 1000

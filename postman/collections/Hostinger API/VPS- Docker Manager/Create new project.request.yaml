@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Deploy new project from docker-compose.yaml contents or download contents from URL. 
+
+  URL can be Github repository url in format https://github.com/[user]/[repo] and it will be automatically resolved to 
+  docker-compose.yaml file in master branch. Any other URL provided must return docker-compose.yaml file contents.
+
+  If project with the same name already exists, existing project will be replaced.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+body:
+  type: json
+  content: |-
+    {
+      "project_name": "<string>",
+      "content": "<string>",
+      "environment": "<string>"
+    }
+settings: {}
+examples: ./.resources/Create new project.resources/examples
+order: 5000

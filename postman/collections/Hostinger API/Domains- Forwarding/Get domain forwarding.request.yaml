@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve domain forwarding data.
+
+  Use this endpoint to view current redirect configuration for domains.
+url: "{{baseUrl}}/api/domains/v1/forwarding/:domain"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+settings: {}
+examples: ./.resources/Get domain forwarding.resources/examples
+order: 1000

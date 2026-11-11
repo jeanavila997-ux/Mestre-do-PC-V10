@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: Snapshots"
+description: Create, restore, or delete snapshots that capture the state of your virtual machines at a given point, allowing you to quickly recover or test changes without affecting current operations.
+order: 34000

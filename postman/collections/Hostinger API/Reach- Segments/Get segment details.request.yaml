@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Get details of a specific segment.
+
+  This endpoint retrieves information about a single segment identified by UUID.
+  Segments are used to organize and group contacts based on specific criteria.
+url: "{{baseUrl}}/api/reach/v1/segmentation/segments/:segmentUuid"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: segmentUuid
+    value: <string>
+    description: (Required) Segment uuid parameter
+settings: {}
+examples: ./.resources/Get segment details.resources/examples
+order: 4000

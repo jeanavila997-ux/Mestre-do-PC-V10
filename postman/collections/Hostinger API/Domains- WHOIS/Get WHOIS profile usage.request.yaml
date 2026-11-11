@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve domain list where provided WHOIS contact profile is used.
+
+  Use this endpoint to view which domains use specific contact profiles.
+url: "{{baseUrl}}/api/domains/v1/whois/:whoisId/usage"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: whoisId
+    value: <integer>
+    description: (Required) WHOIS ID
+settings: {}
+examples: ./.resources/Get WHOIS profile usage.resources/examples
+order: 5000

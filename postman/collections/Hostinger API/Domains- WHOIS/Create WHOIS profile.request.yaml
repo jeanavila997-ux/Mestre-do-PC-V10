@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Create WHOIS contact profile.
+
+  Use this endpoint to add new contact information for domain registration.
+url: "{{baseUrl}}/api/domains/v1/whois"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tld": "<string>",
+      "entity_type": "organization",
+      "country": "<string>",
+      "whois_details": {},
+      "tld_details": {}
+    }
+settings: {}
+examples: ./.resources/Create WHOIS profile.resources/examples
+order: 4000

@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: Backups"
+description: Safeguard your data by managing backups. You can list available backups or restore a virtual machine from a backup.
+order: 30000

@@ -1,0 +1,4 @@
+$kind: collection
+name: "Hosting: Domains"
+description: Manage domain-related hosting services and configurations. This category includes endpoints for domain management, verification, and domain-specific hosting features.
+order: 13000

@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/dns/v1/snapshots/:domain"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: domain
+      value: <string>
+      description: (Required) Domain name
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "<integer>",
+          "reason": "<string>",
+          "created_at": "<dateTime>"
+        },
+        {
+          "id": "<integer>",
+          "reason": "<string>",
+          "created_at": "<dateTime>"
+        }
+      ]
+order: 1000

@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Retrieve public keys attached to a specified virtual machine.
+
+  Use this endpoint to view SSH keys configured for specific VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/public-keys?page=<integer>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: <integer>
+    description: Page number
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Get attached public keys.resources/examples
+order: 1000

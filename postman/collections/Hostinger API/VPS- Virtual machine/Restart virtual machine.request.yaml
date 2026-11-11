@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Restart a specified virtual machine by fully stopping and starting it.
+
+  If the virtual machine was stopped, it will be started.
+
+  Use this endpoint to reboot VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/restart"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Restart virtual machine.resources/examples
+order: 11000

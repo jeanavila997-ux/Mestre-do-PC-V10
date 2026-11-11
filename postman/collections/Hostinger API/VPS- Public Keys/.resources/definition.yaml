@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: Public Keys"
+description: Manage SSH keys for secure access. This category covers adding new public keys, attaching them to virtual machines, retrieving key lists, and deleting keys.
+order: 26000

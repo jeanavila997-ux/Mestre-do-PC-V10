@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  Retrieves aggregated log entries from all services within a Docker Compose project. 
+
+  This endpoint returns recent log output from each container, organized by service name with timestamps. 
+  The response contains the last 300 log entries across all services. 
+
+  Use this for debugging, monitoring application behavior, and troubleshooting issues across your entire project stack.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName/logs"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: projectName
+    value: <string>
+    description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+settings: {}
+examples: ./.resources/Get project logs.resources/examples
+order: 6000

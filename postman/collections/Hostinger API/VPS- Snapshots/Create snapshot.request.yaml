@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Create a snapshot of a specified virtual machine.
+
+  A snapshot captures the state and data of the virtual machine at a specific point in time, 
+  allowing users to restore the virtual machine to that state if needed. 
+  This operation is useful for backup purposes, system recovery, 
+  and testing changes without affecting the current state of the virtual machine.
+
+  **Creating new snapshot will overwrite the existing snapshot!**
+
+  Use this endpoint to capture VPS state for backup and recovery purposes.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/snapshot"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Create snapshot.resources/examples
+order: 2000

@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Disable domain lock for the domain.
+
+  Domain lock needs to be disabled before transferring the domain to another registrar.
+
+  Use this endpoint to prepare domains for transfer to other registrars.
+url: "{{baseUrl}}/api/domains/v1/portfolio/:domain/domain-lock"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+settings: {}
+examples: ./.resources/Disable domain lock.resources/examples
+order: 2000

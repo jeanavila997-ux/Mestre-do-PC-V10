@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/billing/v1/catalog?category=VPS&name=<string>"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: category
+      value: VPS
+      description: Filter catalog items by category (This can only be one of DOMAIN,VPS)
+    - key: name
+      value: <string>
+      description: Filter catalog items by name. Use `*` for wildcard search, e.g. `.COM*` to find .com domain
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "correlation_id": "<string>"
+      }
+order: 2000

@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Set hostname for a specified virtual machine.
+
+  Changing hostname does not update PTR record automatically.
+  If you want your virtual machine to be reachable by a hostname, 
+  you need to point your domain A/AAAA records to virtual machine IP as well.
+
+  Use this endpoint to configure custom hostnames for VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/hostname"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+body:
+  type: json
+  content: |-
+    {
+      "hostname": "<string>"
+    }
+settings: {}
+examples: ./.resources/Set hostname.resources/examples
+order: 2000

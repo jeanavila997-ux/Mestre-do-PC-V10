@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Reset hostname and PTR record of a specified virtual machine to default value.
+
+  Use this endpoint to restore default hostname configuration for VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/hostname"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Reset hostname.resources/examples
+order: 3000

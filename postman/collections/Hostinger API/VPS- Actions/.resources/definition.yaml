@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: Actions"
+description: Track and review operations performed on your virtual machines. These endpoints provide details about specific actions—such as start, stop, or restart—including timestamps and statuses.
+order: 28000

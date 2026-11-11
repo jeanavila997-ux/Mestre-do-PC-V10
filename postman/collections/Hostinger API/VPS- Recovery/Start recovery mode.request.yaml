@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Initiate recovery mode for a specified virtual machine.
+
+  Recovery mode is a special state that allows users to perform system rescue operations, 
+  such as repairing file systems, recovering data, or troubleshooting issues that prevent the virtual machine 
+  from booting normally. 
+
+  Virtual machine will boot recovery disk image and original disk image will be mounted in `/mnt` directory.
+
+  Use this endpoint to enable system rescue operations on VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/recovery"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+body:
+  type: json
+  content: |-
+    {
+      "root_password": "<string>"
+    }
+settings: {}
+examples: ./.resources/Start recovery mode.resources/examples
+order: 1000

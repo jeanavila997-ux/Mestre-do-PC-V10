@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Stops all running services in a Docker Compose project while preserving container configurations and data volumes. 
+
+  This operation gracefully shuts down containers in reverse dependency order. 
+
+  Use this to temporarily halt a project without removing data or configurations.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName/stop"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: projectName
+    value: <string>
+    description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+settings: {}
+examples: ./.resources/Stop project.resources/examples
+order: 9000

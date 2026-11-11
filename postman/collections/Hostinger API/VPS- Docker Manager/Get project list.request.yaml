@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Retrieves a list of all Docker Compose projects currently deployed on the virtual machine. 
+
+  This endpoint returns basic information about each project including name, status, file path and list of containers with 
+  details about their names, image, status, health and ports. Container stats are omitted in this endpoint.
+  If you need to get detailed information about container with stats included, use the `Get project containers` endpoint. 
+
+  Use this to get an overview of all Docker projects on your VPS instance.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Get project list.resources/examples
+order: 4000

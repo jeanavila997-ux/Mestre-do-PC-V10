@@ -1,0 +1,43 @@
+$kind: http-request
+description: |-
+  Purchase and setup a new virtual machine.
+
+  If virtual machine setup fails for any reason, login to [hPanel](https://hpanel.hostinger.com/) and complete the setup manually.
+
+  If no payment method is provided, your default payment method will be used automatically.
+
+  Use this endpoint to create new VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "item_id": "<string>",
+      "setup": {
+        "data_center_id": "<integer>",
+        "template_id": "<integer>",
+        "post_install_script_id": "<integer>",
+        "password": "<string>",
+        "hostname": "<string>",
+        "install_monarx": false,
+        "enable_backups": true,
+        "ns1": "<string>",
+        "ns2": "<string>",
+        "public_key": {
+          "name": "<string>",
+          "key": "<string>"
+        }
+      },
+      "payment_method_id": "<integer>",
+      "coupons": [
+        "",
+        ""
+      ]
+    }
+settings: {}
+examples: ./.resources/Purchase new virtual machine.resources/examples
+order: 6000

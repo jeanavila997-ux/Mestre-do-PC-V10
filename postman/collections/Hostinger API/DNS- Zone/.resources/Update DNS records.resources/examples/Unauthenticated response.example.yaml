@@ -1,0 +1,63 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/dns/v1/zones/:domain"
+  method: PUT
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: domain
+      value: <string>
+      description: (Required) Domain name
+  body:
+    type: json
+    content: |-
+      {
+        "zone": [
+          {
+            "name": "<string>",
+            "records": [
+              {
+                "content": "<string>"
+              },
+              {
+                "content": "<string>"
+              }
+            ],
+            "type": "A",
+            "ttl": "<integer>"
+          },
+          {
+            "name": "<string>",
+            "records": [
+              {
+                "content": "<string>"
+              },
+              {
+                "content": "<string>"
+              }
+            ],
+            "type": "CNAME",
+            "ttl": "<integer>"
+          }
+        ],
+        "overwrite": true
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "correlation_id": "<string>"
+      }
+order: 2000

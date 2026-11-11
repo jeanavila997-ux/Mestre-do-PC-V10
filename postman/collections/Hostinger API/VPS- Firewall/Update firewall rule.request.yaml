@@ -1,0 +1,31 @@
+$kind: http-request
+description: |-
+  Update a specific firewall rule from a specified firewall.
+
+  Any virtual machine that has this firewall activated will lose sync with the firewall and will have to be synced again manually.
+
+  Use this endpoint to modify existing firewall rules.
+url: "{{baseUrl}}/api/vps/v1/firewall/:firewallId/rules/:ruleId"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: firewallId
+    value: <integer>
+    description: (Required) Firewall ID
+  - key: ruleId
+    value: <integer>
+    description: (Required) Firewall Rule ID
+body:
+  type: json
+  content: |-
+    {
+      "protocol": "PostgreSQL",
+      "port": "<string>",
+      "source": "any",
+      "source_detail": "<string>"
+    }
+settings: {}
+examples: ./.resources/Update firewall rule.resources/examples
+order: 7000

@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve a WHOIS contact profile.
+
+  Use this endpoint to view domain registration contact information.
+url: "{{baseUrl}}/api/domains/v1/whois/:whoisId"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: whoisId
+    value: <integer>
+    description: (Required) WHOIS ID
+settings: {}
+examples: ./.resources/Get WHOIS profile.resources/examples
+order: 1000

@@ -1,0 +1,57 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/domains/v1/portfolio/:domain"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: domain
+      value: <string>
+      description: (Required) Domain name
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "domain": "<string>",
+        "status": "expired",
+        "message": "<string>",
+        "is_privacy_protection_allowed": "<boolean>",
+        "is_privacy_protected": "<boolean>",
+        "is_lockable": "<boolean>",
+        "is_locked": "<boolean>",
+        "name_servers": {
+          "ns1": "<string>",
+          "ns2": "<string>"
+        },
+        "child_name_servers": [
+          [
+            "<string>",
+            "<string>"
+          ],
+          [
+            "<string>",
+            "<string>"
+          ]
+        ],
+        "domain_contacts": {
+          "admin_id": "<integer>",
+          "owner_id": "<integer>",
+          "billing_id": "<integer>",
+          "tech_id": "<integer>"
+        },
+        "created_at": "<dateTime>",
+        "updated_at": "<dateTime>",
+        "60_days_lock_expires_at": "<dateTime>",
+        "registered_at": "<dateTime>",
+        "expires_at": "<dateTime>"
+      }
+order: 1000

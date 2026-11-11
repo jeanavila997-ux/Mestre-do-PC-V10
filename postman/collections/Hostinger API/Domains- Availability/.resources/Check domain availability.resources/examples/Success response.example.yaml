@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/domains/v1/availability"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "domain": "<string>",
+        "tlds": [
+          "<string>",
+          "<string>"
+        ],
+        "with_alternatives": false
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "domain": "<string>",
+          "is_available": "<boolean>",
+          "is_alternative": "<boolean>",
+          "restriction": "<string>"
+        },
+        {
+          "domain": "<string>",
+          "is_available": "<boolean>",
+          "is_alternative": "<boolean>",
+          "restriction": "<string>"
+        }
+      ]
+order: 1000

@@ -1,0 +1,7 @@
+$kind: collection
+name: "Domain Access Verifier: Verifications"
+description: |-
+  Manage domain verifications.
+  This category includes endpoints for retrieving active domain verifications, including verification status, records, and attempt dates.
+  Domain verification allows you to prove ownership of domains through nameserver or TXT record verification methods.
+order: 7000

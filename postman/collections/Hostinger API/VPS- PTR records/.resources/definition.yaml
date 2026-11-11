@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: PTR records"
+description: Manage reverse DNS settings by creating or deleting PTR records for your virtual machines, ensuring that IP addresses correctly resolve to hostnames.
+order: 32000

@@ -1,0 +1,39 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/dns/v1/zones/:domain/reset"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: domain
+      value: <string>
+      description: (Required) Domain name
+  body:
+    type: json
+    content: |-
+      {
+        "sync": true,
+        "reset_email_records": true,
+        "whitelisted_record_types": [
+          "<string>",
+          "<string>"
+        ]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>"
+      }
+order: 1000

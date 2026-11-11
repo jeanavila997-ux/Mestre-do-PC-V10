@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve snapshot for a specified virtual machine.
+
+  Use this endpoint to view current VPS snapshot information.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/snapshot"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Get snapshot.resources/examples
+order: 1000

@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Retrieve particular DNS snapshot with contents of DNS zone records.
+
+  Use this endpoint to view historical DNS configurations for domains.
+url: "{{baseUrl}}/api/dns/v1/snapshots/:domain/:snapshotId"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+  - key: snapshotId
+    value: <integer>
+    description: (Required) Snapshot ID
+settings: {}
+examples: ./.resources/Get DNS snapshot.resources/examples
+order: 1000

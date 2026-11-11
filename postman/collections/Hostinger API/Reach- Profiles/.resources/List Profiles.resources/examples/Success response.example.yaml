@@ -1,0 +1,73 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/reach/v1/profiles"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "limits": {
+            "ai_messages_limit": "<integer>",
+            "subscribers_limit": "<integer>",
+            "emails_monthly_limit": "<integer>",
+            "ai_messages_additional": "<integer>"
+          },
+          "is_trial": "<boolean>",
+          "expires_at": "<dateTime>",
+          "resource_id": "<integer>",
+          "status": "<string>",
+          "profiles": [
+            {
+              "uuid": "<string>",
+              "domain": "<string>",
+              "created_at": "<dateTime>",
+              "updated_at": "<dateTime>"
+            },
+            {
+              "uuid": "<string>",
+              "domain": "<string>",
+              "created_at": "<dateTime>",
+              "updated_at": "<dateTime>"
+            }
+          ]
+        },
+        {
+          "limits": {
+            "ai_messages_limit": "<integer>",
+            "subscribers_limit": "<integer>",
+            "emails_monthly_limit": "<integer>",
+            "ai_messages_additional": "<integer>"
+          },
+          "is_trial": "<boolean>",
+          "expires_at": "<dateTime>",
+          "resource_id": "<integer>",
+          "status": "<string>",
+          "profiles": [
+            {
+              "uuid": "<string>",
+              "domain": "<string>",
+              "created_at": "<dateTime>",
+              "updated_at": "<dateTime>"
+            },
+            {
+              "uuid": "<string>",
+              "domain": "<string>",
+              "created_at": "<dateTime>",
+              "updated_at": "<dateTime>"
+            }
+          ]
+        }
+      ]
+order: 1000

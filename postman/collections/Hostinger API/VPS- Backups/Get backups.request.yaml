@@ -1,0 +1,20 @@
+$kind: http-request
+description: |-
+  Retrieve backups for a specified virtual machine.
+
+  Use this endpoint to view available backup points for VPS data recovery.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/backups?page=<integer>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: <integer>
+    description: Page number
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Get backups.resources/examples
+order: 1000

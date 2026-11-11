@@ -1,0 +1,11 @@
+$kind: http-request
+description: |-
+  Generate a unique free subdomain that can be used for hosting services without purchasing custom domains.
+  Free subdomains allow you to start using hosting services immediately and you can always connect a custom domain to your site later.
+url: "{{baseUrl}}/api/hosting/v1/domains/free-subdomains"
+method: POST
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Generate a free subdomain.resources/examples
+order: 1000

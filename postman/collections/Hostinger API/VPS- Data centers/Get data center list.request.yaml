@@ -1,0 +1,12 @@
+$kind: http-request
+description: |-
+  Retrieve all available data centers.
+
+  Use this endpoint to view location options before deploying VPS instances.
+url: "{{baseUrl}}/api/vps/v1/data-centers"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Get data center list.resources/examples
+order: 1000

@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Restarts all services in a Docker Compose project by stopping and starting containers in the correct dependency order. 
+
+  This operation preserves data volumes and network configurations while refreshing the running containers. 
+
+  Use this to apply configuration changes or recover from service failures.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName/restart"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: projectName
+    value: <string>
+    description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+settings: {}
+examples: ./.resources/Restart project.resources/examples
+order: 7000

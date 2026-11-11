@@ -1,0 +1,23 @@
+$kind: http-request
+description: |-
+  Get a list of contacts, optionally filtered by group and subscription status.
+
+  This endpoint returns a paginated list of contacts with their basic information.
+  You can filter contacts by group UUID and subscription status.
+url: "{{baseUrl}}/api/reach/v1/contacts?group_uuid=<string>&subscription_status=subscribed&page=<integer>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: group_uuid
+    value: <string>
+    description: Filter contacts by group UUID
+  - key: subscription_status
+    value: subscribed
+    description: Filter contacts by subscription status (This can only be one of subscribed,unsubscribed)
+  - key: page
+    value: <integer>
+    description: Page number
+settings: {}
+examples: ./.resources/List contacts.resources/examples
+order: 3000

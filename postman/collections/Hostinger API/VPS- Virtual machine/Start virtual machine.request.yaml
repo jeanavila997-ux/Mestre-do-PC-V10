@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Start a specified virtual machine.
+
+  If the virtual machine is already running, the request will still be processed without any effect.
+
+  Use this endpoint to power on stopped VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/start"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Start virtual machine.resources/examples
+order: 14000

@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Sync a firewall for a specified virtual machine.
+
+  Firewall can lose sync with virtual machine if the firewall has new rules added, removed or updated.
+
+  Use this endpoint to apply updated firewall rules to VPS instances.
+url: "{{baseUrl}}/api/vps/v1/firewall/:firewallId/sync/:virtualMachineId"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: firewallId
+    value: <integer>
+    description: (Required) Firewall ID
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Sync firewall.resources/examples
+order: 10000

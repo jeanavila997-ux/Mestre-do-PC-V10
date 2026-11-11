@@ -1,0 +1,54 @@
+$kind: http-request
+description: |-
+  Validate DNS records prior to update for the selected domain.
+
+  If the validation is successful, the response will contain `200 Success` code.
+  If there is validation error, the response will fail with `422 Validation error` code.
+
+  Use this endpoint to verify DNS record validity before applying changes.
+url: "{{baseUrl}}/api/dns/v1/zones/:domain/validate"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+body:
+  type: json
+  content: |-
+    {
+      "zone": [
+        {
+          "name": "<string>",
+          "records": [
+            {
+              "content": "<string>"
+            },
+            {
+              "content": "<string>"
+            }
+          ],
+          "type": "A",
+          "ttl": "<integer>"
+        },
+        {
+          "name": "<string>",
+          "records": [
+            {
+              "content": "<string>"
+            },
+            {
+              "content": "<string>"
+            }
+          ],
+          "type": "CNAME",
+          "ttl": "<integer>"
+        }
+      ],
+      "overwrite": true
+    }
+settings: {}
+examples: ./.resources/Validate DNS records.resources/examples
+order: 5000

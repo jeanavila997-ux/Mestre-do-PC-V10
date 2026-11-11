@@ -1,0 +1,38 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/recreate"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: virtualMachineId
+      value: <integer>
+      description: (Required) Virtual Machine ID
+  body:
+    type: json
+    content: |-
+      {
+        "template_id": "<integer>",
+        "password": "<string>",
+        "panel_password": "<string>",
+        "post_install_script_id": "<integer>"
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "correlation_id": "<string>"
+      }
+order: 2000

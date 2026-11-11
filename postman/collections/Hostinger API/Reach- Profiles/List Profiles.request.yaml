@@ -1,0 +1,9 @@
+$kind: http-request
+description: This endpoint returns all profiles available to the client, including their basic information.
+url: "{{baseUrl}}/api/reach/v1/profiles"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/List Profiles.resources/examples
+order: 1000

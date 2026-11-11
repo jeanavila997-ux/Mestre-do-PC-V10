@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Delete a snapshot of a specified virtual machine.
+
+  Use this endpoint to remove VPS snapshots.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/snapshot"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Delete snapshot.resources/examples
+order: 3000

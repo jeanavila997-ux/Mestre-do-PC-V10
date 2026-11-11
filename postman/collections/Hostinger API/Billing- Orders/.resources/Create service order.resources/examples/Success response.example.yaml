@@ -1,0 +1,64 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/billing/v1/orders"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "payment_method_id": "<integer>",
+        "items": [
+          {
+            "item_id": "<string>",
+            "quantity": "<integer>"
+          },
+          {
+            "item_id": "<string>",
+            "quantity": "<integer>"
+          }
+        ],
+        "coupons": [
+          "",
+          ""
+        ]
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "<integer>",
+        "subscription_id": "<string>",
+        "status": "awaiting_payment",
+        "currency": "<string>",
+        "subtotal": "<integer>",
+        "total": "<integer>",
+        "billing_address": {
+          "first_name": "<string>",
+          "last_name": "<string>",
+          "company": "<string>",
+          "address_1": "<string>",
+          "address_2": "<string>",
+          "city": "<string>",
+          "state": "<string>",
+          "zip": "<string>",
+          "country": "<string>",
+          "phone": "<string>",
+          "email": "<string>"
+        },
+        "created_at": "<dateTime>",
+        "updated_at": "<dateTime>"
+      }
+order: 1000

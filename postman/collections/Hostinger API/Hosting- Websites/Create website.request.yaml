@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Create a new website for the authenticated client.
+
+  Provide the domain name and associated order ID to create a new website. The datacenter_code parameter is required when creating the first website on a new hosting plan - this will set up and configure new hosting account in the selected datacenter.
+
+  Subsequent websites will be hosted on the same datacenter automatically.
+
+  Website creation takes up to a few minutes to complete. Check the websites list endpoint to see when your new website becomes available.
+url: "{{baseUrl}}/api/hosting/v1/websites"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "domain": "<string>",
+      "order_id": "<integer>",
+      "datacenter_code": "<string>"
+    }
+settings: {}
+examples: ./.resources/Create website.resources/examples
+order: 2000

@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Stop a specified virtual machine.
+
+  If the virtual machine is already stopped, the request will still be processed without any effect.
+
+  Use this endpoint to power off running VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/stop"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Stop virtual machine.resources/examples
+order: 15000

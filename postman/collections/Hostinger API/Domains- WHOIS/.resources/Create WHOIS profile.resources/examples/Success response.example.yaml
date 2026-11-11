@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/domains/v1/whois"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "tld": "<string>",
+        "entity_type": "organization",
+        "country": "<string>",
+        "whois_details": {},
+        "tld_details": {}
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "<integer>",
+        "tld": "<string>",
+        "country": "<string>",
+        "entity_type": "individual",
+        "whois_details": {},
+        "tld_details": {},
+        "created_at": "<dateTime>",
+        "updated_at": "<dateTime>"
+      }
+order: 1000

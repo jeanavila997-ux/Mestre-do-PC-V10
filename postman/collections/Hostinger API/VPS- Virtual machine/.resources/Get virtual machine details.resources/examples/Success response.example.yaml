@@ -1,0 +1,70 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: virtualMachineId
+      value: <integer>
+      description: (Required) Virtual Machine ID
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "<integer>",
+        "firewall_group_id": "<integer>",
+        "subscription_id": "<string>",
+        "data_center_id": "<integer>",
+        "plan": "<string>",
+        "hostname": "<string>",
+        "state": "initial",
+        "actions_lock": "locked",
+        "cpus": "<integer>",
+        "memory": "<integer>",
+        "disk": "<integer>",
+        "bandwidth": "<integer>",
+        "ns1": "<string>",
+        "ns2": "<string>",
+        "ipv4": [
+          {
+            "id": "<integer>",
+            "address": "<string>",
+            "ptr": "<string>"
+          },
+          {
+            "id": "<integer>",
+            "address": "<string>",
+            "ptr": "<string>"
+          }
+        ],
+        "ipv6": [
+          {
+            "id": "<integer>",
+            "address": "<string>",
+            "ptr": "<string>"
+          },
+          {
+            "id": "<integer>",
+            "address": "<string>",
+            "ptr": "<string>"
+          }
+        ],
+        "template": {
+          "id": "<integer>",
+          "name": "<string>",
+          "description": "<string>",
+          "documentation": "<string>"
+        },
+        "created_at": "<dateTime>"
+      }
+order: 1000

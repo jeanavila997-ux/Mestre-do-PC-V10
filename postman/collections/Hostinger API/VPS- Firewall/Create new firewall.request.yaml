@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Create a new firewall.
+
+  Use this endpoint to set up new firewall configurations for VPS security.
+url: "{{baseUrl}}/api/vps/v1/firewall"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "<string>"
+    }
+settings: {}
+examples: ./.resources/Create new firewall.resources/examples
+order: 6000

@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/domains/v1/portfolio"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "domain": "<string>",
+        "item_id": "<string>",
+        "payment_method_id": "<integer>",
+        "domain_contacts": {
+          "owner_id": "<integer>",
+          "admin_id": "<integer>",
+          "billing_id": "<integer>",
+          "tech_id": "<integer>"
+        },
+        "additional_details": {},
+        "coupons": [
+          "",
+          ""
+        ]
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "correlation_id": "<string>"
+      }
+order: 2000

@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve all available firewalls.
+
+  Use this endpoint to view existing firewall configurations.
+url: "{{baseUrl}}/api/vps/v1/firewall?page=<integer>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: <integer>
+    description: Page number
+settings: {}
+examples: ./.resources/Get firewall list.resources/examples
+order: 5000

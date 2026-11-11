@@ -1,0 +1,30 @@
+$kind: http-request
+description: |-
+  Check availability of domain names across multiple TLDs.
+
+  Multiple TLDs can be checked at once.
+  If you want alternative domains with response, provide only one TLD and set `with_alternatives` to `true`.
+  TLDs should be provided without leading dot (e.g. `com`, `net`, `org`).
+
+  Endpoint has rate limit of 10 requests per minute.
+
+  Use this endpoint to verify domain availability before purchase.
+url: "{{baseUrl}}/api/domains/v1/availability"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "domain": "<string>",
+      "tlds": [
+        "<string>",
+        "<string>"
+      ],
+      "with_alternatives": false
+    }
+settings: {}
+examples: ./.resources/Check domain availability.resources/examples
+order: 1000

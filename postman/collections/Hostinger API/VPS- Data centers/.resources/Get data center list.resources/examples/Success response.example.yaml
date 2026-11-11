@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/data-centers"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "<integer>",
+          "name": "<string>",
+          "location": "<string>",
+          "city": "<string>",
+          "continent": "<string>"
+        },
+        {
+          "id": "<integer>",
+          "name": "<string>",
+          "location": "<string>",
+          "city": "<string>",
+          "continent": "<string>"
+        }
+      ]
+order: 1000

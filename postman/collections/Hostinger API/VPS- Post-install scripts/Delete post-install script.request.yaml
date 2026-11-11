@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Delete a post-install script from your account.
+         
+  Use this endpoint to remove unused automation scripts.
+url: "{{baseUrl}}/api/vps/v1/post-install-scripts/:postInstallScriptId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: postInstallScriptId
+    value: <integer>
+    description: (Required) Post-install script ID
+settings: {}
+examples: ./.resources/Delete post-install script.resources/examples
+order: 3000

@@ -1,0 +1,4 @@
+$kind: collection
+name: "Reach: Contacts"
+description: Manage your email contacts and contact groups. This category includes endpoints for creating, deleting, and listing contacts, as well as managing contact groups.
+order: 19000

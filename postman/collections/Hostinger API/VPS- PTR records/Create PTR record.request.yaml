@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Create or update a PTR (Pointer) record for a specified virtual machine.
+
+  Use this endpoint to configure reverse DNS lookup for VPS IP addresses.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/ptr/:ipAddressId"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: ipAddressId
+    value: <integer>
+    description: (Required) IP Address ID
+body:
+  type: json
+  content: |-
+    {
+      "domain": "<string>"
+    }
+settings: {}
+examples: ./.resources/Create PTR record.resources/examples
+order: 1000

@@ -1,0 +1,4 @@
+$kind: collection
+name: "Billing: Orders"
+description: Initiate and track new service orders seamlessly. This category streamlines the process of purchasing Hostinger services, enabling efficient management of order details.
+order: 2000

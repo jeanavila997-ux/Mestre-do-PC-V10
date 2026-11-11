@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: virtualMachineId
+      value: <integer>
+      description: (Required) Virtual Machine ID
+  body:
+    type: json
+    content: |-
+      {
+        "project_name": "<string>",
+        "content": "<string>",
+        "environment": "<string>"
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "errors": {
+          "field_1": [
+            "",
+            ""
+          ],
+          "field_2": [
+            "",
+            ""
+          ]
+        },
+        "correlation_id": "<string>"
+      }
+order: 3000

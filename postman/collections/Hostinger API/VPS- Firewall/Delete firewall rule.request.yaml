@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Delete a specific firewall rule from a specified firewall.
+
+  Any virtual machine that has this firewall activated will lose sync with the firewall and will have to be synced again manually.
+         
+  Use this endpoint to remove specific firewall rules.
+url: "{{baseUrl}}/api/vps/v1/firewall/:firewallId/rules/:ruleId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: firewallId
+    value: <integer>
+    description: (Required) Firewall ID
+  - key: ruleId
+    value: <integer>
+    description: (Required) Firewall Rule ID
+settings: {}
+examples: ./.resources/Delete firewall rule.resources/examples
+order: 8000

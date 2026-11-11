@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Delete a specified firewall.
+
+  Any virtual machine that has this firewall activated will automatically have it deactivated.
+
+  Use this endpoint to remove unused firewall configurations.
+url: "{{baseUrl}}/api/vps/v1/firewall/:firewallId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: firewallId
+    value: <integer>
+    description: (Required) Firewall ID
+settings: {}
+examples: ./.resources/Delete firewall.resources/examples
+order: 4000

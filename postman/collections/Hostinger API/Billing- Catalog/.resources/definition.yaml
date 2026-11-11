@@ -1,0 +1,4 @@
+$kind: collection
+name: "Billing: Catalog"
+description: Access a comprehensive catalog of service plans and subscription options, complete with detailed pricing and features.
+order: 1000

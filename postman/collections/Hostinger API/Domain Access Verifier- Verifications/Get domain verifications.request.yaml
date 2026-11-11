@@ -1,0 +1,19 @@
+$kind: http-request
+description: Retrieve a list of pending and completed domain verifications.
+url: "{{baseUrl}}/api/v2/direct/verifications/active"
+method: GET
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "domains": [
+        "<string>",
+        "<string>"
+      ]
+    }
+settings: {}
+examples: ./.resources/Get domain verifications.resources/examples
+order: 1000

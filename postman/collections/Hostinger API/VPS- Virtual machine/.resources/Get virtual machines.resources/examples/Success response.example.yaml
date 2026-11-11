@@ -1,0 +1,115 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/virtual-machines"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "<integer>",
+          "firewall_group_id": "<integer>",
+          "subscription_id": "<string>",
+          "data_center_id": "<integer>",
+          "plan": "<string>",
+          "hostname": "<string>",
+          "state": "running",
+          "actions_lock": "unlocked",
+          "cpus": "<integer>",
+          "memory": "<integer>",
+          "disk": "<integer>",
+          "bandwidth": "<integer>",
+          "ns1": "<string>",
+          "ns2": "<string>",
+          "ipv4": [
+            {
+              "id": "<integer>",
+              "address": "<string>",
+              "ptr": "<string>"
+            },
+            {
+              "id": "<integer>",
+              "address": "<string>",
+              "ptr": "<string>"
+            }
+          ],
+          "ipv6": [
+            {
+              "id": "<integer>",
+              "address": "<string>",
+              "ptr": "<string>"
+            },
+            {
+              "id": "<integer>",
+              "address": "<string>",
+              "ptr": "<string>"
+            }
+          ],
+          "template": {
+            "id": "<integer>",
+            "name": "<string>",
+            "description": "<string>",
+            "documentation": "<string>"
+          },
+          "created_at": "<dateTime>"
+        },
+        {
+          "id": "<integer>",
+          "firewall_group_id": "<integer>",
+          "subscription_id": "<string>",
+          "data_center_id": "<integer>",
+          "plan": "<string>",
+          "hostname": "<string>",
+          "state": "recovery",
+          "actions_lock": "unlocked",
+          "cpus": "<integer>",
+          "memory": "<integer>",
+          "disk": "<integer>",
+          "bandwidth": "<integer>",
+          "ns1": "<string>",
+          "ns2": "<string>",
+          "ipv4": [
+            {
+              "id": "<integer>",
+              "address": "<string>",
+              "ptr": "<string>"
+            },
+            {
+              "id": "<integer>",
+              "address": "<string>",
+              "ptr": "<string>"
+            }
+          ],
+          "ipv6": [
+            {
+              "id": "<integer>",
+              "address": "<string>",
+              "ptr": "<string>"
+            },
+            {
+              "id": "<integer>",
+              "address": "<string>",
+              "ptr": "<string>"
+            }
+          ],
+          "template": {
+            "id": "<integer>",
+            "name": "<string>",
+            "description": "<string>",
+            "documentation": "<string>"
+          },
+          "created_at": "<dateTime>"
+        }
+      ]
+order: 1000

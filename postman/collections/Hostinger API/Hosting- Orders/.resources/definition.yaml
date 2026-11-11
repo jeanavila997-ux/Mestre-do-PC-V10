@@ -1,0 +1,4 @@
+$kind: collection
+name: "Hosting: Orders"
+description: Manage hosting service orders and subscriptions. This category provides access to order information, status tracking, and order management capabilities for hosting services.
+order: 16000

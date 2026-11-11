@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Restore a specified virtual machine to a previous state using a snapshot.
+
+  Restoring from a snapshot allows users to revert the virtual machine to that state, which is useful for system recovery, undoing changes, or testing.
+
+  Use this endpoint to revert VPS instances to previous saved states.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/snapshot/restore"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Restore snapshot.resources/examples
+order: 4000

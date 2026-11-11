@@ -1,0 +1,48 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/domains/v1/portfolio/:domain/nameservers"
+  method: PUT
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: domain
+      value: <string>
+      description: (Required) Domain name
+  body:
+    type: json
+    content: |-
+      {
+        "ns1": "<string>",
+        "ns2": "<string>",
+        "ns3": "<string>",
+        "ns4": "<string>"
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "errors": {
+          "field_1": [
+            "",
+            ""
+          ],
+          "field_2": [
+            "",
+            ""
+          ]
+        },
+        "correlation_id": "<string>"
+      }
+order: 3000

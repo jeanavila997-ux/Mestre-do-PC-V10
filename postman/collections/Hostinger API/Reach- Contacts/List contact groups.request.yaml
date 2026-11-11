@@ -1,0 +1,12 @@
+$kind: http-request
+description: |-
+  Get a list of all contact groups.
+
+  This endpoint returns a list of contact groups that can be used to organize contacts.
+url: "{{baseUrl}}/api/reach/v1/contacts/groups"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/List contact groups.resources/examples
+order: 2000

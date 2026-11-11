@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.
+
+  A successful POST request typically returns a `200 OK` or `201 Created` response code.
+url: ""
+method: POST
+body:
+  type: json
+  content: |-
+    {
+    	"name": "Add your name in the body"
+    }
+scripts:
+  - type: afterResponse
+    code: |
+      pm.test("Successful POST request", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201]);
+      });
+    language: text/javascript
+order: 2000

@@ -1,0 +1,110 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName/containers"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: virtualMachineId
+      value: <integer>
+      description: (Required) Virtual Machine ID
+    - key: projectName
+      value: <string>
+      description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "<string>",
+          "name": "<string>",
+          "image": "<string>",
+          "command": "<string>",
+          "status": "<string>",
+          "state": "running",
+          "health": "starting",
+          "ports": [
+            {
+              "type": "exposed_range",
+              "protocol": "tcp",
+              "host_ip": "<string>",
+              "host_port": "<integer>",
+              "container_port": "<integer>",
+              "host_port_start": "<integer>",
+              "host_port_end": "<integer>",
+              "container_port_start": "<integer>",
+              "container_port_end": "<integer>"
+            },
+            {
+              "type": "exposed",
+              "protocol": "udp",
+              "host_ip": "<string>",
+              "host_port": "<integer>",
+              "container_port": "<integer>",
+              "host_port_start": "<integer>",
+              "host_port_end": "<integer>",
+              "container_port_start": "<integer>",
+              "container_port_end": "<integer>"
+            }
+          ],
+          "stats": {
+            "cpu_percentage": "<float>",
+            "memory_percentage": "<float>",
+            "memory_used": "<float>",
+            "memory_total": "<float>",
+            "net_in": "<integer>",
+            "net_out": "<integer>"
+          }
+        },
+        {
+          "id": "<string>",
+          "name": "<string>",
+          "image": "<string>",
+          "command": "<string>",
+          "status": "<string>",
+          "state": "stopping",
+          "health": "unhealthy",
+          "ports": [
+            {
+              "type": "published_range",
+              "protocol": "tcp",
+              "host_ip": "<string>",
+              "host_port": "<integer>",
+              "container_port": "<integer>",
+              "host_port_start": "<integer>",
+              "host_port_end": "<integer>",
+              "container_port_start": "<integer>",
+              "container_port_end": "<integer>"
+            },
+            {
+              "type": "exposed",
+              "protocol": "udp",
+              "host_ip": "<string>",
+              "host_port": "<integer>",
+              "container_port": "<integer>",
+              "host_port_start": "<integer>",
+              "host_port_end": "<integer>",
+              "container_port_start": "<integer>",
+              "container_port_end": "<integer>"
+            }
+          ],
+          "stats": {
+            "cpu_percentage": "<float>",
+            "memory_percentage": "<float>",
+            "memory_used": "<float>",
+            "memory_total": "<float>",
+            "net_in": "<integer>",
+            "net_out": "<integer>"
+          }
+        }
+      ]
+order: 1000

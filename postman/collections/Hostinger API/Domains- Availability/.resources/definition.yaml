@@ -1,0 +1,4 @@
+$kind: collection
+name: "Domains: Availability"
+description: Check the availability of domain names across multiple TLDs. This category allows you to verify if a specific domain name is available for registration.
+order: 8000

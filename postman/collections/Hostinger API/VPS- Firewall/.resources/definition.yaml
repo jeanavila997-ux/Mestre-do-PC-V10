@@ -1,0 +1,8 @@
+$kind: collection
+name: "VPS: Firewall"
+description: |-
+  Enhance network security with endpoints for creating, activating, deactivating, syncing, updating, and deleting firewalls and firewall rules for your virtual machines.
+  This firewall applies rules at the network level, so it will take precedence over the virtual machine's internal firewall.
+
+  **Access to firewall requires having at least one virtual machine.**
+order: 24000

@@ -1,0 +1,4 @@
+$kind: collection
+name: "Hosting: Datacenters"
+description: Access information about available datacenters for hosting services. This category provides details about data center locations and capabilities to help you choose the optimal region for your hosting needs.
+order: 12000

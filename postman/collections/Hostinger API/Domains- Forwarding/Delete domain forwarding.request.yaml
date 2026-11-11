@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Delete domain forwarding data.
+
+  Use this endpoint to remove redirect configuration from domains.
+url: "{{baseUrl}}/api/domains/v1/forwarding/:domain"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+settings: {}
+examples: ./.resources/Delete domain forwarding.resources/examples
+order: 2000

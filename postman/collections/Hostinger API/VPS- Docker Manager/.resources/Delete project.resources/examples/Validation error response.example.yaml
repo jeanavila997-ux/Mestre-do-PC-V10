@@ -1,0 +1,40 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName/down"
+  method: DELETE
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    - key: virtualMachineId
+      value: <integer>
+      description: (Required) Virtual Machine ID
+    - key: projectName
+      value: <string>
+      description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity (WebDAV) (RFC 4918)
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "errors": {
+          "field_1": [
+            "",
+            ""
+          ],
+          "field_2": [
+            "",
+            ""
+          ]
+        },
+        "correlation_id": "<string>"
+      }
+order: 3000

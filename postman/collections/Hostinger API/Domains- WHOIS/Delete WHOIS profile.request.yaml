@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Delete WHOIS contact profile.
+
+  Use this endpoint to remove unused contact profiles from account.
+url: "{{baseUrl}}/api/domains/v1/whois/:whoisId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: whoisId
+    value: <integer>
+    description: (Required) WHOIS ID
+settings: {}
+examples: ./.resources/Delete WHOIS profile.resources/examples
+order: 2000

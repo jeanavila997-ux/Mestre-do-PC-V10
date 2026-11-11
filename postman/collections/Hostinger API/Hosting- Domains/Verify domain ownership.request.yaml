@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Verify ownership of a single domain and return the verification status.
+
+  Use this endpoint to check if a domain is accessible for you before using it for new websites.
+  If the domain is accessible, the response will have `is_accessible: true`.
+  If not, add the given TXT record to your domain's DNS records and try verifying again.
+  Keep in mind that it may take up to 10 minutes for new TXT DNS records to propagate.
+
+  Skip this verification when using Hostinger's free subdomains (*.hostingersite.com).
+url: "{{baseUrl}}/api/hosting/v1/domains/verify-ownership"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "domain": "<string>"
+    }
+settings: {}
+examples: ./.resources/Verify domain ownership.resources/examples
+order: 2000

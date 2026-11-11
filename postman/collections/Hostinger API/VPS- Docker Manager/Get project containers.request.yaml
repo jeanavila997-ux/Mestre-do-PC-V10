@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Retrieves a list of all containers belonging to a specific Docker Compose project on the virtual machine. 
+
+  This endpoint returns detailed information about each container including their current status, port mappings, and runtime configuration. 
+
+  Use this to monitor the health and state of all services within your Docker Compose project.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName/containers"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: projectName
+    value: <string>
+    description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+settings: {}
+examples: ./.resources/Get project containers.resources/examples
+order: 1000

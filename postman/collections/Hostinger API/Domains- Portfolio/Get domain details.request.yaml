@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve detailed information for specified domain.
+
+  Use this endpoint to view comprehensive domain configuration and status.
+url: "{{baseUrl}}/api/domains/v1/portfolio/:domain"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+settings: {}
+examples: ./.resources/Get domain details.resources/examples
+order: 3000

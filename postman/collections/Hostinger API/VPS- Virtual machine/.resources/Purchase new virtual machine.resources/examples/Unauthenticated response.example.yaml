@@ -1,0 +1,51 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/vps/v1/virtual-machines"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "item_id": "<string>",
+        "setup": {
+          "data_center_id": "<integer>",
+          "template_id": "<integer>",
+          "post_install_script_id": "<integer>",
+          "password": "<string>",
+          "hostname": "<string>",
+          "install_monarx": false,
+          "enable_backups": true,
+          "ns1": "<string>",
+          "ns2": "<string>",
+          "public_key": {
+            "name": "<string>",
+            "key": "<string>"
+          }
+        },
+        "payment_method_id": "<integer>",
+        "coupons": [
+          "",
+          ""
+        ]
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "message": "<string>",
+        "correlation_id": "<string>"
+      }
+order: 2000

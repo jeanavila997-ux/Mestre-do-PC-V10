@@ -1,0 +1,4 @@
+$kind: collection
+name: "Hosting: Websites"
+description: Manage hosted websites and web applications. This category includes endpoints for website deployment, configuration, monitoring, and management of hosting resources.
+order: 17000

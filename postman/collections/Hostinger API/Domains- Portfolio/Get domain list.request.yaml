@@ -1,0 +1,12 @@
+$kind: http-request
+description: |-
+  Retrieve all domains associated with your account.
+
+  Use this endpoint to view user's domain portfolio.
+url: "{{baseUrl}}/api/domains/v1/portfolio"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Get domain list.resources/examples
+order: 4000

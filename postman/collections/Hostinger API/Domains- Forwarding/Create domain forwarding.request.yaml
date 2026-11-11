@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Create domain forwarding configuration.
+
+  Use this endpoint to set up domain redirects to other URLs.
+url: "{{baseUrl}}/api/domains/v1/forwarding"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "domain": "<string>",
+      "redirect_type": "301",
+      "redirect_url": "<string>"
+    }
+settings: {}
+examples: ./.resources/Create domain forwarding.resources/examples
+order: 3000

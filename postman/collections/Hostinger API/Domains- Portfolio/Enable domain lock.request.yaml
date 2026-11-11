@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Enable domain lock for the domain.
+
+  When domain lock is enabled, the domain cannot be transferred to another registrar without first disabling the lock.
+
+  Use this endpoint to secure domains against unauthorized transfers.
+url: "{{baseUrl}}/api/domains/v1/portfolio/:domain/domain-lock"
+method: PUT
+headers:
+  Accept: application/json
+pathVariables:
+  - key: domain
+    value: <string>
+    description: (Required) Domain name
+settings: {}
+examples: ./.resources/Enable domain lock.resources/examples
+order: 1000

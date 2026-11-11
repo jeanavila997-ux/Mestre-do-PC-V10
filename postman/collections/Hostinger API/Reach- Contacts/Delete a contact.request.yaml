@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Delete a contact with the specified UUID.
+
+  This endpoint permanently removes a contact from the email marketing system.
+url: "{{baseUrl}}/api/reach/v1/contacts/:uuid"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: uuid
+    value: <uuid>
+    description: (Required) UUID of the contact to delete
+settings: {}
+examples: ./.resources/Delete a contact.resources/examples
+order: 1000

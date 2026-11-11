@@ -1,0 +1,6 @@
+$kind: collection
+name: "DNS: Zone"
+description: |-
+  Manage DNS zones and records for your domains. This category includes endpoints for retrieving, updating, deleting DNS zone and it's associated records.
+  The DNS zone will be created once you purchase new domain at Hostinger.
+order: 6000

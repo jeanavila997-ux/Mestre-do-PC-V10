@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Updates a Docker Compose project by pulling the latest image versions and recreating containers with new configurations. 
+
+  This operation preserves data volumes while applying changes from the compose file. 
+
+  Use this to deploy application updates, apply configuration changes, or refresh container images to their latest versions.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName/update"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: projectName
+    value: <string>
+    description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+settings: {}
+examples: ./.resources/Update project.resources/examples
+order: 10000

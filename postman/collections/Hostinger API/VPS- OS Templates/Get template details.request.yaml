@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Retrieve detailed information about a specific OS template for virtual machines.
+
+  Use this endpoint to view specific template specifications before deployment.
+url: "{{baseUrl}}/api/vps/v1/templates/:templateId"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: templateId
+    value: <integer>
+    description: (Required) Template ID
+settings: {}
+examples: ./.resources/Get template details.resources/examples
+order: 1000

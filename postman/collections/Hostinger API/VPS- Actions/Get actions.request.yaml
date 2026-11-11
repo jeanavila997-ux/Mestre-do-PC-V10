@@ -1,0 +1,24 @@
+$kind: http-request
+description: |-
+  Retrieve actions performed on a specified virtual machine.
+
+  Actions are operations or events that have been executed on the virtual machine, such as starting, stopping, or modifying 
+  the machine. This endpoint allows you to view the history of these actions, providing details about each action, 
+  such as the action name, timestamp, and status.
+
+  Use this endpoint to view VPS operation history and troubleshoot issues.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/actions?page=<integer>"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: <integer>
+    description: Page number
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+settings: {}
+examples: ./.resources/Get actions.resources/examples
+order: 2000

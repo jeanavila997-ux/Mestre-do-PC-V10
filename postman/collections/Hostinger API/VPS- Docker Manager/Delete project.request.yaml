@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  Completely removes a Docker Compose project from the virtual machine, stopping all containers and cleaning up 
+  associated resources including networks, volumes, and images. 
+
+  This operation is irreversible and will delete all project data. 
+
+  Use this when you want to permanently remove a project and free up system resources.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/docker/:projectName/down"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: projectName
+    value: <string>
+    description: (Required) Docker Compose project name using alphanumeric characters, dashes, and underscores only
+settings: {}
+examples: ./.resources/Delete project.resources/examples
+order: 3000

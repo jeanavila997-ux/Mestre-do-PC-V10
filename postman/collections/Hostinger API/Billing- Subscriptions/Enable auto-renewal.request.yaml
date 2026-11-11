@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Enable auto-renewal for a subscription.
+
+  Use this endpoint when enable auto-renewal for a subscription.
+url: "{{baseUrl}}/api/billing/v1/subscriptions/:subscriptionId/auto-renewal/enable"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  - key: subscriptionId
+    value: <string>
+    description: (Required) Subscription ID
+settings: {}
+examples: ./.resources/Enable auto-renewal.resources/examples
+order: 3000

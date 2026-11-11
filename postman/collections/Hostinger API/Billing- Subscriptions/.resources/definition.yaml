@@ -1,0 +1,4 @@
+$kind: collection
+name: "Billing: Subscriptions"
+description: Manage your account’s subscriptions by retrieving lists of active and expired plans along with details such as activation and expiration dates.
+order: 4000

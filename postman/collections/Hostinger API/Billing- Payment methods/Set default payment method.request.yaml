@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Set the default payment method for your account.
+
+  Use this endpoint to configure the primary payment method for future orders.
+url: "{{baseUrl}}/api/billing/v1/payment-methods/:paymentMethodId"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  - key: paymentMethodId
+    value: <integer>
+    description: (Required) Payment method ID
+settings: {}
+examples: ./.resources/Set default payment method.resources/examples
+order: 1000

@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Delete a public key from your account. 
+
+  **Deleting public key from account does not remove it from virtual machine** 
+         
+  Use this endpoint to remove unused SSH keys from account.
+url: "{{baseUrl}}/api/vps/v1/public-keys/:publicKeyId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: publicKeyId
+    value: <integer>
+    description: (Required) Public Key ID
+settings: {}
+examples: ./.resources/Delete public key.resources/examples
+order: 2000

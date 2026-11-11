@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Retrieve detailed information about a specific action performed on a specified virtual machine.
+
+  Use this endpoint to monitor specific VPS operation status and details.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/actions/:actionId"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+  - key: actionId
+    value: <integer>
+    description: (Required) Action ID
+settings: {}
+examples: ./.resources/Get action details.resources/examples
+order: 1000

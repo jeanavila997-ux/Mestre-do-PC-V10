@@ -1,0 +1,69 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/hosting/v1/websites?page=<integer>&per_page=25&username=<string>&order_id=<integer>&is_enabled=<boolean>&domain=<string>"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: page
+      value: <integer>
+      description: Page number
+    - key: per_page
+      value: "25"
+      description: Number of items per page
+    - key: username
+      value: <string>
+      description: Filter by specific username
+    - key: order_id
+      value: <integer>
+      description: Order ID
+    - key: is_enabled
+      value: <boolean>
+      description: Filter by enabled status
+    - key: domain
+      value: <string>
+      description: Filter by domain name (exact match)
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": [
+          {
+            "domain": "<string>",
+            "vhost_type": "parked",
+            "is_enabled": "<boolean>",
+            "username": "<string>",
+            "client_id": "<integer>",
+            "order_id": "<integer>",
+            "created_at": "<dateTime>",
+            "root_directory": "<string>",
+            "parent_domain": "<string>"
+          },
+          {
+            "domain": "<string>",
+            "vhost_type": "addon",
+            "is_enabled": "<boolean>",
+            "username": "<string>",
+            "client_id": "<integer>",
+            "order_id": "<integer>",
+            "created_at": "<dateTime>",
+            "root_directory": "<string>",
+            "parent_domain": "<string>"
+          }
+        ],
+        "meta": {
+          "current_page": "<integer>",
+          "per_page": "<integer>",
+          "total": "<integer>"
+        }
+      }
+order: 1000

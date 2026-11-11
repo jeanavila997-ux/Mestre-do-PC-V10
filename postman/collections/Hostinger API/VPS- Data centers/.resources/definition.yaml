@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: Data centers"
+description: Access information on available data centers, including location details, so you can choose the optimal region for deploying your virtual machines.
+order: 22000

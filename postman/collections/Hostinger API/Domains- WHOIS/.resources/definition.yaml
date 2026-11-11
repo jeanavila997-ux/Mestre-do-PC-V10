@@ -1,0 +1,6 @@
+$kind: collection
+name: "Domains: WHOIS"
+description: |-
+  Manage WHOIS contact profiles for your domains. This category includes endpoints for creating, updating, deleting, and retrieving WHOIS profiles.
+  WHOIS profile stores registration data for domain names and is required for domain registration.
+order: 11000

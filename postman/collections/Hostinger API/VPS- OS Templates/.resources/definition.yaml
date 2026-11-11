@@ -1,0 +1,4 @@
+$kind: collection
+name: "VPS: OS Templates"
+description: Retrieve details of operating system templates or list all available templates to choose the right configuration when deploying or recreating virtual machines.
+order: 27000

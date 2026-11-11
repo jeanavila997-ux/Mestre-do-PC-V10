@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Set nameservers for a specified virtual machine.
+
+  Be aware, that improper nameserver configuration can lead to the virtual machine being unable to resolve domain names.
+
+  Use this endpoint to configure custom DNS resolvers for VPS instances.
+url: "{{baseUrl}}/api/vps/v1/virtual-machines/:virtualMachineId/nameservers"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: virtualMachineId
+    value: <integer>
+    description: (Required) Virtual Machine ID
+body:
+  type: json
+  content: |-
+    {
+      "ns1": "<string>",
+      "ns2": "<string>",
+      "ns3": "<string>"
+    }
+settings: {}
+examples: ./.resources/Set nameservers.resources/examples
+order: 8000

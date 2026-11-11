@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Create a new contact in the email marketing system.
+
+  This endpoint allows you to create a new contact with basic information like name, email, and surname.
+  You can optionally assign the contact to specific groups and add notes.
+
+  The contact will be automatically subscribed to email communications.
+url: "{{baseUrl}}/api/reach/v1/contacts"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "<string>",
+      "name": "<string>",
+      "surname": "<string>",
+      "note": "<string>"
+    }
+settings: {}
+examples: ./.resources/Create a new contact.resources/examples
+order: 4000

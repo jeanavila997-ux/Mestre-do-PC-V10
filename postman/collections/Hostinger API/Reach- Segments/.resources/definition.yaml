@@ -1,0 +1,4 @@
+$kind: collection
+name: "Reach: Segments"
+description: Filter and segment your email contacts using various criteria. This category includes endpoints for filtering contacts by attributes, tags, and email addresses, as well as listing all available segments and retrieving contacts that match specific attribute conditions.
+order: 20000
