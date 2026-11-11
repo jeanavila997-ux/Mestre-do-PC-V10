@@ -122,6 +122,7 @@ Testes que sobem o launcher: importar `mcp-server/test/helpers/launcher-test-env
 | `v10/operation-registry.js` | Resolve `{id}` / `{id,params}` / `{cmd}`. |
 | `v10/rea-bridge.js` | Ponte do REA (engenharia reversa): alvo validado, análise read-only, auditoria. |
 | `v10/rea-routes.js` | Rotas `/rea/*` (status, doctor, analyze + job). |
+| `v10/dsh-bridge.js` + `v10/dsh-routes.js` | DeepSeek Harness (dsh): tarefa headless em cascata de provedores e rotas `/dsh/*`. |
 | `v10/index.html` | SPA desktop, sem bundler. |
 | `v10/mobile/` | PWA. Ao mudar, copie para `dist/site/mobile/`. |
 | `v10/chat/` | Persona (`Soul.md`) e módulo legado só de `example-integration.html`. A home não monta esse módulo. |

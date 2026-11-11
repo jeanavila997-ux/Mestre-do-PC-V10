@@ -17,7 +17,7 @@ import { reaStatus, reaDoctor, reaAnalyzeAppJs } from "../rea-bridge.js";
 import { refreshLocalMcpTokenFromFile } from "../../mcp-server/auth/local-token.js";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -263,6 +263,41 @@ async function classifyLauncherCommand(cmd) {
     body: JSON.stringify({ cmd }),
   });
   return resp.json();
+}
+
+// ── DeepSeek Harness (dsh) ──────────────────────────────────────────
+// O dsh é um agent harness: recebe uma tarefa de código e a executa de ponta a
+// ponta com as próprias tools. O launcher expõe GET /dsh/status, POST /dsh/run
+// (→ { jobId }) e GET /dsh/job?id= (→ { id, state, result?, error? }), com a
+// mesma autorização local das rotas do REA.
+
+async function dshRequest(path, options = {}) {
+  const resp = await fetch(`${MESTRE_BASE_URL}${path}`, {
+    ...options,
+    headers: launcherMcpHeaders(),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(data.error || `dsh HTTP ${resp.status}`);
+  return data;
+}
+
+/** Texto final, provedor que respondeu e tentativas (quando o job informa). */
+function extrairResultadoDsh(job = {}) {
+  const result = job.result;
+  const texto = typeof result === "string"
+    ? result
+    : String(result?.output || result?.text || result?.result || result?.message || "");
+  const provedor = job.provider || result?.provider || result?.providerId || result?.model || "";
+  const tentativas = Array.isArray(job.attempts) ? job.attempts
+    : Array.isArray(result?.attempts) ? result.attempts
+      : [];
+  return { texto, provedor: String(provedor || ""), tentativas };
+}
+
+function errosDasTentativas(tentativas = []) {
+  return tentativas
+    .map((t) => (typeof t === "string" ? t : t?.error || t?.erro || ""))
+    .filter(Boolean);
 }
 
 // ── RAG Query ───────────────────────────────────────────────────────
@@ -573,6 +608,118 @@ export const TOOLS_API = {
     const alvo = String(caminho || target || "").trim();
     if (!alvo) return { error: "Informe 'caminho' com o caminho absoluto do app (.asar ou pasta extraída)." };
     return reaAnalyzeAppJs({ target: alvo });
+  },
+
+  // ── DeepSeek Harness (dsh) — tarefa de código de ponta a ponta ──────
+  // Use para trabalho de engenharia longo (feature, refatoração, bug com
+  // reprodução, testes em vários arquivos). Pergunta rápida fica no chat normal.
+
+  /** Estado do dsh: instalado, versão/modo e quais provedores da cascata estão prontos. */
+  dsh_status: async () => {
+    const status = await dshRequest("/dsh/status");
+    const provedores = Array.isArray(status.providers) ? status.providers : [];
+    return {
+      instalado: Boolean(status.installed),
+      versao: status.version || null,
+      modo: status.mode || null,
+      home: status.home || null,
+      comando: status.command || null,
+      provedores_prontos: provedores
+        .filter((p) => p && p.ready)
+        .map((p) => ({ id: p.id, label: p.label, model: p.model })),
+      provedores: provedores.map((p) => ({
+        id: p?.id, label: p?.label, model: p?.model, ready: Boolean(p?.ready),
+      })),
+    };
+  },
+
+  /**
+   * Roda UMA tarefa no dsh e acompanha o job até o fim. Devolve o texto final,
+   * o provedor que respondeu e os erros de cada tentativa. Sem follow-up: para
+   * continuar, dispare outra tarefa. Com `retry`, a cascata repete a cada 5 min.
+   */
+  dsh_rodar_tarefa: async ({ task, cwd, provider, retry, timeoutMs } = {}) => {
+    const tarefa = String(task || "").trim();
+    if (!tarefa) return { error: "Informe 'task' com a descrição da tarefa para o dsh." };
+
+    const corpo = { task: tarefa };
+    if (cwd) {
+      const alvo = String(cwd).trim();
+      if (!isAbsolute(alvo)) return { error: "Informe 'cwd' com um caminho absoluto (ex: C:\\Users\\Jean\\Projetos\\app)." };
+      corpo.cwd = alvo;
+    }
+    if (provider) corpo.provider = String(provider).trim();
+    if (retry) corpo.retry = true;
+    // Teto de tempo de UMA tentativa do harness (o launcher mata o job em 15 min).
+    const limiteMs = Math.min(Math.max(Number(timeoutMs) || 300000, 30000), 900000);
+    corpo.timeoutMs = limiteMs;
+
+    const inicio = Date.now();
+    const job = await dshRequest("/dsh/run", { method: "POST", body: JSON.stringify(corpo) });
+    const jobId = job.jobId || job.id;
+    if (!jobId) return { error: "O launcher não devolveu jobId para a tarefa do dsh.", resposta: job };
+
+    // Polling: com retry a cadeia pode repetir a cada 5 min, então o teto é maior.
+    const intervaloMs = 4000;
+    const tetoMs = Math.min(limiteMs * (corpo.retry ? 2 : 1) + 90000, 13 * 60 * 1000);
+    const maxConsultas = Math.max(1, Math.ceil(tetoMs / intervaloMs));
+    let ultimo = { id: jobId, state: "queued" };
+    let erros = [];
+    let falhasSeguidas = 0;
+
+    for (let i = 0; i < maxConsultas; i++) {
+      await new Promise((r) => setTimeout(r, intervaloMs));
+      try {
+        ultimo = await dshRequest(`/dsh/job?id=${encodeURIComponent(jobId)}`);
+        falhasSeguidas = 0;
+        if (Array.isArray(ultimo.errors)) erros = ultimo.errors;
+        if (ultimo.state === "completed" || ultimo.state === "failed") break;
+      } catch (err) {
+        falhasSeguidas++;
+        if (falhasSeguidas >= 5) {
+          throw new Error(`dsh: GET /dsh/job falhou 5 vezes seguidas (${err.message})`);
+        }
+      }
+    }
+
+    const detalhe = extrairResultadoDsh(ultimo);
+    const errosTentativas = erros.length ? erros : errosDasTentativas(detalhe.tentativas);
+    const duracaoSegundos = Math.round((Date.now() - inicio) / 1000);
+
+    if (ultimo.state !== "completed" && ultimo.state !== "failed") {
+      return {
+        ok: false,
+        pendente: true,
+        jobId,
+        estado: ultimo.state,
+        provedor: detalhe.provedor || null,
+        erro: `Teto de ${Math.round(tetoMs / 1000)}s de acompanhamento atingido com o job em "${ultimo.state}". Consulte GET /dsh/job?id=${jobId}.`,
+        erros: errosTentativas,
+        duracaoSegundos,
+      };
+    }
+
+    if (ultimo.state === "failed") {
+      return {
+        ok: false,
+        jobId,
+        estado: "failed",
+        provedor: detalhe.provedor || null,
+        erro: ultimo.error || "A tarefa falhou no dsh.",
+        erros: errosTentativas,
+        duracaoSegundos,
+      };
+    }
+
+    return {
+      ok: true,
+      jobId,
+      estado: "completed",
+      provedor: detalhe.provedor || null,
+      resultado: detalhe.texto,
+      erros: errosTentativas,
+      duracaoSegundos,
+    };
   },
 };
 

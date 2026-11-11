@@ -4482,6 +4482,33 @@
         "caminho": "^[A-Za-z]:[\\\\/][A-Za-z0-9 ._\\\\/()\\-]{1,240}$"
       },
       "description": "Analisa um app entregue (pasta extraída, .asar ou build JavaScript) e devolve a Evidência do REA em JSON. Informe 'caminho' absoluto. O app analisado nunca é executado."
+    },
+    {
+      "id": "dsh_status",
+      "title": "Status do DeepSeek Harness",
+      "category": "DeepSeek Harness (dsh)",
+      "destructive": false,
+      "command": "$h=@{ \"X-Mestre-Client\"=\"v10-web\" }; try { $r=Invoke-RestMethod -Uri \"http://127.0.0.1:7777/dsh/status\" -Headers $h -TimeoutSec 20; Write-Host \"dsh instalado: $($r.installed) | versao: $($r.version) | modo: $($r.mode)\" -ForegroundColor Cyan; if(-not $r.providers){ Write-Host \"Nenhum provedor retornado.\" -ForegroundColor Yellow } else { $r.providers | ForEach-Object { $marca=if($_.ready){ \"PRONTO\" } else { \"offline\" }; Write-Host (\"- {0} [{1}] modelo={2} ({3})\" -f $_.id, $marca, $_.model, $_.label) } } } catch { Write-Host \"dsh indisponivel em 127.0.0.1:7777: $($_.Exception.Message)\" -ForegroundColor Yellow }",
+      "description": "Mostra se o DeepSeek Harness está instalado, a versão/modo e o estado de cada provedor da cascata (pronto ou offline). Read-only."
+    },
+    {
+      "id": "dsh_cascata_provedores",
+      "title": "Ver cascata de provedores do dsh",
+      "category": "DeepSeek Harness (dsh)",
+      "destructive": false,
+      "command": "$h=@{ \"X-Mestre-Client\"=\"v10-web\" }; try { $r=Invoke-RestMethod -Uri \"http://127.0.0.1:7777/dsh/status\" -Headers $h -TimeoutSec 20; Write-Host \"Cascata do dsh (grok -> 9router -> opencode -> opencode-go -> ollama -> deepseek):\" -ForegroundColor Cyan; $i=0; $r.providers | ForEach-Object { $i++; $marca=if($_.ready){ \"PRONTO\" } else { \"offline\" }; Write-Host (\"{0}. {1} -> {2} [{3}]\" -f $i, $_.id, $_.model, $marca) }; $prontos=@($r.providers | Where-Object { $_.ready }).Count; Write-Host \"Provedores prontos: $prontos de $($r.providers.Count)\" -ForegroundColor $(if($prontos -gt 0){ \"Green\" } else { \"Red\" }) } catch { Write-Host \"dsh indisponivel em 127.0.0.1:7777: $($_.Exception.Message)\" -ForegroundColor Yellow }",
+      "description": "Lista a cascata de provedores do dsh na ordem de tentativa (grok, 9router, opencode, opencode-go, ollama, deepseek) e quantos estão prontos agora. Read-only."
+    },
+    {
+      "id": "dsh_rodar_tarefa",
+      "title": "Rodar tarefa no DeepSeek Harness",
+      "category": "DeepSeek Harness (dsh)",
+      "destructive": false,
+      "pattern": "$h=@{ \"X-Mestre-Client\"=\"v10-web\" }; $corpo=@{ task=\"{{TAREFA}}\" } | ConvertTo-Json -Compress; try { $r=Invoke-RestMethod -Method POST -Uri \"http://127.0.0.1:7777/dsh/run\" -Headers $h -ContentType \"application/json\" -Body $corpo -TimeoutSec 60; $id=$r.jobId; Write-Host \"Tarefa enviada ao dsh: job $id\" -ForegroundColor Cyan; $estado=\"queued\"; for($i=0; $i -lt 144; $i++){ Start-Sleep -Seconds 5; $j=Invoke-RestMethod -Uri \"http://127.0.0.1:7777/dsh/job?id=$id\" -Headers $h -TimeoutSec 30; $estado=$j.state; if($estado -eq \"completed\" -or $estado -eq \"failed\"){ break } }; Write-Host \"Estado final: $estado\"; if($j.provider){ Write-Host \"Provedor: $($j.provider)\" }; if($j.error){ Write-Host \"Erro: $($j.error)\" -ForegroundColor Red }; if($j.attempts){ $j.attempts | ForEach-Object { if($_.error){ Write-Host (\"Falha em {0}: {1}\" -f $_.provider, $_.error) -ForegroundColor Yellow } } }; if($j.result){ $texto=if($j.result -is [string]){ $j.result } else { $j.result.output }; Write-Host \"\"; Write-Host $texto } } catch { Write-Host \"dsh indisponivel em 127.0.0.1:7777: $($_.Exception.Message)\" -ForegroundColor Yellow }",
+      "params": {
+        "tarefa": "^[A-Za-z0-9À-ÿ .,;:()\\/_-]{1,600}$"
+      },
+      "description": "Envia uma tarefa de código ao dsh (POST /dsh/run), acompanha o job (GET /dsh/job?id=) e imprime o texto final, o provedor que respondeu e as falhas de cada tentativa. Informe 'tarefa' com o objetivo autossuficiente. Uma tarefa por execução, sem follow-up."
     }
   ]
 }

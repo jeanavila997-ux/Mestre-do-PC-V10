@@ -21,6 +21,7 @@ import { handleSoulRoutes } from "./soul-routes.js";
 import { handleComputerUseRoutes } from "./computer-use-routes.js";
 import { handleProviderRoutes } from "./providers-routes.js";
 import { handleReaRoutes } from "./rea-routes.js";
+import { handleDshRoutes } from "./dsh-routes.js";
 import { isAllowedWebOrigin, isNppOrigin, isTrustedClientOrigin, parseExtraOrigins } from "./security/origin-policy.js";
 import { isLocalMcpEnabled, validateLocalMcpToken, ensureLocalMcpToken, isLegacyMcpAllowed } from "../mcp-server/auth/local-token.js";
 
@@ -796,6 +797,13 @@ const server = http.createServer(async (req, res) => {
     // Só análise de artefato entregue (leitura). O alvo nunca é executado.
     if (path === "/rea" || path.startsWith("/rea/")) {
       const handled = await handleReaRoutes(req, res, url, { isAuthorized, allowedOrigin });
+      if (handled) return;
+    }
+
+    // ── DeepSeek Harness (dsh): rotas /dsh/* ────────────────────────
+    // Tarefa headless em cascata de provedores; a chave vai só pelo env do filho.
+    if (path === "/dsh" || path.startsWith("/dsh/")) {
+      const handled = await handleDshRoutes(req, res, url, { isAuthorized, allowedOrigin });
       if (handled) return;
     }
 

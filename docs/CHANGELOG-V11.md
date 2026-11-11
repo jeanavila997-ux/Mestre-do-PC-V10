@@ -1,5 +1,24 @@
 # Mestre do PC V11 - Changelog
 
+## Não lançado — DeepSeek Harness (dsh) nativo · 2026-11-11
+
+### 🧠 Nova capacidade
+
+- `v10/dsh-bridge.js` + `v10/dsh-routes.js`: ponte nativa com o [DeepSeek Harness](https://www.npmjs.com/package/@deepseek-ai/dsh) (`@deepseek-ai/dsh@0.2.2-rc.1`, MIT, developer preview). O launcher lança `headless --json --patch` e lê o NDJSON (`session`, `text`, `thinking`, `tool_call`, `tool_result`, `final`). Rotas `GET /dsh/status`, `POST /dsh/run` (+ job em `GET /dsh/job`).
+- Cascata de provedores grok → 9router → opencode → opencode-go → ollama → deepseek, só com credencial resolvível (ambiente ou `.env.local`). `provider` no corpo força o primeiro degrau; `retry: true` habilita rodadas extras de 300 s.
+- Documentação: `docs/DEEPSEEK-HARNESS.md`.
+
+### 🔒 Segurança
+
+- `dsh` executa shell e edita arquivos: `cwd` precisa ser absoluto, existente, sem `..`, dentro das raízes permitidas (`MPC_DSH_ALLOWED_ROOTS` para extras) e fora de diretórios de sistema. Sem `--add-dir` extra.
+- Chave do provedor nunca entra no patch, no log nem na resposta: o YAML guarda só `apiKeyEnv`, o valor vai pelo ambiente do filho.
+- `DSH_HOME` isolado (`%LOCALAPPDATA%\MestreDoPC\dsh-home`), `DSH_TELEMETRY_MODE=DISABLED` e row `session-log-deepseek` desligada — o upload de log de sessão do dsh (8 MiB/request) fica fora.
+- `dsh_run` grava nível `SECURITY` em `logs/audit/`; saída limitada a ~2 MiB / 200 eventos; no máximo 2 jobs simultâneos e 30 min de retenção.
+
+### ✅ Testes
+
+- `mcp-server/test/dsh-bridge.test.js` (6): status sem pacote instalado, ordem da cadeia, validação de entrada/`cwd`, parser NDJSON, avanço da cascata e retry com espera de 300 s.
+
 ## Não lançado — Engenharia Reversa (REA) nativa
 
 ### 🔬 Nova capacidade
