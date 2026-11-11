@@ -121,3 +121,7 @@ mobile/gateway/data/
 # Backups locais com data
 *.bak-*
 
+
+# sessao local do visual companion
+.superpowers/
+

@@ -1379,6 +1379,15 @@ async function loadConversas() {
   renderConversas();
 }
 
+function conversationTitle(raw) {
+  const line = String(raw || "").split(/\r?\n/).map((part) => part.trim()).find(Boolean) || "";
+  const cleaned = line.replace(/\s+/g, " ").trim();
+  const letters = cleaned.replace(/[^\p{L}\p{N}]/gu, "");
+  if (letters.length < 2) return "Conversa";
+  if (cleaned.length <= 42) return cleaned;
+  return `${cleaned.slice(0, 41).trimEnd()}…`;
+}
+
 function renderConversas() {
   const list = $("chatHistory");
   list.innerHTML = "";
@@ -1387,8 +1396,11 @@ function renderConversas() {
     const item = document.createElement("button");
     item.type = "button";
     item.className = "chat-item" + (conv.id === state.conversaId ? " active" : "");
-    item.textContent = conv.titulo || "Nova conversa";
-    item.title = conv.titulo || "";
+    const label = document.createElement("span");
+    label.className = "chat-label";
+    label.textContent = conversationTitle(conv.titulo);
+    item.appendChild(label);
+    item.title = conv.titulo || "Conversa";
 
     const del = document.createElement("span");
     del.className = "del-btn";
@@ -1883,7 +1895,7 @@ async function sendMessage() {
 
   // Cria conversa se não existir
   if (!state.conversaId) {
-    const conv = await apiPost("/api/conversas", { titulo: visibleMessage.slice(0, 40) });
+    const conv = await apiPost("/api/conversas", { titulo: conversationTitle(visibleMessage) });
     state.conversaId = conv.id;
     loadConversas();
   }
@@ -2185,6 +2197,11 @@ export async function initChatIntegrado() {
   });
 
   document.addEventListener("click", () => closeAllMenus());
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!$("modalOverlay")?.hidden) return;
+    closeAllMenus();
+  });
 
   $$(".popup-menu").forEach(m => {
     m.addEventListener("click", (e) => e.stopPropagation());

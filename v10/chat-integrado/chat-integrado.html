@@ -24,21 +24,22 @@
   </div>
   <div class="nav-group">
     <button type="button" class="nav-item active" id="btnNewChat"><span class="nav-icon">＋</span><span>Novo chat</span></button>
-    <button type="button" class="nav-item" id="btnMemories"><span class="nav-icon">🧠</span><span>Memórias</span></button>
-    <button type="button" class="nav-item" id="btnToolsNav"><span class="nav-icon">🛠️</span><span>Ferramentas</span></button>
-    <button type="button" class="nav-item" id="btnSkillsNav"><span class="nav-icon">SK</span><span>Skills</span></button>
-    <button type="button" class="nav-item" id="btnChavesApiNav"><span class="nav-icon">🔑</span><span>Configurar API</span></button>
-<button type="button" class="nav-item" id="btnGerenciarNav"><span class="nav-icon">⚙️</span><span>Gerenciar</span></button>
   </div>
-  <div class="nav-group">
-    <button type="button" class="nav-item" id="btnDiagnosticoNav"><span class="nav-icon">🔧</span><span>Diagnóstico IA</span></button>
-    <button type="button" class="nav-item" id="btnManutencaoNav"><span class="nav-icon">🛠️</span><span>Manutenção</span></button>
-    <button type="button" class="nav-item" id="btnDashboardNav"><span class="nav-icon">📊</span><span>Dashboard</span></button>
-  </div>
-  <div class="nav-group">
-    <button type="button" class="nav-item" id="btnThemeNav"><span class="nav-icon">◐</span><span>Tema</span></button>
-    <button type="button" class="nav-item" id="btnClearNav"><span class="nav-icon">🗑️</span><span>Limpar chat</span></button>
-  </div>
+  <details class="more-nav">
+    <summary class="nav-item"><span class="nav-icon">☰</span><span>Mais</span></summary>
+    <div class="nav-group">
+      <button type="button" class="nav-item" id="btnMemories"><span class="nav-icon">🧠</span><span>Memórias</span></button>
+      <button type="button" class="nav-item" id="btnToolsNav"><span class="nav-icon">🛠️</span><span>Ferramentas</span></button>
+      <button type="button" class="nav-item" id="btnSkillsNav"><span class="nav-icon">SK</span><span>Skills</span></button>
+      <button type="button" class="nav-item" id="btnChavesApiNav"><span class="nav-icon">🔑</span><span>Configurar API</span></button>
+      <button type="button" class="nav-item" id="btnGerenciarNav"><span class="nav-icon">⚙️</span><span>Gerenciar</span></button>
+      <button type="button" class="nav-item" id="btnDiagnosticoNav"><span class="nav-icon">🔧</span><span>Diagnóstico IA</span></button>
+      <button type="button" class="nav-item" id="btnManutencaoNav"><span class="nav-icon">🛠️</span><span>Manutenção</span></button>
+      <button type="button" class="nav-item" id="btnDashboardNav"><span class="nav-icon">📊</span><span>Dashboard</span></button>
+      <button type="button" class="nav-item" id="btnThemeNav"><span class="nav-icon">◐</span><span>Tema</span></button>
+      <button type="button" class="nav-item" id="btnClearNav"><span class="nav-icon">🗑️</span><span>Limpar chat</span></button>
+    </div>
+  </details>
   <div class="section-title"><span>Conversas</span><span id="syncBadge" class="sync-badge">Sync: --</span></div>
   <div class="chat-list" id="chatHistory"></div>
   <button type="button" class="user-profile" id="userProfile" title="Sair da sessão">
@@ -61,13 +62,16 @@
   </div>
 
   <div class="content-area" id="contentArea">
+    <div class="thread" id="thread">
     <div class="hero-heading" id="heroHeading">
       <div class="tess-icon-big">M</div>
       <h1 class="hero-title">Chat Integrado Mestre do PC</h1>
     </div>
 
     <div class="messages-container" id="messagesContainer" role="region" aria-live="polite" aria-label="Mensagens da conversa" style="display:none"></div>
+    </div>
 
+    <div class="dock" id="dock">
     <!-- Tools panel (popup) -->
     <div class="tools-panel" id="toolsPanel">
       <div style="font-size:12px;color:var(--text-muted);padding:4px 8px 8px;font-weight:600;display:flex;justify-content:space-between;gap:12px">
@@ -134,6 +138,7 @@
     </div>
 
     <div class="quick-categories" id="quickCategories" aria-label="Perguntas e ações rápidas"></div>
+    </div>
   </div>
 </main>
 
