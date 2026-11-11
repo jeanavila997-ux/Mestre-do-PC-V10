@@ -22,6 +22,11 @@ const PROJECT_ROOT = join(__dirname, "..");
 const ENTRY_POINTS = [
   "v10/launcher.js",
   "v10/operation-registry.js",
+  "v10/chat-integrado/chat-integrado.js",
+  "v10/chat-integrado/grokbot-bridge.js",
+  "v10/chat-integrado/api-routes.js",
+  "v10/chat-integrado/mysql-sync.js",
+  "v10/mobile/app.js",
   "mcp-server/index.js",
   "mcp-server/security.js",
   "mcp-server/audit-logger.js",

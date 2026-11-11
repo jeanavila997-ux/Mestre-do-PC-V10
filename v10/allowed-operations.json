@@ -331,8 +331,8 @@
     {
       "id": "resetar_subsistema_de_audio",
       "title": "Resetar Subsistema de Áudio",
-      "category": "Sistema",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "Stop-Service -Name AudioEndpointBuilder -Force -ErrorAction SilentlyContinue; Stop-Service -Name audiosrv -Force -ErrorAction SilentlyContinue; Get-PnpDevice -Class MEDIA | Where-Object { $_.FriendlyName -match 'Audio|Som|Realtek|NVIDIA|AMD|Intel' } | Disable-PnpDevice -Confirm:$false -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3; Get-PnpDevice -Class MEDIA | Where-Object { $_.FriendlyName -match 'Audio|Som|Realtek|NVIDIA|AMD|Intel' } | Enable-PnpDevice -Confirm:$false -ErrorAction SilentlyContinue; Start-Service -Name AudioEndpointBuilder -ErrorAction SilentlyContinue; Start-Service -Name audiosrv -ErrorAction SilentlyContinue; Write-Host '✅ Subsistema de áudio resetado!' -ForegroundColor Green",
       "description": "Resetar Subsistema de Áudio."
     },
@@ -811,16 +811,16 @@
     {
       "id": "desligar_agora",
       "title": "Desligar Agora",
-      "category": "Outros",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "Stop-Computer -Force",
       "description": "Desligar Agora."
     },
     {
       "id": "reiniciar_agora",
       "title": "Reiniciar Agora",
-      "category": "Outros",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "Restart-Computer -Force",
       "description": "Reinicia Agora."
     },
@@ -1131,8 +1131,8 @@
     {
       "id": "desativar_ipv6",
       "title": "Desativar IPv6",
-      "category": "Outros",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "Disable-NetAdapterBinding -Name \"*\" -ComponentID ms_tcpip6 -EA 0; Write-Host \"✅ IPv6 desativado!\" -ForegroundColor Green",
       "description": "Desativa IPv6."
     },
@@ -1707,88 +1707,88 @@
     {
       "id": "instalar_ollama_irm_install_ps1",
       "title": "Instalar Ollama (irm install.ps1)",
-      "category": "Instalações",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "irm https://ollama.com/install.ps1 | iex",
       "description": "Instala Ollama."
     },
     {
       "id": "pip_install_requests",
       "title": "pip install requests",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "pip install --upgrade requests; Write-Host \"✅ requests instalado/atualizado!\" -ForegroundColor Green",
       "description": "pip install requests."
     },
     {
       "id": "pip_install_numpy_pandas",
       "title": "pip install numpy + pandas",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "pip install --upgrade numpy pandas; Write-Host \"✅ numpy e pandas instalados!\" -ForegroundColor Green",
       "description": "pip install numpy + pandas."
     },
     {
       "id": "pip_install_matplotlib",
       "title": "pip install matplotlib",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "pip install --upgrade matplotlib; Write-Host \"✅ matplotlib instalado!\" -ForegroundColor Green",
       "description": "pip install matplotlib."
     },
     {
       "id": "pip_install_psutil",
       "title": "pip install psutil",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "pip install --upgrade psutil; Write-Host \"✅ psutil instalado!\" -ForegroundColor Green",
       "description": "pip install psutil."
     },
     {
       "id": "pip_install_openpyxl",
       "title": "pip install openpyxl",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "pip install --upgrade openpyxl; Write-Host \"✅ openpyxl instalado!\" -ForegroundColor Green",
       "description": "pip install openpyxl."
     },
     {
       "id": "npm_install_no_projeto",
       "title": "npm install no projeto",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "Set-Location -LiteralPath $env:MESTRE_PROJETO_PATH; npm install; Write-Host \"✅ npm install concluído!\" -ForegroundColor Green",
       "description": "npm install no projeto."
     },
     {
       "id": "npm_install_g_typescript",
       "title": "npm install -g typescript",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "npm install -g typescript; Write-Host \"✅ TypeScript instalado globalmente!\" -ForegroundColor Green",
       "description": "npm install -g typescript."
     },
     {
       "id": "npm_install_g_nodemon",
       "title": "npm install -g nodemon",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "npm install -g nodemon; Write-Host \"✅ nodemon instalado globalmente!\" -ForegroundColor Green",
       "description": "npm install -g nodemon."
     },
     {
       "id": "pip_install_pywin32",
       "title": "pip install pywin32",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "pip install --upgrade pywin32; Write-Host \"✅ pywin32 instalado!\" -ForegroundColor Green",
       "description": "pip install pywin32."
     },
     {
       "id": "pip_install_pillow",
       "title": "pip install pillow",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "pip install --upgrade pillow; Write-Host \"✅ pillow instalado!\" -ForegroundColor Green",
       "description": "pip install pillow."
     },
@@ -2147,8 +2147,8 @@
     {
       "id": "atualizar_npm",
       "title": "Atualizar NPM",
-      "category": "Node.js",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "npm install -g npm@latest; Write-Host \"✅ NPM atualizado!\" -ForegroundColor Green",
       "description": "Atualiza o NPM para a versão mais recente."
     },
@@ -2187,8 +2187,8 @@
     {
       "id": "instalar_pacote_npm_global_interativo",
       "title": "Instalar Pacote NPM (Global)",
-      "category": "Node.js",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "$pkg = Read-Host \"Nome do pacote NPM\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { npm install -g $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }",
       "description": "Instala Pacote NPM."
     },
@@ -2291,8 +2291,8 @@
     {
       "id": "atualizar_pip",
       "title": "Atualizar Pip",
-      "category": "Python",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "python -m pip install --upgrade pip; Write-Host \"✅ Pip atualizado!\" -ForegroundColor Green",
       "description": "Atualiza o Pip para a versão mais recente."
     },
@@ -2323,8 +2323,8 @@
     {
       "id": "instalar_pacote_pip_interativo",
       "title": "Instalar Pacote Pip",
-      "category": "Python",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "$pkg = Read-Host \"Nome do pacote Pip\"; if ($pkg -match \"^[a-zA-Z0-9_.-]{1,100}$\") { pip install $pkg; Write-Host \"✅ Pacote $pkg instalado!\" -ForegroundColor Green } else { Write-Host \"❌ Nome de pacote inválido.\" -ForegroundColor Red }",
       "description": "Instala Pacote Pip."
     },
@@ -2795,8 +2795,8 @@
     {
       "id": "instalar_chrome_devtools_mcp",
       "title": "Instalar Chrome DevTools MCP",
-      "category": "Bibliotecas",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "if (-not $env:MESTRE_PROJETO_PATH) { Write-Host \"❌ MESTRE_PROJETO_PATH não definido.\" -ForegroundColor Red; exit 1 }; $pasta = Join-Path $env:MESTRE_PROJETO_PATH 'mcp-server'; Set-Location -LiteralPath $pasta; npm install chrome-devtools-mcp@1.12.0 --no-audit --no-fund; if ($LASTEXITCODE -eq 0) { Write-Host \"✅ Chrome DevTools MCP instalado em $pasta!\" -ForegroundColor Green; Write-Host \"ℹ️ Reinicie o MCP Server para ativar as tools chrome_*.\" -ForegroundColor Cyan } else { Write-Host \"❌ Falha ao instalar o Chrome DevTools MCP.\" -ForegroundColor Red }",
       "description": "Instala o pacote chrome-devtools-mcp (Chrome DevTools Protocol) na pasta mcp-server do projeto. Habilita as tools chrome_* (list_pages, take_snapshot, evaluate_script, take_screenshot, lighthouse_audit, performance_start_trace) no MCP Server. Reinicie o MCP Server após instalar."
     },
@@ -2819,8 +2819,8 @@
     {
       "id": "fc_3_1793346585805",
       "title": "Instalar Firecrawl Skills (37)",
-      "category": "Instalações",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "command": "Set-Location $env:USERPROFILE\\Projetos\\Mestre-do-PC-V10; npx -y skills add https://github.com/firecrawl/skills.git --all -y",
       "description": "Instala as 37 skills Firecrawl nos agentes."
     },
@@ -2987,14 +2987,26 @@
     {
       "id": "skill_typesafe_ai",
       "title": "skill typesafe-ai",
-      "category": "skills",
-      "destructive": false,
-      "command": "npx skills add typesafe-ai/skills --skill typesafe-ai",
+      "category": "Destrutiva",
+      "destructive": true,
+      "command": "npx -y skills add typesafe-ai/skills --skill typesafe-ai",
       "description": "instalar skills typesafe",
       "enabled": true
     }
   ],
   "templates": [
+    {
+      "id": "mover_segredo_para_chaves",
+      "title": "Mover Segredo para Chaves",
+      "category": "Segurança",
+      "destructive": true,
+      "pattern": "$d='C:\\Users\\Jean\\chaves'; $n=\"{{ARQUIVO}}\"; if($n -match '^\\.{1,2}$'){Write-Host '⚠️ Nome inválido.' -ForegroundColor Yellow} elseif($f=@('C:\\Users\\Jean\\OneDrive','C:\\Users\\Jean\\Desktop','C:\\Users\\Jean\\Downloads') | ForEach-Object {Join-Path $_ $n} | Where-Object {Test-Path -LiteralPath $_} | Select-Object -First 1){$i=Get-Item -LiteralPath $f -Force; if($i.Attributes -band [IO.FileAttributes]::ReparsePoint){Write-Host '⚠️ Somente-nuvem: abra o OneDrive e repita.' -ForegroundColor Yellow} else {$t=Join-Path $d $i.Name; if(Test-Path -LiteralPath $t){$b=[IO.Path]::GetFileNameWithoutExtension($i.Name); $e=[IO.Path]::GetExtension($i.Name); $k=1; while(Test-Path -LiteralPath $t){$t=Join-Path $d ($b+'-'+$k+$e); $k++}}; Move-Item -LiteralPath $f -Destination $t -Force -ErrorAction Stop; Write-Host ('✅ Movido: '+$i.Name+' -> '+$t) -ForegroundColor Green}} else {Write-Host '⚠️ Não encontrado em OneDrive, Desktop ou Downloads.' -ForegroundColor Yellow}",
+      "params": {
+        "arquivo": "^(?!\\.{1,2}$)[a-zA-Z0-9_. -]{1,128}$"
+      },
+      "description": "Move um segredo para C:\\Users\\Jean\\chaves, fora do OneDrive e da Área de Trabalho. Informe 'arquivo' com o nome apenas (ex: API MISTRAL.txt), sem caminho. Procura na raiz do OneDrive, no Desktop e em Downloads. Recusa arquivo somente-nuvem com o OneDrive parado; não abre nem imprime o conteúdo; não sobrescreve (acrescenta -1, -2).",
+      "enabled": true
+    },
     {
       "id": "encerrar_processo",
       "title": "Encerrar Processo",
@@ -4023,8 +4035,8 @@
     {
       "id": "instalar_pacote_npm_global",
       "title": "Instalar Pacote NPM (Global)",
-      "category": "Node.js",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "pattern": "npm install -g {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} instalado!\" -ForegroundColor Green",
       "params": {
         "pacote": "^[a-zA-Z0-9_.-]{1,100}$"
@@ -4045,8 +4057,8 @@
     {
       "id": "instalar_pacote_pip",
       "title": "Instalar Pacote Pip",
-      "category": "Python",
-      "destructive": false,
+      "category": "Destrutiva",
+      "destructive": true,
       "pattern": "pip install {{PACOTE}}; Write-Host \"✅ Pacote {{PACOTE}} instalado!\" -ForegroundColor Green",
       "params": {
         "pacote": "^[a-zA-Z0-9_.-]{1,100}$"

@@ -172,7 +172,12 @@ export function iniciarSyncAutomatico() {
     }
   }, SYNC_INTERVAL_MS);
 
-  console.log(`[mysql-sync] Sync automático ativo (threshold: ${SYNC_THRESHOLD}, intervalo: ${SYNC_INTERVAL_MS}ms)`);
+  const mysqlOk = !!mysqlConfig.host && !!mysqlConfig.database;
+  if (mysqlOk) {
+    console.log(`[mysql-sync] Sync automático ativo (threshold: ${SYNC_THRESHOLD}, intervalo: ${SYNC_INTERVAL_MS}ms)`);
+  } else {
+    console.log(`[mysql-sync] Timer local ativo, mas MySQL não configurado — sync remoto ficará skipped (threshold: ${SYNC_THRESHOLD})`);
+  }
 }
 
 export function pararSyncAutomatico() {
