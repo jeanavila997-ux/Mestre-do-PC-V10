@@ -484,7 +484,7 @@ async function callOllamaChat(messages, allowOrigin = BASE_URL) {
   const upstream = await fetch(OLLAMA_URL + "/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model, messages, stream: false, keep_alive: "10m" }),
+    body: JSON.stringify({ model, messages, stream: false, think: false, keep_alive: "10m" }),
     signal: AbortSignal.timeout(60000),
   });
   if (!upstream.ok) {

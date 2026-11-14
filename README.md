@@ -81,6 +81,10 @@ A CLI usa o Ollama configurado em `.env.local`, responde em português e grava
 logs rotativos em `logs/mestre-cli.log`. Para ativar, copie `.env.example` para
 `.env.local` e ajuste o modelo desejado.
 
+O modelo da CLI vem de `MESTRE_CLI_MODEL` (padrão `qwen3.5:4b-text`). `OLLAMA_MODEL`
+é o modelo do launcher e do servidor MCP (padrão `qwen2.5-coder:3b-instruct`) e só
+vale para a CLI quando `MESTRE_CLI_MODEL` está vazio.
+
 ```powershell
 Copy-Item .env.example .env.local
 npm run cli:status
@@ -90,7 +94,7 @@ npm run ia -- "Analise a arquitetura do Mestre do PC"
 Também é possível escolher o modelo ou receber o JSON completo:
 
 ```powershell
-npm run ia -- "Explique este erro" --model qwen3.5:4b
+npm run ia -- "Explique este erro" --model deepseek-coder:6.7b
 npm run ia -- "Resuma este projeto" --json
 ```
 

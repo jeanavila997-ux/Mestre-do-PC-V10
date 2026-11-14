@@ -752,6 +752,8 @@ async function streamModelOnce(model, messages, controller, useOpenCodeGo) {
         model,
         messages,
         stream: true,
+        // Sem think:false, modelos com raciocínio (ex.: qwen3.5) gastam o num_predict pensando e devolvem content vazio.
+        think: false,
         options: state.profileOptions || undefined,
       };
 

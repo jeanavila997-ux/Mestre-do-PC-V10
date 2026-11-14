@@ -164,12 +164,13 @@ function guardPromptInjection(text, toolName = "chat-integrado") {
 async function ollamaChat({ messages, system, timeoutMs = 60000, think }) {
   const model = await getBestAvailableModel();
   const options = buildOllamaOptions();
-  if (think) options.think = true;
 
   const body = {
     model,
     messages: system ? [{ role: "system", content: system }, ...messages] : messages,
     stream: false,
+    // think é campo de topo em /api/chat (não vai em options).
+    think: think === true,
     options,
   };
 

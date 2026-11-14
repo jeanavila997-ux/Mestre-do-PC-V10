@@ -107,6 +107,22 @@ test("comando ia envia a pergunta ao Ollama e devolve a resposta", async (t) => 
   assert.equal(recebido.model, "modelo-teste");
   assert.equal(recebido.messages[1].content, "Analise o projeto");
   assert.equal(recebido.stream, false);
+  assert.equal(recebido.think, false);
+});
+
+test("MESTRE_CLI_MODEL vence OLLAMA_MODEL e não é o padrão do servidor", async () => {
+  const pasta = temporario();
+  try {
+    const log = { MESTRE_LOG_FILE: path.join(pasta, "modelo.log") };
+    const soCli = await executarCli(["status"], { ...log, MESTRE_CLI_MODEL: "modelo-cli", OLLAMA_MODEL: "modelo-servidor" });
+    assert.match(soCli.stdout, /Modelo: modelo-cli/);
+    const herdado = await executarCli(["status"], { ...log, MESTRE_CLI_MODEL: "", OLLAMA_MODEL: "modelo-servidor" });
+    assert.match(herdado.stdout, /Modelo: modelo-servidor/);
+    const padrao = await executarCli(["status"], { ...log, MESTRE_CLI_MODEL: "", OLLAMA_MODEL: "" });
+    assert.match(padrao.stdout, /Modelo: qwen3\.5:4b-text/);
+  } finally {
+    fs.rmSync(pasta, { recursive: true, force: true });
+  }
 });
 
 test("opção sem valor é recusada", async () => {
