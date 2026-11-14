@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mestre do PC __APP_VERSION__</title>
+    <meta name="description" content="Launcher local do Mestre do PC: comandos PowerShell com whitelist, métricas do sistema, Ollama e Chat Integrado em 127.0.0.1." />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
     <script>
       (() => {
@@ -472,10 +473,10 @@
         height: 2px;
         background: linear-gradient(90deg, var(--accent), var(--accent2));
       }
-      .metric-icon { font-size: 1.3rem; margin-bottom: 8px; }
-      .metric-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); font-family: "Cascadia Mono", Consolas, monospace; }
-      .metric-label { font-size: 0.72rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
-      .progress-bar { height: 4px; background: var(--card); border-radius: 2px; overflow: hidden; margin-top: 10px; }
+      .metric-icon { font-size: 1.3rem; margin-bottom: 8px; min-height: 1.3rem; }
+      .metric-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); font-family: "Cascadia Mono", Consolas, monospace; min-height: 1.6em; line-height: 1.6em; overflow-wrap: anywhere; }
+      .metric-label { font-size: 0.72rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; min-height: 1em; }
+      .progress-bar { height: 4px; background: var(--card); border-radius: 2px; overflow: hidden; margin-top: 10px; min-height: 4px; }
       .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.6s; }
       .info-bar {
         background: rgba(0,212,255,0.07);
@@ -1491,7 +1492,7 @@
       // ===== NOVO V10: loadDashboard() — métricas em tempo real (inspirado V8/V9) =====
       async function loadDashboard() {
         try {
-          const r = await fetch(API + "/status", { signal: AbortSignal.timeout(3000) });
+          const r = await fetch(API + "/status", { signal: AbortSignal.timeout(8000) });
           if (!r.ok) return;
           const d = await r.json();
           const cpuPct = d.cpu != null ? Math.min(100, d.cpu) : 0;
@@ -1686,9 +1687,10 @@
             const r = await fetch(API + "/mcp-status", { signal: AbortSignal.timeout(3000) });
             const d = await r.json();
             const el = document.getElementById("mcpStatusText");
-            el.textContent = d.status === "online" ? "Online" : "Desconectado";
-            el.style.color = d.status === "online" ? "var(--accent2)" : "var(--danger)";
-            document.getElementById("mcpStatusIcon").textContent = d.status === "online" ? "🟢" : "🔴";
+            const mcpOnline = d.status === "online" || d.status === "degraded";
+            el.textContent = d.status === "online" ? "Online" : (d.status === "degraded" ? "Degradado" : "Desconectado");
+            el.style.color = mcpOnline ? "var(--accent2)" : "var(--danger)";
+            document.getElementById("mcpStatusIcon").textContent = d.status === "online" ? "🟢" : (d.status === "degraded" ? "🟡" : "🔴");
             const profileText = d.modelProfile ? `${d.modelProfile} (${d.model || ""})` : (d.model || "-");
             document.getElementById("modelProfileText").textContent = profileText;
             document.getElementById("modelProfileText").title = `Perfil ativo: ${d.modelProfile || "balanced"}\nModelo: ${d.model || ""}`;

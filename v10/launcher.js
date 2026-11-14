@@ -22,6 +22,7 @@ import { handleComputerUseRoutes } from "./computer-use-routes.js";
 import { handleProviderRoutes } from "./providers-routes.js";
 import { handleReaRoutes } from "./rea-routes.js";
 import { handleDshRoutes } from "./dsh-routes.js";
+import { handleMcpHttpEndpoint } from "./chat-integrado/grokbot-bridge.js";
 import { isAllowedWebOrigin, isNppOrigin, isTrustedClientOrigin, parseExtraOrigins } from "./security/origin-policy.js";
 import { isLocalMcpEnabled, validateLocalMcpToken, ensureLocalMcpToken, isLegacyMcpAllowed } from "../mcp-server/auth/local-token.js";
 
@@ -483,7 +484,7 @@ async function callOllamaChat(messages, allowOrigin = BASE_URL) {
   const upstream = await fetch(OLLAMA_URL + "/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model, messages, stream: false, keep_alive: "10m" }),
+    body: JSON.stringify({ model, messages, stream: false, think: false, keep_alive: "10m" }),
     signal: AbortSignal.timeout(60000),
   });
   if (!upstream.ok) {
@@ -818,10 +819,26 @@ const server = http.createServer(async (req, res) => {
       }, allowedOrigin);
     }
 
+    // Endpoint MCP Streamable HTTP (JSON-RPC) — montado in-process via grokbot-bridge.
+    if (path === "/mcp") {
+      if (req.method === "OPTIONS") {
+        res.writeHead(204, {
+          "Access-Control-Allow-Origin": allowedOrigin,
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Mestre-Client, X-Mestre-Mcp-Token, Mcp-Session-Id",
+        });
+        res.end();
+        return;
+      }
+      return handleMcpHttpEndpoint(req, res, { allowedOrigin, readBody, runAllowedOperation });
+    }
+
     if (path === "/mcp-status") {
+      // Endpoint /mcp montado in-process — status leve, sem probe de rede a cada poll da UI.
       return sendJson(res, 200, {
-        status: "unknown",
+        status: "online",
         version: APP_VERSION,
+        endpoint: "/mcp",
         modelProfile: process.env.OLLAMA_MODEL_PROFILE || "balanced",
         model: process.env.OLLAMA_MODEL || "qwen2.5-coder:3b-instruct",
       }, allowedOrigin);

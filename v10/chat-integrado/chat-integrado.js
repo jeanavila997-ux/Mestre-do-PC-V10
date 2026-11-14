@@ -260,7 +260,12 @@ function ensureLocalSession() {
       localStorage.setItem(LS_SESSION, JSON.stringify(session));
     } catch { /* ignore storage quota errors */ }
   }
-  const user = String(session.user || "Jean Avila");
+  const rawUser = session.user;
+  const user = typeof rawUser === "string"
+    ? rawUser
+    : (rawUser && typeof rawUser === "object"
+      ? String(rawUser.name || rawUser.email || rawUser.login || "Jean Avila")
+      : "Jean Avila");
   if ($("userName")) $("userName").textContent = user.toUpperCase();
   if ($("userAvatar")) $("userAvatar").textContent = user.slice(0, 2).toUpperCase();
   if ($("userEmail")) $("userEmail").textContent = "Sessão local ativa";
@@ -747,6 +752,8 @@ async function streamModelOnce(model, messages, controller, useOpenCodeGo) {
         model,
         messages,
         stream: true,
+        // Sem think:false, modelos com raciocínio (ex.: qwen3.5) gastam o num_predict pensando e devolvem content vazio.
+        think: false,
         options: state.profileOptions || undefined,
       };
 
@@ -1715,6 +1722,8 @@ async function activateProfile(p, item) {
       state.provedorAtivo = "";
       if (p.model) state.modeloAtivo = p.model;
       try { localStorage.removeItem("mestre.provedorAtivo"); } catch {}
+      // Perfil ativo deve vencer a cadeia salva (mestre.modelChain).
+      if (p.model) saveModelChain([p.model, ...getModelChain().filter((m) => m !== p.model)].slice(0, 3));
       updateModelBadge();
       renderProfilesMenu();
     }
@@ -1729,6 +1738,9 @@ async function activateProfile(p, item) {
     state.provedorAtivo = "";
     state.modeloAtivo = result.modelo;
     if (result.opcoes) state.profileOptions = result.opcoes;
+    // Limpa/atualiza a cadeia persistida para o modelo do perfil não perder para mestre.modelChain.
+    const rest = getModelChain().filter((m) => m && m !== result.modelo);
+    saveModelChain([result.modelo, ...rest].slice(0, 3));
     try { localStorage.setItem("mestre.perfilAtivo", p.id); localStorage.removeItem("mestre.provedorAtivo"); } catch {}
     updateModelBadge();
     closeModelsMenu();
@@ -1847,12 +1859,15 @@ async function loadSyncStatus() {
   try {
     const status = await apiGet("/api/sync/status");
     const badge = $("syncBadge");
+    const pending = Number(status.unsynced?.total || 0);
     if (status.mysqlConfigurado) {
-      badge.className = "sync-badge " + (status.unsynced?.total > 0 ? "pending" : "synced");
-      badge.textContent = `Sync: ${status.unsynced?.total || 0} pending`;
+      badge.className = "sync-badge " + (pending > 0 ? "pending" : "synced");
+      badge.textContent = `Sync: ${pending} pending`;
+      badge.title = pending > 0 ? `${pending} itens aguardando sync MySQL` : "MySQL sincronizado";
     } else {
-      badge.className = "sync-badge";
-      badge.textContent = "Sync: local";
+      badge.className = "sync-badge " + (pending > 0 ? "pending" : "");
+      badge.textContent = pending > 0 ? `Sync: local (${pending} pend.)` : "Sync: local";
+      badge.title = "MySQL não configurado" + (pending > 0 ? ` — ${pending} itens só no SQLite local` : "");
     }
   } catch { /* ignora */ }
 }

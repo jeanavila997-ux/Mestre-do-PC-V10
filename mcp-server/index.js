@@ -536,7 +536,8 @@ async function ollamaChat({ messages, system, timeoutMs = 60000, think }) {
       : messages,
     stream: false,
   };
-  if (think) body.think = think;
+  // Sempre explícito: sem think:false, modelos com raciocínio devolvem content vazio.
+  body.think = think || false;
 
   const res = await fetch(OLLAMA_URL + "/api/chat", {
     method: "POST",
